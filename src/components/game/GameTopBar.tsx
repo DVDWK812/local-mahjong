@@ -1,0 +1,50 @@
+import type { MatchState } from '../../game/match/types';
+import type { GameState, Wind } from '../../game/types';
+
+interface GameTopBarProps {
+  gameState: GameState;
+  matchState?: MatchState;
+  analysisOpen: boolean;
+  onToggleAnalysis: () => void;
+  onReturnMenu: () => void;
+}
+
+const phaseLabels: Record<GameState['phase'], string> = {
+  draw: '摸牌',
+  discard: '打牌',
+  'ron-window': '荣和确认',
+  'call-window': '鸣牌窗口',
+  'kakan-declaration': '加杠宣告',
+  'chankan-window': '抢杠窗口',
+  'rinshan-draw': '岭上摸牌',
+  'round-ended': '本局结束',
+  'exhaustive-draw': '流局',
+};
+
+const windNames: Record<Wind, string> = {
+  east: '东',
+  south: '南',
+  west: '西',
+  north: '北',
+};
+
+export function GameTopBar({ gameState, analysisOpen, onToggleAnalysis, onReturnMenu }: GameTopBarProps) {
+  const current = gameState.players[gameState.currentPlayer];
+
+  return (
+    <header className="game-top-bar" aria-label="对局状态栏">
+      <div className="game-top-bar-section game-top-bar-section--round">
+        <span>供托{gameState.riichiSticks}</span>
+        <span>剩余{gameState.wall.length}张</span>
+      </div>
+      <div className="game-top-bar-section game-top-bar-section--turn">
+        <span>轮到：{windNames[current.seatWind]}家 {current.name}</span>
+        <span>{phaseLabels[gameState.phase]}</span>
+      </div>
+      <div className="game-top-bar-actions">
+        <button type="button" aria-pressed={analysisOpen} onClick={onToggleAnalysis}>牌局分析</button>
+        <button type="button" onClick={onReturnMenu}>返回菜单</button>
+      </div>
+    </header>
+  );
+}
