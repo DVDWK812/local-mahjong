@@ -24,16 +24,75 @@ describe('scoring context integration', () => {
   });
 
   it('generates rinshan and not haitei for rinshan tsumo', () => {
-    const state = { ...createInitialGameState(), wall: [], kanState: { type: 'ankan' as const, player: 0 as const, tile: 1 as const, doraIndicatorCount: 2 } };
+    const winningTile = createTile(1, 0);
+    const base = createInitialGameState();
+    const state = {
+      ...base,
+      wall: [],
+      lastDrawSource: 'rinshan' as const,
+      kanState: { type: 'ankan' as const, player: 0 as const, tile: 1 as const, doraIndicatorCount: 2 },
+      players: base.players.map((player, index) => index === 0 ? {
+        ...player,
+        drawnTile: winningTile,
+        hand: [...player.hand, winningTile],
+      } : player),
+    };
     const context = createScoringWinContext({
       state,
       playerId: 0,
-      winningTile: createTile(1, 0),
+      winningTile,
       winType: 'tsumo',
       preWinHand: [],
     });
     expect(context.isRinshan).toBe(true);
     expect(context.isHaitei).toBe(false);
+  });
+
+  it('does not generate rinshan for a later live-wall tsumo after a kan', () => {
+    const winningTile = createTile(1, 0);
+    const base = createInitialGameState();
+    const state = {
+      ...base,
+      lastDrawSource: 'live-wall' as const,
+      kanState: { type: 'ankan' as const, player: 0 as const, tile: 1 as const, doraIndicatorCount: 2 },
+      players: base.players.map((player, index) => index === 0 ? {
+        ...player,
+        drawnTile: winningTile,
+        hand: [...player.hand, winningTile],
+      } : player),
+    };
+    const context = createScoringWinContext({
+      state,
+      playerId: 0,
+      winningTile,
+      winType: 'tsumo',
+      preWinHand: [],
+    });
+    expect(context.isRinshan).toBe(false);
+  });
+
+  it('does not generate rinshan when the winning tile is not the current rinshan draw', () => {
+    const rinshanTile = createTile(1, 0);
+    const laterTile = createTile(2, 0);
+    const base = createInitialGameState();
+    const state = {
+      ...base,
+      lastDrawSource: 'rinshan' as const,
+      kanState: { type: 'ankan' as const, player: 0 as const, tile: 1 as const, doraIndicatorCount: 2 },
+      players: base.players.map((player, index) => index === 0 ? {
+        ...player,
+        drawnTile: rinshanTile,
+        hand: [...player.hand, rinshanTile],
+      } : player),
+    };
+    const context = createScoringWinContext({
+      state,
+      playerId: 0,
+      winningTile: laterTile,
+      winType: 'tsumo',
+      preWinHand: [],
+    });
+    expect(context.isRinshan).toBe(false);
   });
 
   it('marks double riichi from RiichiState kind', () => {

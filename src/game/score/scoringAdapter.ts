@@ -37,7 +37,7 @@ export function createScoringWinContext(params: {
   const { state, playerId, winningTile, winType, preWinHand } = params;
   const player: PlayerState = state.players[playerId];
   const callsOccurred = state.players.some((item) => item.calls.some((call) => call.type !== 'kan' || call.kanType !== 'ankan'));
-  const winningTileSource = params.winningTileSource ?? inferWinningTileSource(state, playerId, winType);
+  const winningTileSource = params.winningTileSource ?? inferWinningTileSource(state, playerId, winType, winningTile);
   return {
     winTile: winningTile,
     winningTile,
@@ -74,8 +74,15 @@ function activeUraDoraIndicators(state: GameState): Tile[] {
     .filter((tile): tile is Tile => Boolean(tile));
 }
 
-function inferWinningTileSource(state: GameState, playerId: PlayerId, winType: 'ron' | 'tsumo'): WinningTileSource {
+function inferWinningTileSource(state: GameState, playerId: PlayerId, winType: 'ron' | 'tsumo', winningTile: Tile): WinningTileSource {
   if (winType === 'ron') return 'discard';
-  if (state.kanState?.player === playerId) return 'rinshan';
+  const drawnTile = state.players[playerId]?.drawnTile;
+  if (
+    state.lastDrawSource === 'rinshan'
+    && state.kanState?.player === playerId
+    && drawnTile?.instanceId === winningTile.instanceId
+  ) {
+    return 'rinshan';
+  }
   return 'normal-draw';
 }

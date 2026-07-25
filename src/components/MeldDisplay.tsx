@@ -15,9 +15,9 @@ const CALL_LABELS: Record<MeldDisplayModel['callType'], string> = {
 };
 
 const SOURCE_LABELS: Record<MeldDisplayModel['sourceRelation'], string> = {
-  left: '左家',
+  left: '上家',
   opposite: '对家',
-  right: '右家',
+  right: '下家',
   self: '自己',
 };
 
@@ -25,6 +25,7 @@ export function MeldDisplay({ meld, seatClass = '' }: MeldDisplayProps) {
   const sourceText = meld.callType === 'ankan'
     ? '暗杠'
     : `${CALL_LABELS[meld.callType]} · 来自${SOURCE_LABELS[meld.sourceRelation]}`;
+
   return (
     <div className={`meld-display ${seatClass}`} aria-label={sourceText} title={sourceText} data-call-type={meld.callType}>
       {meld.tiles.map((displayTile) => (

@@ -1,4 +1,3 @@
-import { shanten } from './shanten';
 import type { GameState, PendingCallOption, PlayerId, Tile, TileId } from './types';
 import { sortTiles } from './tileUtils';
 
@@ -103,7 +102,7 @@ export function findUsefulChiOption(state: GameState, playerId: PlayerId): numbe
   if (state.phase !== 'call-window' || !state.pendingCall) return null;
   const player = state.players[playerId];
   const options = state.pendingCall.options.filter((option) => option.type === 'chi' && option.player === playerId);
-  const before = shanten(player.hand).best;
+  const before = openStandardShanten(player.hand, player.calls.length);
 
   for (let index = 0; index < options.length; index += 1) {
     const option = options[index];
@@ -119,10 +118,87 @@ export function findUsefulChiOption(state: GameState, playerId: PlayerId): numbe
       afterHand.splice(tileIndex, 1);
     });
     if (!valid) continue;
-    if (shanten(afterHand).best < before) return index;
+    if (openStandardShanten(afterHand, player.calls.length + 1) < before) return index;
   }
 
   return null;
+}
+
+function openStandardShanten(hand: Tile[], fixedMelds: number): number {
+  const counts = Array.from({ length: 34 }, () => 0);
+  hand.forEach((tile) => {
+    counts[tile.id] += 1;
+  });
+  let best = 8;
+
+  function evaluate(melds: number, pairs: number, taatsu: number) {
+    const totalMelds = fixedMelds + melds;
+    const cappedTaatsu = Math.min(taatsu, Math.max(0, 4 - totalMelds));
+    best = Math.min(best, 8 - totalMelds * 2 - cappedTaatsu - Math.min(1, pairs));
+  }
+
+  function removeTaatsu(work: number[], start: number, melds: number, pairs: number, taatsu: number) {
+    let found = false;
+    for (let i = start; i < 34; i += 1) {
+      if (work[i] >= 2) {
+        found = true;
+        work[i] -= 2;
+        removeTaatsu(work, i, melds, pairs + 1, taatsu + 1);
+        work[i] += 2;
+      }
+      if (i <= 24 && i % 9 <= 7 && work[i] > 0 && work[i + 1] > 0) {
+        found = true;
+        work[i] -= 1;
+        work[i + 1] -= 1;
+        removeTaatsu(work, i, melds, pairs, taatsu + 1);
+        work[i] += 1;
+        work[i + 1] += 1;
+      }
+      if (i <= 24 && i % 9 <= 6 && work[i] > 0 && work[i + 2] > 0) {
+        found = true;
+        work[i] -= 1;
+        work[i + 2] -= 1;
+        removeTaatsu(work, i, melds, pairs, taatsu + 1);
+        work[i] += 1;
+        work[i + 2] += 1;
+      }
+    }
+    if (!found) evaluate(melds, pairs, taatsu);
+  }
+
+  function removeMelds(work: number[], start: number, melds: number, pairs: number, taatsu: number) {
+    let found = false;
+    for (let i = start; i < 34; i += 1) {
+      if (work[i] >= 3) {
+        found = true;
+        work[i] -= 3;
+        removeMelds(work, i, melds + 1, pairs, taatsu);
+        work[i] += 3;
+      }
+      if (i <= 24 && i % 9 <= 6 && work[i] > 0 && work[i + 1] > 0 && work[i + 2] > 0) {
+        found = true;
+        work[i] -= 1;
+        work[i + 1] -= 1;
+        work[i + 2] -= 1;
+        removeMelds(work, i, melds + 1, pairs, taatsu);
+        work[i] += 1;
+        work[i + 1] += 1;
+        work[i + 2] += 1;
+      }
+    }
+    removeTaatsu(work, 0, melds, pairs, taatsu);
+    if (!found) evaluate(melds, pairs, taatsu);
+  }
+
+  removeMelds([...counts], 0, 0, 0, 0);
+  for (let i = 0; i < 34; i += 1) {
+    if (counts[i] >= 2) {
+      const work = [...counts];
+      work[i] -= 2;
+      removeMelds(work, 0, 0, 1, 0);
+    }
+  }
+  return best;
 }
 
 function hasTiles(hand: Tile[], ids: TileId[]): boolean {

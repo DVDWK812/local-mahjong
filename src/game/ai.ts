@@ -1,10 +1,10 @@
-import { passCall } from './callChecker';
+import { canPon, executePon, passCall } from './callChecker';
 import { canDeclareKyuushuKyuuhai, declareKyuushuKyuuhai } from './abortiveDraw';
 import { executeChi, findUsefulChiOption } from './chiChecker';
 import { canDeclareRiichi, declareRiichi, discardTile, drawTile } from './engine';
 import { canAnkan, canChankan, canKakan, canMinkan, declareChankanRon, executeKan, passChankan } from './kanChecker';
 import { recommendDiscards, shanten } from './shanten';
-import type { GameState, PlayerId, Tile } from './types';
+import type { GameState, PlayerId, Tile, TileId } from './types';
 import { ALL_TILE_IDS } from './tileUtils';
 
 export const HUMAN_PLAYER_ID: PlayerId = 0;
@@ -64,8 +64,12 @@ export function advanceAIAction(state: GameState, rng: () => number = Math.rando
 
   if (state.phase === 'call-window') {
     const aiKanOption = state.pendingCall?.options.find((option) => option.type === 'kan' && option.kanType === 'minkan' && isAIPlayer(option.player));
-    if (aiKanOption && canMinkan(state, aiKanOption.player) && shouldKan(state, aiKanOption.player)) {
+    if (aiKanOption && canMinkan(state, aiKanOption.player) && shouldMinkan(state, aiKanOption.player)) {
       return executeKan(state, aiKanOption.player, 'minkan');
+    }
+    const aiPonOption = state.pendingCall?.options.find((option) => option.type === 'pon' && isAIPlayer(option.player));
+    if (aiPonOption && canPon(state, aiPonOption.player) && shouldPon(state, aiPonOption.player)) {
+      return executePon(state, aiPonOption.player);
     }
     const aiChiPlayer = state.pendingCall?.options.find((option) => option.type === 'chi' && isAIPlayer(option.player))?.player;
     const chiOption = aiChiPlayer === undefined ? null : findUsefulChiOption(state, aiChiPlayer);
@@ -103,4 +107,47 @@ function shouldDeclareKyuushuKyuuhai(_state: GameState, _playerId: PlayerId): bo
 
 function shouldKan(state: GameState, playerId: PlayerId): boolean {
   return shanten(state.players[playerId].hand).best <= 0;
+}
+
+function shouldMinkan(state: GameState, playerId: PlayerId): boolean {
+  const tileId = state.pendingCall?.tile.id;
+  if (tileId === undefined) return false;
+  if (isYakuhaiValue(tileId, state, playerId)) return true;
+  return shanten(state.players[playerId].hand).best <= 0;
+}
+
+function shouldPon(state: GameState, playerId: PlayerId): boolean {
+  const tileId = state.pendingCall?.tile.id;
+  if (tileId === undefined) return false;
+  if (isYakuhaiValue(tileId, state, playerId)) return true;
+
+  const player = state.players[playerId];
+  const before = shanten(player.hand).best;
+  const afterHand = removeMatchingTiles(player.hand, tileId, 2);
+  if (afterHand.length !== player.hand.length - 2) return false;
+  return shanten(afterHand).best < before;
+}
+
+function removeMatchingTiles(hand: Tile[], tileId: TileId, amount: number): Tile[] {
+  let removed = 0;
+  return hand.filter((tile) => {
+    if (tile.id !== tileId || removed >= amount) return true;
+    removed += 1;
+    return false;
+  });
+}
+
+function isYakuhaiValue(tileId: TileId, state: GameState, playerId: PlayerId): boolean {
+  const player = state.players[playerId];
+  return tileId >= 31 || tileId === windToTileId(state.roundWind) || tileId === windToTileId(player.seatWind);
+}
+
+function windToTileId(wind: GameState['roundWind']): TileId {
+  const ids: Record<GameState['roundWind'], TileId> = {
+    east: 27,
+    south: 28,
+    west: 29,
+    north: 30,
+  };
+  return ids[wind];
 }

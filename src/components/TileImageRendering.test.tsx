@@ -1,4 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { callToMeldDisplayModel } from '../game/meldDisplayAdapter';
 import { createTile } from '../game/tileUtils';
@@ -11,6 +13,14 @@ import { Tile } from './Tile';
 function noop() {
   return undefined;
 }
+
+function cssRule(css: string, selector: string): string {
+  const start = css.indexOf(selector);
+  const end = css.indexOf('}', start);
+  return start === -1 ? '' : css.slice(start, end);
+}
+
+const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
 
 function tiles(ids: TileId[]) {
   return ids.map((id, index) => createTile(id, index));
@@ -73,5 +83,12 @@ describe('贴图牌显示组件', () => {
     expect((html.match(/alt="牌背"/g) ?? [])).toHaveLength(2);
     expect((html.match(/alt="白"/g) ?? [])).toHaveLength(2);
     expect((html.match(/data-face-down="true"/g) ?? [])).toHaveLength(2);
+  });
+  it('keeps display-only disabled tiles opaque without disabling clickable hand tiles', () => {
+    const displayOnly = renderToStaticMarkup(<Tile tile={createTile(0, 0)} />);
+    const clickable = renderToStaticMarkup(<Tile tile={createTile(0, 0)} onClick={noop} />);
+    expect(displayOnly).toContain('disabled=""');
+    expect(clickable).not.toContain('disabled=""');
+    expect(cssRule(css, '.tile:disabled')).toContain('opacity: 1');
   });
 });

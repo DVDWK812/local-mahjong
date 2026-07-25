@@ -68,6 +68,21 @@ describe('scoring integration - multiple ron sticks', () => {
     expect(wins.map((win) => win.winner)).toEqual([1, 3]);
     expect(wins[0].points - wins[1].points).toBe(2000);
   });
+
+  it('adds riichi sticks to the ron winner without charging the discarder for the stick', () => {
+    let state = createInitialGameState();
+    state = {
+      ...state,
+      riichiSticks: 1,
+      players: state.players.map((player) => ({ ...player, river: [], calls: [], riichi: false, riichiState: null })),
+    };
+    state = setHand(state, 0, [1, 2, 3, 3, 4, 5, 10, 11, 12, 19, 20, 21, 14]);
+
+    const [win] = canRon(state, 2, createTile(14, 0), { candidatePlayers: [0] });
+    expect(win.winner).toBe(0);
+    expect(win.pointDeltas[0] - Math.abs(win.pointDeltas[2])).toBe(1000);
+    expect(win.pointDeltas[1]).toBe(0);
+  });
 });
 
 describe('scoring integration - real PlayerState calls', () => {

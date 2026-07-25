@@ -49,9 +49,9 @@ export function callToMeldDisplayModel(call: CallSet, caller: PlayerId, index = 
 
 export function relativeCallSource(caller: PlayerId, calledFrom: PlayerId): RelativeCallSource {
   const offset = (calledFrom - caller + 4) % 4;
-  if (offset === 1) return 'left';
+  if (offset === 3) return 'left';
   if (offset === 2) return 'opposite';
-  if (offset === 3) return 'right';
+  if (offset === 1) return 'right';
   return 'self';
 }
 

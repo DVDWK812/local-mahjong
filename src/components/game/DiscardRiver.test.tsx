@@ -31,7 +31,7 @@ describe('DiscardRiver', () => {
       riichi: true,
       riichiState: { declaredAtTurn: 4, ippatsuAvailable: true, kind: 'riichi' as const, riichiDiscardInstanceId: riichiTile.instanceId },
     };
-    const html = renderToStaticMarkup(<DiscardRiver player={player} position="south" />);
+    const html = renderToStaticMarkup(<DiscardRiver player={player} position="south" preserveClaimedDiscardGap />);
     const riichiRule = cssRule(css, '.discard-river-tile--riichi');
     const slotRule = cssRule(css, '.riichi-discard-slot .tile');
     expect(html).toContain('riichi-discard-slot');
@@ -52,10 +52,20 @@ describe('DiscardRiver', () => {
       riichi: true,
       riichiState: { declaredAtTurn: 4, ippatsuAvailable: true, kind: 'riichi' as const, riichiDiscardInstanceId: riichiTile.instanceId },
     };
-    const html = renderToStaticMarkup(<DiscardRiver player={player} position="south" />);
+    const html = renderToStaticMarkup(<DiscardRiver player={player} position="south" preserveClaimedDiscardGap />);
     expect((html.match(/discard-river-tile--claimed/g) ?? [])).toHaveLength(2);
     expect((html.match(/discard-river-claimed-placeholder/g) ?? [])).toHaveLength(2);
     expect(html).toContain('discard-river-tile--riichi');
+  });
+
+  it('does not render claimed visual nodes when claimed gaps are disabled', () => {
+    const state = createInitialGameState();
+    const claimedTile = { ...createTile(1, 1), claimed: true } as Tile & { claimed: boolean };
+    const player = { ...state.players[0], river: [claimedTile, createTile(2, 2)] };
+    const html = renderToStaticMarkup(<DiscardRiver player={player} position="south" />);
+    expect(html).not.toContain('discard-river-tile--claimed');
+    expect(html).not.toContain('discard-river-claimed-placeholder');
+    expect((html.match(/class="tile-image"/g) ?? [])).toHaveLength(1);
   });
 
   it('内部grid固定13个半牌宽列和4行高，且自身不旋转', () => {
@@ -98,5 +108,19 @@ describe('DiscardRiver', () => {
     expect(css).toContain('calc(var(--river-tile-height) * 4 + var(--river-gap) * 3)');
     expect(css).not.toContain('scale(');
     expect(cssRule(css, '.discard-river-tile {')).not.toContain('position: absolute');
+  });
+  it('keeps discard tile buttons fully opaque while claimed placeholders stay hidden', () => {
+    const tileDisabledRule = cssRule(css, '.tile:disabled');
+    const displayTileRule = cssRule(css, '.discard-river .tile');
+    const displayImageRule = cssRule(css, '.discard-river .tile-image');
+    const claimedRule = cssRule(css, '.discard-river-tile--claimed');
+    expect(tileDisabledRule).toContain('opacity: 1');
+    expect(displayTileRule).toContain('opacity: 1');
+    expect(displayTileRule).toContain('filter: none');
+    expect(displayTileRule).toContain('mix-blend-mode: normal');
+    expect(displayImageRule).toContain('opacity: 1');
+    expect(displayImageRule).toContain('filter: none');
+    expect(claimedRule).toContain('visibility: hidden');
+    expect(claimedRule).not.toContain('opacity: 0');
   });
 });

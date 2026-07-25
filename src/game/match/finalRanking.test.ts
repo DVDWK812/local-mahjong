@@ -50,10 +50,10 @@ describe('final ranking and settlement', () => {
       endedBy: 'scheduled-end',
     });
     const first = result.players[0];
-    expect(first.convertedScore).toBe(2.4);
+    expect(first.convertedScore).toBe(7.4);
     expect(first.umaAdjustment).toBe(20);
     expect(first.okaAdjustment).toBe(0);
-    expect(first.finalMatchScore).toBe(22.4);
+    expect(first.finalMatchScore).toBe(27.4);
     expect(roundMatchScore(2.399999999)).toBe(2.4);
   });
 });

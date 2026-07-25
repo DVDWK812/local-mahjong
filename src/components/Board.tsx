@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { canPon } from '../game/callChecker';
 import { canChi } from '../game/chiChecker';
 import { getDrawActionState } from '../game/interaction';
 import { canChankan, canMinkan, type KanType } from '../game/kanChecker';
 import type { MatchState } from '../game/match/types';
-import type { GameState, PlayerId, TileId } from '../game/types';
-import { tileLabel } from '../game/tileUtils';
+import type { GameState, PendingCallOption, PlayerId, Tile as TileModel, TileId } from '../game/types';
+import { sortTiles, tileLabel } from '../game/tileUtils';
 import { ActionPrompt } from './ActionPrompt';
 import { GameScreen } from './game/GameScreen';
+import { Tile } from './Tile';
 
 interface BoardProps {
   gameState: GameState;
@@ -85,27 +86,39 @@ export function Board({
     <>
       {hasDrawPrompt ? (
         <ActionPrompt title="可执行操作">
-          {drawActions.canTsumo ? <button type="button" onClick={() => onTsumo(0)}>自摸</button> : null}
+          {drawActions.canTsumo && localPlayer.drawnTile ? (
+            <TileActionButton label="自摸" tile={localPlayer.drawnTile} onClick={() => onTsumo(0)} />
+          ) : null}
           {drawActions.canRiichi ? (
             <div className="prompt-group">
               <span>{drawActions.canDoubleRiichi ? '双立直' : '立直'}</span>
               {drawActions.riichiDiscardCandidates.map((tile) => (
-                <button key={tile.instanceId} type="button" onClick={() => onDeclareRiichi(0, tile.instanceId)}>
-                  打 {tileLabel(tile.id)}
-                </button>
+                <TileActionButton
+                  key={tile.instanceId}
+                  label={drawActions.canDoubleRiichi ? '双立直' : '立直'}
+                  tile={tile}
+                  onClick={() => onDeclareRiichi(0, tile.instanceId)}
+                />
               ))}
             </div>
           ) : null}
           {drawActions.canKyuushuKyuuhai ? <button type="button" onClick={() => onDeclareKyuushuKyuuhai(0)}>九种九牌</button> : null}
           {drawActions.ankanCandidates.map((candidate) => (
-            <button key={`ankan-${candidate.tileId}`} type="button" onClick={() => onKan(0, 'ankan', candidate.tileId)}>
-              暗杠 {tileLabel(candidate.tileId)}
-            </button>
+            <CallOptionButton
+              key={`ankan-${candidate.tileId}`}
+              label="暗杠"
+              tiles={tilesForAnkan(gameState, 0, candidate.tileId)}
+              onClick={() => onKan(0, 'ankan', candidate.tileId)}
+            />
           ))}
           {drawActions.kakanCandidates.map((candidate) => (
-            <button key={`kakan-${candidate.tileId}`} type="button" onClick={() => onKan(0, 'kakan', candidate.tileId)}>
-              加杠 {tileLabel(candidate.tileId)}
-            </button>
+            <CallOptionButton
+              key={`kakan-${candidate.tileId}`}
+              label="加杠"
+              tiles={tilesForKakan(gameState, 0, candidate.tileId)}
+              calledInstanceId={gameState.players[0].hand.find((tile) => tile.id === candidate.tileId)?.instanceId}
+              onClick={() => onKan(0, 'kakan', candidate.tileId)}
+            />
           ))}
           <button type="button" onClick={skipDrawActions}>跳过</button>
         </ActionPrompt>
@@ -113,7 +126,9 @@ export function Board({
 
       {canHumanRon ? (
         <ActionPrompt title={`可以荣和 ${gameState.pendingRon ? tileLabel(gameState.pendingRon.tile.id) : ''}`}>
-          <button type="button" onClick={() => onRon(0)}>荣和</button>
+          {gameState.pendingRon ? (
+            <TileActionButton label="荣和" tile={gameState.pendingRon.tile} onClick={() => onRon(0)} />
+          ) : null}
           <button type="button" onClick={() => onPassRon(0)}>跳过</button>
         </ActionPrompt>
       ) : null}
@@ -121,15 +136,30 @@ export function Board({
       {gameState.phase === 'call-window' && (canHumanPon || canHumanChi || canHumanMinkan) ? (
         <ActionPrompt title={`可以鸣牌 ${gameState.pendingCall ? tileLabel(gameState.pendingCall.tile.id) : ''}`}>
           {humanMinkanOptions.map((option, index) => (
-            <button key={`kan-${option.player}-${index}`} type="button" onClick={() => onKan(0, 'minkan')}>
-              明杠
-            </button>
+            <CallOptionButton
+              key={`kan-${option.player}-${index}`}
+              label="大明杠"
+              tiles={tilesForMinkan(gameState, option)}
+              calledInstanceId={gameState.pendingCall?.tile.instanceId}
+              onClick={() => onKan(0, 'minkan')}
+            />
           ))}
-          {canHumanPon ? <button type="button" onClick={() => onPon(0)}>碰</button> : null}
+          {canHumanPon ? (
+            <CallOptionButton
+              label="碰"
+              tiles={tilesForPon(gameState, 0)}
+              calledInstanceId={gameState.pendingCall?.tile.instanceId}
+              onClick={() => onPon(0)}
+            />
+          ) : null}
           {humanChiOptions.map((option, index) => (
-            <button key={option.sequence?.join('-') ?? index} type="button" onClick={() => onChi(0, index)}>
-              吃 {option.sequence?.map((id) => tileLabel(id)).join('-')}
-            </button>
+            <CallOptionButton
+              key={option.sequence?.join('-') ?? index}
+              label="吃"
+              tiles={tilesForChi(gameState, option)}
+              calledInstanceId={gameState.pendingCall?.tile.instanceId}
+              onClick={() => onChi(0, index)}
+            />
           ))}
           <button type="button" onClick={onPassCall}>跳过</button>
         </ActionPrompt>
@@ -137,7 +167,9 @@ export function Board({
 
       {gameState.phase === 'chankan-window' && canHumanChankan ? (
         <ActionPrompt title={`可以抢杠 ${gameState.pendingKakan ? tileLabel(gameState.pendingKakan.addedTile.id) : ''}`}>
-          <button type="button" onClick={() => onChankanRon(0)}>荣和</button>
+          {gameState.pendingKakan ? (
+            <TileActionButton label="荣和" tile={gameState.pendingKakan.addedTile} onClick={() => onChankanRon(0)} />
+          ) : null}
           <button type="button" onClick={() => onPassChankan(0)}>跳过</button>
         </ActionPrompt>
       ) : null}
@@ -160,3 +192,112 @@ export function Board({
     />
   );
 }
+
+function TileActionButton({
+  label,
+  tile,
+  onClick,
+}: {
+  label: string;
+  tile: TileModel;
+  onClick: () => void;
+}) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      className="prompt-tile-action"
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      aria-label={`${label} ${tileLabel(tile.id)}`}
+    >
+      <span className="prompt-tile-action-label">{label}</span>
+      <span className="prompt-tile-action-tile">
+        <Tile tile={tile} compact />
+      </span>
+    </div>
+  );
+}
+
+function CallOptionButton({
+  label,
+  tiles,
+  calledInstanceId,
+  onClick,
+}: {
+  label: string;
+  tiles: TileModel[];
+  calledInstanceId?: string;
+  onClick: () => void;
+}) {
+  const ariaLabel = `${label} ${tiles.map((tile) => tileLabel(tile.id)).join('')}`;
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      className="call-option-button"
+      aria-label={ariaLabel}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+    >
+      <span className="call-option-label">{label}</span>
+      <span className="call-option-tiles">
+        {tiles.map((tile) => (
+          <span
+            key={tile.instanceId}
+            className={tile.instanceId === calledInstanceId ? 'call-option-tile call-option-tile--called' : 'call-option-tile'}
+            data-called={tile.instanceId === calledInstanceId ? 'true' : 'false'}
+          >
+            <Tile tile={tile} compact />
+          </span>
+        ))}
+      </span>
+    </div>
+  );
+}
+
+function tilesForChi(state: GameState, option: PendingCallOption): TileModel[] {
+  const called = state.pendingCall?.tile;
+  if (!called || !option.sequence) return [];
+  const hand = [...state.players[option.player].hand];
+  return option.sequence.map((id) => {
+    if (id === called.id) return called;
+    const index = hand.findIndex((tile) => tile.id === id);
+    const [tile] = index === -1 ? [] : hand.splice(index, 1);
+    return tile ?? called;
+  }).sort(sortTiles);
+}
+
+function tilesForPon(state: GameState, playerId: PlayerId): TileModel[] {
+  const called = state.pendingCall?.tile;
+  if (!called) return [];
+  return [...state.players[playerId].hand.filter((tile) => tile.id === called.id).slice(0, 2), called].sort(sortTiles);
+}
+
+function tilesForMinkan(state: GameState, option: PendingCallOption): TileModel[] {
+  const called = state.pendingCall?.tile;
+  if (!called) return [];
+  return [...state.players[option.player].hand.filter((tile) => tile.id === called.id).slice(0, 3), called].sort(sortTiles);
+}
+
+function tilesForAnkan(state: GameState, playerId: PlayerId, tileId: TileId): TileModel[] {
+  return state.players[playerId].hand.filter((tile) => tile.id === tileId).slice(0, 4).sort(sortTiles);
+}
+
+function tilesForKakan(state: GameState, playerId: PlayerId, tileId: TileId): TileModel[] {
+  const player = state.players[playerId];
+  const ponTiles = player.calls.find((call) => call.type === 'pon' && call.tiles[0]?.id === tileId)?.tiles ?? [];
+  const addedTile = player.hand.find((tile) => tile.id === tileId);
+  return [...ponTiles, ...(addedTile ? [addedTile] : [])].sort(sortTiles);
+}
+

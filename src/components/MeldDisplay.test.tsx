@@ -1,9 +1,9 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { MeldDisplay } from './MeldDisplay';
 import { callToMeldDisplayModel } from '../game/meldDisplayAdapter';
 import { createTile } from '../game/tileUtils';
 import type { CallSet, TileId } from '../game/types';
+import { MeldDisplay } from './MeldDisplay';
 
 function tiles(ids: TileId[]) {
   return ids.map((id, index) => createTile(id, index));
@@ -11,9 +11,12 @@ function tiles(ids: TileId[]) {
 
 describe('MeldDisplay', () => {
   it('renders chi with an accessible source label', () => {
-    const model = callToMeldDisplayModel({ type: 'chi', tiles: tiles([0, 1, 2]), from: 3, opened: true, sequence: [0, 1, 2], calledTile: createTile(1, 9), usedTileIds: [0, 2] }, 0);
+    const model = callToMeldDisplayModel(
+      { type: 'chi', tiles: tiles([0, 1, 2]), from: 3, opened: true, sequence: [0, 1, 2], calledTile: createTile(1, 9), usedTileIds: [0, 2] },
+      0,
+    );
     const html = renderToStaticMarkup(<MeldDisplay meld={model} />);
-    expect(html).toContain('aria-label="吃 · 来自右家"');
+    expect(html).toContain('aria-label="吃 · 来自上家"');
     expect(html).toContain('data-sideways="true"');
   });
 

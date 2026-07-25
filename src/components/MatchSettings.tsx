@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { validateRuleConfig, type RulePresetId } from '../game/match/matchRules';
-import type { FullRuleConfig } from '../game/match/types';
+import type { FullRuleConfig, MaxExtraRoundWind } from '../game/match/types';
 import type { RuleDescriptionKey } from '../game/rules/ruleDescriptions';
 import { RuleHelpTooltip } from './RuleHelpTooltip';
 
@@ -17,7 +18,7 @@ export function normalizeMatchSettingsConfig(
   matchPatch: Partial<FullRuleConfig['match']> = {},
   roundPatch: Partial<FullRuleConfig['round']> = {},
 ): FullRuleConfig {
-  const match = {
+  const rawMatch = {
     ...config.match,
     ...matchPatch,
     matchLength: config.match.matchLength,
@@ -25,6 +26,10 @@ export function normalizeMatchSettingsConfig(
     bankruptcyThreshold: 0,
     agariYameMode: 'automatic' as const,
     tenpaiYameMode: 'automatic' as const,
+  };
+  const match = {
+    ...rawMatch,
+    maxExtraRoundWind: normalizeMaxExtraRoundWind(rawMatch.matchLength, rawMatch.maxExtraRoundWind),
   };
 
   return {
@@ -37,6 +42,16 @@ export function normalizeMatchSettingsConfig(
       suddenDeathTarget: match.targetPoints,
     },
   };
+}
+
+function normalizeMaxExtraRoundWind(matchLength: FullRuleConfig['match']['matchLength'], value: MaxExtraRoundWind): MaxExtraRoundWind {
+  if (value === 'none') return 'none';
+  if (matchLength === 'hanchan' && value === 'south') return 'west';
+  return value;
+}
+
+function defaultMaxExtraRoundWind(matchLength: FullRuleConfig['match']['matchLength']): MaxExtraRoundWind {
+  return matchLength === 'hanchan' ? 'west' : 'south';
 }
 
 export function MatchSettings({ config, matchTypeLabel, pathLabel, onConfigChange }: MatchSettingsProps) {
@@ -84,9 +99,9 @@ export function MatchSettings({ config, matchTypeLabel, pathLabel, onConfigChang
           {match.allowWestRound ? (
             <label className="settings-field">
               <FieldTitle label="最大延长场风" rule="maxExtraRoundWind" />
-              <select value={match.maxExtraRoundWind} onChange={(event) => setMatch({ maxExtraRoundWind: event.target.value as typeof match.maxExtraRoundWind })}>
+              <select value={normalizeMaxExtraRoundWind(match.matchLength, match.maxExtraRoundWind)} onChange={(event) => setMatch({ maxExtraRoundWind: event.target.value as typeof match.maxExtraRoundWind })}>
                 <option value="none">无</option>
-                <option value="south">南</option>
+                {match.matchLength === 'east-only' ? <option value="south">南</option> : null}
                 <option value="west">西</option>
                 <option value="north">北</option>
               </select>
@@ -120,7 +135,7 @@ export function MatchSettings({ config, matchTypeLabel, pathLabel, onConfigChang
             label="延长局"
             rule="allowWestRound"
             checked={match.allowWestRound}
-            onChange={(checked) => setMatch({ allowWestRound: checked, maxExtraRoundWind: checked ? (match.maxExtraRoundWind === 'none' ? 'west' : match.maxExtraRoundWind) : 'none' })}
+            onChange={(checked) => setMatch({ allowWestRound: checked, maxExtraRoundWind: checked ? (match.maxExtraRoundWind === 'none' ? defaultMaxExtraRoundWind(match.matchLength) : match.maxExtraRoundWind) : 'none' })}
           />
           <CheckField label="马点" rule="useUma" checked={match.useUma} onChange={(checked) => setMatch({ useUma: checked })} />
           <CheckField label="头跳（截和）" rule="useOka" checked={match.useOka} onChange={(checked) => setMatch({ useOka: checked })} />

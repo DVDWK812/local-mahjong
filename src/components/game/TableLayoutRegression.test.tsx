@@ -7,10 +7,10 @@ import { createMatch } from '../../game/match/matchEngine';
 import { GameScreen } from './GameScreen';
 import { MahjongTable } from './MahjongTable';
 
-describe('Table layout regression', () => {
+describe('牌桌布局回归', () => {
   const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
 
-  it('中央区使用更小方形尺寸且文本不换行', () => {
+  it('中央区使用较小方形尺寸且文本不换行', () => {
     expect(css).toContain('--center-size: clamp(120px, 11vw, 180px)');
     expect(css).toContain('width: var(--center-size)');
     expect(css).toContain('height: var(--center-size)');
@@ -18,7 +18,7 @@ describe('Table layout regression', () => {
     expect(css).toContain('white-space: nowrap');
   });
 
-  it('四家PlayerZone处于独立九宫格区域', () => {
+  it('四家 PlayerZone 处于独立九宫格区域', () => {
     expect(css).toContain('"west center east"');
     expect(css).toContain('.player-zone--north { grid-area: north; }');
     expect(css).toContain('.player-zone--west { grid-area: west; }');
@@ -26,7 +26,8 @@ describe('Table layout regression', () => {
     expect(css).toContain('.player-zone--south { grid-area: south; }');
   });
 
-  it('四家牌河固定在中央周围并使用6.5乘4占位尺寸', () => {
+  it('四家牌河放大后仍固定在中央周围并使用 6.5 张占位尺寸', () => {
+    expect(css).toContain('--river-tile-width: clamp(28px, 2.65vw, 48px)');
     expect(css).toContain('--river-area-width');
     expect(css).toContain('--river-area-height');
     expect(css).toContain('grid-template-columns: repeat(13, var(--river-half-width))');
@@ -34,12 +35,19 @@ describe('Table layout regression', () => {
     expect(css).toContain('height: var(--river-area-height)');
   });
 
-  it('左右家手牌与中央牌河使用独立容器和明确间距', () => {
+  it('左右家手牌、副露与中央牌河使用独立容器和明确间距', () => {
     expect(css).toContain('"hand info"');
     expect(css).toContain('table-center-cluster');
     expect(css).toContain('west-river west-stick center east-stick east-river');
-    expect(css).toContain('column-gap: 14px');
+    expect(css).toContain('column-gap: 10px');
     expect(css).toContain('.side-player-hand-wrapper');
+  });
+
+  it('对手手牌和宝牌指示牌尺寸放大，且三名 AI 均有独立副露区', () => {
+    const html = renderToStaticMarkup(<MahjongTable gameState={createInitialGameState()} matchState={createMatch()} />);
+    expect(css).toContain('--opponent-tile-width: clamp(25px, 2.2vw, 39px)');
+    expect(css).toContain('width: clamp(30px, 2.7vw, 45px)');
+    expect((html.match(/data-ai-meld-zone=/g) ?? [])).toHaveLength(3);
   });
 
   it('小视口下页面仍保持单屏无纵向溢出', () => {
@@ -48,7 +56,7 @@ describe('Table layout regression', () => {
     expect(css).toContain('@media (max-width: 900px)');
   });
 
-  it('DOM中玩家ID、手牌和中央牌河不是同一个容器，且中央区不显示玩家姓名', () => {
+  it('DOM 中玩家 ID、手牌和中央牌河不是同一容器，且中央区不显示玩家姓名', () => {
     const html = renderToStaticMarkup(<MahjongTable gameState={createInitialGameState()} matchState={createMatch()} />);
     expect(html).toContain('player-identity');
     expect(html).toContain('player-zone-hand-wrap');

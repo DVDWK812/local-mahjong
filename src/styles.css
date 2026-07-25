@@ -554,10 +554,12 @@ button {
 
 .player-melds {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: flex-end;
-  gap: 8px;
+  gap: 6px;
   min-height: 54px;
+  min-width: 0;
 }
 
 .meld-display {
@@ -605,6 +607,7 @@ button {
 .action-prompt-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
 }
 
@@ -631,6 +634,122 @@ button {
   cursor: pointer;
   font-weight: 800;
   padding: 0 14px;
+}
+
+.call-option-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 0;
+  padding: 3px 5px;
+  border-radius: 8px;
+  border: 1px solid rgba(28, 64, 49, 0.18);
+  background: rgba(255, 252, 237, 0.72);
+  color: #17362b;
+  cursor: pointer;
+  font-weight: 800;
+  user-select: none;
+}
+
+.call-option-button:hover {
+  background: rgba(255, 248, 218, 0.92);
+  border-color: rgba(226, 185, 59, 0.72);
+}
+
+.call-option-button:focus-visible {
+  outline: 3px solid rgba(214, 179, 90, 0.85);
+  outline-offset: 2px;
+}
+
+.call-option-label {
+  flex: 0 0 auto;
+  font-size: 12px;
+  line-height: 1;
+  color: #17362b;
+}
+
+.call-option-tiles {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 1px;
+  min-width: 0;
+  writing-mode: horizontal-tb;
+}
+
+.call-option-tile {
+  width: 48px;
+  height: 66px;
+  flex: 0 0 48px;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  box-sizing: border-box;
+}
+
+.call-option-tile--called {
+  outline: 3px solid #e2b93b;
+  outline-offset: -3px;
+  border-radius: 4px;
+}
+
+.call-option-tile > .tile.tile--compact {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  display: block;
+}
+
+.call-option-tile > .tile .tile-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.prompt-tile-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 0;
+  padding: 3px 6px;
+  border-radius: 8px;
+  background: #21483a;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 800;
+  user-select: none;
+}
+
+.prompt-tile-action:hover {
+  background: #2a5b49;
+}
+
+.prompt-tile-action:focus-visible {
+  outline: 3px solid rgba(214, 179, 90, 0.85);
+  outline-offset: 2px;
+}
+
+.prompt-tile-action-label {
+  flex: 0 0 auto;
+}
+
+.prompt-tile-action-tile {
+  display: inline-flex;
+  width: 48px;
+  height: 66px;
+}
+
+.prompt-tile-action-tile > .tile.tile--compact {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
 }
 
 .river-board {
@@ -683,11 +802,28 @@ button {
 }
 
 .tile:disabled {
-  opacity: 0.58;
+  opacity: 1;
 }
 
 .tile--hidden:disabled {
   opacity: 1;
+}
+
+.dora-indicator-stack .tile,
+.discard-river .tile,
+.player-melds .tile,
+.meld-display .tile {
+  opacity: 1;
+  filter: none;
+  mix-blend-mode: normal;
+}
+
+.dora-indicator-stack .tile-image,
+.discard-river .tile-image,
+.player-melds .tile-image,
+.meld-display .tile-image {
+  opacity: 1;
+  filter: none;
 }
 
 .tile-image {
@@ -862,7 +998,7 @@ button {
 .result-dialog {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  width: min(720px, calc(100vw - 24px));
+  width: min(960px, calc(100vw - 32px));
   max-height: min(82dvh, 720px);
   overflow: hidden;
   border: 1px solid rgba(45, 64, 55, 0.2);
@@ -964,6 +1100,13 @@ button {
   font-weight: 800;
 }
 
+.result-score-summary .result-limit-label {
+  color: #c52222;
+  font-size: clamp(22px, 2.6vw, 34px);
+  font-weight: 950;
+  line-height: 1.05;
+}
+
 .result-card-title span {
   color: #21483a;
   font-size: 13px;
@@ -988,36 +1131,40 @@ button {
   gap: 4px;
 }
 
-.result-winning-hand-layout {
+.result-tile-sections {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
-  gap: 8px;
-  min-width: 0;
-  overflow: hidden;
+  gap: 14px;
+  width: 100%;
+  margin: 8px 0;
 }
 
-.result-winning-hand-layout .result-hand-row {
-  flex: 0 1 auto;
+.result-tile-section {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 5px;
   min-width: 0;
+}
+
+.result-tile-section > span {
+  color: #53615d;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .result-win-tile {
   display: flex;
   align-items: flex-end;
-  padding-left: 6px;
-  border-left: 1px solid rgba(45, 64, 55, 0.18);
 }
 
 .result-melds {
-  display: flex;
-  align-items: flex-end;
-  flex: 0 1 auto;
-  min-width: 0;
+  max-width: 100%;
 }
 
 .result-melds .player-melds {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
   gap: 4px;
 }
@@ -1126,19 +1273,19 @@ button {
 
 /* Single-screen table layout */
 .game-screen {
-  --center-size: clamp(120px, 11vw, 180px);
+  --center-size: clamp(180px, 16vw, 260px);
   --hand-tile-width: clamp(34px, 3.4vw, 56px);
   --hand-tile-height: calc(var(--hand-tile-width) * 1.405);
-  --river-tile-width: clamp(22px, 2vw, 34px);
+  --river-tile-width: clamp(28px, 2.65vw, 48px);
   --river-tile-height: calc(var(--river-tile-width) * 1.35);
   --river-half-width: calc(var(--river-tile-width) / 2);
   --river-gap: 2px;
   --river-area-width: calc(var(--river-half-width) * 13 + var(--river-gap) * 12);
   --river-area-height: calc(var(--river-tile-height) * 4 + var(--river-gap) * 3);
-  --opponent-tile-width: clamp(18px, 1.6vw, 28px);
+  --opponent-tile-width: clamp(25px, 2.2vw, 39px);
   --opponent-tile-height: calc(var(--opponent-tile-width) * 1.405);
-  --opponent-hand-length: calc(var(--opponent-tile-width) * 14 + 38px);
-  --riichi-stick-space: clamp(10px, 1vw, 18px);
+  --opponent-hand-length: calc(var(--opponent-tile-width) * 14 + 48px);
+  --riichi-stick-space: clamp(8px, 0.8vw, 14px);
   --zone-gap: clamp(8px, 1vw, 16px);
   position: relative;
   display: grid;
@@ -1217,9 +1364,9 @@ button {
     ". north ."
     "west center east"
     ". south .";
-  grid-template-columns: minmax(150px, 0.85fr) minmax(420px, 2fr) minmax(150px, 0.85fr);
-  grid-template-rows: minmax(104px, 0.78fr) minmax(360px, 2.2fr) minmax(92px, 0.72fr);
-  gap: clamp(6px, 0.8vw, 12px);
+  grid-template-columns: minmax(170px, 0.9fr) minmax(560px, 2.35fr) minmax(170px, 0.9fr);
+  grid-template-rows: minmax(132px, 0.9fr) minmax(420px, 2.25fr) minmax(82px, 0.58fr);
+  gap: clamp(4px, 0.55vw, 10px);
   min-height: 0;
   margin: var(--zone-gap) var(--zone-gap) max(16px, var(--zone-gap));
   padding: var(--zone-gap);
@@ -1240,13 +1387,13 @@ button {
   top: clamp(8px, 1vw, 14px);
   z-index: 30;
   display: grid;
-  gap: 5px;
+  gap: 7px;
   color: #edf7ef;
   pointer-events: none;
 }
 
 .dora-indicator-title {
-  font-size: 11px;
+  font-size: clamp(13px, 1vw, 16px);
   font-weight: 900;
   line-height: 1;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
@@ -1254,7 +1401,7 @@ button {
 
 .dora-indicator-slots {
   display: flex;
-  gap: 3px;
+  gap: 4px;
   align-items: center;
 }
 
@@ -1264,8 +1411,8 @@ button {
 }
 
 .dora-indicator-stack .tile {
-  width: clamp(20px, 1.8vw, 30px);
-  height: calc(clamp(20px, 1.8vw, 30px) * 1.405);
+  width: clamp(30px, 2.7vw, 45px);
+  height: calc(clamp(30px, 2.7vw, 45px) * 1.405);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.24);
 }
 
@@ -1274,7 +1421,7 @@ button {
   flex-wrap: wrap;
   gap: 6px 10px;
   color: #edf7ef;
-  font-size: 11px;
+  font-size: clamp(12px, 0.95vw, 15px);
   font-weight: 800;
   line-height: 1.1;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
@@ -1321,25 +1468,25 @@ button {
     ". melds";
   align-content: start;
   justify-content: center;
-  row-gap: 10px;
+  row-gap: 8px;
 }
 
 .player-zone--west .player-zone-layout {
   grid-template-columns: auto auto;
   grid-template-areas:
     "hand info"
-    "melds melds";
+    "hand melds";
   justify-content: end;
-  column-gap: 14px;
+  column-gap: 10px;
 }
 
 .player-zone--east .player-zone-layout {
   grid-template-columns: auto auto;
   grid-template-areas:
     "info hand"
-    "melds melds";
+    "melds hand";
   justify-content: start;
-  column-gap: 14px;
+  column-gap: 10px;
 }
 
 .player-zone--south .player-zone-layout {
@@ -1377,6 +1524,25 @@ button {
   z-index: 20;
   min-width: 0;
   min-height: 0;
+  display: grid;
+  place-items: center;
+  max-width: min(32vw, 360px);
+  overflow: visible;
+}
+
+.player-zone--north .player-zone-meld-wrap {
+  justify-self: start;
+  align-self: start;
+}
+
+.player-zone--east .player-zone-meld-wrap {
+  justify-self: end;
+  align-self: start;
+}
+
+.player-zone--west .player-zone-meld-wrap {
+  justify-self: end;
+  align-self: end;
 }
 
 .player-zone-label {
@@ -1386,14 +1552,14 @@ button {
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   gap: 3px;
-  width: clamp(48px, 4vw, 64px);
-  max-width: 64px;
+  width: clamp(42px, 3.4vw, 54px);
+  max-width: 54px;
   min-width: 0;
-  padding: 5px;
+  padding: 4px;
   border: 1px solid rgba(230, 241, 232, 0.16);
   border-radius: 8px;
   background: rgba(10, 26, 21, 0.72);
-  font-size: 12px;
+  font-size: 11px;
   white-space: nowrap;
 }
 
@@ -1412,8 +1578,8 @@ button {
 .player-avatar {
   display: grid;
   place-items: center;
-  width: clamp(30px, 3vw, 42px);
-  height: clamp(30px, 3vw, 42px);
+  width: clamp(26px, 2.6vw, 36px);
+  height: clamp(26px, 2.6vw, 36px);
   border-radius: 50%;
   background: rgba(235, 244, 236, 0.16);
   color: #f4fbf5;
@@ -1453,6 +1619,7 @@ button {
 }
 
 .opponent-hand-track {
+  position: absolute;
   flex-wrap: nowrap;
   width: max-content;
 }
@@ -1481,17 +1648,28 @@ button {
 
 .player-zone--west .player-melds,
 .player-zone--east .player-melds {
-  max-width: calc(var(--opponent-tile-height) * 3 + 20px);
-  overflow: hidden;
+  max-width: calc(var(--opponent-tile-height) * 4 + 48px);
+  overflow: visible;
 }
 
-.player-zone--west .meld-display,
-.player-zone--east .meld-display {
+.player-zone-meld-rotator {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  transform-origin: center;
+}
+
+.player-zone-meld-rotator--west {
   transform: rotate(90deg);
 }
 
-.player-zone--east .meld-display {
+.player-zone-meld-rotator--east {
   transform: rotate(-90deg);
+}
+
+.player-zone-meld-rotator--north {
+  transform: rotate(180deg);
 }
 
 .discard-river {
@@ -1533,7 +1711,7 @@ button {
 }
 
 .discard-river-tile--claimed {
-  opacity: 0;
+  visibility: hidden;
   pointer-events: none;
 }
 
@@ -1703,7 +1881,7 @@ button {
   padding: 3px 5px;
   border-radius: 7px;
   background: rgba(236, 246, 238, 0.08);
-  font-size: 9px;
+  font-size: 15px;
   text-align: center;
 }
 
@@ -1733,7 +1911,7 @@ button {
 .center-round {
   grid-area: round;
   padding: 4px;
-  font-size: 9px;
+  font-size: 15px;
   border: 1px solid rgba(230, 241, 232, 0.12);
 }
 
@@ -1809,7 +1987,7 @@ button {
   justify-content: flex-end;
   min-height: 0;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .local-meld-track .tile {
@@ -1892,8 +2070,8 @@ button {
   .game-screen {
     --center-size: clamp(108px, 18vw, 150px);
     --hand-tile-width: clamp(25px, 6vw, 36px);
-    --river-tile-width: clamp(16px, 3.1vw, 23px);
-    --opponent-tile-width: clamp(15px, 3vw, 22px);
+    --river-tile-width: clamp(18px, 3.5vw, 28px);
+    --opponent-tile-width: clamp(17px, 3.4vw, 26px);
   }
 
   .game-top-bar {

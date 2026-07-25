@@ -9,16 +9,26 @@ function tiles(ids: TileId[]) {
 
 describe('meldDisplayAdapter', () => {
   it('calculates relative call source by seat order', () => {
-    expect(relativeCallSource(0, 1)).toBe('left');
+    expect(relativeCallSource(0, 3)).toBe('left');
     expect(relativeCallSource(0, 2)).toBe('opposite');
-    expect(relativeCallSource(0, 3)).toBe('right');
+    expect(relativeCallSource(0, 1)).toBe('right');
+    expect(relativeCallSource(1, 0)).toBe('left');
   });
 
   it('places pon sideways tile at left, middle, or right by source', () => {
-    const base: CallSet = { type: 'pon', tiles: tiles([5, 5, 5]), from: 1, opened: true, calledTile: createTile(5, 9) };
+    const base: CallSet = { type: 'pon', tiles: tiles([5, 5, 5]), from: 3, opened: true, calledTile: createTile(5, 9) };
     expect(callToMeldDisplayModel(base, 0).tiles.map((tile) => tile.sideways)).toEqual([true, false, false]);
     expect(callToMeldDisplayModel({ ...base, from: 2 }, 0).tiles.map((tile) => tile.sideways)).toEqual([false, true, false]);
-    expect(callToMeldDisplayModel({ ...base, from: 3 }, 0).tiles.map((tile) => tile.sideways)).toEqual([false, false, true]);
+    expect(callToMeldDisplayModel({ ...base, from: 1 }, 0).tiles.map((tile) => tile.sideways)).toEqual([false, false, true]);
+  });
+
+  it('places the local discard at the left side when the lower player calls pon', () => {
+    const model = callToMeldDisplayModel(
+      { type: 'pon', tiles: tiles([32, 32, 32]), from: 0, opened: true, calledTile: createTile(32, 9) },
+      1,
+    );
+    expect(model.sourceRelation).toBe('left');
+    expect(model.tiles.map((tile) => tile.sideways)).toEqual([true, false, false]);
   });
 
   it('shows ankan with both ends face down and no sideways tile', () => {

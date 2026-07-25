@@ -66,7 +66,7 @@ describe('kan calls', () => {
     state = withSafeOtherHands(state);
     state = setHand(state, 0, [27, 0, 1, 2, 3, 4, 5, 9, 10, 11, 18, 19, 20, 31]);
     state = setHand(state, 1, [27, 27, 27, 1, 3, 5, 7, 9, 11, 13, 18, 20, 22]);
-    state = { ...state, currentPlayer: 0, phase: 'discard' };
+    state = { ...state, currentPlayer: 0, phase: 'discard', deadWall: [createTile(32, 0), ...state.deadWall.slice(1)] };
 
     const afterDiscard = discardTile(state, 0, state.players[0].hand[0].instanceId);
     expect(afterDiscard.phase).toBe('call-window');
@@ -79,7 +79,7 @@ describe('kan calls', () => {
     state = withSafeOtherHands(state);
     state = setHand(state, 0, [27, 0, 1, 2, 3, 4, 5, 9, 10, 11, 18, 19, 20, 31]);
     state = setHand(state, 1, [27, 27, 27, 1, 3, 5, 7, 9, 11, 13, 18, 20, 22]);
-    state = { ...state, currentPlayer: 0, phase: 'discard' };
+    state = { ...state, currentPlayer: 0, phase: 'discard', deadWall: [createTile(32, 0), ...state.deadWall.slice(1)] };
     const callWindow = discardTile(state, 0, state.players[0].hand[0].instanceId);
     const previousDora = callWindow.doraIndicators.length;
 

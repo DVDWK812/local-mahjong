@@ -26,6 +26,8 @@ const riverPositions: Array<{ playerId: PlayerId; position: PlayerPosition; area
 ];
 
 export function MahjongTable({ gameState, matchState }: MahjongTableProps) {
+  const preserveClaimedDiscardGap = gameState.ruleConfig?.preserveClaimedDiscardGap ?? false;
+
   return (
     <section className="mahjong-table" aria-label="麻将牌桌">
       <DoraIndicatorStack gameState={gameState} matchState={matchState} />
@@ -49,7 +51,7 @@ export function MahjongTable({ gameState, matchState }: MahjongTableProps) {
       <div className="table-center-cluster" aria-label="中央牌河区">
         {riverPositions.map(({ playerId, position, area }) => (
           <div key={`${position}-river`} className={`table-river-anchor table-river-anchor--${position}`} style={{ gridArea: area }}>
-            <DiscardRiver player={gameState.players[playerId]} position={position} />
+            <DiscardRiver player={gameState.players[playerId]} position={position} preserveClaimedDiscardGap={preserveClaimedDiscardGap} />
           </div>
         ))}
         {riverPositions.map(({ playerId, position, stickArea, stickOrientation }) => (

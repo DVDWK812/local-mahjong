@@ -34,6 +34,25 @@ describe('pon calls', () => {
     expect(canPon(after, 1)).toBe(true);
   });
 
+  it('collects chi, pon, and minkan candidates for the same discarded tile', () => {
+    let state = createInitialGameState();
+    state = setHand(state, 0, [12, 12, 12, 13, 14, 0, 2, 5, 7, 9, 18, 22, 31]);
+    state = setHand(state, 1, [0, 2, 5, 7, 9, 11, 15, 18, 20, 22, 27, 29, 31]);
+    state = setHand(state, 2, [1, 3, 6, 8, 10, 12, 16, 19, 21, 23, 28, 30, 32]);
+    state = setHand(state, 3, [12, 0, 1, 2, 3, 4, 5, 9, 10, 11, 18, 19, 20, 33]);
+    state = { ...state, currentPlayer: 3, phase: 'discard' };
+
+    const after = discardTile(state, 3, state.players[3].hand[0].instanceId);
+    const options = after.pendingCall?.options ?? [];
+
+    expect(after.phase).toBe('call-window');
+    expect(options).toEqual(expect.arrayContaining([
+      { type: 'kan', kanType: 'minkan', player: 0 },
+      { type: 'pon', player: 0 },
+      { type: 'chi', player: 0, sequence: [12, 13, 14], usedTileIds: [13, 14] },
+    ]));
+  });
+
   it('executePon removes two matching hand tiles, keeps the claimed river tile, and opens a meld', () => {
     let state = createInitialGameState();
     state = setHand(state, 0, [27, 0, 1, 2, 3, 4, 5, 9, 10, 11, 18, 19, 20, 31]);

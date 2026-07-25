@@ -38,9 +38,9 @@ export function createTile(id: TileId, copyIndex: number): Tile {
 export function tileLabel(tileOrId: Tile | TileId): string {
   const id = typeof tileOrId === 'number' ? tileOrId : tileOrId.id;
 
-  if (id <= 8) return `${id + 1}m`;
-  if (id <= 17) return `${id - 8}p`;
-  if (id <= 26) return `${id - 17}s`;
+  if (id <= 8) return `${id + 1}万`;
+  if (id <= 17) return `${id - 8}筒`;
+  if (id <= 26) return `${id - 17}索`;
 
   return ['东', '南', '西', '北', '白', '发', '中'][id - 27];
 }

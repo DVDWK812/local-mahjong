@@ -16,6 +16,7 @@ export interface RuleConfig {
   allowKokushiChankanAnkan: boolean;
   dealerContinuesOnTenpaiDraw: boolean;
   revealTenpaiHandsOnDraw: boolean;
+  preserveClaimedDiscardGap: boolean;
 }
 
 export const defaultRuleConfig: RuleConfig = {
@@ -36,4 +37,5 @@ export const defaultRuleConfig: RuleConfig = {
   allowKokushiChankanAnkan: true,
   dealerContinuesOnTenpaiDraw: true,
   revealTenpaiHandsOnDraw: true,
+  preserveClaimedDiscardGap: false,
 };

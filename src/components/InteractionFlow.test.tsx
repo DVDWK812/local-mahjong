@@ -66,7 +66,8 @@ describe('实战交互组件', () => {
     const html = renderToStaticMarkup(<Board gameState={state} {...boardHandlers} />);
     expect(html).toContain('可执行操作');
     expect(html).toContain('双立直');
-    expect(html).toContain('打 ');
+    expect(html).toContain('prompt-tile-action');
+    expect(html).toContain('tile-image');
   });
 
   it('合法九种九牌时弹出提示', () => {

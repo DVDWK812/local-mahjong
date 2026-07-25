@@ -63,8 +63,10 @@ export function PlayerZone({
         ) : null}
 
         {showOpponentHand ? (
-          <div className="player-zone-meld-wrap">
-            <PlayerMelds player={player} seatClass={`seat-${player.id} melds-${position}`} />
+          <div className="player-zone-meld-wrap" data-ai-meld-zone={player.id === 0 ? undefined : position}>
+            <div className={`player-zone-meld-rotator player-zone-meld-rotator--${position}`}>
+              <PlayerMelds player={player} seatClass={`seat-${player.id} melds-${position}`} />
+            </div>
           </div>
         ) : null}
       </div>

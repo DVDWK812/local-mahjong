@@ -200,22 +200,7 @@ export function discardTile(state: GameState, playerId: PlayerId, tileInstanceId
 
   if (result) return settleRound(nextState, result);
 
-  const highPriorityOptions = [
-    ...getMinkanOptions(nextState, playerId, discarded),
-    ...getPonOptions(nextState, playerId, discarded),
-  ];
-  return highPriorityOptions.length > 0
-    ? {
-        ...nextState,
-        phase: 'call-window',
-        pendingCall: {
-          discarder: playerId,
-          tile: discarded,
-          options: highPriorityOptions,
-        },
-        pendingRon: null,
-      }
-    : openChiWindowOrContinue(nextState, playerId, discarded);
+  return openCallWindowOrContinue(nextState, playerId, discarded);
 }
 
 function openChiWindowOrContinue(state: GameState, discarder: PlayerId, discarded: Tile): GameState {
@@ -229,6 +214,29 @@ function openChiWindowOrContinue(state: GameState, discarder: PlayerId, discarde
         tile: discarded,
         options: chiOptions,
       },
+    };
+  }
+  const abortive = checkAbortiveDrawAfterDiscard(state, discarder, discarded);
+  if (abortive) return settleRound(state, abortive);
+  return state.wall.length === 0 ? settleExhaustiveDraw(state) : state;
+}
+
+function openCallWindowOrContinue(state: GameState, discarder: PlayerId, discarded: Tile): GameState {
+  const options = [
+    ...getMinkanOptions(state, discarder, discarded),
+    ...getPonOptions(state, discarder, discarded),
+    ...getChiOptions(state, discarder, discarded),
+  ];
+  if (options.length > 0) {
+    return {
+      ...state,
+      phase: 'call-window',
+      pendingCall: {
+        discarder,
+        tile: discarded,
+        options,
+      },
+      pendingRon: null,
     };
   }
   const abortive = checkAbortiveDrawAfterDiscard(state, discarder, discarded);
@@ -291,21 +299,7 @@ export function passRon(state: GameState, playerId: PlayerId): GameState {
 }
 
 function openCallWindowAfterRonPass(state: GameState, discarder: PlayerId, discarded: Tile): GameState {
-  const highPriorityOptions = [
-    ...getMinkanOptions(state, discarder, discarded),
-    ...getPonOptions(state, discarder, discarded),
-  ];
-  return highPriorityOptions.length > 0
-    ? {
-        ...state,
-        phase: 'call-window',
-        pendingCall: {
-          discarder,
-          tile: discarded,
-          options: highPriorityOptions,
-        },
-      }
-    : openChiWindowOrContinue(state, discarder, discarded);
+  return openCallWindowOrContinue(state, discarder, discarded);
 }
 
 export function canCall(): false {

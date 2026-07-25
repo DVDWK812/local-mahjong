@@ -75,7 +75,7 @@ export function canRon(state: GameState, discarder: PlayerId, discardedTile: Til
     return {
       ...win,
       points: win.points + stickBonus,
-      pointDeltas: ronDeltas(win.winner, discarder, win.points + stickBonus),
+      pointDeltas: addWinnerBonus(ronDeltas(win.winner, discarder, win.points), win.winner, stickBonus),
     };
   });
 }
@@ -154,6 +154,10 @@ function ronDeltas(winner: PlayerId, discarder: PlayerId, points: number): numbe
   deltas[winner] += points;
   deltas[discarder] -= points;
   return deltas;
+}
+
+function addWinnerBonus(deltas: number[], winner: PlayerId, bonus: number): number[] {
+  return deltas.map((delta, index) => index === winner ? delta + bonus : delta);
 }
 
 function combineDeltas(allDeltas: number[][]): number[] {

@@ -11,7 +11,7 @@ export const defaultMatchRuleConfig: MatchRuleConfig = {
   roundCount: 1,
   startingPoints: 25000,
   targetPoints: 30000,
-  returnPoints: 30000,
+  returnPoints: 25000,
   bankruptcyEndsMatch: true,
   bankruptcyThreshold: 0,
   dealerContinuationOnWin: true,
@@ -21,7 +21,7 @@ export const defaultMatchRuleConfig: MatchRuleConfig = {
   agariYameMode: 'automatic',
   tenpaiYameMode: 'automatic',
   allowWestRound: true,
-  maxExtraRoundWind: 'west',
+  maxExtraRoundWind: 'south',
   suddenDeathTarget: 30000,
   carryRiichiSticksToNextRound: true,
   leftoverRiichiStickMode: 'first-place',
@@ -40,6 +40,9 @@ export function normalizeMatchRuleConfig(overrides: Partial<MatchRuleConfig> = {
   const config = { ...defaultMatchRuleConfig, ...overrides };
   if (overrides.roundCount === undefined) {
     config.roundCount = config.matchLength === 'hanchan' ? 2 : 1;
+  }
+  if (config.matchLength === 'hanchan' && config.maxExtraRoundWind === 'south') {
+    config.maxExtraRoundWind = 'west';
   }
   if (config.useUma) validateUma(config.uma);
   return config;
@@ -68,6 +71,8 @@ export function getRulePreset(id: RulePresetInput): FullRuleConfig {
       {
         matchLength: 'hanchan',
         roundCount: 2,
+        returnPoints: 25000,
+        maxExtraRoundWind: 'west',
         useUma: true,
         useOka: true,
         tenpaiYame: true,
@@ -91,6 +96,8 @@ export function getRulePreset(id: RulePresetInput): FullRuleConfig {
       {
         matchLength: 'east-only',
         roundCount: 1,
+        returnPoints: 25000,
+        maxExtraRoundWind: 'south',
         agariYame: true,
         agariYameMode: 'automatic',
         tenpaiYame: false,

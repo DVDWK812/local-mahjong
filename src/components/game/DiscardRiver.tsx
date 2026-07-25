@@ -4,6 +4,7 @@ import { Tile } from '../Tile';
 interface DiscardRiverProps {
   player: PlayerState;
   position: 'south' | 'east' | 'north' | 'west';
+  preserveClaimedDiscardGap?: boolean;
 }
 
 function isClaimedDiscard(tile: PlayerState['river'][number]): boolean {
@@ -11,7 +12,7 @@ function isClaimedDiscard(tile: PlayerState['river'][number]): boolean {
   return marker.claimed === true || marker.claimedBy !== undefined;
 }
 
-export function DiscardRiver({ player, position }: DiscardRiverProps) {
+export function DiscardRiver({ player, position, preserveClaimedDiscardGap = false }: DiscardRiverProps) {
   const riichiDiscardInstanceId = player.riichiState?.riichiDiscardInstanceId;
 
   return (
@@ -20,6 +21,7 @@ export function DiscardRiver({ player, position }: DiscardRiverProps) {
         {player.river.map((tile) => {
           const isRiichiDiscard = riichiDiscardInstanceId === tile.instanceId;
           const isClaimed = isClaimedDiscard(tile);
+          if (isClaimed && !preserveClaimedDiscardGap) return null;
           const className = [
             'discard-river-tile',
             isRiichiDiscard ? 'discard-river-tile--riichi riichi-discard-slot' : '',
