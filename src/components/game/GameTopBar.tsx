@@ -33,10 +33,6 @@ export function GameTopBar({ gameState, analysisOpen, onToggleAnalysis, onReturn
 
   return (
     <header className="game-top-bar" aria-label="对局状态栏">
-      <div className="game-top-bar-section game-top-bar-section--round">
-        <span>供托{gameState.riichiSticks}</span>
-        <span>剩余{gameState.wall.length}张</span>
-      </div>
       <div className="game-top-bar-section game-top-bar-section--turn">
         <span>轮到：{windNames[current.seatWind]}家 {current.name}</span>
         <span>{phaseLabels[gameState.phase]}</span>

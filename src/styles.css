@@ -988,6 +988,40 @@ button {
   gap: 4px;
 }
 
+.result-winning-hand-layout {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.result-winning-hand-layout .result-hand-row {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.result-win-tile {
+  display: flex;
+  align-items: flex-end;
+  padding-left: 6px;
+  border-left: 1px solid rgba(45, 64, 55, 0.18);
+}
+
+.result-melds {
+  display: flex;
+  align-items: flex-end;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.result-melds .player-melds {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
 .result-deltas {
   display: grid;
   gap: 8px;
@@ -1099,8 +1133,8 @@ button {
   --river-tile-height: calc(var(--river-tile-width) * 1.35);
   --river-half-width: calc(var(--river-tile-width) / 2);
   --river-gap: 2px;
-  --river-board-width: calc(var(--river-half-width) * 13 + var(--river-gap) * 12);
-  --river-board-height: calc(var(--river-tile-height) * 4 + var(--river-gap) * 3);
+  --river-area-width: calc(var(--river-half-width) * 13 + var(--river-gap) * 12);
+  --river-area-height: calc(var(--river-tile-height) * 4 + var(--river-gap) * 3);
   --opponent-tile-width: clamp(18px, 1.6vw, 28px);
   --opponent-tile-height: calc(var(--opponent-tile-width) * 1.405);
   --opponent-hand-length: calc(var(--opponent-tile-width) * 14 + 38px);
@@ -1461,11 +1495,15 @@ button {
 }
 
 .discard-river {
+  position: absolute;
   display: grid;
   place-items: center;
+  width: var(--river-area-width);
+  height: var(--river-area-height);
   min-width: 0;
   min-height: 0;
   overflow: visible;
+  transform-origin: center;
   z-index: 10;
 }
 
@@ -1475,9 +1513,9 @@ button {
   grid-auto-rows: var(--river-tile-height);
   grid-auto-flow: row;
   gap: var(--river-gap);
-  width: var(--river-board-width);
-  height: var(--river-board-height);
-  max-height: var(--river-board-height);
+  width: var(--river-area-width);
+  height: var(--river-area-height);
+  max-height: var(--river-area-height);
   overflow: visible;
   padding: 0;
   border-radius: 8px;
@@ -1492,6 +1530,17 @@ button {
   height: var(--river-tile-height);
   min-width: var(--river-tile-width);
   min-height: var(--river-tile-height);
+}
+
+.discard-river-tile--claimed {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.discard-river-claimed-placeholder {
+  display: block;
+  width: var(--river-tile-width);
+  height: var(--river-tile-height);
 }
 
 .discard-river-tile--riichi,
@@ -1511,18 +1560,27 @@ button {
   background: transparent;
 }
 
-.discard-river--west,
-.discard-river--east {
-  width: var(--river-board-height);
-  height: var(--river-board-width);
+.discard-river--south {
+  width: var(--river-area-width);
+  height: var(--river-area-height);
 }
 
-.discard-river--west .discard-river-grid {
+.discard-river--west {
+  width: var(--river-area-width);
+  height: var(--river-area-height);
   transform: rotate(90deg);
 }
 
-.discard-river--east .discard-river-grid {
+.discard-river--east {
+  width: var(--river-area-width);
+  height: var(--river-area-height);
   transform: rotate(-90deg);
+}
+
+.discard-river--north {
+  width: var(--river-area-width);
+  height: var(--river-area-height);
+  transform: rotate(180deg);
 }
 
 .table-center {
@@ -1546,17 +1604,17 @@ button {
   place-self: center;
   display: grid;
   grid-template-columns:
-    var(--river-board-height)
+    var(--river-area-height)
     var(--riichi-stick-space)
     var(--center-size)
     var(--riichi-stick-space)
-    var(--river-board-height);
+    var(--river-area-height);
   grid-template-rows:
-    var(--river-board-height)
+    var(--river-area-height)
     var(--riichi-stick-space)
     var(--center-size)
     var(--riichi-stick-space)
-    var(--river-board-height);
+    var(--river-area-height);
   grid-template-areas:
     ". . north-river . ."
     ". . north-stick . ."
@@ -1577,8 +1635,16 @@ button {
   min-height: 0;
 }
 
-.table-river-anchor--north {
-  transform: rotate(180deg);
+.table-river-anchor--north,
+.table-river-anchor--south {
+  width: var(--river-area-width);
+  height: var(--river-area-height);
+}
+
+.table-river-anchor--west,
+.table-river-anchor--east {
+  width: var(--river-area-height);
+  height: var(--river-area-width);
 }
 
 .riichi-stick-slot {

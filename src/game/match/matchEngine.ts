@@ -61,6 +61,10 @@ export function createGameStateFromMatch(state: MatchState): GameState {
     drawnTile: player.drawnTile ? { ...player.drawnTile } : null,
     riichi: false,
     riichiState: null,
+    furitenState: {
+      temporaryFuriten: false,
+      riichiPermanentFuriten: false,
+    },
   }));
 
   let wall = [...game.wall];

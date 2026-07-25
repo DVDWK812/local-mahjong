@@ -6,6 +6,7 @@ export function canChi(state: GameState, playerId: PlayerId): boolean {
   const discard = state.pendingCall?.tile ?? state.lastDiscard?.tile;
   const discarder = state.pendingCall?.discarder ?? state.lastDiscard?.player;
   if (!discard || discarder === undefined) return false;
+  if (state.players[playerId].riichi) return false;
   if (state.pendingCall && !state.pendingCall.options.some((option) => option.type === 'chi' && option.player === playerId)) return false;
   return getChiOptions(state, discarder, discard).some((option) => option.player === playerId);
 }
@@ -49,6 +50,7 @@ export function executeChi(state: GameState, playerId: PlayerId, optionIndex = 0
     river: [...player.river],
     calls: player.calls.map((call) => ({ ...call, tiles: [...call.tiles] })),
     drawnTile: player.drawnTile ? { ...player.drawnTile } : null,
+    furitenState: player.furitenState ? { ...player.furitenState } : undefined,
   }));
   const caller = players[playerId];
   const discardingPlayer = players[discarder];
@@ -61,8 +63,7 @@ export function executeChi(state: GameState, playerId: PlayerId, optionIndex = 0
     usedTiles.push(removed);
   }
 
-  const riverIndex = discardingPlayer.river.findIndex((riverTile) => riverTile.instanceId === tile.instanceId);
-  if (riverIndex !== -1) discardingPlayer.river.splice(riverIndex, 1);
+  markRiverTileClaimed(discardingPlayer.river, tile.instanceId, playerId);
 
   caller.calls.push({
     type: 'chi',
@@ -85,6 +86,17 @@ export function executeChi(state: GameState, playerId: PlayerId, optionIndex = 0
     callsOccurred: true,
     firstTurnInterrupted: true,
   };
+}
+
+function markRiverTileClaimed(river: Tile[], instanceId: string, claimedBy: PlayerId): void {
+  const riverIndex = river.findIndex((riverTile) => riverTile.instanceId === instanceId);
+  if (riverIndex !== -1) {
+    river[riverIndex] = {
+      ...river[riverIndex],
+      claimed: true,
+      claimedBy,
+    } as Tile & { claimed: boolean; claimedBy: PlayerId };
+  }
 }
 
 export function findUsefulChiOption(state: GameState, playerId: PlayerId): number | null {
@@ -128,5 +140,6 @@ function clearIppatsu(players: GameState['players']): GameState['players'] {
   return players.map((player) => ({
     ...player,
     riichiState: player.riichiState ? { ...player.riichiState, ippatsuAvailable: false } : null,
+    furitenState: player.furitenState ? { ...player.furitenState } : undefined,
   }));
 }

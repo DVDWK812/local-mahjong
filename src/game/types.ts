@@ -47,6 +47,11 @@ export interface RiichiState {
   riichiDiscardInstanceId?: string;
 }
 
+export interface FuritenState {
+  temporaryFuriten: boolean;
+  riichiPermanentFuriten: boolean;
+}
+
 export interface PlayerState {
   id: PlayerId;
   name: string;
@@ -58,6 +63,7 @@ export interface PlayerState {
   drawnTile: Tile | null;
   riichi: boolean;
   riichiState: RiichiState | null;
+  furitenState?: FuritenState;
 }
 
 export type GamePhase =

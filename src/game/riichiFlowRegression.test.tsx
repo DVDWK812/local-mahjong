@@ -43,7 +43,8 @@ describe('立直流程回归', () => {
       expect(player.riichiState?.riichiDiscardInstanceId).toBeTruthy();
       const html = renderToStaticMarkup(<DiscardRiver player={player} position={playerId === 0 ? 'south' : playerId === 1 ? 'east' : playerId === 2 ? 'north' : 'west'} />);
       expect(html).toContain('discard-river-tile--riichi');
-      expect(html).toContain('tile--sideways');
+      expect(html).toContain('riichi-discard-slot');
+      expect(html).not.toContain('tile--sideways');
     });
   });
 
@@ -52,7 +53,8 @@ describe('立直流程回归', () => {
     const after = declareAndDiscard(state, 0);
     expect(after.players[0].riichiState?.kind).toBe('double-riichi');
     const html = renderToStaticMarkup(<DiscardRiver player={after.players[0]} position="south" />);
-    expect(html).toContain('tile--sideways');
+    expect(html).toContain('riichi-discard-slot');
+    expect(html).not.toContain('tile--sideways');
   });
 
   it('立直后自动摸切继续工作并保持立直状态', () => {

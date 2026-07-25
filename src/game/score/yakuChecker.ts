@@ -261,11 +261,21 @@ function yakuhai(shape: HandShape, context: WinContext): YakuResult[] {
   return shape.melds.filter((meld) => meld.type !== 'sequence').flatMap((meld) => {
     const id = meld.ids[0];
     const yaku: YakuResult[] = [];
-    if (DRAGONS.has(id)) yaku.push(NORMAL_YAKU.yakuhai(`役牌 ${id}`));
-    if (id === windToTileId(context.roundWind)) yaku.push(NORMAL_YAKU.yakuhai('役牌 场风'));
-    if (id === windToTileId(context.seatWind)) yaku.push(NORMAL_YAKU.yakuhai('役牌 自风'));
+    if (DRAGONS.has(id)) yaku.push(NORMAL_YAKU.yakuhai(`役牌·${dragonName(id)}`));
+    if (id === windToTileId(context.roundWind)) yaku.push(NORMAL_YAKU.yakuhai(`场风·${windName(context.roundWind)}`));
+    if (id === windToTileId(context.seatWind)) yaku.push(NORMAL_YAKU.yakuhai(`自风·${windName(context.seatWind)}`));
     return yaku;
   });
+}
+
+function dragonName(id: TileId): string {
+  if (id === 31) return '白';
+  if (id === 32) return '发';
+  return '中';
+}
+
+function windName(wind: Wind): string {
+  return { east: '东', south: '南', west: '西', north: '北' }[wind];
 }
 
 function isToitoi(shape: HandShape): boolean {

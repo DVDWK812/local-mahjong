@@ -1,6 +1,8 @@
 import { buildRonResult, buildTsumoResult, canRon } from './winChecker';
 import type { GameState, PendingCallOption, PlayerId, RoundResult, Tile, TileId } from './types';
 import { sortTiles } from './tileUtils';
+import { normalizeFuritenState } from './furiten';
+import { shanten } from './shanten';
 
 export type KanType = 'ankan' | 'minkan' | 'kakan';
 
@@ -13,13 +15,17 @@ export function canAnkan(state: GameState, playerId: PlayerId, tileId?: TileId):
   const player = state.players[playerId];
   if (!player || state.phase !== 'discard' || state.currentPlayer !== playerId) return false;
   const candidates = getAnkanCandidates(state, playerId);
-  return tileId === undefined ? candidates.length > 0 : candidates.some((candidate) => candidate.tileId === tileId);
+  const legalCandidates = player.riichi
+    ? candidates.filter((candidate) => isRiichiAnkanWaitPreserving(state, playerId, candidate.tileId))
+    : candidates;
+  return tileId === undefined ? legalCandidates.length > 0 : legalCandidates.some((candidate) => candidate.tileId === tileId);
 }
 
 export function canMinkan(state: GameState, playerId: PlayerId): boolean {
   const discard = state.pendingCall?.tile ?? state.lastDiscard?.tile;
   const discarder = state.pendingCall?.discarder ?? state.lastDiscard?.player;
   if (!discard || discarder === undefined || discarder === playerId) return false;
+  if (state.players[playerId].riichi) return false;
   if (state.pendingCall && !state.pendingCall.options.some((option) => option.type === 'kan' && option.kanType === 'minkan' && option.player === playerId)) return false;
   return state.players[playerId].hand.filter((tile) => tile.id === discard.id).length >= 3;
 }
@@ -27,6 +33,7 @@ export function canMinkan(state: GameState, playerId: PlayerId): boolean {
 export function canKakan(state: GameState, playerId: PlayerId, tileId?: TileId): boolean {
   const player = state.players[playerId];
   if (!player || state.phase !== 'discard' || state.currentPlayer !== playerId) return false;
+  if (player.riichi) return false;
   const candidates = getKakanCandidates(state, playerId);
   return tileId === undefined ? candidates.length > 0 : candidates.some((candidate) => candidate.tileId === tileId);
 }
@@ -42,7 +49,7 @@ export function getAnkanCandidates(state: GameState, playerId: PlayerId): KanCan
 
 export function getKakanCandidates(state: GameState, playerId: PlayerId): KanCandidate[] {
   const player = state.players[playerId];
-  if (!player) return [];
+  if (!player || player.riichi) return [];
   const ponIds = player.calls.filter((call) => call.type === 'pon').map((call) => call.tiles[0]?.id).filter((id): id is TileId => id !== undefined);
   return ponIds
     .filter((tileId) => player.hand.some((tile) => tile.id === tileId))
@@ -119,8 +126,20 @@ export function declareChankanRon(state: GameState, playerId: PlayerId): GameSta
 export function passChankan(state: GameState, playerId: PlayerId): GameState {
   if (!canChankan(state, playerId) || !state.pendingKakan) return state;
   const passedPlayers = [...new Set([...state.pendingKakan.passedPlayers, playerId])] as PlayerId[];
+  const players = state.players.map((player) => {
+    if (player.id !== playerId) return player;
+    const current = normalizeFuritenState(player.furitenState);
+    return {
+      ...player,
+      furitenState: {
+        temporaryFuriten: player.riichi ? current.temporaryFuriten : true,
+        riichiPermanentFuriten: player.riichi ? true : current.riichiPermanentFuriten,
+      },
+    };
+  });
   return resolveChankanWindow({
     ...state,
+    players,
     pendingKakan: {
       ...state.pendingKakan,
       passedPlayers,
@@ -171,8 +190,7 @@ function executeMinkan(state: GameState, playerId: PlayerId): GameState {
   const removed = removeTilesFromHand(player.hand, tile.id, 3);
   if (removed.length !== 3) return state;
 
-  const riverIndex = discardingPlayer.river.findIndex((riverTile) => riverTile.instanceId === tile.instanceId);
-  if (riverIndex !== -1) discardingPlayer.river.splice(riverIndex, 1);
+  markRiverTileClaimed(discardingPlayer.river, tile.instanceId, playerId);
 
   player.calls.push({
     type: 'kan',
@@ -247,6 +265,7 @@ function applyKanDraw(state: GameState, playerId: PlayerId, kanType: KanType, ti
     calls: player.calls.map((call) => ({ ...call, tiles: [...call.tiles] })),
     drawnTile: player.drawnTile ? { ...player.drawnTile } : null,
     riichiState: player.riichiState ? { ...player.riichiState, ippatsuAvailable: false } : null,
+    furitenState: player.furitenState ? { ...player.furitenState } : undefined,
   }));
   const player = players[playerId];
   player.hand.push(rinshanTile);
@@ -306,6 +325,124 @@ function countHandTiles(hand: Tile[]): Map<TileId, number> {
   return counts;
 }
 
+function isRiichiAnkanWaitPreserving(state: GameState, playerId: PlayerId, tileId: TileId): boolean {
+  const player = state.players[playerId];
+  if (!player?.riichi) return true;
+  const beforeHand = player.drawnTile?.id === tileId ? removeTilesForWaitCheck(player.hand, tileId, 1) : player.hand;
+  const before = waitsForHandWithFixedMelds(beforeHand, 0);
+  const afterHand = removeTilesForWaitCheck(player.hand, tileId, 4);
+  if (afterHand.length !== player.hand.length - 4) return false;
+  const after = waitsForHandWithFixedMelds(afterHand, 1);
+  return sameSet(before, after);
+}
+
+function waitsForHandWithFixedMelds(hand: Tile[], fixedMelds: number): Set<TileId> {
+  const waits = new Set<TileId>();
+  for (let id = 0; id < 34; id += 1) {
+    const tile: Tile = { id: id as TileId, suit: 'honor', rank: 0, red: false, instanceId: `kan-wait-test-${id}` };
+    if (fixedMelds === 0 ? shanten([...hand, tile]).best < 0 : standardShantenWithFixedMelds([...hand, tile], fixedMelds) < 0) {
+      waits.add(id as TileId);
+    }
+  }
+  return waits;
+}
+
+function standardShantenWithFixedMelds(hand: Tile[], fixedMelds: number): number {
+  const counts = countsFor(hand);
+  let best = 8;
+
+  function evaluate(melds: number, pairs: number, taatsu: number) {
+    const totalMelds = fixedMelds + melds;
+    const cappedTaatsu = Math.min(taatsu, Math.max(0, 4 - totalMelds));
+    best = Math.min(best, 8 - totalMelds * 2 - cappedTaatsu - Math.min(1, pairs));
+  }
+
+  function removeTaatsu(work: number[], start: number, melds: number, pairs: number, taatsu: number) {
+    let found = false;
+    for (let i = start; i < 34; i += 1) {
+      if (work[i] >= 2) {
+        found = true;
+        work[i] -= 2;
+        removeTaatsu(work, i, melds, pairs + 1, taatsu + 1);
+        work[i] += 2;
+      }
+      if (i <= 24 && i % 9 <= 7 && work[i] > 0 && work[i + 1] > 0) {
+        found = true;
+        work[i] -= 1;
+        work[i + 1] -= 1;
+        removeTaatsu(work, i, melds, pairs, taatsu + 1);
+        work[i] += 1;
+        work[i + 1] += 1;
+      }
+      if (i <= 24 && i % 9 <= 6 && work[i] > 0 && work[i + 2] > 0) {
+        found = true;
+        work[i] -= 1;
+        work[i + 2] -= 1;
+        removeTaatsu(work, i, melds, pairs, taatsu + 1);
+        work[i] += 1;
+        work[i + 2] += 1;
+      }
+    }
+    if (!found) evaluate(melds, pairs, taatsu);
+  }
+
+  function removeMelds(work: number[], start: number, melds: number, pairs: number, taatsu: number) {
+    let found = false;
+    for (let i = start; i < 34; i += 1) {
+      if (work[i] >= 3) {
+        found = true;
+        work[i] -= 3;
+        removeMelds(work, i, melds + 1, pairs, taatsu);
+        work[i] += 3;
+      }
+      if (i <= 24 && i % 9 <= 6 && work[i] > 0 && work[i + 1] > 0 && work[i + 2] > 0) {
+        found = true;
+        work[i] -= 1;
+        work[i + 1] -= 1;
+        work[i + 2] -= 1;
+        removeMelds(work, i, melds + 1, pairs, taatsu);
+        work[i] += 1;
+        work[i + 1] += 1;
+        work[i + 2] += 1;
+      }
+    }
+    removeTaatsu(work, 0, melds, pairs, taatsu);
+    if (!found) evaluate(melds, pairs, taatsu);
+  }
+
+  removeMelds([...counts], 0, 0, 0, 0);
+  for (let i = 0; i < 34; i += 1) {
+    if (counts[i] >= 2) {
+      const work = [...counts];
+      work[i] -= 2;
+      removeMelds(work, 0, 0, 1, 0);
+    }
+  }
+  return best;
+}
+
+function countsFor(hand: Tile[]): number[] {
+  const counts = Array.from({ length: 34 }, () => 0);
+  hand.forEach((tile) => {
+    counts[tile.id] += 1;
+  });
+  return counts;
+}
+
+function removeTilesForWaitCheck(hand: Tile[], tileId: TileId, amount: number): Tile[] {
+  let removed = 0;
+  return hand.filter((tile) => {
+    if (tile.id !== tileId || removed >= amount) return true;
+    removed += 1;
+    return false;
+  });
+}
+
+function sameSet(a: Set<TileId>, b: Set<TileId>): boolean {
+  if (a.size !== b.size) return false;
+  return [...a].every((item) => b.has(item));
+}
+
 function clonePlayersForKan(state: GameState): GameState['players'] {
   return state.players.map((player) => ({
     ...player,
@@ -314,6 +451,7 @@ function clonePlayersForKan(state: GameState): GameState['players'] {
     calls: player.calls.map((call) => ({ ...call, tiles: [...call.tiles] })),
     drawnTile: player.drawnTile ? { ...player.drawnTile } : null,
     riichiState: player.riichiState ? { ...player.riichiState, ippatsuAvailable: false } : null,
+    furitenState: player.furitenState ? { ...player.furitenState } : undefined,
   }));
 }
 
@@ -326,6 +464,17 @@ function removePendingKakanTileFromDeclarer(state: GameState): GameState {
   if (tileIndex !== -1) declarer.hand.splice(tileIndex, 1);
   if (declarer.drawnTile?.instanceId === pending.addedTileInstanceId) declarer.drawnTile = null;
   return { ...state, players };
+}
+
+function markRiverTileClaimed(river: Tile[], instanceId: string, claimedBy: PlayerId): void {
+  const riverIndex = river.findIndex((riverTile) => riverTile.instanceId === instanceId);
+  if (riverIndex !== -1) {
+    river[riverIndex] = {
+      ...river[riverIndex],
+      claimed: true,
+      claimedBy,
+    } as Tile & { claimed: boolean; claimedBy: PlayerId };
+  }
 }
 
 function settleKanRound(state: GameState, result: RoundResult): GameState {

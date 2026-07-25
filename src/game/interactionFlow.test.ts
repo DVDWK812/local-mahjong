@@ -147,7 +147,7 @@ describe('实战交互流程', () => {
       ...setHand(createInitialGameState(), 0, [0, 0, 0, 0, 1, 2, 3, 9, 10, 11, 18, 19, 20, 31]),
       players: createInitialGameState().players.map((player) =>
         player.id === 0
-          ? { ...player, hand: tiles([0, 0, 0, 0, 1, 2, 3, 9, 10, 11, 18, 19, 20, 31]), drawnTile: createTile(31, 0), riichi: true, riichiState: { declaredAtTurn: 1, ippatsuAvailable: true, kind: 'riichi' as const } }
+          ? { ...player, hand: tiles([0, 0, 0, 0, 1, 2, 3, 9, 10, 11, 18, 19, 20, 31]), drawnTile: createTile(0, 3), riichi: true, riichiState: { declaredAtTurn: 1, ippatsuAvailable: true, kind: 'riichi' as const } }
           : player,
       ),
     };
@@ -161,7 +161,7 @@ describe('实战交互流程', () => {
       deadWall: [createTile(32, 0), ...createInitialGameState().deadWall.slice(1)],
       players: createInitialGameState().players.map((player) =>
         player.id === 0
-          ? { ...player, hand: tiles([0, 0, 0, 0, 3, 4, 5, 9, 10, 11, 18, 19, 20, 31]), drawnTile: createTile(31, 0), riichi: true, riichiState: { declaredAtTurn: 1, ippatsuAvailable: true, kind: 'riichi' as const } }
+          ? { ...player, hand: tiles([0, 0, 0, 0, 3, 4, 5, 9, 10, 11, 18, 19, 20, 31]), drawnTile: createTile(0, 3), riichi: true, riichiState: { declaredAtTurn: 1, ippatsuAvailable: true, kind: 'riichi' as const } }
           : player,
       ),
     };

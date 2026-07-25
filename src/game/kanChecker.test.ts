@@ -74,7 +74,7 @@ describe('kan calls', () => {
     expect(canMinkan(afterDiscard, 1)).toBe(true);
   });
 
-  it('executes minkan, removes three hand tiles and the river tile, adds dora, and draws rinshan', () => {
+  it('executes minkan, removes three hand tiles, keeps the claimed river tile, adds dora, and draws rinshan', () => {
     let state = createInitialGameState();
     state = withSafeOtherHands(state);
     state = setHand(state, 0, [27, 0, 1, 2, 3, 4, 5, 9, 10, 11, 18, 19, 20, 31]);
@@ -86,7 +86,8 @@ describe('kan calls', () => {
     const after = executeKan(callWindow, 1, 'minkan');
     expect(after.phase).toBe('discard');
     expect(after.currentPlayer).toBe(1);
-    expect(after.players[0].river.some((tile) => tile.id === 27)).toBe(false);
+    expect(after.players[0].river.some((tile) => tile.id === 27)).toBe(true);
+    expect(after.players[0].river[0]).toMatchObject({ id: 27, claimed: true, claimedBy: 1 });
     expect(after.players[1].hand.filter((tile) => tile.id === 27)).toHaveLength(0);
     expect(after.players[1].calls[0]).toMatchObject({ type: 'kan', kanType: 'minkan', opened: true, from: 0 });
     expect(after.players[1].drawnTile).not.toBeNull();

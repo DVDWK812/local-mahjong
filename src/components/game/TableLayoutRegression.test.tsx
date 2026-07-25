@@ -27,11 +27,11 @@ describe('Table layout regression', () => {
   });
 
   it('四家牌河固定在中央周围并使用6.5乘4占位尺寸', () => {
-    expect(css).toContain('--river-board-width');
-    expect(css).toContain('--river-board-height');
+    expect(css).toContain('--river-area-width');
+    expect(css).toContain('--river-area-height');
     expect(css).toContain('grid-template-columns: repeat(13, var(--river-half-width))');
     expect(css).toContain('grid-auto-rows: var(--river-tile-height)');
-    expect(css).toContain('height: var(--river-board-height)');
+    expect(css).toContain('height: var(--river-area-height)');
   });
 
   it('左右家手牌与中央牌河使用独立容器和明确间距', () => {

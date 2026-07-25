@@ -122,7 +122,7 @@ export function Board({
         <ActionPrompt title={`可以鸣牌 ${gameState.pendingCall ? tileLabel(gameState.pendingCall.tile.id) : ''}`}>
           {humanMinkanOptions.map((option, index) => (
             <button key={`kan-${option.player}-${index}`} type="button" onClick={() => onKan(0, 'minkan')}>
-              大明杠
+              明杠
             </button>
           ))}
           {canHumanPon ? <button type="button" onClick={() => onPon(0)}>碰</button> : null}

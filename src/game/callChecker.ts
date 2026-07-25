@@ -6,13 +6,14 @@ export function canPon(state: GameState, playerId: PlayerId): boolean {
   const discard = state.pendingCall?.tile ?? state.lastDiscard?.tile;
   const discarder = state.pendingCall?.discarder ?? state.lastDiscard?.player;
   if (!discard || discarder === undefined || discarder === playerId) return false;
+  if (state.players[playerId].riichi) return false;
   if (state.pendingCall && !state.pendingCall.options.some((option) => option.type === 'pon' && option.player === playerId)) return false;
   return state.players[playerId].hand.filter((tile) => tile.id === discard.id).length >= 2;
 }
 
 export function getPonOptions(state: GameState, discarder: PlayerId, discardedTile: Tile): PendingCallOption[] {
   return state.players.flatMap((player) => {
-    if (player.id === discarder) return [];
+    if (player.id === discarder || player.riichi) return [];
     const matchingTiles = player.hand.filter((tile) => tile.id === discardedTile.id);
     return matchingTiles.length >= 2 ? [{ type: 'pon' as const, player: player.id }] : [];
   });
@@ -29,6 +30,7 @@ export function executePon(state: GameState, playerId: PlayerId): GameState {
     river: [...player.river],
     calls: player.calls.map((call) => ({ ...call, tiles: [...call.tiles] })),
     drawnTile: player.drawnTile ? { ...player.drawnTile } : null,
+    furitenState: player.furitenState ? { ...player.furitenState } : undefined,
   }));
   const caller = players[playerId];
   const discardingPlayer = players[discarder];
@@ -41,8 +43,7 @@ export function executePon(state: GameState, playerId: PlayerId): GameState {
     }
   }
 
-  const riverIndex = discardingPlayer.river.findIndex((riverTile) => riverTile.instanceId === tile.instanceId);
-  if (riverIndex !== -1) discardingPlayer.river.splice(riverIndex, 1);
+  markRiverTileClaimed(discardingPlayer.river, tile.instanceId, playerId);
 
   caller.calls.push({
     type: 'pon',
@@ -64,6 +65,17 @@ export function executePon(state: GameState, playerId: PlayerId): GameState {
   };
 }
 
+function markRiverTileClaimed(river: Tile[], instanceId: string, claimedBy: PlayerId): void {
+  const riverIndex = river.findIndex((riverTile) => riverTile.instanceId === instanceId);
+  if (riverIndex !== -1) {
+    river[riverIndex] = {
+      ...river[riverIndex],
+      claimed: true,
+      claimedBy,
+    } as Tile & { claimed: boolean; claimedBy: PlayerId };
+  }
+}
+
 export function passCall(state: GameState): GameState {
   if (state.phase !== 'call-window' || !state.pendingCall) return state;
   const nextPlayer = ((state.pendingCall.discarder + 1) % 4) as PlayerId;
@@ -80,5 +92,6 @@ function clearIppatsu(players: GameState['players']): GameState['players'] {
   return players.map((player) => ({
     ...player,
     riichiState: player.riichiState ? { ...player.riichiState, ippatsuAvailable: false } : null,
+    furitenState: player.furitenState ? { ...player.furitenState } : undefined,
   }));
 }

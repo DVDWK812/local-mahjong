@@ -5,6 +5,7 @@ import { defaultRuleConfig } from './score/rules/RuleConfig';
 import type { GameState, PlayerId, RoundResult, Tile, WinResultEntry } from './types';
 import type { WinningTileSource } from './score/scoringTypes';
 import { defaultMatchRuleConfig } from './match/matchRules';
+import { canRonWithFuritenCheck } from './furiten';
 
 const PLAYER_ORDER: PlayerId[] = [0, 1, 2, 3];
 
@@ -48,6 +49,7 @@ export function canRon(state: GameState, discarder: PlayerId, discardedTile: Til
     const handWithDiscard = [...player.hand, discardedTile];
     const score = evaluateWin(handWithDiscard, createWinContext(state, playerId, discardedTile, false, options.riichiSticks ?? 0, player.hand, options.winningTileSource));
     if (!hasRealYaku(score.yaku) || !score.points.ron) return [];
+    if (!canRonWithFuritenCheck(state, playerId)) return [];
 
     return [{
       winner: playerId,

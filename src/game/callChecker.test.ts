@@ -34,7 +34,7 @@ describe('pon calls', () => {
     expect(canPon(after, 1)).toBe(true);
   });
 
-  it('executePon removes two matching hand tiles, removes the river tile, and opens a meld', () => {
+  it('executePon removes two matching hand tiles, keeps the claimed river tile, and opens a meld', () => {
     let state = createInitialGameState();
     state = setHand(state, 0, [27, 0, 1, 2, 3, 4, 5, 9, 10, 11, 18, 19, 20, 31]);
     state = setHand(state, 1, [27, 27, 1, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22]);
@@ -46,7 +46,8 @@ describe('pon calls', () => {
     expect(after.phase).toBe('discard');
     expect(after.currentPlayer).toBe(1);
     expect(after.pendingCall).toBeNull();
-    expect(after.players[0].river.some((tile) => tile.id === 27)).toBe(false);
+    expect(after.players[0].river.some((tile) => tile.id === 27)).toBe(true);
+    expect(after.players[0].river[0]).toMatchObject({ id: 27, claimed: true, claimedBy: 1 });
     expect(after.players[1].hand.filter((tile) => tile.id === 27)).toHaveLength(0);
     expect(after.players[1].calls[0]).toMatchObject({ type: 'pon', from: 0, opened: true });
     expect(after.players[1].calls[0].tiles).toHaveLength(3);

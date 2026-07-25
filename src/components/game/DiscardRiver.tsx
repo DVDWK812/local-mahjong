@@ -6,6 +6,11 @@ interface DiscardRiverProps {
   position: 'south' | 'east' | 'north' | 'west';
 }
 
+function isClaimedDiscard(tile: PlayerState['river'][number]): boolean {
+  const marker = tile as PlayerState['river'][number] & { claimed?: boolean; claimedBy?: number | null };
+  return marker.claimed === true || marker.claimedBy !== undefined;
+}
+
 export function DiscardRiver({ player, position }: DiscardRiverProps) {
   const riichiDiscardInstanceId = player.riichiState?.riichiDiscardInstanceId;
 
@@ -14,9 +19,16 @@ export function DiscardRiver({ player, position }: DiscardRiverProps) {
       <div className="discard-river-grid">
         {player.river.map((tile) => {
           const isRiichiDiscard = riichiDiscardInstanceId === tile.instanceId;
+          const isClaimed = isClaimedDiscard(tile);
+          const className = [
+            'discard-river-tile',
+            isRiichiDiscard ? 'discard-river-tile--riichi riichi-discard-slot' : '',
+            isClaimed ? 'discard-river-tile--claimed' : '',
+          ].filter(Boolean).join(' ');
+
           return (
-            <span key={tile.instanceId} className={`discard-river-tile ${isRiichiDiscard ? 'discard-river-tile--riichi riichi-discard-slot' : ''}`}>
-              <Tile tile={tile} compact sideways={isRiichiDiscard} />
+            <span key={tile.instanceId} className={className}>
+              {isClaimed ? <span className="discard-river-claimed-placeholder" aria-hidden="true" /> : <Tile tile={tile} compact />}
             </span>
           );
         })}

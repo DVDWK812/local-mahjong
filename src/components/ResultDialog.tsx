@@ -1,6 +1,7 @@
 import type React from 'react';
 import type { AbortiveDrawReason, GameState, PlayerId, ResultYaku, Tile as TileModel, WinResultEntry } from '../game/types';
 import { tileLabel, windLabel } from '../game/tileUtils';
+import { PlayerMelds } from './PlayerMelds';
 import { Tile as TileView } from './Tile';
 
 interface ResultDialogProps {
@@ -45,19 +46,47 @@ function HandPreview({ title, tiles }: { title: string; tiles: TileModel[] }) {
   );
 }
 
+function WinHandPreview({ winner, win }: { winner: GameState['players'][number]; win: WinResultEntry }) {
+  const concealedTiles = removeWinTileForDisplay(winner.hand, win.winTile, win.winType);
+  return (
+    <div className="result-hand result-winning-hand">
+      <span>和牌手牌</span>
+      <div className="result-winning-hand-layout">
+        <div className="result-hand-row" aria-label="隐藏手牌">
+          {concealedTiles.map((tile) => <TileView key={tile.instanceId} tile={tile} compact />)}
+        </div>
+        <div className="result-win-tile" aria-label="和牌张">
+          <TileView tile={win.winTile} compact />
+        </div>
+        <div className="result-melds" aria-label="副露">
+          <PlayerMelds player={winner} seatClass="result-melds-seat" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function removeWinTileForDisplay(hand: TileModel[], winTile: TileModel, winType: 'tsumo' | 'ron'): TileModel[] {
+  if (winType === 'ron') return hand;
+  const instanceIndex = hand.findIndex((tile) => tile.instanceId === winTile.instanceId);
+  if (instanceIndex !== -1) return hand.filter((_, index) => index !== instanceIndex);
+  const idIndex = hand.findIndex((tile) => tile.id === winTile.id);
+  return idIndex === -1 ? hand : hand.filter((_, index) => index !== idIndex);
+}
+
 function playerNames(gameState: GameState, ids: PlayerId[]): string {
   return ids.length ? ids.map((id) => gameState.players[id].name).join('、') : '无人';
 }
 
 function drawReasonLabel(reason: AbortiveDrawReason): string {
-  const labels: Record<string, string> = {
+  const labels: Record<AbortiveDrawReason, string> = {
     'kyuushu-kyuuhai': '九种九牌',
     'suufon-renda': '四风连打',
     'suucha-riichi': '四家立直',
     'suukan-sanra': '四杠散了',
     sanchahou: '三家和了',
   };
-  return labels[String(reason)] ?? '特殊流局';
+  return labels[reason] ?? '特殊流局';
 }
 
 function reconciledYakuRows(win: WinResultEntry): ResultYaku[] {
@@ -74,14 +103,14 @@ function reconciledYakuRows(win: WinResultEntry): ResultYaku[] {
 }
 
 function isDoraYakuName(name: string): boolean {
-  return name === '\u5b9d\u724c' || name === '\u91cc\u5b9d\u724c' || name === '\u8d64\u5b9d\u724c';
+  return name === '宝牌' || name === '里宝牌' || name === '赤宝牌';
 }
 
 function doraYakuRows(win: WinResultEntry): ResultYaku[] {
   const rows: ResultYaku[] = [];
-  if ((win.dora ?? 0) > 0) rows.push({ name: '\u5b9d\u724c', han: win.dora ?? 0 });
-  if ((win.uraDora ?? 0) > 0) rows.push({ name: '\u91cc\u5b9d\u724c', han: win.uraDora ?? 0 });
-  if ((win.redDora ?? 0) > 0) rows.push({ name: '\u8d64\u5b9d\u724c', han: win.redDora ?? 0 });
+  if ((win.dora ?? 0) > 0) rows.push({ name: '宝牌', han: win.dora ?? 0 });
+  if ((win.uraDora ?? 0) > 0) rows.push({ name: '里宝牌', han: win.uraDora ?? 0 });
+  if ((win.redDora ?? 0) > 0) rows.push({ name: '赤宝牌', han: win.redDora ?? 0 });
   return rows;
 }
 
@@ -155,18 +184,18 @@ export function ResultDialog({ gameState, onReset }: ResultDialogProps) {
         {result.winners.map((win) => {
           const winner = gameState.players[win.winner];
           const from = win.from === null ? null : gameState.players[win.from];
-          const winningHand = win.winType === 'tsumo' ? winner.hand : [...winner.hand, win.winTile];
           const hasYakuman = win.yaku.some((yaku) => yaku.yakuman);
+          const yakuRows = reconciledYakuRows(win);
           return (
             <article key={`${win.winner}-${win.winType}`} className="result-card">
               <div className="result-card-title">
                 <strong>{windLabel(winner.seatWind)}家 {winner.name}</strong>
                 <span>{win.winType === 'tsumo' ? '自摸' : `荣和${from ? ` ${windLabel(from.seatWind)}家` : ''}`}</span>
               </div>
-              <HandPreview title="和牌手牌" tiles={winningHand} />
+              <WinHandPreview winner={winner} win={win} />
               <p>和牌：{tileLabel(win.winTile)}</p>
               <div className="result-yaku-list" aria-label="役种明细">
-                {reconciledYakuRows(win).length ? reconciledYakuRows(win).map((yaku, index) => (
+                {yakuRows.length ? yakuRows.map((yaku, index) => (
                   <div key={`${win.winner}-${yaku.name}-${index}`} className="result-yaku-row">
                     <span>{yaku.name}</span>
                     <strong>{yaku.yakuman ? (yaku.han > 1 ? `${yaku.han}倍役满` : '役满') : `${yaku.han}番`}</strong>

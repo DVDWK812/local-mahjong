@@ -63,14 +63,15 @@ describe('chi calls', () => {
     expect(canChi(state, 3)).toBe(false);
   });
 
-  it('executeChi removes two hand tiles, removes the river tile, opens a meld, and enters discard phase', () => {
+  it('executeChi removes two hand tiles, keeps the claimed river tile, opens a meld, and enters discard phase', () => {
     const state = discardIntoChiWindow(1, [0, 2, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]);
     const after = executeChi(state, 1, 0);
 
     expect(after.phase).toBe('discard');
     expect(after.currentPlayer).toBe(1);
     expect(after.pendingCall).toBeNull();
-    expect(after.players[0].river.some((tile) => tile.id === 1)).toBe(false);
+    expect(after.players[0].river.some((tile) => tile.id === 1)).toBe(true);
+    expect(after.players[0].river[0]).toMatchObject({ id: 1, claimed: true, claimedBy: 1 });
     expect(after.players[1].hand.some((tile) => tile.id === 0)).toBe(false);
     expect(after.players[1].hand.some((tile) => tile.id === 2)).toBe(false);
     expect(after.players[1].calls[0]).toMatchObject({

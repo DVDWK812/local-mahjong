@@ -21,6 +21,10 @@ function createPlayers(): PlayerState[] {
     drawnTile: null,
     riichi: false,
     riichiState: null,
+    furitenState: {
+      temporaryFuriten: false,
+      riichiPermanentFuriten: false,
+    },
   }));
 }
 
@@ -32,6 +36,7 @@ function clonePlayers(players: PlayerState[]): PlayerState[] {
     calls: player.calls.map((call) => ({ ...call, tiles: [...call.tiles] })),
     drawnTile: player.drawnTile ? { ...player.drawnTile } : null,
     riichiState: player.riichiState ? { ...player.riichiState } : null,
+    furitenState: player.furitenState ? { ...player.furitenState } : undefined,
   }));
 }
 
@@ -110,6 +115,10 @@ export function drawTile(state: GameState, options: { settleTsumo?: boolean } = 
   const player = players[state.currentPlayer];
   player.drawnTile = drawn;
   player.hand.push(drawn);
+  player.furitenState = {
+    temporaryFuriten: false,
+    riichiPermanentFuriten: player.furitenState?.riichiPermanentFuriten ?? false,
+  };
 
   const nextState: GameState = {
     ...state,
@@ -257,16 +266,28 @@ export function declareRon(state: GameState, playerId: PlayerId): GameState {
 
 export function passRon(state: GameState, playerId: PlayerId): GameState {
   if (state.phase !== 'ron-window' || !state.pendingRon) return state;
+  const players = state.players.map((player) =>
+    player.id === playerId
+      ? {
+          ...player,
+          furitenState: {
+            temporaryFuriten: player.riichi ? (player.furitenState?.temporaryFuriten ?? false) : true,
+            riichiPermanentFuriten: player.riichi ? true : (player.furitenState?.riichiPermanentFuriten ?? false),
+          },
+        }
+      : player,
+  );
   const pendingRon = {
     ...state.pendingRon,
     passedPlayers: [...new Set([...state.pendingRon.passedPlayers, playerId])] as PlayerId[],
   };
+  const passedState = { ...state, players };
   const remaining = pendingRon.eligibleRonPlayers.filter((candidate) => !pendingRon.passedPlayers.includes(candidate));
   if (remaining.length > 0) {
-    const result = buildRonResult({ ...state, phase: 'discard', pendingRon: null }, pendingRon.discarder, pendingRon.tile, { candidatePlayers: remaining });
-    if (result) return settleRound({ ...state, pendingRon: null }, result);
+    const result = buildRonResult({ ...passedState, phase: 'discard', pendingRon: null }, pendingRon.discarder, pendingRon.tile, { candidatePlayers: remaining });
+    if (result) return settleRound({ ...passedState, pendingRon: null }, result);
   }
-  return openCallWindowAfterRonPass({ ...state, pendingRon: null }, pendingRon.discarder, pendingRon.tile);
+  return openCallWindowAfterRonPass({ ...passedState, pendingRon: null }, pendingRon.discarder, pendingRon.tile);
 }
 
 function openCallWindowAfterRonPass(state: GameState, discarder: PlayerId, discarded: Tile): GameState {
