@@ -4,6 +4,8 @@ interface RiichiStickProps {
 }
 
 export function RiichiStick({ orientation, active = false }: RiichiStickProps) {
+  const isVertical = orientation === 'vertical';
+
   return (
     <div
       className={`riichi-stick-slot riichi-stick-slot--${orientation} ${active ? 'riichi-stick-slot--active' : ''}`}
@@ -12,9 +14,18 @@ export function RiichiStick({ orientation, active = false }: RiichiStickProps) {
       aria-hidden={!active}
     >
       {active ? (
-        <svg className="riichi-stick" viewBox="0 0 120 16" role="img" aria-label="立直棒">
-          <rect x="1" y="1" width="118" height="14" rx="7" fill="#fff8e8" stroke="#33423c" strokeWidth="2" />
-          <circle cx="60" cy="8" r="4" fill="#d23b32" />
+        <svg className="riichi-stick" viewBox={isVertical ? '0 0 10 168' : '0 0 168 10'} role="img" aria-label="立直棒">
+          <rect
+            x="1"
+            y="1"
+            width={isVertical ? 8 : 166}
+            height={isVertical ? 166 : 8}
+            rx="5"
+            fill="#fff8e8"
+            stroke="#33423c"
+            strokeWidth="1.5"
+          />
+          <circle cx={isVertical ? 5 : 84} cy={isVertical ? 84 : 5} r="4" fill="#d23b32" />
         </svg>
       ) : null}
     </div>

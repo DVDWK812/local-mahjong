@@ -94,7 +94,6 @@ export function MatchSettings({ config, matchTypeLabel, pathLabel, onConfigChang
       </section>
 
       <section className="settings-block">
-        <h3>下拉规则</h3>
         <div className="settings-grid settings-grid--four">
           {match.allowWestRound ? (
             <label className="settings-field">

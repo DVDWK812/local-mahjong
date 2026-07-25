@@ -1285,7 +1285,11 @@ button {
   --opponent-tile-width: clamp(25px, 2.2vw, 39px);
   --opponent-tile-height: calc(var(--opponent-tile-width) * 1.405);
   --opponent-hand-length: calc(var(--opponent-tile-width) * 14 + 48px);
-  --riichi-stick-space: clamp(8px, 0.8vw, 14px);
+  --riichi-stick-length: 168px;
+  --riichi-stick-thickness: 10px;
+  --riichi-stick-dot-size: 8px;
+  --riichi-stick-space: var(--riichi-stick-thickness);
+  --river-hand-shift: var(--riichi-stick-thickness);
   --zone-gap: clamp(8px, 1vw, 16px);
   position: relative;
   display: grid;
@@ -1825,6 +1829,22 @@ button {
   height: var(--river-area-width);
 }
 
+.table-river-anchor--north {
+  translate: 0 calc(-1 * var(--river-hand-shift));
+}
+
+.table-river-anchor--south {
+  translate: 0 var(--river-hand-shift);
+}
+
+.table-river-anchor--west {
+  translate: calc(-1 * var(--river-hand-shift)) 0;
+}
+
+.table-river-anchor--east {
+  translate: var(--river-hand-shift) 0;
+}
+
 .riichi-stick-slot {
   display: grid;
   place-items: center;
@@ -1837,13 +1857,13 @@ button {
 }
 
 .riichi-stick-slot--horizontal {
-  width: min(74px, calc(var(--center-size) * 0.58));
-  height: var(--riichi-stick-space);
+  width: var(--riichi-stick-length);
+  height: var(--riichi-stick-thickness);
 }
 
 .riichi-stick-slot--vertical {
-  width: var(--riichi-stick-space);
-  height: min(74px, calc(var(--center-size) * 0.58));
+  width: var(--riichi-stick-thickness);
+  height: var(--riichi-stick-length);
 }
 
 .riichi-stick {
@@ -1851,10 +1871,6 @@ button {
   width: 100%;
   height: 100%;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.32));
-}
-
-.riichi-stick-slot--vertical .riichi-stick {
-  transform: rotate(90deg);
 }
 
 .center-score-grid {
