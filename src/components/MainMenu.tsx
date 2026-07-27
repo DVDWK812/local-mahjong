@@ -12,7 +12,7 @@ export function MainMenu({ hasSave, notice, onContinue, onLocalMode, onOnlineMod
     <main className="menu-page">
       <section className="menu-panel">
         <p className="menu-path">主菜单</p>
-        <h1>日本麻将训练器</h1>
+        <h1>麻将训练器</h1>
         {notice ? <p className="menu-notice">{notice}</p> : null}
         <div className="menu-actions">
           {hasSave ? <button type="button" onClick={onContinue}>继续对局</button> : null}

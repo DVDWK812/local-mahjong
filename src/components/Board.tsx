@@ -4,6 +4,7 @@ import { canChi } from '../game/chiChecker';
 import { getDrawActionState } from '../game/interaction';
 import { canChankan, canMinkan, type KanType } from '../game/kanChecker';
 import type { MatchState } from '../game/match/types';
+import { getTileAlt } from '../game/tileAssets';
 import type { GameState, PendingCallOption, PlayerId, Tile as TileModel, TileId } from '../game/types';
 import { sortTiles, tileLabel } from '../game/tileUtils';
 import { ActionPrompt } from './ActionPrompt';
@@ -27,6 +28,7 @@ interface BoardProps {
   onPassCall: () => void;
   onSkipDrawActions: () => void;
   onReset: () => void;
+  onOpenRulesGuide?: () => void;
   onReturnMenu?: () => void;
 }
 
@@ -47,6 +49,7 @@ export function Board({
   onPassCall,
   onSkipDrawActions,
   onReset,
+  onOpenRulesGuide,
   onReturnMenu,
 }: BoardProps) {
   const [dismissedPromptKey, setDismissedPromptKey] = useState<string | null>(null);
@@ -96,6 +99,8 @@ export function Board({
                 <TileActionButton
                   key={tile.instanceId}
                   label={drawActions.canDoubleRiichi ? '双立直' : '立直'}
+                  ariaLabel={`${drawActions.canDoubleRiichi ? '双立直' : '立直'}并打出${tileLabel(tile.id)}`}
+                  showLabel={false}
                   tile={tile}
                   onClick={() => onDeclareRiichi(0, tile.instanceId)}
                 />
@@ -134,7 +139,15 @@ export function Board({
       ) : null}
 
       {gameState.phase === 'call-window' && (canHumanPon || canHumanChi || canHumanMinkan) ? (
-        <ActionPrompt title={`可以鸣牌 ${gameState.pendingCall ? tileLabel(gameState.pendingCall.tile.id) : ''}`}>
+        <ActionPrompt
+          title={gameState.pendingCall ? (
+            <span className="action-prompt-title-with-tile">
+              <span>可以鸣牌</span>
+              <Tile tile={gameState.pendingCall.tile} compact interactive={false} className="action-prompt-title-tile" />
+            </span>
+          ) : '可以鸣牌'}
+          ariaLabel={gameState.pendingCall ? `可以鸣牌：${getTileAlt(gameState.pendingCall.tile)}` : '可以鸣牌'}
+        >
           {humanMinkanOptions.map((option, index) => (
             <CallOptionButton
               key={`kan-${option.player}-${index}`}
@@ -184,6 +197,7 @@ export function Board({
       actionPrompt={promptOpen ? actionPrompt : null}
       canDiscard={canDiscard}
       allowedDiscardInstanceIds={riichiDrawnTile ? [riichiDrawnTile] : undefined}
+      onOpenRulesGuide={onOpenRulesGuide ?? (() => undefined)}
       onToggleAnalysis={() => setAnalysisOpen((open) => !open)}
       onCloseAnalysis={() => setAnalysisOpen(false)}
       onReturnMenu={onReturnMenu ?? (() => undefined)}
@@ -195,32 +209,29 @@ export function Board({
 
 function TileActionButton({
   label,
+  ariaLabel,
+  showLabel = true,
   tile,
   onClick,
 }: {
   label: string;
+  ariaLabel?: string;
+  showLabel?: boolean;
   tile: TileModel;
   onClick: () => void;
 }) {
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
       className="prompt-tile-action"
       onClick={onClick}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          onClick();
-        }
-      }}
-      aria-label={`${label} ${tileLabel(tile.id)}`}
+      aria-label={ariaLabel ?? `${label} ${tileLabel(tile.id)}`}
     >
-      <span className="prompt-tile-action-label">{label}</span>
+      {showLabel ? <span className="prompt-tile-action-label">{label}</span> : null}
       <span className="prompt-tile-action-tile">
-        <Tile tile={tile} compact />
+        <Tile tile={tile} compact interactive={false} />
       </span>
-    </div>
+    </button>
   );
 }
 
@@ -237,18 +248,11 @@ function CallOptionButton({
 }) {
   const ariaLabel = `${label} ${tiles.map((tile) => tileLabel(tile.id)).join('')}`;
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
       className="call-option-button"
       aria-label={ariaLabel}
       onClick={onClick}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          onClick();
-        }
-      }}
     >
       <span className="call-option-label">{label}</span>
       <span className="call-option-tiles">
@@ -258,11 +262,11 @@ function CallOptionButton({
             className={tile.instanceId === calledInstanceId ? 'call-option-tile call-option-tile--called' : 'call-option-tile'}
             data-called={tile.instanceId === calledInstanceId ? 'true' : 'false'}
           >
-            <Tile tile={tile} compact />
+            <Tile tile={tile} compact interactive={false} />
           </span>
         ))}
       </span>
-    </div>
+    </button>
   );
 }
 

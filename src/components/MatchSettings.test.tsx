@@ -73,6 +73,23 @@ describe('比赛设置界面', () => {
     expect(ruleDescriptions).not.toHaveProperty('kazoeYakumanMode');
   });
 
+  it('鸣牌留空默认关闭，并在设置页显示说明', () => {
+    const config = getRulePreset('east-round');
+    const html = renderToStaticMarkup(<MatchSettings config={config} onConfigChange={() => undefined} />);
+    expect(config.round.preserveClaimedDiscardGap).toBe(false);
+    expect(html).toContain('鸣牌留空');
+    expect(html).toContain('被吃、碰或杠走的弃牌会在原牌河位置留下空白');
+  });
+
+  it('旧配置缺少鸣牌留空字段时按关闭处理', () => {
+    const config = getRulePreset('east-round');
+    const legacy = {
+      ...config,
+      round: Object.fromEntries(Object.entries(config.round).filter(([key]) => key !== 'preserveClaimedDiscardGap')) as typeof config.round,
+    };
+    expect(normalizeMatchSettingsConfig(legacy).round.preserveClaimedDiscardGap).toBe(false);
+  });
+
   it('四人东最大延长场风可以选择南风', () => {
     const config = { ...getRulePreset('east-round'), match: { ...getRulePreset('east-round').match, allowWestRound: true } };
     const html = renderToStaticMarkup(<MatchSettings config={config} onConfigChange={() => undefined} />);

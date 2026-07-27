@@ -7,6 +7,7 @@ export type AppScreen =
   | 'riichi-four-player-length'
   | 'riichi-three-player-length'
   | 'match-settings'
+  | 'rules-guide'
   | 'game'
   | 'replay-library'
   | 'replay';

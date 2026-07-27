@@ -35,6 +35,7 @@ export function normalizeMatchSettingsConfig(
   return {
     round: {
       ...config.round,
+      preserveClaimedDiscardGap: config.round.preserveClaimedDiscardGap ?? false,
       ...roundPatch,
     },
     match: {
@@ -164,6 +165,15 @@ export function MatchSettings({ config, matchTypeLabel, pathLabel, onConfigChang
           <CheckField label="四家立直" rule="abortOnFourRiichi" checked={round.abortOnFourRiichi} onChange={(checked) => setRound({ abortOnFourRiichi: checked })} />
           <CheckField label="四杠散了" rule="abortOnFourKans" checked={round.abortOnFourKans} onChange={(checked) => setRound({ abortOnFourKans: checked })} />
           <CheckField label="国士无双抢暗杠" rule="allowKokushiChankanAnkan" checked={round.allowKokushiChankanAnkan} onChange={(checked) => setRound({ allowKokushiChankanAnkan: checked })} />
+          <label className="settings-check">
+            <input
+              type="checkbox"
+              checked={round.preserveClaimedDiscardGap ?? false}
+              onChange={(event) => setRound({ preserveClaimedDiscardGap: event.target.checked })}
+            />
+            <span>鸣牌留空</span>
+            <RuleHelpTooltip description="开启后，被吃、碰或杠走的弃牌会在原牌河位置留下空白；关闭时牌河视觉上自动向前补位，但真实弃牌历史仍会保留。" />
+          </label>
         </div>
       </section>
 

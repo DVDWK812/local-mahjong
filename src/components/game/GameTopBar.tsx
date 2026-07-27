@@ -5,6 +5,7 @@ interface GameTopBarProps {
   gameState: GameState;
   matchState?: MatchState;
   analysisOpen: boolean;
+  onOpenRulesGuide: () => void;
   onToggleAnalysis: () => void;
   onReturnMenu: () => void;
 }
@@ -28,7 +29,7 @@ const windNames: Record<Wind, string> = {
   north: '北',
 };
 
-export function GameTopBar({ gameState, analysisOpen, onToggleAnalysis, onReturnMenu }: GameTopBarProps) {
+export function GameTopBar({ gameState, analysisOpen, onOpenRulesGuide, onToggleAnalysis, onReturnMenu }: GameTopBarProps) {
   const current = gameState.players[gameState.currentPlayer];
 
   return (
@@ -38,6 +39,7 @@ export function GameTopBar({ gameState, analysisOpen, onToggleAnalysis, onReturn
         <span>{phaseLabels[gameState.phase]}</span>
       </div>
       <div className="game-top-bar-actions">
+        <button type="button" onClick={onOpenRulesGuide}>规则说明</button>
         <button type="button" aria-pressed={analysisOpen} onClick={onToggleAnalysis}>牌局分析</button>
         <button type="button" onClick={onReturnMenu}>返回菜单</button>
       </div>

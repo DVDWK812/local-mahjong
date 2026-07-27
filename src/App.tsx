@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { AppScreen, RiichiLengthChoice, SetupSelection } from './app/navigation';
 import { matchLengthForChoice, pathLabel, presetForChoice } from './app/navigation';
 import { BackButton } from './components/BackButton';
@@ -12,6 +12,7 @@ import { MatchSettings } from './components/MatchSettings';
 import { ReplayLibrary } from './components/ReplayLibrary';
 import { ReplayScreen } from './components/ReplayScreen';
 import { RiichiModeMenu } from './components/RiichiModeMenu';
+import { RulesGuideScreen } from './components/rulesGuide/RulesGuideScreen';
 import { advanceAIAction, isAIPlayer } from './game/ai';
 import { declareKyuushuKyuuhai } from './game/abortiveDraw';
 import { canPon, executePon, passCall } from './game/callChecker';
@@ -46,9 +47,14 @@ interface AppState {
   replay: Replay | null;
   exitDialogOpen: boolean;
   exiting: boolean;
+  exitSaveError: string | null;
+  rulesGuideOpen: boolean;
 }
 
 const storage = typeof window === 'undefined' ? null : new LocalStorageAdapter(window.localStorage);
+const EXIT_SAVE_TIMEOUT_MS = 3000;
+const EXIT_SAVE_TIMEOUT_MESSAGE = '牌谱保存超时，可直接退出或重试保存。';
+const EXIT_SAVE_ERROR_MESSAGE = '牌谱保存失败，可直接退出或重试保存。';
 
 function withRules(gameState: GameState, config: FullRuleConfig): GameState {
   return { ...gameState, ruleConfig: config.round, matchRuleConfig: config.match };
@@ -94,21 +100,41 @@ export default function App() {
     replay: null,
     exitDialogOpen: false,
     exiting: false,
+    exitSaveError: null,
+    rulesGuideOpen: false,
   }));
 
+  const mountedRef = useRef(false);
+  const exitSaveInProgressRef = useRef(false);
+  const pendingExitSaveRef = useRef<SavedMatch | null>(null);
   const activeGame = state.activeGame;
   const gameState = activeGame?.gameState;
   const matchState = activeGame?.matchState;
   const settingsPath = useMemo(() => pathLabel(state.selection), [state.selection]);
 
   useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!storage) return;
     void storage.loadCurrentMatch()
-      .then((save) => setState((current) => ({ ...current, savedMatch: save })))
-      .catch(() => setState((current) => ({ ...current, savedMatch: null })));
+      .then((save) => {
+        if (mountedRef.current) setState((current) => ({ ...current, savedMatch: save }));
+      })
+      .catch(() => {
+        if (mountedRef.current) setState((current) => ({ ...current, savedMatch: null }));
+      });
     void storage.listReplays()
-      .then((replays) => setState((current) => ({ ...current, replayMetas: replays })))
-      .catch(() => setState((current) => ({ ...current, replayMetas: [] })));
+      .then((replays) => {
+        if (mountedRef.current) setState((current) => ({ ...current, replayMetas: replays }));
+      })
+      .catch(() => {
+        if (mountedRef.current) setState((current) => ({ ...current, replayMetas: [] }));
+      });
   }, []);
 
   useEffect(() => {
@@ -202,6 +228,8 @@ export default function App() {
       activeGame: createActiveGame(current.ruleConfig),
       exitDialogOpen: false,
       exiting: false,
+      exitSaveError: null,
+      rulesGuideOpen: false,
       menuNotice: null,
     }));
   }
@@ -218,6 +246,8 @@ export default function App() {
         ruleConfig: current.savedMatch.ruleConfig,
         exitDialogOpen: false,
         exiting: false,
+        exitSaveError: null,
+        rulesGuideOpen: false,
         menuNotice: null,
       };
     });
@@ -237,22 +267,69 @@ export default function App() {
     });
   }
 
-  async function confirmExitGame() {
-    if (state.exiting) return;
-    const snapshot = state.activeGame;
-    setState((current) => ({ ...current, exiting: true }));
-    if (snapshot && storage && snapshot.matchState.phase !== 'match-ended') {
-      await storage.saveCurrentMatch(createSavedMatch(snapshot, state.ruleConfig));
+  async function saveExitMatchWithTimeout(save: SavedMatch): Promise<'saved' | 'timeout'> {
+    if (!storage) return 'saved';
+    let timeoutId: ReturnType<typeof window.setTimeout> | null = null;
+    try {
+      return await Promise.race([
+        storage.saveCurrentMatch(save).then(() => 'saved' as const),
+        new Promise<'timeout'>((resolve) => {
+          timeoutId = window.setTimeout(() => resolve('timeout'), EXIT_SAVE_TIMEOUT_MS);
+        }),
+      ]);
+    } finally {
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
     }
+  }
+
+  function returnToMainMenu(savedMatch: SavedMatch | null = null) {
+    pendingExitSaveRef.current = null;
+    if (!mountedRef.current) return;
     setState((current) => ({
       ...current,
       screen: 'main-menu',
       activeGame: null,
       exitDialogOpen: false,
       exiting: false,
-      savedMatch: snapshot && snapshot.matchState.phase !== 'match-ended' ? createSavedMatch(snapshot, state.ruleConfig) : current.savedMatch,
+      exitSaveError: null,
+      savedMatch: savedMatch ?? current.savedMatch,
       menuNotice: null,
     }));
+  }
+
+  async function confirmExitGame() {
+    if (state.exiting || exitSaveInProgressRef.current) return;
+    const snapshot = state.activeGame;
+    const save = snapshot && snapshot.matchState.phase !== 'match-ended'
+      ? pendingExitSaveRef.current ?? createSavedMatch(snapshot, state.ruleConfig)
+      : null;
+    pendingExitSaveRef.current = save;
+    exitSaveInProgressRef.current = true;
+    if (mountedRef.current) setState((current) => ({ ...current, exiting: true, exitSaveError: null }));
+    try {
+      if (save) {
+        const result = await saveExitMatchWithTimeout(save);
+        if (result === 'timeout') {
+          if (mountedRef.current) setState((current) => ({ ...current, exitSaveError: EXIT_SAVE_TIMEOUT_MESSAGE }));
+          return;
+        }
+      }
+      returnToMainMenu(save);
+    } catch {
+      if (mountedRef.current) setState((current) => ({ ...current, exitSaveError: EXIT_SAVE_ERROR_MESSAGE }));
+    } finally {
+      exitSaveInProgressRef.current = false;
+      if (mountedRef.current) setState((current) => ({ ...current, exiting: false }));
+    }
+  }
+
+  function cancelExitGame() {
+    pendingExitSaveRef.current = null;
+    setState((current) => ({ ...current, exitDialogOpen: false, exiting: false, exitSaveError: null }));
+  }
+
+  function exitWithoutSaving() {
+    returnToMainMenu(null);
   }
 
   async function openReplayLibrary() {
@@ -261,20 +338,20 @@ export default function App() {
       return;
     }
     const replays = await storage.listReplays().catch(() => []);
-    setScreen('replay-library', { replayMetas: replays });
+    if (mountedRef.current) setScreen('replay-library', { replayMetas: replays });
   }
 
   async function openReplay(id: string) {
     if (!storage) return;
     const log = await storage.loadReplay(id);
-    if (log) setScreen('replay', { replay: createReplay(log) });
+    if (log && mountedRef.current) setScreen('replay', { replay: createReplay(log) });
   }
 
   async function deleteReplay(id: string) {
     if (!storage) return;
     await storage.deleteReplay(id);
     const replays = await storage.listReplays().catch(() => []);
-    setState((current) => ({ ...current, replayMetas: replays }));
+    if (mountedRef.current) setState((current) => ({ ...current, replayMetas: replays }));
   }
 
   if (state.screen === 'main-menu') {
@@ -308,8 +385,13 @@ export default function App() {
         onBack={() => setScreen('local-mode-menu')}
         onFourPlayer={() => setScreen('riichi-four-player-length', { selection: { playerCount: 4 } })}
         onThreePlayer={() => setState((current) => ({ ...current, menuNotice: '三人间敬请期待。' }))}
+        onRulesGuide={() => setScreen('rules-guide')}
       />
     );
+  }
+
+  if (state.screen === 'rules-guide') {
+    return <RulesGuideScreen ruleConfig={state.ruleConfig} onBack={() => setScreen('riichi-player-count')} />;
   }
 
   if (state.screen === 'riichi-four-player-length') {
@@ -425,15 +507,28 @@ export default function App() {
             : current;
         })}
         onReset={handleNextRoundOrResult}
-        onReturnMenu={() => matchState.phase === 'match-ended' ? void confirmExitGame() : setState((current) => ({ ...current, exitDialogOpen: true }))}
+        onOpenRulesGuide={() => setState((current) => ({ ...current, rulesGuideOpen: true }))}
+        onReturnMenu={() => matchState.phase === 'match-ended' ? void confirmExitGame() : setState((current) => current.exitDialogOpen
+          ? current
+          : { ...current, exitDialogOpen: true, exitSaveError: null })}
       />
+      {state.rulesGuideOpen ? (
+        <RulesGuideScreen
+          embedded
+          ruleConfig={state.ruleConfig}
+          onBack={() => setState((current) => ({ ...current, rulesGuideOpen: false }))}
+        />
+      ) : null}
       <MatchResultDialog matchState={matchState} onNewMatch={() => setState((current) => ({ ...current, screen: 'main-menu', activeGame: null }))} />
       {state.exitDialogOpen ? (
         <ExitGameDialog
           matchEnded={matchState.phase === 'match-ended'}
           saving={state.exiting}
-          onCancel={() => setState((current) => ({ ...current, exitDialogOpen: false }))}
+          error={state.exitSaveError}
+          onCancel={cancelExitGame}
           onConfirm={() => void confirmExitGame()}
+          onRetry={() => void confirmExitGame()}
+          onExitWithoutSaving={exitWithoutSaving}
         />
       ) : null}
     </>

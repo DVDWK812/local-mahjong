@@ -14,6 +14,7 @@ interface GameScreenProps {
   actionPrompt?: ReactNode;
   canDiscard: boolean;
   allowedDiscardInstanceIds?: string[];
+  onOpenRulesGuide?: () => void;
   onToggleAnalysis: () => void;
   onCloseAnalysis: () => void;
   onReturnMenu: () => void;
@@ -28,6 +29,7 @@ export function GameScreen({
   actionPrompt,
   canDiscard,
   allowedDiscardInstanceIds,
+  onOpenRulesGuide,
   onToggleAnalysis,
   onCloseAnalysis,
   onReturnMenu,
@@ -42,6 +44,7 @@ export function GameScreen({
         gameState={gameState}
         matchState={matchState}
         analysisOpen={analysisOpen}
+        onOpenRulesGuide={onOpenRulesGuide ?? (() => undefined)}
         onToggleAnalysis={onToggleAnalysis}
         onReturnMenu={onReturnMenu}
       />

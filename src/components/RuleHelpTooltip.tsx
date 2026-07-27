@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { ruleDescriptions, type RuleDescriptionKey } from '../game/rules/ruleDescriptions';
 
 interface RuleHelpTooltipProps {
-  rule: RuleDescriptionKey;
+  rule?: RuleDescriptionKey;
+  description?: string;
 }
 
-export function RuleHelpTooltip({ rule }: RuleHelpTooltipProps) {
+export function RuleHelpTooltip({ rule, description }: RuleHelpTooltipProps) {
   const [open, setOpen] = useState(false);
-  const description = ruleDescriptions[rule];
+  const helpText = description ?? (rule ? ruleDescriptions[rule] : '');
 
   return (
     <span className="rule-help">
@@ -29,7 +30,7 @@ export function RuleHelpTooltip({ rule }: RuleHelpTooltipProps) {
         ?
       </button>
       <span className="rule-help-tooltip" role="tooltip" data-open={open}>
-        {description}
+        {helpText}
       </span>
     </span>
   );

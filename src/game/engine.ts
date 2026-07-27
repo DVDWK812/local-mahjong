@@ -25,6 +25,7 @@ function createPlayers(): PlayerState[] {
       temporaryFuriten: false,
       riichiPermanentFuriten: false,
     },
+    pendingRiichiSidewaysDiscard: false,
   }));
 }
 
@@ -37,6 +38,7 @@ function clonePlayers(players: PlayerState[]): PlayerState[] {
     drawnTile: player.drawnTile ? { ...player.drawnTile } : null,
     riichiState: player.riichiState ? { ...player.riichiState } : null,
     furitenState: player.furitenState ? { ...player.furitenState } : undefined,
+    pendingRiichiSidewaysDiscard: player.pendingRiichiSidewaysDiscard ?? false,
   }));
 }
 
@@ -145,13 +147,20 @@ export function discardTile(state: GameState, playerId: PlayerId, tileInstanceId
   if (tileIndex === -1) return state;
 
   const [discarded] = player.hand.splice(tileIndex, 1);
-  player.river.push(discarded);
-  if (player.riichi && player.riichiState && !player.riichiState.riichiDiscardInstanceId && player.riichiState.declaredAtTurn === state.turn) {
+  const isRiichiDeclarationDiscard = player.riichi
+    && player.riichiState
+    && !player.riichiState.riichiDiscardInstanceId
+    && player.riichiState.declaredAtTurn === state.turn;
+  const shouldSidewaysDiscard = isRiichiDeclarationDiscard || (player.pendingRiichiSidewaysDiscard ?? false);
+  const riverDiscard = shouldSidewaysDiscard ? { ...discarded, isRiichiDiscard: true } : discarded;
+  player.river.push(riverDiscard);
+  if (isRiichiDeclarationDiscard && player.riichiState) {
     player.riichiState = {
       ...player.riichiState,
-      riichiDiscardInstanceId: discarded.instanceId,
+      riichiDiscardInstanceId: riverDiscard.instanceId,
     };
   }
+  if (player.pendingRiichiSidewaysDiscard) player.pendingRiichiSidewaysDiscard = false;
   if (player.riichiState?.ippatsuAvailable && state.turn > player.riichiState.declaredAtTurn) {
     player.riichiState = {
       ...player.riichiState,
@@ -175,7 +184,7 @@ export function discardTile(state: GameState, playerId: PlayerId, tileInstanceId
     turn: state.turn + 1,
     lastDiscard: {
       player: playerId,
-      tile: discarded,
+      tile: riverDiscard,
     },
     pendingCall: null,
     playerDiscardCounts: state.playerDiscardCounts.map((count, index) => index === playerId ? count + 1 : count),

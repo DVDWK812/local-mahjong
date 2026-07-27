@@ -190,7 +190,7 @@ function executeMinkan(state: GameState, playerId: PlayerId): GameState {
   const removed = removeTilesFromHand(player.hand, tile.id, 3);
   if (removed.length !== 3) return state;
 
-  markRiverTileClaimed(discardingPlayer.river, tile.instanceId, playerId);
+  markRiverTileClaimed(discardingPlayer, tile.instanceId, playerId);
 
   player.calls.push({
     type: 'kan',
@@ -266,6 +266,7 @@ function applyKanDraw(state: GameState, playerId: PlayerId, kanType: KanType, ti
     drawnTile: player.drawnTile ? { ...player.drawnTile } : null,
     riichiState: player.riichiState ? { ...player.riichiState, ippatsuAvailable: false } : null,
     furitenState: player.furitenState ? { ...player.furitenState } : undefined,
+    pendingRiichiSidewaysDiscard: player.pendingRiichiSidewaysDiscard ?? false,
   }));
   const player = players[playerId];
   player.hand.push(rinshanTile);
@@ -452,6 +453,7 @@ function clonePlayersForKan(state: GameState): GameState['players'] {
     drawnTile: player.drawnTile ? { ...player.drawnTile } : null,
     riichiState: player.riichiState ? { ...player.riichiState, ippatsuAvailable: false } : null,
     furitenState: player.furitenState ? { ...player.furitenState } : undefined,
+    pendingRiichiSidewaysDiscard: player.pendingRiichiSidewaysDiscard ?? false,
   }));
 }
 
@@ -466,14 +468,17 @@ function removePendingKakanTileFromDeclarer(state: GameState): GameState {
   return { ...state, players };
 }
 
-function markRiverTileClaimed(river: Tile[], instanceId: string, claimedBy: PlayerId): void {
-  const riverIndex = river.findIndex((riverTile) => riverTile.instanceId === instanceId);
+function markRiverTileClaimed(discardingPlayer: GameState['players'][number], instanceId: string, claimedBy: PlayerId): void {
+  const riverIndex = discardingPlayer.river.findIndex((riverTile) => riverTile.instanceId === instanceId);
   if (riverIndex !== -1) {
-    river[riverIndex] = {
-      ...river[riverIndex],
+    discardingPlayer.river[riverIndex] = {
+      ...discardingPlayer.river[riverIndex],
       claimed: true,
       claimedBy,
-    } as Tile & { claimed: boolean; claimedBy: PlayerId };
+    };
+    if (discardingPlayer.riichiState?.riichiDiscardInstanceId === instanceId) {
+      discardingPlayer.pendingRiichiSidewaysDiscard = true;
+    }
   }
 }
 

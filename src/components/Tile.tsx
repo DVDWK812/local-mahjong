@@ -13,6 +13,7 @@ interface TileProps {
   selected?: boolean;
   disabled?: boolean;
   clickable?: boolean;
+  interactive?: boolean;
   className?: string;
   onClick?: () => void;
 }
@@ -27,6 +28,7 @@ export function Tile({
   selected = false,
   disabled = false,
   clickable,
+  interactive = true,
   className,
   onClick,
 }: TileProps) {
@@ -66,8 +68,8 @@ export function Tile({
     .filter(Boolean)
     .join(' ');
 
-  return (
-    <button className={classNames} type="button" onClick={onClick} disabled={isDisabled} aria-label={alt}>
+  const content = (
+    <>
       <img
         className="tile-image"
         src={imageSource}
@@ -76,6 +78,20 @@ export function Tile({
         onError={() => setImageSource(getTilePlaceholderImage())}
       />
       {showRedBadge ? <span className="tile-red-badge" aria-hidden="true" /> : null}
+    </>
+  );
+
+  if (!interactive) {
+    return (
+      <span className={classNames} role="img" aria-label={alt}>
+        {content}
+      </span>
+    );
+  }
+
+  return (
+    <button className={classNames} type="button" onClick={onClick} disabled={isDisabled} aria-label={alt}>
+      {content}
     </button>
   );
 }

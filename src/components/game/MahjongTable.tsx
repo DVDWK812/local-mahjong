@@ -5,6 +5,7 @@ import { DoraIndicatorStack } from './DoraIndicatorStack';
 import { PlayerZone, type PlayerPosition } from './PlayerZone';
 import { RiichiStick } from './RiichiStick';
 import { TableCenter } from './TableCenter';
+import { PlayerMelds } from '../PlayerMelds';
 
 interface MahjongTableProps {
   gameState: GameState;
@@ -23,6 +24,12 @@ const riverPositions: Array<{ playerId: PlayerId; position: PlayerPosition; area
   { playerId: 3, position: 'west', area: 'west-river', stickArea: 'west-stick', stickOrientation: 'vertical' },
   { playerId: 1, position: 'east', area: 'east-river', stickArea: 'east-stick', stickOrientation: 'vertical' },
   { playerId: 0, position: 'south', area: 'south-river', stickArea: 'south-stick', stickOrientation: 'horizontal' },
+];
+
+const meldPositions: Array<{ playerId: PlayerId; position: Exclude<PlayerPosition, 'south'> }> = [
+  { playerId: 2, position: 'north' },
+  { playerId: 1, position: 'east' },
+  { playerId: 3, position: 'west' },
 ];
 
 export function MahjongTable({ gameState, matchState }: MahjongTableProps) {
@@ -45,9 +52,22 @@ export function MahjongTable({ gameState, matchState }: MahjongTableProps) {
             isCurrentPlayer={gameState.currentPlayer === playerId}
             showHand={showHand}
             showRiver={false}
+            showMelds={false}
           />
         );
       })}
+      {meldPositions.map(({ playerId, position }) => (
+        <div
+          key={`${position}-melds`}
+          className={`table-meld-anchor table-meld-anchor--${position}`}
+          data-table-meld-zone={position}
+          aria-label={`${gameState.players[playerId].name} 鸣牌区`}
+        >
+          <div className={`table-meld-rotator table-meld-rotator--${position}`}>
+            <PlayerMelds player={gameState.players[playerId]} seatClass={`seat-${playerId} table-melds-${position}`} />
+          </div>
+        </div>
+      ))}
       <div className="table-center-cluster" aria-label="中央牌河区">
         {riverPositions.map(({ playerId, position, area }) => (
           <div key={`${position}-river`} className={`table-river-anchor table-river-anchor--${position}`} style={{ gridArea: area }}>

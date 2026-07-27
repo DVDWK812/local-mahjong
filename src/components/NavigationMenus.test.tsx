@@ -101,6 +101,29 @@ describe('菜单和页面导航', () => {
     expect(html).toContain('继续游戏');
   });
 
+  it('退出保存中禁用确认并显示保存中', () => {
+    const html = renderToStaticMarkup(<ExitGameDialog matchEnded={false} saving onCancel={() => undefined} onConfirm={() => undefined} />);
+    expect(html).toContain('保存中');
+    expect(html).toContain('disabled=""');
+  });
+
+  it('退出保存失败后提供重试、不保存退出和继续游戏', () => {
+    const html = renderToStaticMarkup(
+      <ExitGameDialog
+        matchEnded={false}
+        error="牌谱保存超时，可直接退出或重试保存。"
+        onCancel={() => undefined}
+        onConfirm={() => undefined}
+        onRetry={() => undefined}
+        onExitWithoutSaving={() => undefined}
+      />,
+    );
+    expect(html).toContain('牌谱保存超时，可直接退出或重试保存。');
+    expect(html).toContain('重试保存');
+    expect(html).toContain('不保存并退出');
+    expect(html).toContain('继续游戏');
+  });
+
   it('牌谱研习能够进入现有牌谱入口', () => {
     const log = createInitialMatchLog({ initialDealer: 0, initialScores: [25000, 25000, 25000, 25000], ruleConfig: getRulePreset('east-round') });
     const html = renderToStaticMarkup(<ReplayLibrary replays={[{ matchId: log.matchId, createdAt: log.createdAt, playerNames: log.playerNames }]} onOpen={() => undefined} onDelete={() => undefined} />);

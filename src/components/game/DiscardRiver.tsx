@@ -19,7 +19,7 @@ export function DiscardRiver({ player, position, preserveClaimedDiscardGap = fal
     <div className={`discard-river discard-river--${position}`} aria-label={`${player.name} 牌河`} data-position={position}>
       <div className="discard-river-grid">
         {player.river.map((tile) => {
-          const isRiichiDiscard = riichiDiscardInstanceId === tile.instanceId;
+          const isRiichiDiscard = tile.isRiichiDiscard === true || riichiDiscardInstanceId === tile.instanceId;
           const isClaimed = isClaimedDiscard(tile);
           if (isClaimed && !preserveClaimedDiscardGap) return null;
           const className = [

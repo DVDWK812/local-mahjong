@@ -47,7 +47,17 @@ describe('牌桌布局回归', () => {
     const html = renderToStaticMarkup(<MahjongTable gameState={createInitialGameState()} matchState={createMatch()} />);
     expect(css).toContain('--opponent-tile-width: clamp(25px, 2.2vw, 39px)');
     expect(css).toContain('width: clamp(30px, 2.7vw, 45px)');
-    expect((html.match(/data-ai-meld-zone=/g) ?? [])).toHaveLength(3);
+    expect((html.match(/data-table-meld-zone=/g) ?? [])).toHaveLength(3);
+    expect(css).toContain('--side-player-outset: clamp(24px, 3vw, 56px)');
+    expect(css).toContain('--opponent-edge-gap: clamp(8px, 1vw, 18px)');
+    expect(css).toContain('--side-player-edge-shift: calc(var(--side-player-outset) + var(--opponent-edge-gap))');
+    expect(css).toContain('translate: 0 calc(-1 * var(--opponent-edge-gap))');
+    expect(css).toContain('translate: calc(-1 * var(--side-player-edge-shift)) 0');
+    expect(css).toContain('translate: var(--side-player-edge-shift) 0');
+    expect(css).toContain('.table-meld-anchor--north');
+    expect(css).toContain('.table-meld-anchor--east');
+    expect(css).toContain('.table-meld-anchor--west');
+    expect(css).toContain('flex-direction: column');
   });
 
   it('小视口下页面仍保持单屏无纵向溢出', () => {

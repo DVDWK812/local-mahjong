@@ -15,6 +15,7 @@ interface PlayerZoneProps {
   isCurrentPlayer: boolean;
   showHand?: boolean;
   showRiver?: boolean;
+  showMelds?: boolean;
 }
 
 const windNames: Record<Wind, string> = {
@@ -34,6 +35,7 @@ export function PlayerZone({
   isCurrentPlayer,
   showHand = true,
   showRiver = true,
+  showMelds = true,
 }: PlayerZoneProps) {
   const showOpponentHand = showHand;
   void score;
@@ -62,7 +64,7 @@ export function PlayerZone({
           </div>
         ) : null}
 
-        {showOpponentHand ? (
+        {showOpponentHand && showMelds ? (
           <div className="player-zone-meld-wrap" data-ai-meld-zone={player.id === 0 ? undefined : position}>
             <div className={`player-zone-meld-rotator player-zone-meld-rotator--${position}`}>
               <PlayerMelds player={player} seatClass={`seat-${player.id} melds-${position}`} />

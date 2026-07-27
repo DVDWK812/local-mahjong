@@ -18,6 +18,9 @@ export interface Tile {
   rank: number;
   red: boolean;
   instanceId: string;
+  isRiichiDiscard?: boolean;
+  claimed?: boolean;
+  claimedBy?: PlayerId;
 }
 
 export interface CallSet {
@@ -64,6 +67,7 @@ export interface PlayerState {
   riichi: boolean;
   riichiState: RiichiState | null;
   furitenState?: FuritenState;
+  pendingRiichiSidewaysDiscard?: boolean;
 }
 
 export type GamePhase =
