@@ -152,7 +152,8 @@ export function discardTile(state: GameState, playerId: PlayerId, tileInstanceId
     && !player.riichiState.riichiDiscardInstanceId
     && player.riichiState.declaredAtTurn === state.turn;
   const shouldSidewaysDiscard = isRiichiDeclarationDiscard || (player.pendingRiichiSidewaysDiscard ?? false);
-  const riverDiscard = shouldSidewaysDiscard ? { ...discarded, isRiichiDiscard: true } : discarded;
+  const isTsumogiri = player.drawnTile?.instanceId === discarded.instanceId;
+  const riverDiscard = { ...discarded, isRiichiDiscard: shouldSidewaysDiscard || undefined, isTsumogiri };
   player.river.push(riverDiscard);
   if (isRiichiDeclarationDiscard && player.riichiState) {
     player.riichiState = {

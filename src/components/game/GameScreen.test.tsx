@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { createInitialGameState } from '../../game/engine';
@@ -62,5 +64,14 @@ describe('GameScreen', () => {
     );
     expect(html).toContain('game-prompt-layer');
     expect(html).toContain('可执行操作');
+  });
+
+  it('听牌框使用独立右下固定层，不随鸣牌栏出现而移动', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
+    expect(css).toContain('.game-tenpai-layer');
+    expect(css).toMatch(/\.game-tenpai-layer\s*\{[^}]*position:\s*absolute;/s);
+    expect(css).toMatch(/\.game-tenpai-layer\s*\{[^}]*right:/s);
+    expect(css).toMatch(/\.game-tenpai-layer\s*\{[^}]*bottom:/s);
+    expect(css).not.toContain('game-prompt-layer--with-tenpai');
   });
 });

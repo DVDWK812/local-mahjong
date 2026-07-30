@@ -8,10 +8,11 @@ import { GUIDE_YAKU } from '../../game/rulesGuide/yakuCatalog';
 import { calculatePoints } from '../../game/score/pointCalculator';
 import { NORMAL_YAKU } from '../../game/score/yaku/normal';
 import { YAKUMAN_YAKU } from '../../game/score/yaku/yakuman';
-import { ANCIENT_YAKU } from '../../game/score/yaku/ancient';
+import { ANCIENT_YAKU, ANCIENT_YAKU_IDS } from '../../game/score/yaku/ancient';
 import { createInitialGameState } from '../../game/engine';
+import { evaluateWin } from '../../game/scoreCalculator';
 import type { Tile, TileId } from '../../game/types';
-import { getTileRank, getTileSuit } from '../../game/tileUtils';
+import { createTile, getTileRank, getTileSuit } from '../../game/tileUtils';
 import { YakuExample } from './YakuExample';
 import { RulesGuideScreen, type RulesTab } from './RulesGuideScreen';
 
@@ -54,11 +55,10 @@ describe('RulesGuideScreen', () => {
 
   it('主页、各役种和符数点数选项卡均可渲染', () => {
     const config = getRulePreset('east-round');
-    const tabs: RulesTab[] = ['home', 'situational', 'oneHan', 'twoHan', 'threeHan', 'sixHan', 'yakuman', 'doubleYakuman', 'ancient', 'points'];
+    const tabs: RulesTab[] = ['home', 'oneHan', 'twoHan', 'threeHan', 'sixHan', 'yakuman', 'doubleYakuman', 'ancient', 'points'];
     tabs.forEach((initialTab) => {
       const html = renderToStaticMarkup(<RulesGuideScreen ruleConfig={config} initialTab={initialTab} onBack={noop} />);
       expect(html).toContain('主页');
-      expect(html).toContain('状况役');
       expect(html).toContain('1番役');
       expect(html).toContain('2番役');
       expect(html).toContain('3番役');
@@ -87,8 +87,9 @@ describe('RulesGuideScreen', () => {
 
   it('不同役种tab只显示对应分组', () => {
     const config = getRulePreset('east-round');
-    expect(renderToStaticMarkup(<RulesGuideScreen ruleConfig={config} initialTab="situational" onBack={noop} />)).toContain('立直');
+    expect(renderToStaticMarkup(<RulesGuideScreen ruleConfig={config} initialTab="oneHan" onBack={noop} />)).toContain('立直');
     expect(renderToStaticMarkup(<RulesGuideScreen ruleConfig={config} initialTab="oneHan" onBack={noop} />)).toContain('平和');
+    expect(renderToStaticMarkup(<RulesGuideScreen ruleConfig={config} initialTab="twoHan" onBack={noop} />)).toContain('双立直');
     expect(renderToStaticMarkup(<RulesGuideScreen ruleConfig={config} initialTab="twoHan" onBack={noop} />)).toContain('七对子');
     expect(renderToStaticMarkup(<RulesGuideScreen ruleConfig={config} initialTab="threeHan" onBack={noop} />)).toContain('二杯口');
     expect(renderToStaticMarkup(<RulesGuideScreen ruleConfig={config} initialTab="sixHan" onBack={noop} />)).toContain('清一色');
@@ -99,7 +100,8 @@ describe('RulesGuideScreen', () => {
   it('当前注册的每个役种都有说明、番数和牌例', () => {
     expect(GUIDE_YAKU.filter((yaku) => yaku.source === 'normal').map((yaku) => yaku.id).sort()).toEqual(Object.keys(NORMAL_YAKU).sort());
     expect(GUIDE_YAKU.filter((yaku) => yaku.source === 'yakuman').map((yaku) => yaku.id).sort()).toEqual(Object.keys(YAKUMAN_YAKU).sort());
-    expect(GUIDE_YAKU.filter((yaku) => yaku.source === 'ancient').map((yaku) => yaku.id).sort()).toEqual(Object.keys(ANCIENT_YAKU).sort());
+    expect(GUIDE_YAKU.filter((yaku) => yaku.source === 'ancient').map((yaku) => yaku.id).sort()).toEqual([...ANCIENT_YAKU_IDS].sort());
+    expect(Object.keys(ANCIENT_YAKU).sort()).toEqual([...ANCIENT_YAKU_IDS].sort());
     GUIDE_YAKU.forEach((yaku) => {
       expect(yaku.closedResult.name).not.toBe('');
       expect(yaku.condition).not.toBe('');
@@ -109,14 +111,45 @@ describe('RulesGuideScreen', () => {
     });
   });
 
+  it('平和说明使用门清两面听的合法牌例', () => {
+    const pinfu = GUIDE_YAKU.find((yaku) => yaku.id === 'pinfu');
+    expect(pinfu).toBeDefined();
+    expect(pinfu?.condition).toBe('门前清限定。四组面子均为顺子，雀头不是役牌，且以两面听和牌。');
+    expect(pinfu?.example.hand.map((tile) => tile.id)).toEqual([1, 2, 3, 2, 3, 4, 12, 13, 14, 23, 24, 13, 13]);
+    expect(pinfu?.example.winningTile.id).toBe(25);
+    expect(pinfu?.example.melds).toBeUndefined();
+
+    const hand = [...pinfu!.example.hand, pinfu!.example.winningTile]
+      .map((guideTile, index) => ({ ...createTile(guideTile.id, index % 4), red: guideTile.red ?? false }));
+    const winningTile = hand[hand.length - 1];
+    const score = evaluateWin(hand, {
+      ...pointContext(),
+      winTile: winningTile,
+      winningTile,
+    });
+    expect(score.yaku.some((yaku) => yaku.name === '平和')).toBe(true);
+  });
+
   it('古役无论规则开关都以普通役种形式显示', () => {
     const disabled = renderToStaticMarkup(<RulesGuideScreen ruleConfig={getRulePreset('east-round')} initialTab="ancient" onBack={noop} />);
     const enabledConfig = { ...getRulePreset('east-round'), round: { ...getRulePreset('east-round').round, allowAncientYaku: true } };
     const enabled = renderToStaticMarkup(<RulesGuideScreen ruleConfig={enabledConfig} initialTab="ancient" onBack={noop} />);
     expect(disabled).toContain('大车轮');
     expect(enabled).toContain('大车轮');
+    expect(disabled).toContain('<span class="rules-title-tag">当前规则未启用</span>');
+    expect(enabled).toContain('<span class="rules-title-tag">当前规则已启用</span>');
+    expect(disabled.match(/当前规则未启用/g)?.length).toBe(1);
+    expect(enabled.match(/当前规则已启用/g)?.length).toBe(1);
     expect(disabled).not.toContain('当前规则未启用古役。');
     expect(enabled).not.toContain('当前规则未启用古役。');
+  });
+
+  it('役种标签不显示副露可成立或副露不成立，仅门清役显示门清限定', () => {
+    const html = renderToStaticMarkup(<RulesGuideScreen ruleConfig={getRulePreset('east-round')} initialTab="oneHan" onBack={noop} />);
+    expect(html).not.toContain('<span>副露可成立</span>');
+    expect(html).not.toContain('<span>副露后不成立</span>');
+    expect(html).not.toContain('<span>副露不减番</span>');
+    expect(html).toContain('<span>门清限定</span>');
   });
 
   it('每个牌例的牌编码合法', () => {

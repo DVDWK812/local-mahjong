@@ -56,6 +56,9 @@ export function createScoringWinContext(params: {
     isChankan: winningTileSource === 'kakan',
     isTenhou: winType === 'tsumo' && winningTileSource === 'initial-hand' && player.seatWind === 'east' && !callsOccurred,
     isChiihou: winType === 'tsumo' && winningTileSource === 'normal-draw' && player.seatWind !== 'east' && !callsOccurred && (state.playerDrawCounts[playerId] ?? 0) === 1 && (state.playerDiscardCounts[playerId] ?? 0) === 0,
+    isRenhou: winType === 'ron' && player.seatWind !== 'east' && !state.firstTurnInterrupted && (state.playerDrawCounts[playerId] ?? 0) === 0,
+    isRiichiDeclarationDiscardRon: winType === 'ron' && state.lastDiscard?.tile.instanceId === winningTile.instanceId && state.lastDiscard.tile.isRiichiDiscard === true,
+    isAfterKanFirstDiscardRon: winType === 'ron' && state.kanState?.player === state.lastDiscard?.player && state.lastDrawSource === 'rinshan',
     isMenzen: isMenzenFromCalls(player.calls),
     roundWind: state.roundWind,
     seatWind: player.seatWind,
@@ -65,6 +68,7 @@ export function createScoringWinContext(params: {
     riichiSticks: params.riichiSticks ?? state.riichiSticks,
     melds: callsToScoringMelds(player.calls),
     preWinHand,
+    ruleConfig: state.ruleConfig,
   };
 }
 

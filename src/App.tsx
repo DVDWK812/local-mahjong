@@ -8,7 +8,7 @@ import { GameTypeMenu } from './components/GameTypeMenu';
 import { LocalModeMenu } from './components/LocalModeMenu';
 import { MainMenu } from './components/MainMenu';
 import { MatchResultDialog } from './components/MatchResultDialog';
-import { MatchSettings } from './components/MatchSettings';
+import { DEFAULT_AI_PLAYER_SETTINGS, MatchSettings, type AIPlayerSetting } from './components/MatchSettings';
 import { ReplayLibrary } from './components/ReplayLibrary';
 import { ReplayScreen } from './components/ReplayScreen';
 import { RiichiModeMenu } from './components/RiichiModeMenu';
@@ -49,6 +49,11 @@ interface AppState {
   exiting: boolean;
   exitSaveError: string | null;
   rulesGuideOpen: boolean;
+  doraGlowEnabled: boolean;
+  sameTileHoverEnabled: boolean;
+  showTenpaiWaitsEnabled: boolean;
+  tsumoGiriDisplayEnabled: boolean;
+  aiPlayerSettings: AIPlayerSetting[];
 }
 
 const storage = typeof window === 'undefined' ? null : new LocalStorageAdapter(window.localStorage);
@@ -102,6 +107,11 @@ export default function App() {
     exiting: false,
     exitSaveError: null,
     rulesGuideOpen: false,
+    doraGlowEnabled: true,
+    sameTileHoverEnabled: true,
+    showTenpaiWaitsEnabled: true,
+    tsumoGiriDisplayEnabled: true,
+    aiPlayerSettings: DEFAULT_AI_PLAYER_SETTINGS.map((setting) => ({ ...setting })),
   }));
 
   const mountedRef = useRef(false);
@@ -216,6 +226,10 @@ export default function App() {
       screen: 'match-settings',
       presetId: preset,
       ruleConfig: config,
+      doraGlowEnabled: true,
+      sameTileHoverEnabled: true,
+      showTenpaiWaitsEnabled: true,
+      tsumoGiriDisplayEnabled: true,
       selection: { ...current.selection, playerCount: 4, lengthChoice: choice },
       menuNotice: null,
     }));
@@ -408,6 +422,16 @@ export default function App() {
             config={state.ruleConfig}
             pathLabel={settingsPath}
             matchTypeLabel={matchTypeLabel}
+            doraGlowEnabled={state.doraGlowEnabled}
+            sameTileHoverEnabled={state.sameTileHoverEnabled}
+            showTenpaiWaitsEnabled={state.showTenpaiWaitsEnabled}
+            tsumoGiriDisplayEnabled={state.tsumoGiriDisplayEnabled}
+            aiPlayerSettings={state.aiPlayerSettings}
+            onDoraGlowChange={(enabled) => setState((current) => ({ ...current, doraGlowEnabled: enabled }))}
+            onSameTileHoverChange={(enabled) => setState((current) => ({ ...current, sameTileHoverEnabled: enabled }))}
+            onShowTenpaiWaitsChange={(enabled) => setState((current) => ({ ...current, showTenpaiWaitsEnabled: enabled }))}
+            onTsumoGiriDisplayChange={(enabled) => setState((current) => ({ ...current, tsumoGiriDisplayEnabled: enabled }))}
+            onAIPlayerSettingsChange={(aiPlayerSettings) => setState((current) => ({ ...current, aiPlayerSettings }))}
             onConfigChange={handleRuleConfigChange}
           />
           <div className="settings-footer">
@@ -507,6 +531,10 @@ export default function App() {
             : current;
         })}
         onReset={handleNextRoundOrResult}
+        doraGlowEnabled={state.doraGlowEnabled}
+        sameTileHoverEnabled={state.sameTileHoverEnabled}
+        showTenpaiWaitsEnabled={state.showTenpaiWaitsEnabled}
+        tsumoGiriDisplayEnabled={state.tsumoGiriDisplayEnabled}
         onOpenRulesGuide={() => setState((current) => ({ ...current, rulesGuideOpen: true }))}
         onReturnMenu={() => matchState.phase === 'match-ended' ? void confirmExitGame() : setState((current) => current.exitDialogOpen
           ? current

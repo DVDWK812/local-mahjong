@@ -1,7 +1,7 @@
 import { canPon, executePon, passCall } from './callChecker';
 import { canDeclareKyuushuKyuuhai, declareKyuushuKyuuhai } from './abortiveDraw';
 import { executeChi, findUsefulChiOption } from './chiChecker';
-import { canDeclareRiichi, declareRiichi, discardTile, drawTile } from './engine';
+import { declareRiichi, discardTile, drawTile, getRiichiDiscardCandidates } from './engine';
 import { canAnkan, canChankan, canKakan, canMinkan, declareChankanRon, executeKan, passChankan } from './kanChecker';
 import { recommendDiscards, shanten } from './shanten';
 import type { GameState, PlayerId, Tile, TileId } from './types';
@@ -15,43 +15,52 @@ export function isAIPlayer(playerId: PlayerId): boolean {
 
 export function getVisibleCountsForPlayer(state: GameState, playerId: PlayerId): number[] {
   const visible = Array.from({ length: 34 }, () => 0);
+  const seenInstances = new Set<string>();
+  const countVisibleTile = (tile: Tile) => {
+    if (seenInstances.has(tile.instanceId)) return;
+    seenInstances.add(tile.instanceId);
+    visible[tile.id] += 1;
+  };
 
   state.players.forEach((player) => {
-    player.river.forEach((tile) => {
-      visible[tile.id] += 1;
-    });
+    player.river.forEach(countVisibleTile);
     player.calls.forEach((call) => {
-      call.tiles.forEach((tile) => {
-        visible[tile.id] += 1;
-      });
+      call.tiles.forEach(countVisibleTile);
     });
   });
 
-  state.doraIndicators.forEach((tile) => {
-    visible[tile.id] += 1;
-  });
-
-  state.players[playerId].hand.forEach((tile) => {
-    visible[tile.id] += 1;
-  });
+  state.doraIndicators.forEach(countVisibleTile);
+  state.players[playerId].hand.forEach(countVisibleTile);
 
   return ALL_TILE_IDS.map((id) => visible[id]);
 }
 
-export function selectAIDiscardTile(state: GameState, playerId: PlayerId, rng: () => number = Math.random): Tile | null {
+export function selectAIDiscardTile(
+  state: GameState,
+  playerId: PlayerId,
+  rng: () => number = Math.random,
+  allowedCandidates?: readonly Tile[],
+): Tile | null {
   const player = state.players[playerId];
   if (!player || player.hand.length === 0) return null;
 
-  const visibleCounts = getVisibleCountsForPlayer(state, playerId);
-  const [best] = recommendDiscards(player.hand, visibleCounts);
+  const allowedInstanceIds = allowedCandidates
+    ? new Set(allowedCandidates.map((tile) => tile.instanceId))
+    : null;
+  const candidates = allowedInstanceIds
+    ? player.hand.filter((tile) => allowedInstanceIds.has(tile.instanceId))
+    : player.hand;
+  if (candidates.length === 0) return null;
 
-  if (best) {
-    const recommended = player.hand.find((tile) => tile.id === best.tileId);
+  const visibleCounts = getVisibleCountsForPlayer(state, playerId);
+  const recommendations = recommendDiscards(player.hand, visibleCounts);
+  for (const recommendation of recommendations) {
+    const recommended = candidates.find((tile) => tile.id === recommendation.tileId);
     if (recommended) return recommended;
   }
 
-  const index = Math.min(player.hand.length - 1, Math.floor(rng() * player.hand.length));
-  return player.hand[index];
+  const index = Math.min(candidates.length - 1, Math.floor(rng() * candidates.length));
+  return candidates[index];
 }
 
 export function advanceAIAction(state: GameState, rng: () => number = Math.random): GameState {
@@ -88,14 +97,20 @@ export function advanceAIAction(state: GameState, rng: () => number = Math.rando
     if (canDeclareKyuushuKyuuhai(state, state.currentPlayer) && shouldDeclareKyuushuKyuuhai(state, state.currentPlayer)) {
       return declareKyuushuKyuuhai(state, state.currentPlayer);
     }
-    const riichiState = canDeclareRiichi(state, state.currentPlayer)
-      ? declareRiichi(state, state.currentPlayer)
-      : state;
-    if ((canAnkan(riichiState, riichiState.currentPlayer) || canKakan(riichiState, riichiState.currentPlayer)) && shouldKan(riichiState, riichiState.currentPlayer)) {
-      return executeKan(riichiState, riichiState.currentPlayer);
+    const playerId = state.currentPlayer;
+    const riichiCandidates = getRiichiDiscardCandidates(state, playerId);
+    if (riichiCandidates.length > 0) {
+      const riichiDiscard = selectAIDiscardTile(state, playerId, rng, riichiCandidates);
+      if (riichiDiscard) {
+        const riichiState = declareRiichi(state, playerId);
+        return discardTile(riichiState, playerId, riichiDiscard.instanceId);
+      }
     }
-    const tile = selectAIDiscardTile(riichiState, riichiState.currentPlayer, rng);
-    return tile ? discardTile(riichiState, riichiState.currentPlayer, tile.instanceId) : riichiState;
+    if ((canAnkan(state, playerId) || canKakan(state, playerId)) && shouldKan(state, playerId)) {
+      return executeKan(state, playerId);
+    }
+    const tile = selectAIDiscardTile(state, playerId, rng);
+    return tile ? discardTile(state, playerId, tile.instanceId) : state;
   }
 
   return state;

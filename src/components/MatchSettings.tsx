@@ -4,12 +4,50 @@ import type { FullRuleConfig, MaxExtraRoundWind } from '../game/match/types';
 import type { RuleDescriptionKey } from '../game/rules/ruleDescriptions';
 import { RuleHelpTooltip } from './RuleHelpTooltip';
 
+export type AIDifficulty = 'chikukon' | 'shintentai' | 'upper' | 'kishin';
+export type AIPersonality = 'defensive' | 'aggressive' | 'balanced';
+
+export interface AIPlayerSetting {
+  playerId: 1 | 2 | 3;
+  difficulty: AIDifficulty;
+  personality: AIPersonality;
+}
+
+export const DEFAULT_AI_PLAYER_SETTINGS: AIPlayerSetting[] = ([1, 2, 3] as const).map((playerId) => ({
+  playerId,
+  difficulty: 'chikukon',
+  personality: 'balanced',
+}));
+
+const AI_DIFFICULTY_OPTIONS: Array<{ value: AIDifficulty; label: string }> = [
+  { value: 'chikukon', label: '筑根（简单）' },
+  { value: 'shintentai', label: '心转手（中等）' },
+  { value: 'upper', label: '上层（难）' },
+  { value: 'kishin', label: '鬼神（地狱）' },
+];
+
+const AI_PERSONALITY_OPTIONS: Array<{ value: AIPersonality; label: string }> = [
+  { value: 'defensive', label: '沉稳老练（防守向）' },
+  { value: 'aggressive', label: '锋芒毕露（进攻向）' },
+  { value: 'balanced', label: '稳步进取（平衡向）' },
+];
+
 interface MatchSettingsProps {
   config: FullRuleConfig;
   presetId?: RulePresetId;
   matchTypeLabel?: string;
   pathLabel?: string;
+  doraGlowEnabled?: boolean;
+  sameTileHoverEnabled?: boolean;
+  showTenpaiWaitsEnabled?: boolean;
+  tsumoGiriDisplayEnabled?: boolean;
+  aiPlayerSettings?: AIPlayerSetting[];
   onPresetChange?: (preset: RulePresetId, config: FullRuleConfig) => void;
+  onDoraGlowChange?: (enabled: boolean) => void;
+  onSameTileHoverChange?: (enabled: boolean) => void;
+  onShowTenpaiWaitsChange?: (enabled: boolean) => void;
+  onTsumoGiriDisplayChange?: (enabled: boolean) => void;
+  onAIPlayerSettingsChange?: (settings: AIPlayerSetting[]) => void;
   onConfigChange: (config: FullRuleConfig) => void;
 }
 
@@ -55,7 +93,22 @@ function defaultMaxExtraRoundWind(matchLength: FullRuleConfig['match']['matchLen
   return matchLength === 'hanchan' ? 'west' : 'south';
 }
 
-export function MatchSettings({ config, matchTypeLabel, pathLabel, onConfigChange }: MatchSettingsProps) {
+export function MatchSettings({
+  config,
+  matchTypeLabel,
+  pathLabel,
+  doraGlowEnabled = true,
+  sameTileHoverEnabled = true,
+  showTenpaiWaitsEnabled = true,
+  tsumoGiriDisplayEnabled = true,
+  aiPlayerSettings = DEFAULT_AI_PLAYER_SETTINGS,
+  onDoraGlowChange,
+  onSameTileHoverChange,
+  onShowTenpaiWaitsChange,
+  onTsumoGiriDisplayChange,
+  onAIPlayerSettingsChange,
+  onConfigChange,
+}: MatchSettingsProps) {
   const validation = validateRuleConfig(config);
   const match = config.match;
   const round = config.round;
@@ -66,6 +119,10 @@ export function MatchSettings({ config, matchTypeLabel, pathLabel, onConfigChang
   };
   const setRound = (patch: Partial<typeof round>) => {
     onConfigChange(normalizeMatchSettingsConfig(config, {}, patch));
+  };
+  const setAIPlayer = (playerId: AIPlayerSetting['playerId'], patch: Partial<Omit<AIPlayerSetting, 'playerId'>>) => {
+    onAIPlayerSettingsChange?.(aiPlayerSettings.map((setting) =>
+      setting.playerId === playerId ? { ...setting, ...patch } : setting));
   };
 
   return (
@@ -81,6 +138,38 @@ export function MatchSettings({ config, matchTypeLabel, pathLabel, onConfigChang
             <span>比赛类型</span>
             <strong>{resolvedMatchType}</strong>
           </div>
+        </div>
+      </section>
+
+      <section className="settings-block ai-settings-block">
+        <h3>AI难度</h3>
+        <p className="ai-settings-note">分别设置三名 AI 玩家；当前仅保留训练档位与性格配置，不改变现有 AI 行为。</p>
+        <div className="ai-settings-list">
+          {aiPlayerSettings.map((setting) => (
+            <div className="ai-setting-row" key={setting.playerId}>
+              <strong>AI 玩家 {setting.playerId + 1}</strong>
+              <label className="settings-field">
+                <span>难度</span>
+                <select
+                  aria-label={`AI 玩家 ${setting.playerId + 1} 难度`}
+                  value={setting.difficulty}
+                  onChange={(event) => setAIPlayer(setting.playerId, { difficulty: event.target.value as AIDifficulty })}
+                >
+                  {AI_DIFFICULTY_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>
+              <label className="settings-field">
+                <span>性格</span>
+                <select
+                  aria-label={`AI 玩家 ${setting.playerId + 1} 性格`}
+                  value={setting.personality}
+                  onChange={(event) => setAIPlayer(setting.playerId, { personality: event.target.value as AIPersonality })}
+                >
+                  {AI_PERSONALITY_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -165,6 +254,44 @@ export function MatchSettings({ config, matchTypeLabel, pathLabel, onConfigChang
           <CheckField label="四家立直" rule="abortOnFourRiichi" checked={round.abortOnFourRiichi} onChange={(checked) => setRound({ abortOnFourRiichi: checked })} />
           <CheckField label="四杠散了" rule="abortOnFourKans" checked={round.abortOnFourKans} onChange={(checked) => setRound({ abortOnFourKans: checked })} />
           <CheckField label="国士无双抢暗杠" rule="allowKokushiChankanAnkan" checked={round.allowKokushiChankanAnkan} onChange={(checked) => setRound({ allowKokushiChankanAnkan: checked })} />
+        </div>
+      </section>
+
+      <section className="settings-block">
+        <h3>辅助显示</h3>
+        <div className="settings-check-grid">
+          <label className="settings-check">
+            <input
+              type="checkbox"
+              checked={doraGlowEnabled}
+              onChange={(event) => onDoraGlowChange?.(event.target.checked)}
+            />
+            <span>宝牌闪光效果</span>
+          </label>
+          <label className="settings-check">
+            <input
+              type="checkbox"
+              checked={sameTileHoverEnabled}
+              onChange={(event) => onSameTileHoverChange?.(event.target.checked)}
+            />
+            <span>悬停显示相同牌</span>
+          </label>
+          <label className="settings-check">
+            <input
+              type="checkbox"
+              checked={showTenpaiWaitsEnabled}
+              onChange={(event) => onShowTenpaiWaitsChange?.(event.target.checked)}
+            />
+            <span>显示听牌与剩余量</span>
+          </label>
+          <label className="settings-check">
+            <input
+              type="checkbox"
+              checked={tsumoGiriDisplayEnabled}
+              onChange={(event) => onTsumoGiriDisplayChange?.(event.target.checked)}
+            />
+            <span>摸切显示</span>
+          </label>
           <label className="settings-check">
             <input
               type="checkbox"

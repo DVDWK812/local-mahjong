@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { advanceAIAction, getVisibleCountsForPlayer, isAIPlayer, selectAIDiscardTile } from './ai';
-import { createInitialGameState, discardTile } from './engine';
+import { createInitialGameState, declareRiichi, discardTile, getRiichiDiscardCandidates } from './engine';
 import { createTile } from './tileUtils';
-import type { GameState, PlayerId, TileId } from './types';
+import type { GameState, PlayerId, Tile, TileId } from './types';
 
 function withAIToDraw(state: GameState, playerId: PlayerId = 1): GameState {
   return {
@@ -39,6 +39,14 @@ function discardIntoCallWindow(discardId: TileId, aiHand: TileId[], aiPlayer: Pl
   return discardTile(state, 0, state.players[0].hand[0].instanceId);
 }
 
+function riichiReadyState(playerId: PlayerId = 1): GameState {
+  return setHand(
+    withAIToDiscard(createInitialGameState(), playerId),
+    playerId,
+    [0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23, 27, 31],
+  );
+}
+
 describe('AI auto play', () => {
   it('identifies Player 2-4 as AI and Player 1 as human', () => {
     expect(isAIPlayer(0)).toBe(false);
@@ -60,6 +68,56 @@ describe('AI auto play', () => {
     const selected = selectAIDiscardTile(state, 1, () => 0);
     expect(selected).not.toBeNull();
     expect(state.players[1].hand.some((tile) => tile.instanceId === selected?.instanceId)).toBe(true);
+  });
+
+  it('selects a riichi discard strictly from getRiichiDiscardCandidates', () => {
+    const state = riichiReadyState();
+    const candidates = getRiichiDiscardCandidates(state, 1);
+    const candidateInstances = new Set(candidates.map((tile) => tile.instanceId));
+    const after = advanceAIAction(state, () => 0);
+    const river = after.players[1].river;
+    const discarded = river[river.length - 1];
+
+    expect(candidates.length).toBeGreaterThan(0);
+    expect(after.players[1].riichi).toBe(true);
+    expect(discarded).toBeDefined();
+    expect(candidateInstances.has(discarded!.instanceId)).toBe(true);
+    expect(after.players[1].riichiState?.riichiDiscardInstanceId).toBe(discarded?.instanceId);
+  });
+
+  it('never selects a higher-ranked non-candidate discard', () => {
+    const state = setHand(withAIToDiscard(createInitialGameState(), 1), 1, [0, 1, 2, 3, 4, 5, 9, 10, 11, 18, 19, 20, 27, 31]);
+    const unrestricted = selectAIDiscardTile(state, 1, () => 0);
+    const allowed = state.players[1].hand.find((tile) => tile.id !== unrestricted?.id);
+    if (!allowed) throw new Error('Expected an alternate candidate');
+
+    const restricted = selectAIDiscardTile(state, 1, () => 0, [allowed]);
+    expect(restricted?.instanceId).toBe(allowed.instanceId);
+    expect(restricted?.instanceId).not.toBe(unrestricted?.instanceId);
+  });
+
+  it('does not declare riichi when there are no riichi discard candidates', () => {
+    const state = setHand(withAIToDiscard(createInitialGameState(), 1), 1, [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26]);
+    expect(getRiichiDiscardCandidates(state, 1)).toHaveLength(0);
+    const beforeScore = state.players[1].score;
+    const after = advanceAIAction(state, () => 0);
+    expect(after.players[1].riichi).toBe(false);
+    expect(after.players[1].score).toBe(beforeScore);
+    expect(after.players[1].river).toHaveLength(1);
+  });
+
+  it('keeps red and ordinary five candidates distinguished by tile instance', () => {
+    const redFive = { ...createTile(4, 0), red: true };
+    const ordinaryFive = { ...createTile(4, 1), red: false };
+    const state = setHand(withAIToDiscard(createInitialGameState(), 1), 1, [0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23]);
+    const hand: Tile[] = [...state.players[1].hand, redFive, ordinaryFive];
+    const withFives = {
+      ...state,
+      players: state.players.map((player) => player.id === 1 ? { ...player, hand } : player),
+    };
+
+    expect(selectAIDiscardTile(withFives, 1, () => 0, [redFive])?.instanceId).toBe(redFive.instanceId);
+    expect(selectAIDiscardTile(withFives, 1, () => 0, [ordinaryFive])?.instanceId).toBe(ordinaryFive.instanceId);
   });
 
   it('draws one tile for AI without mutating previous state', () => {
@@ -133,12 +191,29 @@ describe('AI auto play', () => {
     expect(after.players[0].river[0]).toMatchObject({ id: 31, claimed: true });
   });
 
+  it('counts a claimed pon tile once while retaining the claimed river history', () => {
+    const after = advanceAIAction(discardIntoCallWindow(31, [31, 31, 1, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22]), () => 0);
+    const counts = getVisibleCountsForPlayer({ ...after, doraIndicators: [] }, 1);
+    expect(after.players[0].river[0]).toMatchObject({ id: 31, claimed: true });
+    expect(after.players[1].calls[0].tiles).toHaveLength(3);
+    expect(counts[31]).toBe(3);
+  });
+
   it('AI can chi when the call lowers shanten', () => {
     const callWindow = discardIntoCallWindow(1, [0, 2, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]);
     const after = advanceAIAction(callWindow, () => 0);
     expect(after.currentPlayer).toBe(1);
     expect(after.phase).toBe('discard');
     expect(after.players[1].calls[0]).toMatchObject({ type: 'chi', opened: true, sequence: [0, 1, 2] });
+  });
+
+  it('counts a claimed chi tile once and restores the correct visible remainder', () => {
+    const after = advanceAIAction(discardIntoCallWindow(1, [0, 2, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]), () => 0);
+    const counts = getVisibleCountsForPlayer({ ...after, doraIndicators: [] }, 1);
+    expect(after.players[0].river[0]).toMatchObject({ id: 1, claimed: true });
+    expect(after.players[1].calls[0].tiles.some((tile) => tile.instanceId === after.players[0].river[0].instanceId)).toBe(true);
+    expect(counts[1]).toBe(1);
+    expect(4 - counts[1]).toBe(3);
   });
 
   it('AI can execute legal minkan for yakuhai', () => {
@@ -148,6 +223,14 @@ describe('AI auto play', () => {
     expect(after.phase).toBe('discard');
     expect(after.players[1].calls[0]).toMatchObject({ type: 'kan', kanType: 'minkan', opened: true, from: 0 });
     expect(after.players[1].drawnTile).not.toBeNull();
+  });
+
+  it('counts all four minkan tiles without double-counting its claimed discard', () => {
+    const after = advanceAIAction(discardIntoCallWindow(31, [31, 31, 31, 1, 3, 5, 7, 9, 11, 13, 18, 20, 22]), () => 0);
+    const counts = getVisibleCountsForPlayer({ ...after, doraIndicators: [] }, 1);
+    expect(after.players[0].river[0]).toMatchObject({ id: 31, claimed: true });
+    expect(after.players[1].calls[0].tiles).toHaveLength(4);
+    expect(counts[31]).toBe(4);
   });
 
   it('AI does not perform illegal chi from a non-lower seat and passes normally', () => {
@@ -186,5 +269,17 @@ describe('AI auto play', () => {
     expect(afterDiscard.players[1].river.length).toBe(1);
     expect(afterDiscard.currentPlayer).toBe(2);
     expect(['draw', 'call-window']).toContain(afterDiscard.phase);
+  });
+
+  it('does not alter the human riichi flow', () => {
+    const state = {
+      ...riichiReadyState(0),
+      currentPlayer: 0 as PlayerId,
+    };
+    const [candidate] = getRiichiDiscardCandidates(state, 0);
+    expect(advanceAIAction(state)).toBe(state);
+    const after = discardTile(declareRiichi(state, 0), 0, candidate.instanceId);
+    expect(after.players[0].riichi).toBe(true);
+    expect(after.players[0].riichiState?.riichiDiscardInstanceId).toBe(candidate.instanceId);
   });
 });

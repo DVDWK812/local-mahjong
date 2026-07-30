@@ -1,4 +1,4 @@
-import type { PlayerId, PlayerState, Wind } from '../../game/types';
+import type { PlayerId, PlayerState, Tile as TileModel, TileId, Wind } from '../../game/types';
 import { PlayerMelds } from '../PlayerMelds';
 import { DiscardRiver } from './DiscardRiver';
 import { HandTrack } from './HandTrack';
@@ -16,6 +16,12 @@ interface PlayerZoneProps {
   showHand?: boolean;
   showRiver?: boolean;
   showMelds?: boolean;
+  doraIndicators?: TileModel[];
+  doraGlowEnabled?: boolean;
+  hoveredTileType?: TileId | null;
+  sameTileHoverEnabled?: boolean;
+  onHoveredTileTypeChange?: (tileType: TileId | null) => void;
+  tsumoGiriDisplayEnabled?: boolean;
 }
 
 const windNames: Record<Wind, string> = {
@@ -36,6 +42,12 @@ export function PlayerZone({
   showHand = true,
   showRiver = true,
   showMelds = true,
+  doraIndicators = [],
+  doraGlowEnabled = true,
+  hoveredTileType = null,
+  sameTileHoverEnabled = true,
+  onHoveredTileTypeChange,
+  tsumoGiriDisplayEnabled = true,
 }: PlayerZoneProps) {
   const showOpponentHand = showHand;
   void score;
@@ -50,24 +62,24 @@ export function PlayerZone({
       <div className="player-zone-layout">
         {showOpponentHand ? (
           <div className="player-zone-hand-wrap">
-            <HandTrack player={player} position={position} />
+            <HandTrack player={player} position={position} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
           </div>
         ) : null}
 
         {showOpponentHand ? (
-          <PlayerIdentity player={player} seatWind={seatWind} isDealer={isDealer} />
+          <PlayerIdentity player={player} seatWind={seatWind} isDealer={isDealer} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} />
         ) : null}
 
         {showRiver ? (
           <div className="player-zone-river-wrap">
-            <DiscardRiver player={player} position={position} />
+            <DiscardRiver player={player} position={position} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
           </div>
         ) : null}
 
         {showOpponentHand && showMelds ? (
           <div className="player-zone-meld-wrap" data-ai-meld-zone={player.id === 0 ? undefined : position}>
             <div className={`player-zone-meld-rotator player-zone-meld-rotator--${position}`}>
-              <PlayerMelds player={player} seatClass={`seat-${player.id} melds-${position}`} />
+              <PlayerMelds player={player} seatClass={`seat-${player.id} melds-${position}`} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
             </div>
           </div>
         ) : null}
@@ -76,16 +88,27 @@ export function PlayerZone({
   );
 }
 
-function PlayerIdentity({ player, seatWind, isDealer }: { player: PlayerState; seatWind: Wind; isDealer: boolean }) {
+function PlayerIdentity({ player, seatWind, isDealer, tsumoGiriDisplayEnabled }: { player: PlayerState; seatWind: Wind; isDealer: boolean; tsumoGiriDisplayEnabled: boolean }) {
   const initial = player.name.trim().slice(0, 1) || windNames[seatWind];
   return (
     <div className="player-identity player-zone-label">
       <span className="player-avatar" aria-hidden="true">{initial}</span>
+      {tsumoGiriDisplayEnabled ? <TsumogiriMarker player={player} /> : null}
       <strong title={player.name}>{player.name}</strong>
       <span className="player-badges">
         {isDealer ? <em className="dealer-marker">庄</em> : null}
         {player.riichi ? <em>立直</em> : null}
       </span>
     </div>
+  );
+}
+
+function TsumogiriMarker({ player }: { player: PlayerState }) {
+  const lastDiscard = player.river[player.river.length - 1];
+  const isTsumogiri = lastDiscard?.isTsumogiri === true;
+  return (
+    <span className={`tsumogiri-marker ${isTsumogiri ? 'tsumogiri-marker--drawn' : 'tsumogiri-marker--blocked'}`} title={isTsumogiri ? '摸切' : '非摸切'}>
+      切
+    </span>
   );
 }

@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { getRulePreset, loadStoredRuleConfig, saveStoredRuleConfig } from '../game/match/matchRules';
 import { ruleDescriptions } from '../game/rules/ruleDescriptions';
-import { buildUma, MatchSettings, normalizeMatchSettingsConfig } from './MatchSettings';
+import { buildUma, DEFAULT_AI_PLAYER_SETTINGS, MatchSettings, normalizeMatchSettingsConfig } from './MatchSettings';
 
 describe('比赛设置界面', () => {
   it('不显示规则预设下拉框', () => {
@@ -36,6 +36,34 @@ describe('比赛设置界面', () => {
     expect(html).toContain('比赛类型');
     expect(html).toContain('四人南');
     expect(normalizeMatchSettingsConfig(config, { matchLength: 'east-only' }).match.matchLength).toBe('hanchan');
+  });
+
+  it('比赛信息页为三名AI分别显示难度和性格下拉框', () => {
+    const html = renderToStaticMarkup(<MatchSettings config={getRulePreset('east-round')} onConfigChange={() => undefined} />);
+    expect(html).toContain('AI难度');
+    expect((html.match(/class="ai-setting-row"/g) ?? [])).toHaveLength(3);
+    expect(html).toContain('AI 玩家 2');
+    expect(html).toContain('AI 玩家 3');
+    expect(html).toContain('AI 玩家 4');
+    expect(html).toContain('筑根（简单）');
+    expect(html).toContain('心转手（中等）');
+    expect(html).toContain('上层（难）');
+    expect(html).toContain('鬼神（地狱）');
+    expect(html).toContain('沉稳老练（防守向）');
+    expect(html).toContain('锋芒毕露（进攻向）');
+    expect(html).toContain('稳步进取（平衡向）');
+  });
+
+  it('三名AI默认使用筑根难度和稳步进取性格', () => {
+    expect(DEFAULT_AI_PLAYER_SETTINGS).toEqual([
+      { playerId: 1, difficulty: 'chikukon', personality: 'balanced' },
+      { playerId: 2, difficulty: 'chikukon', personality: 'balanced' },
+      { playerId: 3, difficulty: 'chikukon', personality: 'balanced' },
+    ]);
+    const html = renderToStaticMarkup(<MatchSettings config={getRulePreset('east-round')} onConfigChange={() => undefined} />);
+    expect((html.match(/value="chikukon" selected=""/g) ?? [])).toHaveLength(3);
+    expect((html.match(/value="balanced" selected=""/g) ?? [])).toHaveLength(3);
+    expect(html).toContain('不改变现有 AI 行为');
   });
 
   it('不显示突然死亡目标输入框，目标点数变化会同步 suddenDeathTarget', () => {
@@ -79,6 +107,15 @@ describe('比赛设置界面', () => {
     expect(config.round.preserveClaimedDiscardGap).toBe(false);
     expect(html).toContain('鸣牌留空');
     expect(html).toContain('被吃、碰或杠走的弃牌会在原牌河位置留下空白');
+    expect(html.indexOf('辅助显示')).toBeLessThan(html.indexOf('鸣牌留空'));
+  });
+
+  it('辅助显示默认开启宝牌闪光、悬停同牌、听牌剩余量和摸切显示', () => {
+    const html = renderToStaticMarkup(<MatchSettings config={getRulePreset('east-round')} onConfigChange={() => undefined} />);
+    expect(html).toContain('宝牌闪光效果');
+    expect(html).toContain('悬停显示相同牌');
+    expect(html).toContain('显示听牌与剩余量');
+    expect(html).toContain('摸切显示');
   });
 
   it('旧配置缺少鸣牌留空字段时按关闭处理', () => {

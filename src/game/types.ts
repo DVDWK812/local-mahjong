@@ -19,6 +19,7 @@ export interface Tile {
   red: boolean;
   instanceId: string;
   isRiichiDiscard?: boolean;
+  isTsumogiri?: boolean;
   claimed?: boolean;
   claimedBy?: PlayerId;
 }

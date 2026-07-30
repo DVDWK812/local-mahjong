@@ -35,6 +35,8 @@ export interface WinContext {
   honba: number;
   riichiSticks: number;
   isRenhou?: boolean;
+  isRiichiDeclarationDiscardRon?: boolean;
+  isAfterKanFirstDiscardRon?: boolean;
   waitType?: WaitType;
   melds?: ScoringMeld[];
   preWinHand?: Tile[];
@@ -124,8 +126,7 @@ export function checkYaku(hand: Tile[], context: WinContext, shape = findWinning
   if (isFlushLike(counts, false)) yaku.push(NORMAL_YAKU.honitsu(closed));
   if (isFlushLike(counts, true)) yaku.push(NORMAL_YAKU.chinitsu(closed));
   if (config.allowAncientYaku) {
-    if (context.isRenhou) yaku.push(ANCIENT_YAKU.renhou());
-    yaku.push(...checkAncientYaku(counts, shape));
+    yaku.push(...checkAncientYaku(counts, context, shape));
   }
   return yaku;
 }
@@ -148,21 +149,30 @@ export function checkYakuman(counts: TileCounts, context: WinContext, shape: Han
   if (allTiles(counts).every((id) => GREENS.has(id))) yaku.push(YAKUMAN_YAKU.ryuuiisou());
   if (allTiles(counts).every((id) => TERMINALS.has(id))) yaku.push(YAKUMAN_YAKU.chinroutou());
   if (isChuuren(counts)) yaku.push(isChuuren9(counts, context.winTile.id) ? YAKUMAN_YAKU.chuuren9(config.allowDoubleYakuman) : YAKUMAN_YAKU.chuuren());
+  if (config.allowAncientYaku) {
+    if (isRenhouContext(context)) yaku.push(ANCIENT_YAKU.renhou());
+    if (isDaisharin(counts, 9)) yaku.push(ANCIENT_YAKU.daisharin());
+    if (isDaisharin(counts, 18)) yaku.push(ANCIENT_YAKU.daichikurin());
+    if (isDaisharin(counts, 0)) yaku.push(ANCIENT_YAKU.daisuurin());
+    if (shape.type === 'standard' && consecutiveTriplets(shape) >= 4) yaku.push(ANCIENT_YAKU.suurenkou());
+    if (context.isDoubleRiichi && ((context.isHaitei && context.isTsumo) || (context.isHoutei && !context.isTsumo))) yaku.push(ANCIENT_YAKU.ishinoUenoSannen());
+    if (isDaichisei(counts)) yaku.push(ANCIENT_YAKU.daichisei());
+  }
   return yaku;
 }
 
-export function checkAncientYaku(counts: TileCounts, shape: HandShape): YakuResult[] {
+export function checkAncientYaku(counts: TileCounts, context: WinContext, shape: HandShape): YakuResult[] {
   const yaku: YakuResult[] = [];
-  if (isDaisharin(counts, 9)) yaku.push(ANCIENT_YAKU.daisharin());
-  if (isDaisharin(counts, 18)) yaku.push(ANCIENT_YAKU.daichikurin());
-  if (isDaisharin(counts, 0)) yaku.push(ANCIENT_YAKU.daisuurin());
+  if (context.isRiichiDeclarationDiscardRon && !context.isTsumo) yaku.push(ANCIENT_YAKU.tsubamegaeshi());
+  if (context.isAfterKanFirstDiscardRon && !context.isTsumo) yaku.push(ANCIENT_YAKU.kanfuri());
+  if (isShiieruota(context)) yaku.push(ANCIENT_YAKU.shiieruota());
+  if (isUumensai(counts)) yaku.push(ANCIENT_YAKU.uumensai());
   if (shape.type === 'standard') {
     if (consecutiveTriplets(shape) >= 3) yaku.push(ANCIENT_YAKU.sanrenkou());
-    if (consecutiveTriplets(shape) >= 4) yaku.push(ANCIENT_YAKU.suurenkou());
-    if (sameSuitSameSequenceCount(shape) >= 3) yaku.push(ANCIENT_YAKU.isshokuSanjun());
+    if (sameSuitSameSequenceCount(shape) >= 3) yaku.push(ANCIENT_YAKU.isshokuSanjun(context.isMenzen));
   }
-  if (isChiiseiPuutao(counts)) yaku.push(ANCIENT_YAKU.chiiseiPuutao());
-  if (isShiisanPuuta(counts)) yaku.push(ANCIENT_YAKU.shiisanPuuta());
+  if (context.isHaitei && context.isTsumo && context.winTile.id === 9) yaku.push(ANCIENT_YAKU.iipinmooyue());
+  if (context.isHoutei && !context.isTsumo && context.winTile.id === 17) yaku.push(ANCIENT_YAKU.chuupinraoyui());
   return yaku;
 }
 
@@ -245,6 +255,7 @@ function isTanyao(counts: TileCounts): boolean {
 
 function isPinfu(shape: HandShape, context: WinContext): boolean {
   if (shape.type !== 'standard' || shape.pair === null) return false;
+  if (!context.isMenzen || context.waitType !== 'ryanmen') return false;
   if (shape.melds.some((meld) => meld.type !== 'sequence')) return false;
   if (DRAGONS.has(shape.pair)) return false;
   if (shape.pair === windToTileId(context.seatWind) || shape.pair === windToTileId(context.roundWind)) return false;
@@ -404,7 +415,32 @@ function isChuuren9(counts: TileCounts, winTile: TileId): boolean {
 }
 
 function isDaisharin(counts: TileCounts, base: 0 | 9 | 18): boolean {
-  return [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7].every((rank, index, arr) => counts[base + rank] >= arr.filter((value) => value === rank).length);
+  const required = new Set([base + 1, base + 2, base + 3, base + 4, base + 5, base + 6, base + 7]);
+  return normalizeCounts(counts).reduce((sum, count) => sum + count, 0) === 14
+    && ALL_TILE_IDS.every((id) => required.has(id) ? counts[id] === 2 : counts[id] === 0);
+}
+
+function isDaichisei(counts: TileCounts): boolean {
+  return [27, 28, 29, 30, 31, 32, 33].every((id) => counts[id] === 2)
+    && normalizeCounts(counts).reduce((sum, count) => sum + count, 0) === 14;
+}
+
+function isRenhouContext(context: WinContext): boolean {
+  return !context.isTsumo && Boolean(context.isRenhou);
+}
+
+function isShiieruota(context: WinContext): boolean {
+  return !context.isTsumo
+    && context.waitType === 'tanki'
+    && (context.melds?.filter((meld) => meld.open).length ?? 0) >= 4;
+}
+
+function isUumensai(counts: TileCounts): boolean {
+  return counts.slice(0, 9).some((count) => count > 0)
+    && counts.slice(9, 18).some((count) => count > 0)
+    && counts.slice(18, 27).some((count) => count > 0)
+    && counts.slice(27, 31).some((count) => count > 0)
+    && counts.slice(31, 34).some((count) => count > 0);
 }
 
 function consecutiveTriplets(shape: HandShape): number {
@@ -422,14 +458,4 @@ function sameSuitSameSequenceCount(shape: HandShape): number {
   const counts = new Map<string, number>();
   shape.melds.filter((meld) => meld.type === 'sequence').forEach((meld) => counts.set(meld.ids.join(','), (counts.get(meld.ids.join(',')) ?? 0) + 1));
   return Math.max(0, ...counts.values());
-}
-
-function isChiiseiPuutao(counts: TileCounts): boolean {
-  const honors = [27, 28, 29, 30, 31, 32, 33].every((id) => counts[id] === 1);
-  const terminals = [0, 8, 9, 17, 18, 26].filter((id) => counts[id] === 1).length;
-  return honors && terminals >= 6;
-}
-
-function isShiisanPuuta(counts: TileCounts): boolean {
-  return counts.filter((count) => count === 1).length === 12 && counts.some((count) => count === 2);
 }

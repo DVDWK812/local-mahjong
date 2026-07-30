@@ -3,6 +3,7 @@ import { evaluateWin, type WinContext } from '../scoreCalculator';
 import { checkYaku } from './yakuChecker';
 import { createTile } from '../tileUtils';
 import type { Tile, TileId } from '../types';
+import type { ScoringMeld } from './scoringTypes';
 
 function tiles(ids: TileId[]): Tile[] {
   const seen = new Map<TileId, number>();
@@ -41,7 +42,7 @@ function hasNormal(ids: TileId[], han: number, overrides: Partial<WinContext> = 
 describe('standard normal yaku', () => {
   it('covers riichi, ippatsu, menzen tsumo, pinfu, iipeikou, and tanyao', () => {
     const ids = [1, 2, 3, 1, 2, 3, 10, 11, 12, 20, 21, 22, 14, 14] as TileId[];
-    const score = evaluateWin(tiles(ids), ctx(14, { isTsumo: true, isRiichi: true, isIppatsu: true }));
+    const score = evaluateWin(tiles(ids), ctx(22, { isTsumo: true, isRiichi: true, isIppatsu: true }));
     expect(score.yaku.filter((yaku) => yaku.category === 'normal').length).toBeGreaterThanOrEqual(6);
     expect(score.yaku.every((yaku) => yaku.category !== 'yakuman' && yaku.category !== 'double_yakuman')).toBe(true);
   });
@@ -92,6 +93,53 @@ describe('standard normal yaku', () => {
   });
 });
 
+describe('pinfu requirements', () => {
+  const hasPinfu = (ids: TileId[], winTileId: TileId, overrides: Partial<WinContext> = {}) =>
+    evaluateWin(tiles(ids), ctx(winTileId, overrides)).yaku.some((yaku) => yaku.name === '平和');
+
+  it('accepts a closed all-sequence hand with an ordinary pair and a real ryanmen win', () => {
+    expect(hasPinfu([1, 2, 3, 2, 3, 4, 12, 13, 14, 23, 24, 25, 13, 13], 25)).toBe(true);
+  });
+
+  it.each([
+    ['tanki', [1, 2, 3, 2, 3, 4, 12, 13, 14, 23, 24, 25, 30, 30], 30],
+    ['kanchan', [1, 2, 3, 2, 3, 4, 12, 13, 14, 23, 25, 24, 13, 13], 24],
+    ['penchan', [1, 2, 3, 2, 3, 4, 12, 13, 14, 18, 19, 20, 13, 13], 20],
+  ] as const)('rejects a %s wait', (_name, ids, winTileId) => {
+    expect(hasPinfu([...ids] as TileId[], winTileId)).toBe(false);
+  });
+
+  it('rejects a value-tile pair', () => {
+    expect(hasPinfu([1, 2, 3, 2, 3, 4, 12, 13, 14, 23, 24, 25, 27, 27], 25)).toBe(false);
+  });
+
+  it('rejects an open chi even when the remaining shape is all sequences and ryanmen', () => {
+    const calledTiles = tiles([1, 2, 3]);
+    const melds: ScoringMeld[] = [{
+      type: 'sequence',
+      ids: [1, 2, 3],
+      tiles: calledTiles,
+      open: true,
+      calledTile: calledTiles[2],
+    }];
+    expect(hasPinfu([2, 3, 4, 12, 13, 14, 23, 24, 25, 13, 13], 25, { isMenzen: false, melds })).toBe(false);
+  });
+
+  it('rejects triplets and kans', () => {
+    expect(hasPinfu([1, 1, 1, 10, 11, 12, 20, 21, 22, 23, 24, 25, 14, 14], 25)).toBe(false);
+
+    const kanTiles = tiles([0, 0, 0, 0]);
+    const melds: ScoringMeld[] = [{
+      type: 'kan',
+      ids: [0, 0, 0, 0],
+      tiles: kanTiles,
+      open: false,
+      kanType: 'ankan',
+    }];
+    expect(hasPinfu([2, 3, 4, 12, 13, 14, 23, 24, 25, 13, 13], 25, { isMenzen: true, melds })).toBe(false);
+  });
+});
+
 describe('yakuman and double yakuman', () => {
   it('does not represent yakuman as normal han 13', () => {
     const score = evaluateWin(tiles([0, 0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33]), ctx(33));
@@ -126,8 +174,8 @@ describe('yakuman and double yakuman', () => {
 describe('ancient yaku', () => {
   it('only enables ancient yaku when allowAncientYaku is true', () => {
     const ids = [10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16] as TileId[];
-    expect(checkYaku(tiles(ids), ctx(16, { ruleConfig: { allowAncientYaku: false } })).some((yaku) => yaku.openAllowed === false && yaku.han === 6)).toBe(false);
-    expect(checkYaku(tiles(ids), ctx(16, { ruleConfig: { allowAncientYaku: true } })).some((yaku) => yaku.han === 6)).toBe(true);
+    expect(checkYaku(tiles(ids), ctx(16, { ruleConfig: { allowAncientYaku: false } })).some((yaku) => yaku.name === '大车轮')).toBe(false);
+    expect(checkYaku(tiles(ids), ctx(16, { ruleConfig: { allowAncientYaku: true } })).some((yaku) => yaku.name === '大车轮' && yaku.yakumanValue === 1)).toBe(true);
   });
 
   it('supports renhou only when ancient yaku are enabled', () => {

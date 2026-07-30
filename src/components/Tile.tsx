@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { getDoraGlowClass } from '../game/doraVisual';
 import { getTileAlt, getTileAltById, getTileBackImage, getTileImage, getTileImageById, getTilePlaceholderImage, isRedFive } from '../game/tileAssets';
 import type { Tile as TileModel, TileId } from '../game/types';
 import { suitClass } from '../game/tileUtils';
@@ -14,7 +15,15 @@ interface TileProps {
   disabled?: boolean;
   clickable?: boolean;
   interactive?: boolean;
+  doraIndicators?: TileModel[];
+  doraGlowEnabled?: boolean;
+  hoveredTileType?: TileId | null;
+  sameTileHoverEnabled?: boolean;
+  onHoveredTileTypeChange?: (tileType: TileId | null) => void;
   className?: string;
+  onPointerEnter?: () => void;
+  onPointerLeave?: () => void;
+  onPointerDown?: () => void;
   onClick?: () => void;
 }
 
@@ -29,7 +38,15 @@ export function Tile({
   disabled = false,
   clickable,
   interactive = true,
+  doraIndicators = [],
+  doraGlowEnabled = false,
+  hoveredTileType = null,
+  sameTileHoverEnabled = false,
+  onHoveredTileTypeChange,
   className,
+  onPointerEnter,
+  onPointerLeave,
+  onPointerDown,
   onClick,
 }: TileProps) {
   const isFaceDown = hidden || faceDown;
@@ -41,6 +58,7 @@ export function Tile({
     return getTilePlaceholderImage();
   }, [isFaceDown, tile, tileId]);
   const [imageSource, setImageSource] = useState(source);
+  const isHoverSourceRef = useRef(false);
 
   useEffect(() => {
     setImageSource(source);
@@ -54,6 +72,9 @@ export function Tile({
         ? getTileAltById(tileId)
         : '缺失牌图';
   const showRedBadge = !!tile && !isFaceDown && isRedFive(tile);
+  const doraGlowClass = isFaceDown ? null : getDoraGlowClass(tile, doraIndicators, doraGlowEnabled);
+  const canReportHover = sameTileHoverEnabled && !isFaceDown && tileId !== undefined;
+  const sameTileHoverClass = canReportHover && hoveredTileType === tileId ? 'tile--same-tile-match' : '';
   const isDisabled = disabled || !onClick;
   const classNames = [
     'tile',
@@ -63,13 +84,38 @@ export function Tile({
     selected ? 'tile--selected' : '',
     clickable || onClick ? 'tile--clickable' : '',
     tile ? suitClass(tile) : '',
+    doraGlowClass ?? '',
+    sameTileHoverClass,
     className ?? '',
   ]
     .filter(Boolean)
     .join(' ');
 
+  useEffect(() => {
+    return () => {
+      if (isHoverSourceRef.current) {
+        onHoveredTileTypeChange?.(null);
+      }
+    };
+  }, [onHoveredTileTypeChange]);
+
+  const handlePointerEnter = () => {
+    onPointerEnter?.();
+    if (!canReportHover || tileId === undefined) return;
+    isHoverSourceRef.current = true;
+    onHoveredTileTypeChange?.(tileId);
+  };
+
+  const handlePointerLeave = () => {
+    onPointerLeave?.();
+    if (isHoverSourceRef.current) {
+      isHoverSourceRef.current = false;
+      onHoveredTileTypeChange?.(null);
+    }
+  };
+
   const content = (
-    <>
+    <span className="tile-face" onPointerEnter={handlePointerEnter} onPointerLeave={handlePointerLeave}>
       <img
         className="tile-image"
         src={imageSource}
@@ -78,7 +124,8 @@ export function Tile({
         onError={() => setImageSource(getTilePlaceholderImage())}
       />
       {showRedBadge ? <span className="tile-red-badge" aria-hidden="true" /> : null}
-    </>
+      {doraGlowClass ? <span className="tile-dora-frame" aria-hidden="true" /> : null}
+    </span>
   );
 
   if (!interactive) {
@@ -90,7 +137,7 @@ export function Tile({
   }
 
   return (
-    <button className={classNames} type="button" onClick={onClick} disabled={isDisabled} aria-label={alt}>
+    <button className={classNames} type="button" onPointerDown={onPointerDown} onClick={onClick} disabled={isDisabled} aria-label={alt}>
       {content}
     </button>
   );

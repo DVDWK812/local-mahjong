@@ -129,5 +129,8 @@ function isSevenPairs(context: FuContext): boolean {
 }
 
 function isPinfuTsumo(context: FuContext): boolean {
-  return context.isTsumo && context.waitType === 'ryanmen' && isPinfuShape(context.melds, context.pair, context.seatWind, context.roundWind);
+  return context.isMenzen
+    && context.isTsumo
+    && context.waitType === 'ryanmen'
+    && isPinfuShape(context.melds, context.pair, context.seatWind, context.roundWind);
 }

@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { createInitialGameState } from '../../game/engine';
 import { createMatch } from '../../game/match/matchEngine';
+import { createTile } from '../../game/tileUtils';
+import type { TileId } from '../../game/types';
 import { MahjongTable } from './MahjongTable';
 
 describe('MahjongTable', () => {
@@ -35,5 +37,24 @@ describe('MahjongTable', () => {
     const html = renderToStaticMarkup(<MahjongTable gameState={createInitialGameState()} matchState={createMatch()} />);
     expect((html.match(/25,000 点/g) ?? [])).toHaveLength(0);
     expect((html.match(/25,000/g) ?? [])).toHaveLength(4);
+  });
+
+  it('AI 玩家头像框正常显示摸切效果', () => {
+    const state = createInitialGameState();
+    const gameState = {
+      ...state,
+      players: state.players.map((player) => {
+        if (player.id === 0) return player;
+        return {
+          ...player,
+          river: [{ ...createTile((4 + player.id) as TileId, player.id), isTsumogiri: player.id !== 2 }],
+        };
+      }),
+    };
+    const html = renderToStaticMarkup(<MahjongTable gameState={gameState} matchState={createMatch()} />);
+
+    expect(html.match(/class="tsumogiri-marker /g)).toHaveLength(3);
+    expect(html.match(/tsumogiri-marker--drawn/g)).toHaveLength(2);
+    expect(html.match(/tsumogiri-marker--blocked/g)).toHaveLength(1);
   });
 });

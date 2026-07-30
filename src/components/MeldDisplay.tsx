@@ -1,9 +1,15 @@
 import type { MeldDisplayModel } from '../game/meldDisplayAdapter';
+import type { Tile as TileModel, TileId } from '../game/types';
 import { Tile } from './Tile';
 
 interface MeldDisplayProps {
   meld: MeldDisplayModel;
   seatClass?: string;
+  doraIndicators?: TileModel[];
+  doraGlowEnabled?: boolean;
+  hoveredTileType?: TileId | null;
+  sameTileHoverEnabled?: boolean;
+  onHoveredTileTypeChange?: (tileType: TileId | null) => void;
 }
 
 const CALL_LABELS: Record<MeldDisplayModel['callType'], string> = {
@@ -21,7 +27,7 @@ const SOURCE_LABELS: Record<MeldDisplayModel['sourceRelation'], string> = {
   self: '自己',
 };
 
-export function MeldDisplay({ meld, seatClass = '' }: MeldDisplayProps) {
+export function MeldDisplay({ meld, seatClass = '', doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange }: MeldDisplayProps) {
   const sourceText = meld.callType === 'ankan'
     ? '暗杠'
     : `${CALL_LABELS[meld.callType]} · 来自${SOURCE_LABELS[meld.sourceRelation]}`;
@@ -41,7 +47,7 @@ export function MeldDisplay({ meld, seatClass = '' }: MeldDisplayProps) {
           data-called={displayTile.called ? 'true' : 'false'}
           data-face-down={displayTile.faceDown ? 'true' : 'false'}
         >
-          <Tile tile={displayTile.tile} faceDown={displayTile.faceDown} sideways={displayTile.sideways} compact />
+          <Tile tile={displayTile.tile} faceDown={displayTile.faceDown} sideways={displayTile.sideways} compact interactive={false} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
         </div>
       ))}
     </div>

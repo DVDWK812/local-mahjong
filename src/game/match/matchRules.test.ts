@@ -38,6 +38,23 @@ describe('比赛规则预设和校验', () => {
     expect(getRulePreset('custom').round.allowKokushiChankanAnkan).toBe(true);
   });
 
+  it('四人东和四人南默认关闭听牌止、马点、头跳、古役和鸣牌留空，其余主要规则一致开启', () => {
+    const east = getRulePreset('east-round');
+    const south = getRulePreset('south-round');
+    for (const config of [east, south]) {
+      expect(config.match.tenpaiYame).toBe(false);
+      expect(config.match.useUma).toBe(false);
+      expect(config.match.useOka).toBe(false);
+      expect(config.round.allowAncientYaku).toBe(false);
+      expect(config.round.preserveClaimedDiscardGap).toBe(false);
+      expect(config.round.allowOpenTanyao).toBe(true);
+      expect(config.round.akaDora).toBe(true);
+      expect(config.round.ippatsu).toBe(true);
+      expect(config.round.kiriageMangan).toBe(true);
+      expect(config.round.allowKokushiChankanAnkan).toBe(true);
+    }
+  });
+
   it('累计役满默认按役满处理且预设不暴露其他模式', () => {
     expect(getRulePreset('east-round').round.kazoeYakumanMode).toBe('yakuman');
     expect(getRulePreset('south-round').round.kazoeYakumanMode).toBe('yakuman');

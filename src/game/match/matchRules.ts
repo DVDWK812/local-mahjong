@@ -65,7 +65,7 @@ export function getRulePreset(id: RulePresetInput): FullRuleConfig {
         akaDora: true,
         ippatsu: true,
         allowKokushiChankanAnkan: true,
-        kiriageMangan: false,
+        kiriageMangan: true,
         kazoeYakumanMode: 'yakuman',
       },
       {
@@ -73,10 +73,10 @@ export function getRulePreset(id: RulePresetInput): FullRuleConfig {
         roundCount: 2,
         returnPoints: 25000,
         maxExtraRoundWind: 'west',
-        useUma: true,
-        useOka: true,
-        tenpaiYame: true,
-        tenpaiYameMode: 'player-choice',
+        useUma: false,
+        useOka: false,
+        tenpaiYame: false,
+        tenpaiYameMode: 'automatic',
       },
     );
   }

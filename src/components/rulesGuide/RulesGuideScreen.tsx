@@ -6,7 +6,6 @@ import { YakuExample } from './YakuExample';
 
 export type RulesTab =
   | 'home'
-  | 'situational'
   | 'oneHan'
   | 'twoHan'
   | 'threeHan'
@@ -25,7 +24,6 @@ interface RulesGuideScreenProps {
 
 const tabLabels: Record<RulesTab, string> = {
   home: '主页',
-  situational: '状况役',
   oneHan: '1番役',
   twoHan: '2番役',
   threeHan: '3番役',
@@ -37,7 +35,6 @@ const tabLabels: Record<RulesTab, string> = {
 };
 
 const groupByTab: Partial<Record<RulesTab, GuideYakuGroup>> = {
-  situational: '状况役',
   oneHan: '1番役',
   twoHan: '2番役',
   threeHan: '3番役',
@@ -69,7 +66,7 @@ export function RulesGuideScreen({ ruleConfig, onBack, embedded = false, initial
         </header>
         <div className="rules-guide-content">
           {tab === 'home' ? <RulesHomeTab /> : null}
-          {tab !== 'home' && tab !== 'points' ? <YakuGuideTab tab={tab} /> : null}
+          {tab !== 'home' && tab !== 'points' ? <YakuGuideTab tab={tab} ruleConfig={ruleConfig} /> : null}
           {tab === 'points' ? <FuPointsGuideTab ruleConfig={ruleConfig} /> : null}
         </div>
       </section>
@@ -148,13 +145,17 @@ function RulesHomeTab() {
   );
 }
 
-function YakuGuideTab({ tab }: { tab: RulesTab }) {
+function YakuGuideTab({ tab, ruleConfig }: { tab: RulesTab; ruleConfig: FullRuleConfig }) {
   const items = yakuForTab(tab);
+  const ancientStatus = ruleConfig.round.allowAncientYaku ? '当前规则已启用' : '当前规则未启用';
 
   return (
     <div className="rules-tab-panel">
       <section>
-        <h2>{tabLabels[tab]}</h2>
+        <h2>
+          {tabLabels[tab]}
+          {tab === 'ancient' ? <span className="rules-title-tag">{ancientStatus}</span> : null}
+        </h2>
         <div className="yaku-card-grid">
           {items.map((yaku) => <YakuCard key={yaku.id} yaku={yaku} />)}
         </div>
@@ -189,11 +190,13 @@ function YakuCard({ yaku }: { yaku: GuideYaku }) {
       <header>
         <h3>{yaku.closedResult.name}</h3>
         <div className="rules-tags">
-          <span>{yaku.openResult ? '副露可成立' : '门清限定'}</span>
-          <span>{openEffect}</span>
+          {!yaku.openResult ? <span>门清限定</span> : null}
+          {openEffect === '副露后减1番' ? <span>{openEffect}</span> : null}
+         
           {yaku.tags?.map((tag) => <span key={tag}>{tag}</span>)}
         </div>
       </header>
+
 
       <p>{yaku.condition}</p>
       <YakuExample example={yaku.example} />

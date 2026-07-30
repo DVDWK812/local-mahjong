@@ -63,6 +63,7 @@ describe('实战交互流程', () => {
     expect(after.currentPlayer).toBe(1);
     expect(after.phase).toBe('draw');
     expect(after.players[0].river[after.players[0].river.length - 1]?.instanceId).toBe(draw.instanceId);
+    expect(after.players[0].river[after.players[0].river.length - 1]?.isTsumogiri).toBe(true);
   });
 
   it('打出其他手牌后，摸入牌并入排序后的手牌', () => {
@@ -73,6 +74,7 @@ describe('实战交互流程', () => {
     const after = discardTile(drawn, 0, otherTile.instanceId);
     const ids = after.players[0].hand.map((tile) => tile.id);
     expect(ids).toEqual([...ids].sort((a, b) => a - b));
+    expect(after.players[0].river[after.players[0].river.length - 1]?.isTsumogiri).toBe(false);
   });
 
   it('合法立直与双立直时生成立直弃牌提示数据', () => {

@@ -7,6 +7,7 @@ import { Tile as TileView } from './Tile';
 interface ResultDialogProps {
   gameState: GameState;
   onReset: () => void;
+  doraGlowEnabled?: boolean;
 }
 
 interface ResultShellProps {
@@ -43,18 +44,18 @@ function ResultShell({ title, subtitle, children, onReset }: ResultShellProps) {
   );
 }
 
-function HandPreview({ title, tiles }: { title: string; tiles: TileModel[] }) {
+function HandPreview({ title, tiles, doraIndicators = [], doraGlowEnabled = true }: { title: string; tiles: TileModel[]; doraIndicators?: TileModel[]; doraGlowEnabled?: boolean }) {
   return (
     <div className="result-hand">
       <span>{title}</span>
       <div className="result-hand-row">
-        {tiles.map((tile) => <TileView key={tile.instanceId} tile={tile} compact />)}
+        {tiles.map((tile) => <TileView key={tile.instanceId} tile={tile} compact doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} />)}
       </div>
     </div>
   );
 }
 
-function WinHandPreview({ gameState, winner, win }: { gameState: GameState; winner: GameState['players'][number]; win: WinResultEntry }) {
+function WinHandPreview({ gameState, winner, win, doraGlowEnabled = true }: { gameState: GameState; winner: GameState['players'][number]; win: WinResultEntry; doraGlowEnabled?: boolean }) {
   const concealedTiles = removeWinTileForDisplay(winner.hand, win.winTile, win.winType);
   const uraIndicators = winner.riichi ? activeUraDoraIndicators(gameState) : [];
   return (
@@ -62,26 +63,26 @@ function WinHandPreview({ gameState, winner, win }: { gameState: GameState; winn
       <section className="result-tile-section result-concealed-hand">
         <span>手牌</span>
         <div className="result-hand-row" aria-label="手牌">
-          {concealedTiles.map((tile) => <TileView key={tile.instanceId} tile={tile} compact />)}
+          {concealedTiles.map((tile) => <TileView key={tile.instanceId} tile={tile} compact doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />)}
         </div>
       </section>
       <section className="result-tile-section result-winning-tile">
         <span>和牌张</span>
         <div className="result-win-tile" aria-label="和牌张">
-          <TileView tile={win.winTile} compact />
+          <TileView tile={win.winTile} compact doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />
         </div>
       </section>
       {winner.calls.length > 0 ? (
         <section className="result-tile-section result-melds" aria-label="副露">
           <span>副露</span>
-          <PlayerMelds player={winner} seatClass="result-melds-seat" />
+          <PlayerMelds player={winner} seatClass="result-melds-seat" doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />
         </section>
       ) : null}
       {uraIndicators.length > 0 ? (
         <section className="result-tile-section result-ura-dora" aria-label="里宝牌">
           <span>里宝牌</span>
           <div className="result-hand-row">
-            {uraIndicators.map((tile) => <TileView key={tile.instanceId} tile={tile} compact />)}
+            {uraIndicators.map((tile) => <TileView key={tile.instanceId} tile={tile} compact doraGlowEnabled={false} />)}
           </div>
         </section>
       ) : null}
@@ -202,7 +203,7 @@ function winDisplayDeltas(gameState: GameState, result: WinRoundResult): number[
   ));
 }
 
-export function ResultDialog({ gameState, onReset }: ResultDialogProps) {
+export function ResultDialog({ gameState, onReset, doraGlowEnabled = true }: ResultDialogProps) {
   const result = gameState.result;
   if (!result) return null;
 
@@ -263,7 +264,7 @@ export function ResultDialog({ gameState, onReset }: ResultDialogProps) {
                 <strong>{windLabel(winner.seatWind)}家 {winner.name}</strong>
                 <span>{win.winType === 'tsumo' ? '自摸' : `荣和${from ? ` ${windLabel(from.seatWind)}家` : ''}`}</span>
               </div>
-              <WinHandPreview gameState={gameState} winner={winner} win={win} />
+              <WinHandPreview gameState={gameState} winner={winner} win={win} doraGlowEnabled={doraGlowEnabled} />
               <p>和牌：{tileLabel(win.winTile)}</p>
               <div className="result-yaku-list" aria-label="役种明细">
                 {yakuRows.length ? yakuRows.map((yaku, index) => (

@@ -34,6 +34,21 @@ describe('LocalHandArea', () => {
     expect(css).toContain('flex-wrap: nowrap');
   });
 
+  it('本家头像信息下方显示摸切标记，关闭后隐藏', () => {
+    const state = createInitialGameState();
+    const player = { ...state.players[0], river: [{ ...createTile(4, 1), isTsumogiri: true }] };
+    const shown = renderToStaticMarkup(
+      <LocalHandArea player={player} isCurrent canDiscard onDiscard={() => undefined} />,
+    );
+    const hidden = renderToStaticMarkup(
+      <LocalHandArea player={player} isCurrent canDiscard tsumoGiriDisplayEnabled={false} onDiscard={() => undefined} />,
+    );
+
+    expect(shown).toContain('tsumogiri-marker--drawn');
+    expect(shown).toContain('tsumogiri-marker');
+    expect(hidden).not.toContain('tsumogiri-marker');
+  });
+
   it('本家副露区域位于最右侧，并在副露较多时优先缩小副露牌', () => {
     const state = createInitialGameState();
     const call: CallSet = {
@@ -56,6 +71,14 @@ describe('LocalHandArea', () => {
     expect(html).toContain('player-melds');
     expect(css).toContain('justify-content: flex-end');
     expect(css).toContain('.local-meld-track .tile');
+  });
+
+  it('只有可弃手牌接入听牌悬停预览，弃牌时先清除预览', () => {
+    const source = readFileSync(resolve(process.cwd(), 'src/components/game/LocalHandArea.tsx'), 'utf8');
+    expect(source).toContain('onDiscardPreviewChange?.(tile.instanceId)');
+    expect(source).toContain('onDiscardPreviewChange?.(drawnTile.instanceId)');
+    expect(source).toContain('onDiscardPreviewChange?.(null)');
+    expect(source).toContain('canClick(tile.instanceId) ? () => onDiscardPreviewChange');
   });
 
   it('本家区域高度比旧版更紧凑且动作提示使用绝对定位不推动布局', () => {

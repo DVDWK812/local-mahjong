@@ -1,10 +1,15 @@
-import type { PlayerState } from '../../game/types';
+import type { PlayerState, Tile as TileModel, TileId } from '../../game/types';
 import { Tile } from '../Tile';
 
 interface DiscardRiverProps {
   player: PlayerState;
   position: 'south' | 'east' | 'north' | 'west';
   preserveClaimedDiscardGap?: boolean;
+  doraIndicators?: TileModel[];
+  doraGlowEnabled?: boolean;
+  hoveredTileType?: TileId | null;
+  sameTileHoverEnabled?: boolean;
+  onHoveredTileTypeChange?: (tileType: TileId | null) => void;
 }
 
 function isClaimedDiscard(tile: PlayerState['river'][number]): boolean {
@@ -12,7 +17,7 @@ function isClaimedDiscard(tile: PlayerState['river'][number]): boolean {
   return marker.claimed === true || marker.claimedBy !== undefined;
 }
 
-export function DiscardRiver({ player, position, preserveClaimedDiscardGap = false }: DiscardRiverProps) {
+export function DiscardRiver({ player, position, preserveClaimedDiscardGap = false, doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange }: DiscardRiverProps) {
   const riichiDiscardInstanceId = player.riichiState?.riichiDiscardInstanceId;
 
   return (
@@ -30,7 +35,7 @@ export function DiscardRiver({ player, position, preserveClaimedDiscardGap = fal
 
           return (
             <span key={tile.instanceId} className={className}>
-              {isClaimed ? <span className="discard-river-claimed-placeholder" aria-hidden="true" /> : <Tile tile={tile} compact />}
+              {isClaimed ? <span className="discard-river-claimed-placeholder" aria-hidden="true" /> : <Tile tile={tile} compact interactive={false} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />}
             </span>
           );
         })}

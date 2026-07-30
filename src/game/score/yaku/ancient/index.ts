@@ -1,13 +1,21 @@
-import { normalYaku, type YakuResult } from '../types';
+import { normalYaku, yakumanYaku, type YakuResult } from '../types';
 
 export const ANCIENT_YAKU = {
-  renhou: () => normalYaku('人和', 5, false),
-  daisharin: () => normalYaku('大车轮', 6, false),
-  daichikurin: () => normalYaku('大竹林', 6, false),
-  daisuurin: () => normalYaku('大数邻', 6, false),
-  sanrenkou: () => normalYaku('三连刻', 2, true),
-  suurenkou: () => normalYaku('四连刻', 4, true),
-  isshokuSanjun: () => normalYaku('一色三顺', 3, true),
-  chiiseiPuutao: () => normalYaku('七星不靠', 6, false),
-  shiisanPuuta: () => normalYaku('十三不塔', 6, false),
-} satisfies Record<string, () => YakuResult>;
+  tsubamegaeshi: () => normalYaku('燕返', 1, true, 1, 1),
+  kanfuri: () => normalYaku('杠振', 1, true, 1, 1),
+  shiieruota: () => normalYaku('十二落抬', 1, true, 1, 1),
+  uumensai: () => normalYaku('五门齐', 2, true, 2, 2),
+  sanrenkou: () => normalYaku('三连刻', 2, true, 2, 2),
+  isshokuSanjun: (closed: boolean) => normalYaku('一色三同顺', closed ? 3 : 2, true, 3, 2),
+  iipinmooyue: () => normalYaku('一筒摸月', 5, true, 5, 5),
+  chuupinraoyui: () => normalYaku('九筒捞鱼', 5, true, 5, 5),
+  renhou: () => yakumanYaku('人和', 1),
+  daisharin: () => yakumanYaku('大车轮', 1),
+  daichikurin: () => yakumanYaku('大竹林', 1),
+  daisuurin: () => yakumanYaku('大数邻', 1),
+  suurenkou: () => yakumanYaku('四连刻', 1),
+  ishinoUenoSannen: () => yakumanYaku('石上三年', 1),
+  daichisei: () => yakumanYaku('大七星', 2),
+} satisfies Record<string, (...args: any[]) => YakuResult>;
+
+export const ANCIENT_YAKU_IDS = Object.keys(ANCIENT_YAKU);

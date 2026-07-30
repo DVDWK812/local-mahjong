@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createTile } from '../../tileUtils';
 import { evaluateWin, type WinContext } from '../../scoreCalculator';
+import type { ScoringMeld } from '../scoringTypes';
 import type { Tile, TileId, Wind } from '../../types';
 import { calculateFu, calculateFuDetails, type FuContext, type FuMeld, type WaitType } from './fuCalculator';
 
@@ -185,9 +186,35 @@ describe('fuCalculator - special hands', () => {
 
 describe('fuCalculator - integrated examples', () => {
   it('scores closed ron pinfu plus tanyao as 30 fu', () => {
-    const score = evaluateWin(tiles([1, 2, 3, 2, 3, 4, 10, 11, 12, 20, 21, 22, 14, 14]), winContext(4));
+    const score = evaluateWin(tiles([1, 2, 3, 2, 3, 4, 12, 13, 14, 23, 24, 25, 13, 13]), winContext(25));
     expect(score.yaku.some((yaku) => yaku.name === '平和')).toBe(true);
     expect(score.yaku.some((yaku) => yaku.name === '断幺九')).toBe(true);
+    expect(score.fu).toBe(30);
+  });
+
+  it('scores closed tsumo pinfu as a fixed 20 fu without tsumo fu', () => {
+    const score = evaluateWin(
+      tiles([1, 2, 3, 2, 3, 4, 12, 13, 14, 23, 24, 25, 13, 13]),
+      winContext(25, { isTsumo: true, winType: 'tsumo' }),
+    );
+    expect(score.yaku.some((yaku) => yaku.name === '平和')).toBe(true);
+    expect(score.fu).toBe(20);
+  });
+
+  it('keeps an open pinfu-shaped hand non-pinfu and at the 30 fu minimum', () => {
+    const calledTiles = tiles([1, 2, 3]);
+    const melds: ScoringMeld[] = [{
+      type: 'sequence',
+      ids: [1, 2, 3],
+      tiles: calledTiles,
+      open: true,
+      calledTile: calledTiles[2],
+    }];
+    const score = evaluateWin(
+      tiles([2, 3, 4, 12, 13, 14, 23, 24, 25, 13, 13]),
+      winContext(25, { isMenzen: false, melds }),
+    );
+    expect(score.yaku.some((yaku) => yaku.name === '平和')).toBe(false);
     expect(score.fu).toBe(30);
   });
 

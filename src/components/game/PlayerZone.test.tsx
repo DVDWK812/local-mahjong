@@ -31,6 +31,30 @@ describe('PlayerZone', () => {
     expect(html).toContain('tile--hidden');
   });
 
+  it('头像框下显示摸切标记，非摸切叠加禁止标志，可关闭', () => {
+    const state = createInitialGameState();
+    const drawnDiscardPlayer = { ...state.players[1], river: [{ ...createTile(4, 1), isTsumogiri: true }] };
+    const handDiscardPlayer = { ...state.players[1], river: [{ ...createTile(4, 1), isTsumogiri: false }] };
+    const drawnHtml = renderToStaticMarkup(
+      <PlayerZone playerIndex={1} position="east" player={drawnDiscardPlayer} score={drawnDiscardPlayer.score} seatWind={drawnDiscardPlayer.seatWind} isDealer={false} isCurrentPlayer={false} />,
+    );
+    const handHtml = renderToStaticMarkup(
+      <PlayerZone playerIndex={1} position="east" player={handDiscardPlayer} score={handDiscardPlayer.score} seatWind={handDiscardPlayer.seatWind} isDealer={false} isCurrentPlayer={false} />,
+    );
+    const hiddenHtml = renderToStaticMarkup(
+      <PlayerZone playerIndex={1} position="east" player={drawnDiscardPlayer} score={drawnDiscardPlayer.score} seatWind={drawnDiscardPlayer.seatWind} isDealer={false} isCurrentPlayer={false} tsumoGiriDisplayEnabled={false} />,
+    );
+
+    expect(drawnHtml).toContain('tsumogiri-marker--drawn');
+    expect(drawnHtml).toContain('tsumogiri-marker');
+    expect(handHtml).toContain('tsumogiri-marker--blocked');
+    expect(hiddenHtml).not.toContain('tsumogiri-marker');
+    expect(css).toContain('color: #9da99f');
+    expect(css).toContain('.tsumogiri-marker--blocked::after');
+    expect(css).toContain('border: 2px solid #f00018');
+    expect(css).toContain('linear-gradient');
+  });
+
   it('玩家ID、手牌、牌河和副露使用不同安全容器', () => {
     const state = createInitialGameState();
     const player = state.players[1];

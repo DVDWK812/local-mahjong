@@ -30,6 +30,10 @@ interface BoardProps {
   onReset: () => void;
   onOpenRulesGuide?: () => void;
   onReturnMenu?: () => void;
+  doraGlowEnabled?: boolean;
+  sameTileHoverEnabled?: boolean;
+  showTenpaiWaitsEnabled?: boolean;
+  tsumoGiriDisplayEnabled?: boolean;
 }
 
 export function Board({
@@ -51,14 +55,23 @@ export function Board({
   onReset,
   onOpenRulesGuide,
   onReturnMenu,
+  doraGlowEnabled = true,
+  sameTileHoverEnabled = true,
+  showTenpaiWaitsEnabled = true,
+  tsumoGiriDisplayEnabled = true,
 }: BoardProps) {
   const [dismissedPromptKey, setDismissedPromptKey] = useState<string | null>(null);
   const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [hoveredTileType, setHoveredTileType] = useState<TileId | null>(null);
   const promptKey = `${gameState.phase}-${gameState.currentPlayer}-${gameState.turn}-${gameState.players[0].drawnTile?.instanceId ?? 'none'}-${gameState.lastDiscard?.tile.instanceId ?? 'none'}`;
 
   useEffect(() => {
     setDismissedPromptKey(null);
   }, [promptKey]);
+
+  useEffect(() => {
+    setHoveredTileType(null);
+  }, [gameState]);
 
   const drawActions = useMemo(() => getDrawActionState(gameState, 0), [gameState]);
   const canHumanPon = canPon(gameState, 0);
@@ -85,12 +98,20 @@ export function Board({
     onSkipDrawActions();
   };
 
+  const clearHoveredTileType = () => setHoveredTileType(null);
+
+  const handleDiscard = (playerId: PlayerId, tileInstanceId: string) => {
+    clearHoveredTileType();
+    onDiscard(playerId, tileInstanceId);
+    clearHoveredTileType();
+  };
+
   const actionPrompt = (
     <>
       {hasDrawPrompt ? (
         <ActionPrompt title="可执行操作">
           {drawActions.canTsumo && localPlayer.drawnTile ? (
-            <TileActionButton label="自摸" tile={localPlayer.drawnTile} onClick={() => onTsumo(0)} />
+            <TileActionButton label="自摸" tile={localPlayer.drawnTile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onTsumo(0)} />
           ) : null}
           {drawActions.canRiichi ? (
             <div className="prompt-group">
@@ -102,6 +123,11 @@ export function Board({
                   ariaLabel={`${drawActions.canDoubleRiichi ? '双立直' : '立直'}并打出${tileLabel(tile.id)}`}
                   showLabel={false}
                   tile={tile}
+                  doraIndicators={gameState.doraIndicators}
+                  doraGlowEnabled={doraGlowEnabled}
+                  hoveredTileType={hoveredTileType}
+                  sameTileHoverEnabled={sameTileHoverEnabled}
+                  onHoveredTileTypeChange={setHoveredTileType}
                   onClick={() => onDeclareRiichi(0, tile.instanceId)}
                 />
               ))}
@@ -113,6 +139,11 @@ export function Board({
               key={`ankan-${candidate.tileId}`}
               label="暗杠"
               tiles={tilesForAnkan(gameState, 0, candidate.tileId)}
+              doraIndicators={gameState.doraIndicators}
+              doraGlowEnabled={doraGlowEnabled}
+              hoveredTileType={hoveredTileType}
+              sameTileHoverEnabled={sameTileHoverEnabled}
+              onHoveredTileTypeChange={setHoveredTileType}
               onClick={() => onKan(0, 'ankan', candidate.tileId)}
             />
           ))}
@@ -122,6 +153,11 @@ export function Board({
               label="加杠"
               tiles={tilesForKakan(gameState, 0, candidate.tileId)}
               calledInstanceId={gameState.players[0].hand.find((tile) => tile.id === candidate.tileId)?.instanceId}
+              doraIndicators={gameState.doraIndicators}
+              doraGlowEnabled={doraGlowEnabled}
+              hoveredTileType={hoveredTileType}
+              sameTileHoverEnabled={sameTileHoverEnabled}
+              onHoveredTileTypeChange={setHoveredTileType}
               onClick={() => onKan(0, 'kakan', candidate.tileId)}
             />
           ))}
@@ -132,7 +168,7 @@ export function Board({
       {canHumanRon ? (
         <ActionPrompt title={`可以荣和 ${gameState.pendingRon ? tileLabel(gameState.pendingRon.tile.id) : ''}`}>
           {gameState.pendingRon ? (
-            <TileActionButton label="荣和" tile={gameState.pendingRon.tile} onClick={() => onRon(0)} />
+            <TileActionButton label="荣和" tile={gameState.pendingRon.tile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onRon(0)} />
           ) : null}
           <button type="button" onClick={() => onPassRon(0)}>跳过</button>
         </ActionPrompt>
@@ -143,7 +179,7 @@ export function Board({
           title={gameState.pendingCall ? (
             <span className="action-prompt-title-with-tile">
               <span>可以鸣牌</span>
-              <Tile tile={gameState.pendingCall.tile} compact interactive={false} className="action-prompt-title-tile" />
+              <Tile tile={gameState.pendingCall.tile} compact interactive={false} className="action-prompt-title-tile" doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} />
             </span>
           ) : '可以鸣牌'}
           ariaLabel={gameState.pendingCall ? `可以鸣牌：${getTileAlt(gameState.pendingCall.tile)}` : '可以鸣牌'}
@@ -154,6 +190,11 @@ export function Board({
               label="大明杠"
               tiles={tilesForMinkan(gameState, option)}
               calledInstanceId={gameState.pendingCall?.tile.instanceId}
+              doraIndicators={gameState.doraIndicators}
+              doraGlowEnabled={doraGlowEnabled}
+              hoveredTileType={hoveredTileType}
+              sameTileHoverEnabled={sameTileHoverEnabled}
+              onHoveredTileTypeChange={setHoveredTileType}
               onClick={() => onKan(0, 'minkan')}
             />
           ))}
@@ -162,6 +203,11 @@ export function Board({
               label="碰"
               tiles={tilesForPon(gameState, 0)}
               calledInstanceId={gameState.pendingCall?.tile.instanceId}
+              doraIndicators={gameState.doraIndicators}
+              doraGlowEnabled={doraGlowEnabled}
+              hoveredTileType={hoveredTileType}
+              sameTileHoverEnabled={sameTileHoverEnabled}
+              onHoveredTileTypeChange={setHoveredTileType}
               onClick={() => onPon(0)}
             />
           ) : null}
@@ -171,6 +217,11 @@ export function Board({
               label="吃"
               tiles={tilesForChi(gameState, option)}
               calledInstanceId={gameState.pendingCall?.tile.instanceId}
+              doraIndicators={gameState.doraIndicators}
+              doraGlowEnabled={doraGlowEnabled}
+              hoveredTileType={hoveredTileType}
+              sameTileHoverEnabled={sameTileHoverEnabled}
+              onHoveredTileTypeChange={setHoveredTileType}
               onClick={() => onChi(0, index)}
             />
           ))}
@@ -181,7 +232,7 @@ export function Board({
       {gameState.phase === 'chankan-window' && canHumanChankan ? (
         <ActionPrompt title={`可以抢杠 ${gameState.pendingKakan ? tileLabel(gameState.pendingKakan.addedTile.id) : ''}`}>
           {gameState.pendingKakan ? (
-            <TileActionButton label="荣和" tile={gameState.pendingKakan.addedTile} onClick={() => onChankanRon(0)} />
+            <TileActionButton label="荣和" tile={gameState.pendingKakan.addedTile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onChankanRon(0)} />
           ) : null}
           <button type="button" onClick={() => onPassChankan(0)}>跳过</button>
         </ActionPrompt>
@@ -201,8 +252,14 @@ export function Board({
       onToggleAnalysis={() => setAnalysisOpen((open) => !open)}
       onCloseAnalysis={() => setAnalysisOpen(false)}
       onReturnMenu={onReturnMenu ?? (() => undefined)}
-      onDiscard={onDiscard}
+      onDiscard={handleDiscard}
       onReset={onReset}
+      doraGlowEnabled={doraGlowEnabled}
+      hoveredTileType={hoveredTileType}
+      sameTileHoverEnabled={sameTileHoverEnabled}
+      onHoveredTileTypeChange={setHoveredTileType}
+      showTenpaiWaitsEnabled={showTenpaiWaitsEnabled}
+      tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled}
     />
   );
 }
@@ -212,24 +269,41 @@ function TileActionButton({
   ariaLabel,
   showLabel = true,
   tile,
+  doraIndicators,
+  doraGlowEnabled,
+  hoveredTileType,
+  sameTileHoverEnabled,
+  onHoveredTileTypeChange,
   onClick,
 }: {
   label: string;
   ariaLabel?: string;
   showLabel?: boolean;
   tile: TileModel;
+  doraIndicators?: TileModel[];
+  doraGlowEnabled?: boolean;
+  hoveredTileType?: TileId | null;
+  sameTileHoverEnabled?: boolean;
+  onHoveredTileTypeChange?: (tileType: TileId | null) => void;
   onClick: () => void;
 }) {
+  const handleActivate = () => {
+    onHoveredTileTypeChange?.(null);
+    onClick();
+    onHoveredTileTypeChange?.(null);
+  };
+
   return (
     <button
       type="button"
       className="prompt-tile-action"
-      onClick={onClick}
+      onPointerDown={() => onHoveredTileTypeChange?.(null)}
+      onClick={handleActivate}
       aria-label={ariaLabel ?? `${label} ${tileLabel(tile.id)}`}
     >
       {showLabel ? <span className="prompt-tile-action-label">{label}</span> : null}
       <span className="prompt-tile-action-tile">
-        <Tile tile={tile} compact interactive={false} />
+        <Tile tile={tile} compact interactive={false} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
       </span>
     </button>
   );
@@ -239,20 +313,37 @@ function CallOptionButton({
   label,
   tiles,
   calledInstanceId,
+  doraIndicators,
+  doraGlowEnabled,
+  hoveredTileType,
+  sameTileHoverEnabled,
+  onHoveredTileTypeChange,
   onClick,
 }: {
   label: string;
   tiles: TileModel[];
   calledInstanceId?: string;
+  doraIndicators?: TileModel[];
+  doraGlowEnabled?: boolean;
+  hoveredTileType?: TileId | null;
+  sameTileHoverEnabled?: boolean;
+  onHoveredTileTypeChange?: (tileType: TileId | null) => void;
   onClick: () => void;
 }) {
   const ariaLabel = `${label} ${tiles.map((tile) => tileLabel(tile.id)).join('')}`;
+  const handleActivate = () => {
+    onHoveredTileTypeChange?.(null);
+    onClick();
+    onHoveredTileTypeChange?.(null);
+  };
+
   return (
     <button
       type="button"
       className="call-option-button"
       aria-label={ariaLabel}
-      onClick={onClick}
+      onPointerDown={() => onHoveredTileTypeChange?.(null)}
+      onClick={handleActivate}
     >
       <span className="call-option-label">{label}</span>
       <span className="call-option-tiles">
@@ -262,7 +353,7 @@ function CallOptionButton({
             className={tile.instanceId === calledInstanceId ? 'call-option-tile call-option-tile--called' : 'call-option-tile'}
             data-called={tile.instanceId === calledInstanceId ? 'true' : 'false'}
           >
-            <Tile tile={tile} compact interactive={false} />
+            <Tile tile={tile} compact interactive={false} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
           </span>
         ))}
       </span>
@@ -304,4 +395,3 @@ function tilesForKakan(state: GameState, playerId: PlayerId, tileId: TileId): Ti
   const addedTile = player.hand.find((tile) => tile.id === tileId);
   return [...ponTiles, ...(addedTile ? [addedTile] : [])].sort(sortTiles);
 }
-
