@@ -13,6 +13,7 @@ interface LocalHandAreaProps {
   sameTileHoverEnabled?: boolean;
   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
   tsumoGiriDisplayEnabled?: boolean;
+  concealHand?: boolean;
   onDiscardPreviewChange?: (tileInstanceId: string | null) => void;
   onDiscard: (playerId: PlayerId, tileInstanceId: string) => void;
 }
@@ -24,12 +25,12 @@ const windNames: Record<Wind, string> = {
   north: '北',
 };
 
-export function LocalHandArea({ player, isCurrent, canDiscard, allowedDiscardInstanceIds, doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, onDiscardPreviewChange, onDiscard }: LocalHandAreaProps) {
+export function LocalHandArea({ player, isCurrent, canDiscard, allowedDiscardInstanceIds, doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, concealHand = false, onDiscardPreviewChange, onDiscard }: LocalHandAreaProps) {
   const drawnTileId = player.drawnTile?.instanceId;
   const baseTiles = drawnTileId ? player.hand.filter((tile) => tile.instanceId !== drawnTileId) : player.hand;
   const drawnTile = drawnTileId ? player.hand.find((tile) => tile.instanceId === drawnTileId) : null;
   const canClick = (tileInstanceId: string) =>
-    canDiscard && (!allowedDiscardInstanceIds || allowedDiscardInstanceIds.includes(tileInstanceId));
+    !concealHand && canDiscard && (!allowedDiscardInstanceIds || allowedDiscardInstanceIds.includes(tileInstanceId));
   const handleDiscard = (tileInstanceId: string) => {
     onDiscardPreviewChange?.(null);
     onHoveredTileTypeChange?.(null);
@@ -38,7 +39,7 @@ export function LocalHandArea({ player, isCurrent, canDiscard, allowedDiscardIns
   };
 
   return (
-    <section className={`local-hand-area ${isCurrent ? 'local-hand-area--active' : ''}`} aria-label="本家手牌">
+    <section className={`local-hand-area ${isCurrent ? 'local-hand-area--active' : ''}`} aria-label="本家手牌" data-local-player={player.id}>
       <div className="local-hand-info">
         <span className="player-avatar" aria-hidden="true">{player.name.trim().slice(0, 1) || windNames[player.seatWind]}</span>
         {tsumoGiriDisplayEnabled ? <TsumogiriMarker player={player} /> : null}
@@ -48,16 +49,17 @@ export function LocalHandArea({ player, isCurrent, canDiscard, allowedDiscardIns
           {player.riichi ? <em>立直</em> : null}
         </span>
       </div>
-      <div className="local-hand-track">
+      <div className="local-hand-track hand-slot hand-slot--bottom" data-hand-slot="bottom">
         <div className="local-hand-row">
           {baseTiles.map((tile) => (
             <Tile
               key={tile.instanceId}
-              tile={tile}
+              tile={concealHand ? undefined : tile}
+              faceDown={concealHand}
               clickable={canClick(tile.instanceId)}
               disabled={!canClick(tile.instanceId)}
               doraIndicators={doraIndicators}
-              doraGlowEnabled={doraGlowEnabled}
+              doraGlowEnabled={!concealHand && doraGlowEnabled}
               hoveredTileType={hoveredTileType}
               sameTileHoverEnabled={sameTileHoverEnabled}
               onHoveredTileTypeChange={onHoveredTileTypeChange}
@@ -71,12 +73,13 @@ export function LocalHandArea({ player, isCurrent, canDiscard, allowedDiscardIns
           {drawnTile ? (
             <span className="drawn-tile-gap">
               <Tile
-                tile={drawnTile}
+                tile={concealHand ? undefined : drawnTile}
+                faceDown={concealHand}
                 selected
                 clickable={canClick(drawnTile.instanceId)}
                 disabled={!canClick(drawnTile.instanceId)}
                 doraIndicators={doraIndicators}
-                doraGlowEnabled={doraGlowEnabled}
+                doraGlowEnabled={!concealHand && doraGlowEnabled}
                 hoveredTileType={hoveredTileType}
                 sameTileHoverEnabled={sameTileHoverEnabled}
                 onHoveredTileTypeChange={onHoveredTileTypeChange}
@@ -91,7 +94,7 @@ export function LocalHandArea({ player, isCurrent, canDiscard, allowedDiscardIns
         </div>
       </div>
       <div className="local-meld-track">
-        <PlayerMelds player={player} seatClass="seat-0 local-melds" doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
+        <PlayerMelds player={player} seatClass="seat-bottom local-melds" doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
       </div>
     </section>
   );

@@ -1,6 +1,6 @@
 export type RuleDescriptionKey =
   | 'matchLength'
-  | 'roundCount'
+  | 'matchCount'
   | 'startingPoints'
   | 'targetPoints'
   | 'returnPoints'
@@ -30,7 +30,7 @@ export type RuleDescriptionKey =
 
 export const ruleDescriptions: Record<RuleDescriptionKey, string> = {
   matchLength: '东风场默认到东四局，南风场默认到南四局',
-  roundCount: '设置整场一共进行几个场风轮次，每轮结束后都会进入点数结算',
+  matchCount: '使用当前四人东风或四人南风预设连续进行的完整对局场数；每场均从起始点数重新开始并独立结算',
   startingPoints: '每名玩家开局持有的点数',
   targetPoints: '预定结束时用于判断延长局或突然死亡的目标点数',
   returnPoints: '最终排名结算时的返还基准点',
@@ -56,5 +56,5 @@ export const ruleDescriptions: Record<RuleDescriptionKey, string> = {
   abortOnFourRiichi: '四名玩家全部立直后流局',
   abortOnFourKans: '同一局出现四次杠且不属于同一玩家四杠子时流局',
   allowKokushiChankanAnkan: '允许国士无双在其他玩家暗杠时抢杠和',
-  tripleRonMode: '三名玩家同时荣和时，选择继续结算或改为流局',
+  tripleRonMode: '开启时三名玩家可同时荣和；关闭时沿用现有三家和流局处理',
 };

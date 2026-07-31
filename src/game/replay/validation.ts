@@ -4,7 +4,10 @@ export function validateMatchLog(log: MatchLog): void {
   if (log.version < 1) throw new Error('Unsupported match log version');
   const events = log.rounds.flatMap((round) => round.events);
   validateEvents(events);
-  validateTileSnapshots(log.rounds.flatMap((round) => [...(round.initialHands?.flat() ?? []), ...(round.wallOrder ?? [])]));
+  log.rounds.forEach((round) => {
+    const wall = round.wallOrder ?? [...(round.liveWall ?? []), ...(round.deadWall ?? [])];
+    validateTileSnapshots([...(round.initialHands?.flat() ?? []), ...wall]);
+  });
 }
 
 export function validateReplayState(state: ReplayState): void {

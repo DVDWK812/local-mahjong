@@ -60,7 +60,7 @@ export function normalizeMatchSettingsConfig(
     ...config.match,
     ...matchPatch,
     matchLength: config.match.matchLength,
-    roundCount: normalizeRoundCount(matchPatch.roundCount ?? config.match.roundCount),
+    matchCount: normalizeMatchCount(matchPatch.matchCount ?? config.match.matchCount),
     bankruptcyThreshold: 0,
     agariYameMode: 'automatic' as const,
     tenpaiYameMode: 'automatic' as const,
@@ -74,6 +74,7 @@ export function normalizeMatchSettingsConfig(
     round: {
       ...config.round,
       preserveClaimedDiscardGap: config.round.preserveClaimedDiscardGap ?? false,
+      tripleRonMode: config.round.tripleRonMode ?? 'allow',
       ...roundPatch,
     },
     match: {
@@ -174,12 +175,12 @@ export function MatchSettings({
       </section>
 
       <section className="settings-block">
-        <h3>点数与庄数</h3>
+        <h3>点数与比赛场数</h3>
         <div className="settings-grid settings-grid--four">
           <NumberField label="起始点数" rule="startingPoints" value={match.startingPoints} onChange={(value) => setMatch({ startingPoints: value })} />
           <NumberField label="目标点数" rule="targetPoints" value={match.targetPoints} onChange={(value) => setMatch({ targetPoints: value })} />
           <NumberField label="返还点" rule="returnPoints" value={match.returnPoints} onChange={(value) => setMatch({ returnPoints: value })} />
-          <NumberField label="庄数" rule="roundCount" value={match.roundCount} min={1} max={4} onChange={(value) => setMatch({ roundCount: normalizeRoundCount(value) })} />
+          <NumberField label="比赛场数" rule="matchCount" value={match.matchCount} min={1} max={4} onChange={(value) => setMatch({ matchCount: normalizeMatchCount(value) })} />
         </div>
       </section>
 
@@ -189,7 +190,7 @@ export function MatchSettings({
             <label className="settings-field">
               <FieldTitle label="最大延长场风" rule="maxExtraRoundWind" />
               <select value={normalizeMaxExtraRoundWind(match.matchLength, match.maxExtraRoundWind)} onChange={(event) => setMatch({ maxExtraRoundWind: event.target.value as typeof match.maxExtraRoundWind })}>
-                <option value="none">无</option>
+                <option value="none">不延长</option>
                 {match.matchLength === 'east-only' ? <option value="south">南</option> : null}
                 <option value="west">西</option>
                 <option value="north">北</option>
@@ -202,13 +203,6 @@ export function MatchSettings({
               <option value="first-place">第一名</option>
               <option value="initial-dealer">起庄</option>
               <option value="discard">不分配</option>
-            </select>
-          </label>
-          <label className="settings-field">
-            <FieldTitle label="三家和" rule="tripleRonMode" />
-            <select value={round.tripleRonMode} onChange={(event) => setRound({ tripleRonMode: event.target.value as typeof round.tripleRonMode })}>
-              <option value="allow">允许</option>
-              <option value="abortive-draw">流局</option>
             </select>
           </label>
         </div>
@@ -253,6 +247,7 @@ export function MatchSettings({
           <CheckField label="四风连打" rule="abortOnFourWinds" checked={round.abortOnFourWinds} onChange={(checked) => setRound({ abortOnFourWinds: checked })} />
           <CheckField label="四家立直" rule="abortOnFourRiichi" checked={round.abortOnFourRiichi} onChange={(checked) => setRound({ abortOnFourRiichi: checked })} />
           <CheckField label="四杠散了" rule="abortOnFourKans" checked={round.abortOnFourKans} onChange={(checked) => setRound({ abortOnFourKans: checked })} />
+          <CheckField label="三家和" rule="tripleRonMode" checked={round.tripleRonMode !== 'abortive-draw'} onChange={(checked) => setRound({ tripleRonMode: checked ? 'allow' : 'abortive-draw' })} />
           <CheckField label="国士无双抢暗杠" rule="allowKokushiChankanAnkan" checked={round.allowKokushiChankanAnkan} onChange={(checked) => setRound({ allowKokushiChankanAnkan: checked })} />
         </div>
       </section>
@@ -315,7 +310,7 @@ export function buildUma(firstReward: number, secondReward: number): [number, nu
   return [first, second, -second, -first];
 }
 
-function normalizeRoundCount(value: number): 1 | 2 | 3 | 4 {
+function normalizeMatchCount(value: number): 1 | 2 | 3 | 4 {
   const rounded = Math.round(Number(value) || 1);
   return Math.min(4, Math.max(1, rounded)) as 1 | 2 | 3 | 4;
 }

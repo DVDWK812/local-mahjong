@@ -38,6 +38,7 @@ export function declareKyuushuKyuuhai(state: GameState, playerId: PlayerId): Gam
     phase: 'round-ended',
     honba: state.honba + 1,
     result: buildAbortiveDrawResult('kyuushu-kyuuhai', { declaredBy: playerId }),
+    players: state.players.map((player) => ({ ...player, pendingRiichiSidewaysDiscard: false })),
   };
 }
 

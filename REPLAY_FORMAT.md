@@ -3,6 +3,17 @@
 ## Version
 
 Current `MatchLog.version`: `1`.
+Current `ReplayRecord.version`: `1`.
+
+`ReplayRecord` is the local library envelope around a `MatchLog`. It adds the stable
+`id`, title, created/updated timestamps, match type, four player names, current/final
+scores, round count, local source, and completed/incomplete status. Missing envelope
+fields in legacy bare `MatchLog` entries are derived safely when read.
+
+The library keeps an index at `local-mahjong.replay-index.v1` and stores each record
+under its own `local-mahjong.replay.v1.<id>` key. This isolates a damaged record from
+the rest of the list. The former `local-mahjong.replays.v1` map is read and migrated
+lazily without changing `MatchLog.version`.
 
 ## MatchLog
 
@@ -30,12 +41,19 @@ Each round stores:
 - `dealer`
 - `honba`
 - `riichiSticks`
+- `initialScores` (optional for legacy compatibility)
 - `initialHands`
+- `initialDoraIndicators` (optional)
+- `liveWall` / `deadWall` (optional explicit wall split)
 - `wallOrder`
 - `events`
 - `result`
 
 Local development replay may store full initial hands and wall order. A future public replay format can omit private information.
+New local records write the explicit live wall, 14-tile dead wall, initial scores, and
+initial dora indicators. Legacy records continue to use `wallOrder` when it contains
+the complete remaining wall; records without either representation remain readable
+but report that the full wall was not recorded.
 
 ## TileSnapshot
 
@@ -79,6 +97,15 @@ Supported event types:
 - `match-ended`
 
 Every event includes `eventId`, `sequence`, `roundId`, optional `timestamp`, and optional `actor`.
+`tile-drawn` may also include an optional `source` (`live-wall`, `rinshan`, or
+`initial-hand`). Missing sources are inferred by tile `instanceId` for old logs.
+
+## Deterministic round playback
+
+`buildReplayState(round, stepIndex)` rebuilds from the round snapshot on every step.
+It never mutates the source log, invokes AI, or advances the live game engine.
+Player views reveal only the selected hand and public information. Full-open view may
+reveal all four hands, live-wall order, dead wall, rinshan, dora, and ura positions.
 
 ## Replay
 

@@ -23,9 +23,10 @@ describe('round transition helpers', () => {
     expect(isScheduledFinalRound({ ...createMatch({ matchLength: 'hanchan' }), roundWind: 'south', handNumber: 4 })).toBe(true);
   });
 
-  it('uses 庄数 to decide the scheduled final wind', () => {
-    expect(isScheduledFinalRound({ ...createMatch({ matchLength: 'east-only', roundCount: 2 }), roundWind: 'south', handNumber: 4 })).toBe(true);
-    expect(isScheduledFinalRound({ ...createMatch({ matchLength: 'hanchan', roundCount: 3 }), roundWind: 'west', handNumber: 4 })).toBe(true);
+  it('比赛场数不改变单场的计划终场风', () => {
+    expect(isScheduledFinalRound({ ...createMatch({ matchLength: 'east-only', matchCount: 3 }), roundWind: 'east', handNumber: 4 })).toBe(true);
+    expect(isScheduledFinalRound({ ...createMatch({ matchLength: 'east-only', matchCount: 3 }), roundWind: 'south', handNumber: 4 })).toBe(false);
+    expect(isScheduledFinalRound({ ...createMatch({ matchLength: 'hanchan', matchCount: 3 }), roundWind: 'south', handNumber: 4 })).toBe(true);
   });
 
   it('recognizes extra rounds after the scheduled final wind', () => {

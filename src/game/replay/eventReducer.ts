@@ -61,10 +61,11 @@ export function reduceGameEvent(state: ReplayState, event: GameEvent): ReplaySta
   }
   if (event.type === 'round-ended' || event.type === 'tsumo-declared' || event.type === 'ron-declared' || event.type === 'abortive-draw' || event.type === 'exhaustive-draw') {
     const result = 'result' in event ? event.result : undefined;
+    const shouldApplyScores = !!result && !state.result;
     return {
       ...state,
       result,
-      players: result ? state.players.map((player, index) => ({ ...player, score: player.score + (result.pointDeltas[index] ?? 0) })) : state.players,
+      players: shouldApplyScores ? state.players.map((player, index) => ({ ...player, score: player.score + (result.pointDeltas[index] ?? 0) })) : state.players,
       lastEvent: event,
       appliedEventIds,
     };

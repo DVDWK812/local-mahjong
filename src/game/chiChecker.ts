@@ -1,5 +1,6 @@
 import type { GameState, PendingCallOption, PlayerId, Tile, TileId } from './types';
 import { sortTiles } from './tileUtils';
+import { markRiverTileClaimed } from './callChecker';
 
 export function canChi(state: GameState, playerId: PlayerId): boolean {
   const discard = state.pendingCall?.tile ?? state.lastDiscard?.tile;
@@ -87,20 +88,6 @@ export function executeChi(state: GameState, playerId: PlayerId, optionIndex = 0
     callsOccurred: true,
     firstTurnInterrupted: true,
   };
-}
-
-function markRiverTileClaimed(discardingPlayer: GameState['players'][number], instanceId: string, claimedBy: PlayerId): void {
-  const riverIndex = discardingPlayer.river.findIndex((riverTile) => riverTile.instanceId === instanceId);
-  if (riverIndex !== -1) {
-    discardingPlayer.river[riverIndex] = {
-      ...discardingPlayer.river[riverIndex],
-      claimed: true,
-      claimedBy,
-    };
-    if (discardingPlayer.riichiState?.riichiDiscardInstanceId === instanceId) {
-      discardingPlayer.pendingRiichiSidewaysDiscard = true;
-    }
-  }
 }
 
 export function findUsefulChiOption(state: GameState, playerId: PlayerId): number | null {

@@ -10,7 +10,7 @@ export type EndChoiceMode = 'automatic' | 'player-choice';
 
 export interface MatchRuleConfig {
   matchLength: MatchLength;
-  roundCount: 1 | 2 | 3 | 4;
+  matchCount: 1 | 2 | 3 | 4;
   startingPoints: number;
   targetPoints: number;
   returnPoints: number;
@@ -61,6 +61,9 @@ export interface MatchState {
   riichiSticks: number;
   initialDealer: PlayerId;
   completedHands: number;
+  currentMatchIndex: number;
+  matchResults: MatchResult[];
+  aggregateScores: [number, number, number, number];
   ruleConfig: MatchRuleConfig;
   currentGame?: GameState;
   lastRoundResult?: RoundResult;

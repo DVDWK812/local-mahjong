@@ -1,7 +1,7 @@
 import { createInitialGameState } from '../engine';
 import { sortTiles } from '../tileUtils';
 import type { GameState, PlayerId, RoundResult } from '../types';
-import { calculateFinalScores } from './finalRanking';
+import { calculateFinalScores, roundMatchScore } from './finalRanking';
 import { defaultMatchRuleConfig, normalizeMatchRuleConfig } from './matchRules';
 import {
   advanceRoundPosition,
@@ -29,6 +29,9 @@ export function createMatch(options: Partial<MatchRuleConfig> & { initialDealer?
     riichiSticks: 0,
     initialDealer,
     completedHands: 0,
+    currentMatchIndex: 0,
+    matchResults: [],
+    aggregateScores: [0, 0, 0, 0],
     ruleConfig,
     appliedRoundIds: [],
     scoreHistory: [],
@@ -162,15 +165,7 @@ export function applyRoundResultToMatch(state: MatchState, result: RoundResult):
 
   const final = evaluateEndOfMatch(state, provisional, result, dealerContinues);
   if (final) {
-    const ended: MatchState = {
-      ...provisional,
-      phase: 'match-ended',
-      finalResult: final,
-      pendingEndChoice: undefined,
-      scores: final.finalScores,
-      riichiSticks: final.leftoverRiichiStickPoints > 0 && state.ruleConfig.leftoverRiichiStickMode !== 'discard' ? 0 : provisional.riichiSticks,
-    };
-    return { match: ended, continueMatch: false };
+    return completeCurrentMatch(provisional, final);
   }
 
   const next = startNextRound(provisional);
@@ -189,17 +184,7 @@ export function chooseMatchEnd(state: MatchState, end: boolean): RoundApplicatio
       ruleConfig: state.ruleConfig,
       endedBy: state.pendingEndChoice.type,
     });
-    return {
-      match: {
-        ...state,
-        phase: 'match-ended',
-        finalResult: final,
-        scores: final.finalScores,
-        riichiSticks: final.leftoverRiichiStickPoints > 0 && state.ruleConfig.leftoverRiichiStickMode !== 'discard' ? 0 : state.riichiSticks,
-        pendingEndChoice: undefined,
-      },
-      continueMatch: false,
-    };
+    return completeCurrentMatch(state, final);
   }
   const next = startNextRound({ ...state, phase: 'round-result', pendingEndChoice: undefined });
   return { match: next, continueMatch: true, nextGameState: next.currentGame };
@@ -311,6 +296,9 @@ export function validateMatchState(state: MatchState): string[] {
   if (state.riichiSticks < 0) issues.push('riichiSticks must not be negative');
   if (state.phase === 'round-active' && !state.currentGame) issues.push('round-active requires currentGame');
   if (state.phase === 'match-ended' && !state.finalResult) issues.push('match-ended requires finalResult');
+  if (!Number.isInteger(state.currentMatchIndex) || state.currentMatchIndex < 0 || state.currentMatchIndex >= state.ruleConfig.matchCount) issues.push('currentMatchIndex is out of range');
+  if (!Array.isArray(state.matchResults) || state.matchResults.length > state.ruleConfig.matchCount) issues.push('matchResults is invalid');
+  if (!Array.isArray(state.aggregateScores) || state.aggregateScores.length !== 4) issues.push('aggregateScores must contain four players');
   if (new Set(state.appliedRoundIds).size !== state.appliedRoundIds.length) issues.push('appliedRoundIds must be unique');
   const total = state.scores.reduce((sum, score) => sum + score, 0) + state.riichiSticks * 1000;
   const expected = state.ruleConfig.startingPoints * 4;
@@ -326,7 +314,55 @@ function highestRankedPlayer(state: MatchState): PlayerId {
 
 function roundResultId(state: MatchState, result: RoundResult): string {
   const explicit = (result as RoundResult & { roundId?: string }).roundId;
-  return explicit ?? `${state.completedHands}:${state.roundWind}:${state.handNumber}:${result.type}:${JSON.stringify(result.pointDeltas)}`;
+  return explicit ?? `${state.currentMatchIndex}:${state.completedHands}:${state.roundWind}:${state.handNumber}:${result.type}:${JSON.stringify(result.pointDeltas)}`;
+}
+
+function completeCurrentMatch(state: MatchState, final: MatchResult): RoundApplicationResult {
+  const matchResults = [...(state.matchResults ?? []), final];
+  const aggregateScores = [...(state.aggregateScores ?? [0, 0, 0, 0])] as MatchState['aggregateScores'];
+  final.players.forEach((player) => {
+    aggregateScores[player.player] = roundMatchScore(aggregateScores[player.player] + (player.finalMatchScore ?? 0));
+  });
+  const settledRiichiSticks = final.leftoverRiichiStickPoints > 0 && state.ruleConfig.leftoverRiichiStickMode !== 'discard'
+    ? 0
+    : state.riichiSticks;
+
+  if (matchResults.length >= state.ruleConfig.matchCount) {
+    return {
+      match: {
+        ...state,
+        phase: 'match-ended',
+        finalResult: final,
+        matchResults,
+        aggregateScores,
+        pendingEndChoice: undefined,
+        scores: final.finalScores,
+        riichiSticks: settledRiichiSticks,
+      },
+      continueMatch: false,
+    };
+  }
+
+  const startingPoints = state.ruleConfig.startingPoints;
+  const reset: MatchState = {
+    ...state,
+    phase: 'round-result',
+    scores: [startingPoints, startingPoints, startingPoints, startingPoints],
+    dealer: state.initialDealer,
+    roundWind: 'east',
+    handNumber: 1,
+    honba: 0,
+    riichiSticks: 0,
+    currentMatchIndex: state.currentMatchIndex + 1,
+    matchResults,
+    aggregateScores,
+    currentGame: undefined,
+    lastRoundResult: undefined,
+    finalResult: undefined,
+    pendingEndChoice: undefined,
+  };
+  const next = startNextRound(reset);
+  return { match: next, continueMatch: true, nextGameState: next.currentGame };
 }
 
 export { defaultMatchRuleConfig };

@@ -71,6 +71,7 @@ export function settleExhaustiveDraw(state: GameState): GameState {
     players: state.players.map((player, index) => ({
       ...player,
       score: player.score + (result.pointDeltas[index] ?? 0),
+      pendingRiichiSidewaysDiscard: false,
     })),
   };
 }

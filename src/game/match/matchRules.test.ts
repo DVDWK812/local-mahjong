@@ -20,8 +20,8 @@ describe('比赛规则预设和校验', () => {
   it('加载东风场、南风场、自定义三个完整预设', () => {
     expect(getRulePreset('east-round').match.matchLength).toBe('east-only');
     expect(getRulePreset('south-round').match.matchLength).toBe('hanchan');
-    expect(getRulePreset('east-round').match.roundCount).toBe(1);
-    expect(getRulePreset('south-round').match.roundCount).toBe(2);
+    expect(getRulePreset('east-round').match.matchCount).toBe(1);
+    expect(getRulePreset('south-round').match.matchCount).toBe(1);
     expect(getRulePreset('custom').match.startingPoints).toBe(25000);
   });
 
@@ -36,6 +36,12 @@ describe('比赛规则预设和校验', () => {
     expect(getRulePreset('east-round').round.allowKokushiChankanAnkan).toBe(true);
     expect(getRulePreset('south-round').round.allowKokushiChankanAnkan).toBe(true);
     expect(getRulePreset('custom').round.allowKokushiChankanAnkan).toBe(true);
+  });
+
+  it('四人东、四人南和自定义预设均默认开启三家和', () => {
+    expect(getRulePreset('east-round').round.tripleRonMode).toBe('allow');
+    expect(getRulePreset('south-round').round.tripleRonMode).toBe('allow');
+    expect(getRulePreset('custom').round.tripleRonMode).toBe('allow');
   });
 
   it('四人东和四人南默认关闭听牌止、马点、头跳、古役和鸣牌留空，其余主要规则一致开启', () => {
@@ -61,27 +67,27 @@ describe('比赛规则预设和校验', () => {
     expect(getRulePreset('custom').round.kazoeYakumanMode).toBe('yakuman');
   });
 
-  it('旧配置缺少庄数时按比赛长度自动补齐', () => {
+  it('旧配置中的roundCount迁移为比赛场数', () => {
     const storage = memoryStorage();
     storage.setItem(RULE_CONFIG_STORAGE_KEY, JSON.stringify({
       version: 1,
       config: {
         ...getRulePreset('south-round'),
-        match: { ...getRulePreset('south-round').match, roundCount: undefined },
+        match: { ...getRulePreset('south-round').match, matchCount: undefined, roundCount: 3 },
       },
     }));
-    expect(loadStoredRuleConfig(storage).match.roundCount).toBe(2);
+    expect(loadStoredRuleConfig(storage).match.matchCount).toBe(3);
   });
 
   it('击飞线默认保留为零', () => {
     expect(getRulePreset('custom').match.bankruptcyThreshold).toBe(0);
   });
 
-  it('拒绝无效起始点数、马点、庄数和累计役满设置', () => {
+  it('拒绝无效起始点数、马点、比赛场数和累计役满设置', () => {
     const config = getRulePreset('custom');
     expect(validateRuleConfig({ ...config, match: { ...config.match, startingPoints: 0 } }).errors).toContain('起始点数必须大于零');
     expect(validateRuleConfig({ ...config, match: { ...config.match, uma: [20, 10, -5, -20] } }).errors).toContain('马点合计必须为零');
-    expect(validateRuleConfig({ ...config, match: { ...config.match, roundCount: 5 as any } }).errors).toContain('庄数必须为一到四之间的整数');
+    expect(validateRuleConfig({ ...config, match: { ...config.match, matchCount: 5 as any } }).errors).toContain('比赛场数必须为一到四之间的整数');
     expect(validateRuleConfig({ ...config, round: { ...config.round, kazoeYakumanMode: 'bad' as any } }).errors).toContain('累计役满设置无效');
   });
 

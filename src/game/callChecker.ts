@@ -67,15 +67,16 @@ export function executePon(state: GameState, playerId: PlayerId): GameState {
   };
 }
 
-function markRiverTileClaimed(discardingPlayer: GameState['players'][number], instanceId: string, claimedBy: PlayerId): void {
+export function markRiverTileClaimed(discardingPlayer: GameState['players'][number], instanceId: string, claimedBy: PlayerId): void {
   const riverIndex = discardingPlayer.river.findIndex((riverTile) => riverTile.instanceId === instanceId);
   if (riverIndex !== -1) {
+    const claimedTile = discardingPlayer.river[riverIndex];
     discardingPlayer.river[riverIndex] = {
-      ...discardingPlayer.river[riverIndex],
+      ...claimedTile,
       claimed: true,
       claimedBy,
     };
-    if (discardingPlayer.riichiState?.riichiDiscardInstanceId === instanceId) {
+    if (claimedTile.isRiichiDiscard || discardingPlayer.riichiState?.riichiDiscardInstanceId === instanceId) {
       discardingPlayer.pendingRiichiSidewaysDiscard = true;
     }
   }

@@ -45,4 +45,46 @@ describe('ResultDialog', () => {
     expect(html).toContain('点数变化');
     expect(html).toContain('继续');
   });
+
+  it('回放结果用整局净变化展示，同时保留毛收入与供托说明', () => {
+    const base = createInitialGameState();
+    const result: NonNullable<GameState['result']> = {
+      type: 'tsumo',
+      winners: [{
+        winner: 2,
+        from: null,
+        winType: 'tsumo',
+        winTile: base.players[2].hand[0],
+        yaku: [{ name: '立直', han: 1 }],
+        han: 1,
+        fu: 30,
+        points: 4000,
+        pointDeltas: [-1000, -500, 4000, -500],
+      }],
+      pointDeltas: [-1000, -500, 4000, -500],
+    };
+    const state: GameState = {
+      ...base,
+      riichiSticks: 0,
+      result,
+      players: base.players.map((player, index) => ({
+        ...player,
+        score: [24000, 24500, 28000, 23500][index],
+        riichi: index === 2 || index === 3,
+      })),
+    };
+    const html = renderToStaticMarkup(
+      <ResultDialog
+        gameState={state}
+        onReset={() => undefined}
+        displayPointDeltas={[-1000, -500, 3000, -1500]}
+        resultRiichiSticks={2}
+      />,
+    );
+    expect(html).toContain('牌型得点：2,000点');
+    expect(html).toContain('供托奖励：2根 × 1000点 = 2,000点');
+    expect(html).toContain('获得总计：4,000点');
+    expect(html).toContain('+3,000');
+    expect(html).toContain('-1,500');
+  });
 });

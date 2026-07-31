@@ -8,6 +8,9 @@ interface ResultDialogProps {
   gameState: GameState;
   onReset: () => void;
   doraGlowEnabled?: boolean;
+  continueLabel?: string;
+  displayPointDeltas?: number[];
+  resultRiichiSticks?: number;
 }
 
 interface ResultShellProps {
@@ -15,6 +18,7 @@ interface ResultShellProps {
   subtitle: string;
   children: React.ReactNode;
   onReset: () => void;
+  continueLabel: string;
 }
 
 interface WinScoreBreakdown {
@@ -25,7 +29,7 @@ interface WinScoreBreakdown {
   paymentNote?: string;
 }
 
-function ResultShell({ title, subtitle, children, onReset }: ResultShellProps) {
+function ResultShell({ title, subtitle, children, onReset, continueLabel }: ResultShellProps) {
   return (
     <div className="result-backdrop" role="presentation">
       <section className="result-dialog" role="dialog" aria-modal="true" aria-labelledby="result-title">
@@ -37,7 +41,7 @@ function ResultShell({ title, subtitle, children, onReset }: ResultShellProps) {
         </header>
         <div className="result-body">{children}</div>
         <footer className="result-actions">
-          <button type="button" onClick={onReset}>继续</button>
+          <button type="button" onClick={onReset}>{continueLabel}</button>
         </footer>
       </section>
     </div>
@@ -167,10 +171,10 @@ function isStickRecipient(result: WinRoundResult, win: WinResultEntry): boolean 
   return result.winners[0] === win;
 }
 
-function winScoreBreakdown(gameState: GameState, result: WinRoundResult, win: WinResultEntry): WinScoreBreakdown {
+function winScoreBreakdown(gameState: GameState, result: WinRoundResult, win: WinResultEntry, resultRiichiSticks: number): WinScoreBreakdown {
   const total = win.pointDeltas[win.winner] ?? win.points;
   const honbaBonus = gameState.honba * 300;
-  const stickBonus = isStickRecipient(result, win) ? gameState.riichiSticks * 1000 : 0;
+  const stickBonus = isStickRecipient(result, win) ? resultRiichiSticks * 1000 : 0;
   const handPoints = Math.max(0, total - honbaBonus - stickBonus);
   const paymentNote = win.winType === 'tsumo' && gameState.honba > 0
     ? `支付明细：每家额外支付${gameState.honba * 100}点`
@@ -203,13 +207,13 @@ function winDisplayDeltas(gameState: GameState, result: WinRoundResult): number[
   ));
 }
 
-export function ResultDialog({ gameState, onReset, doraGlowEnabled = true }: ResultDialogProps) {
+export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, continueLabel = '继续', displayPointDeltas, resultRiichiSticks = gameState.riichiSticks }: ResultDialogProps) {
   const result = gameState.result;
   if (!result) return null;
 
   if (result.type === 'exhaustive-draw') {
     return (
-      <ResultShell title="荒牌流局" subtitle="听牌罚符结算" onReset={onReset}>
+      <ResultShell title="荒牌流局" subtitle="听牌罚符结算" onReset={onReset} continueLabel={continueLabel}>
         <div className="result-card">
           <p>听牌：{playerNames(gameState, result.tenpaiPlayers)}</p>
           <p>未听：{playerNames(gameState, result.notenPlayers)}</p>
@@ -220,7 +224,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true }: Res
             <HandPreview key={playerId} title={`${gameState.players[playerId].name} 手牌`} tiles={gameState.players[playerId].hand} />
           ))}
         </div>
-        <ResultDeltas gameState={gameState} pointDeltas={result.pointDeltas} />
+        <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? result.pointDeltas} />
       </ResultShell>
     );
   }
@@ -232,6 +236,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true }: Res
         title={`特殊流局：${drawReasonLabel(result.reason)}`}
         subtitle={actor !== undefined ? `触发者：${gameState.players[actor].name}` : '本局途中流局'}
         onReset={onReset}
+        continueLabel={continueLabel}
       >
         <div className="result-card">
           <p>点数变化：通常无</p>
@@ -239,7 +244,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true }: Res
           <p>本场增加：{result.honbaIncrement}</p>
           <p>庄家连庄：{result.dealerContinues ? '是' : '否'}</p>
         </div>
-        <ResultDeltas gameState={gameState} pointDeltas={result.pointDeltas} />
+        <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? result.pointDeltas} />
       </ResultShell>
     );
   }
@@ -249,6 +254,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true }: Res
       title={result.type === 'tsumo' ? '自摸' : '荣和'}
       subtitle={result.winners.length > 1 ? `${result.winners.length} 人荣和` : '本局结束'}
       onReset={onReset}
+      continueLabel={continueLabel}
     >
       <div className="result-winners">
         {result.winners.map((win) => {
@@ -256,7 +262,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true }: Res
           const from = win.from === null ? null : gameState.players[win.from];
           const hasYakuman = win.yaku.some((yaku) => yaku.yakuman);
           const yakuRows = reconciledYakuRows(win);
-          const breakdown = winScoreBreakdown(gameState, result, win);
+          const breakdown = winScoreBreakdown(gameState, result, win, resultRiichiSticks);
           const limit = limitLabel(win);
           return (
             <article key={`${win.winner}-${win.winType}`} className="result-card">
@@ -279,7 +285,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true }: Res
                 <p>合计：{hasYakuman ? '役满' : `${win.han}番${win.fu}符`}</p>
                 <p>牌型得点：{formatPoints(breakdown.handPoints)}点</p>
                 <p>本场奖励：{gameState.honba}本场 × 300点 = {formatPoints(breakdown.honbaBonus)}点</p>
-                <p>供托奖励：{gameState.riichiSticks}根 × 1000点 = {formatPoints(breakdown.stickBonus)}点</p>
+                <p>供托奖励：{resultRiichiSticks}根 × 1000点 = {formatPoints(breakdown.stickBonus)}点</p>
                 {breakdown.paymentNote ? <p>{breakdown.paymentNote}</p> : null}
                 <p>获得总计：{formatPoints(breakdown.total)}点</p>
               </div>
@@ -287,7 +293,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true }: Res
           );
         })}
       </div>
-      <ResultDeltas gameState={gameState} pointDeltas={winDisplayDeltas(gameState, result)} />
+      <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? winDisplayDeltas(gameState, result)} />
     </ResultShell>
   );
 }

@@ -15,11 +15,17 @@ describe('ReplayControls', () => {
         onSeekStart={() => undefined}
         onSeekEnd={() => undefined}
         onSpeedChange={() => undefined}
+        canGoPreviousRound
+        canGoNextRound
+        onPreviousRound={() => undefined}
+        onNextRound={() => undefined}
       />,
     );
     expect(html).toContain('播放');
     expect(html).toContain('上一步');
-    expect(html).toContain('4倍');
+    expect(html).toContain('4×');
     expect(html).toContain('3 / 10');
+    expect(html.indexOf('上一局')).toBeLessThan(html.indexOf('上一步'));
+    expect(html.indexOf('下一局')).toBeGreaterThan(html.indexOf('下一步'));
   });
 });

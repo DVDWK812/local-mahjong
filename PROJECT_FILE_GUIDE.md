@@ -162,10 +162,15 @@
 | `src/components/MeldDisplay.tsx` | 导出副露只读显示，处理横置来源牌、杠形、宝牌与同牌悬停。 | 修改吃碰杠牌的排列和视觉。 | 中 |
 | `src/components/PlayerMelds.tsx` | 导出玩家全部副露列表，将 `CallSet` 适配为 `MeldDisplay`。 | 修改副露组间布局或传递视觉状态。 | 中 |
 | `src/components/ReplayControls.tsx` | 导出回放播放、暂停、步进、跳转和倍速控件。 | 修改回放控制器界面。 | 低 |
+| `src/components/ReplayBottomBar.tsx` | 组合局数切换、播放控制、倍速和可拖动步骤进度条。 | 修改全屏回放底栏。 | 低 |
 | `src/components/ReplayEventList.tsx` | 导出可选择的回放事件列表。 | 修改事件导航或当前事件高亮。 | 低 |
 | `src/components/ReplayInfoPanel.tsx` | 导出回放时的局面信息面板，支持调试信息。 | 修改回放状态摘要。 | 低 |
-| `src/components/ReplayLibrary.tsx` | 导出牌谱库列表及打开、删除操作。 | 修改本地牌谱管理界面。 | 中 |
-| `src/components/ReplayScreen.tsx` | 导出完整回放页面，组合牌桌、控制器和信息面板。 | 修改回放页面布局与控制编排。 | 中 |
+| `src/components/ReplayLibrary.tsx` | 导出牌谱列表、空状态及打开、重命名、删除、导出操作。 | 修改本地牌谱管理界面。 | 中 |
+| `src/components/ReplayDetail.tsx` | 将已加载牌谱直接接入全屏逐步回放播放器。 | 修改牌谱回放入口。 | 中 |
+| `src/components/ReplayScreen.tsx` | 导出全屏逐步回放页面，组合顶栏、牌桌视口、底栏、牌山抽屉和自动播放。 | 修改回放页面布局与控制编排。 | 中 |
+| `src/components/ReplayTopBar.tsx` | 展示返回、当前局/步骤/动作、视角切换、牌山入口与全牌公开标识。 | 修改全屏回放顶栏。 | 低 |
+| `src/components/ReplayWallDrawer.tsx` | 将现有牌山内容放入可关闭、内部独立滚动的右侧抽屉。 | 修改牌山抽屉交互。 | 低 |
+| `src/components/ReplayWallPanel.tsx` | 复用牌图展示牌山、王牌、岭上、宝牌/里宝牌位置及权限边界，作为抽屉内容。 | 修改回放牌山内容。 | 中 |
 | `src/components/ResultDialog.tsx` | 导出局结果弹窗，渲染和牌、流局、途中流局、役种、点数和牌图。 | 修改单局结果展示；不要在此改计分。 | 高 |
 | `src/components/RiichiModeMenu.tsx` | 导出立直麻将人数选择及规则说明入口。 | 修改立直麻将菜单入口。 | 低 |
 | `src/components/River.tsx` | 导出基础牌河组件。 | 修改旧版或通用弃牌显示。 | 低 |
@@ -243,7 +248,8 @@
 | 文件 | 作用与主要导出/职责 | 通常修改场景 | 风险 |
 | --- | --- | --- | --- |
 | `src/game/persistence/migration.ts` | 导出 `migrateSavedMatch`，按版本迁移或拒绝不兼容存档。 | 存档版本升级时。 | 高（存档兼容） |
-| `src/game/persistence/saveManager.ts` | 导出 `LocalStorageAdapter`、`SaveManager` 和保存状态，管理当前对局与牌谱。 | 修改保存、加载、删除和错误处理。 | 高 |
+| `src/game/persistence/replayRecord.ts` | 构造并兼容归一化本地 `ReplayRecord` 牌谱记录。 | 修改牌谱列表元数据或旧裸日志兼容时。 | 高 |
+| `src/game/persistence/saveManager.ts` | 导出 `LocalStorageAdapter`、`SaveManager` 和保存状态，逐条管理当前对局与牌谱。 | 修改保存、加载、重命名、删除、导出和错误隔离。 | 高 |
 | `src/game/persistence/saveTestUtils.ts` | 导出内存 Storage 和样例存档。 | 编写存档测试。 | 低 |
 | `src/game/persistence/storageTypes.ts` | 定义存档版本、键名、`SavedMatch`、回放元数据和存储接口。 | 修改存档格式或存储键。 | 高（存档格式） |
 | `src/game/persistence/storageValidation.ts` | 导出 `validateSavedMatch`，校验加载数据结构。 | 增加存档字段或强化校验。 | 高 |
@@ -252,10 +258,12 @@
 
 | 文件 | 作用与主要导出/职责 | 通常修改场景 | 风险 |
 | --- | --- | --- | --- |
-| `src/game/replay/eventRecorder.ts` | 导出牌快照、事件工厂、初始日志、局日志和事件追加。 | 记录新的牌局事件。 | 高 |
+| `src/game/replay/eventRecorder.ts` | 导出牌快照、事件工厂、局初始化、状态迁移记录和终局日志。 | 记录新的牌局事件。 | 高 |
 | `src/game/replay/eventReducer.ts` | 导出初始回放状态和确定性事件归约器。 | 修改事件如何重建公开局面。 | 高 |
 | `src/game/replay/replayEngine.ts` | 导出创建、前后步进、跳转、播放状态和倍速控制。 | 修改回放控制行为。 | 中 |
+| `src/game/replay/replayPlayback.ts` | 导出自动播放节拍、局末停止和键盘快捷键目标过滤工具。 | 修改回放计时与快捷键。 | 中 |
 | `src/game/replay/replayTestUtils.ts` | 导出样例 `MatchLog`。 | 新增回放测试。 | 低 |
+| `src/game/replay/roundReplay.ts` | 通过局初快照和动作纯函数重建任意步骤的完整牌桌与牌山状态。 | 修改逐步回放动作归约或牌山推导。 | 高 |
 | `src/game/replay/serialization.ts` | 导出牌谱 JSON 序列化与反序列化。 | 修改牌谱传输格式。 | 高 |
 | `src/game/replay/types.ts` | 定义日志版本、全部事件、快照、局日志和回放状态类型。 | 新增事件或改变牌谱格式。 | 高（Replay 格式） |
 | `src/game/replay/validation.ts` | 导出日志、事件序列和回放状态校验。 | 新增事件约束或数据完整性规则。 | 高 |
@@ -323,6 +331,9 @@
 | `src/components/MatchSettingsExtraRoundDefaults.test.tsx` | 东风/南风最大延长场风和返还点默认值。 |
 | `src/components/MeldDisplay.test.tsx` | 吃碰杠牌数、来源标签、横置牌和暗杠样式。 |
 | `src/components/NavigationMenus.test.tsx` | 主菜单、本地模式、立直模式、设置与规则说明导航。 |
+| `src/components/ReplayDetail.test.tsx` | 牌谱详情页与逐步回放入口。 |
+| `src/components/ReplayLayout.test.tsx` | 全屏三段结构、无整页滚动、牌山抽屉和窄屏控制布局。 |
+| `src/components/ReplayScreen.test.tsx` | 四家视角、全牌公开、座位旋转和牌山信息边界。 |
 | `src/components/PlayerMelds.test.tsx` | 多组副露顺序和座位旋转元数据。 |
 | `src/components/ReplayControls.test.tsx` | 回放按钮、进度和速度选项。 |
 | `src/components/ResultDialog.test.tsx` | 多家荣和明细、每位和牌者点数与结果结构。 |
@@ -383,12 +394,14 @@
 | `src/game/match/matchRules.test.ts` | 预设、旧标识迁移、规则校验和默认一致性。 |
 | `src/game/match/roundTransition.test.ts` | 局名、座风、庄家轮换、东南场推进。 |
 | `src/game/persistence/migration.test.ts` | 当前、缺失和未来版本存档迁移/拒绝。 |
-| `src/game/persistence/saveManager.test.ts` | 当前对局与牌谱的保存、读取、列出和删除。 |
+| `src/game/persistence/saveManager.test.ts` | 当前对局与牌谱的持久化、排序、兼容、重命名、删除、导出和损坏隔离。 |
 | `src/game/persistence/storageValidation.test.ts` | 有效存档及结构错误校验。 |
-| `src/game/replay/eventRecorder.test.ts` | 连续唯一事件和牌实例快照记录。 |
+| `src/game/replay/eventRecorder.test.ts` | 连续唯一事件、牌实例、状态迁移和终局记录。 |
 | `src/game/replay/eventReducer.test.ts` | 发牌、摸打确定性归约、不变性和重复事件拒绝。 |
 | `src/game/replay/replayEngine.test.ts` | 前进、后退、跳转、播放状态和倍速。 |
+| `src/game/replay/replayPlayback.test.ts` | 自动播放倍速、暂停/卸载清理、局末停止和键盘目标过滤。 |
 | `src/game/replay/replayIntegration.test.ts` | 序列化到最终公开状态及非法事件序列拒绝。 |
+| `src/game/replay/roundReplay.test.ts` | 配牌、摸打、吃碰杠、立直、岭上、结算、确定性和旧牌谱降级。 |
 
 ### 计分测试
 
@@ -443,6 +456,6 @@
 
 ### 牌谱保存与回放
 
-`App.tsx` 通过 `SaveManager` 与 `LocalStorageAdapter` 保存 `SavedMatch`；加载时依次经过 `migration.ts` 和 `storageValidation.ts`。牌谱由 `eventRecorder.ts` 记录为 `MatchLog`，通过 `serialization.ts` 保存，回放时由 `replayEngine.ts` 控制并由 `eventReducer.ts` 重建状态，最终交给回放组件显示。
+`App.tsx` 通过 `SaveManager` 与 `LocalStorageAdapter` 保存 `SavedMatch`；加载时依次经过 `migration.ts` 和 `storageValidation.ts`。牌谱由 `eventRecorder.ts` 记录为 `MatchLog`，通过 `serialization.ts` 保存；逐步研习由 `roundReplay.ts` 从局初快照与动作纯函数重建，再由 `ReplayScreen.tsx` 适配到现有牌桌和牌图组件。
 
 新增、移动或删除源码文件后，应同步更新本说明。

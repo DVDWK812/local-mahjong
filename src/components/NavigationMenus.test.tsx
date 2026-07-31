@@ -1,9 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import App from '../App';
-import { createInitialMatchLog } from '../game/replay/eventRecorder';
 import { getRulePreset } from '../game/match/matchRules';
-import { sampleSavedMatch } from '../game/persistence/saveTestUtils';
+import { sampleReplayRecord, sampleSavedMatch } from '../game/persistence/saveTestUtils';
 import { BackButton } from './BackButton';
 import { ExitGameDialog } from './ExitGameDialog';
 import { GameTypeMenu } from './GameTypeMenu';
@@ -125,10 +124,19 @@ describe('菜单和页面导航', () => {
   });
 
   it('牌谱研习能够进入现有牌谱入口', () => {
-    const log = createInitialMatchLog({ initialDealer: 0, initialScores: [25000, 25000, 25000, 25000], ruleConfig: getRulePreset('east-round') });
-    const html = renderToStaticMarkup(<ReplayLibrary replays={[{ matchId: log.matchId, createdAt: log.createdAt, playerNames: log.playerNames }]} onOpen={() => undefined} onDelete={() => undefined} />);
+    const html = renderToStaticMarkup(
+      <ReplayLibrary
+        replays={[sampleReplayRecord()]}
+        onOpen={() => undefined}
+        onRename={() => undefined}
+        onDelete={() => undefined}
+        onExport={() => undefined}
+        onStartLocalMatch={() => undefined}
+      />,
+    );
     expect(html).toContain('牌谱列表');
-    expect(html).toContain('回放');
+    expect(html).toContain('打开');
+    expect(html).toContain('导出JSON');
   });
 
   it('同一时间只渲染一个主菜单页面', () => {

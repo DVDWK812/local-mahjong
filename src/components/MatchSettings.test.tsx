@@ -90,7 +90,25 @@ describe('比赛设置界面', () => {
     expect(html.indexOf('下拉规则')).toBeLessThan(html.indexOf('整场规则'));
     expect(html.indexOf('整场规则')).toBeLessThan(html.indexOf('单局规则'));
     expect(html).toContain('残余供托');
-    expect(html).toContain('三家和');
+  });
+
+  it('三家和位于单局规则并使用默认开启的点按开关', () => {
+    const config = getRulePreset('east-round');
+    const html = renderToStaticMarkup(<MatchSettings config={config} onConfigChange={() => undefined} />);
+    expect(html.indexOf('单局规则')).toBeLessThan(html.indexOf('三家和'));
+    expect(html).toMatch(/<label class="settings-check"><input type="checkbox" checked=""\/><span>三家和<\/span>/);
+    expect(html).not.toContain('<option value="allow">');
+    expect(html).not.toContain('<option value="abortive-draw">');
+    expect(config.round.tripleRonMode).toBe('allow');
+  });
+
+  it('旧配置缺少三家和字段时按开启处理', () => {
+    const config = getRulePreset('east-round');
+    const legacy = {
+      ...config,
+      round: Object.fromEntries(Object.entries(config.round).filter(([key]) => key !== 'tripleRonMode')) as typeof config.round,
+    };
+    expect(normalizeMatchSettingsConfig(legacy).round.tripleRonMode).toBe('allow');
   });
 
   it('不显示累计役满规则说明和下拉条', () => {
@@ -133,16 +151,17 @@ describe('比赛设置界面', () => {
     expect(html).toContain('最大延长场风');
     expect(html).toContain('value="south"');
     expect(html).toContain('>南</option>');
+    expect(html).toContain('<option value="none">不延长</option>');
   });
 
-  it('显示庄数并把输入限制在一到四轮', () => {
+  it('显示比赛场数并把输入限制在一到四场', () => {
     const config = getRulePreset('east-round');
     const html = renderToStaticMarkup(<MatchSettings config={config} onConfigChange={() => undefined} />);
-    expect(html).toContain('庄数');
-    expect(html).toContain(ruleDescriptions.roundCount);
-    expect(normalizeMatchSettingsConfig(config, { roundCount: 3 }).match.roundCount).toBe(3);
-    expect(normalizeMatchSettingsConfig(config, { roundCount: 9 as any }).match.roundCount).toBe(4);
-    expect(normalizeMatchSettingsConfig(config, { roundCount: 0 as any }).match.roundCount).toBe(1);
+    expect(html).toContain('比赛场数');
+    expect(html).toContain(ruleDescriptions.matchCount);
+    expect(normalizeMatchSettingsConfig(config, { matchCount: 3 }).match.matchCount).toBe(3);
+    expect(normalizeMatchSettingsConfig(config, { matchCount: 9 as any }).match.matchCount).toBe(4);
+    expect(normalizeMatchSettingsConfig(config, { matchCount: 0 as any }).match.matchCount).toBe(1);
   });
 
   it('关闭延长局后不显示最大延长场风', () => {

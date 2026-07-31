@@ -20,10 +20,20 @@ describe('牌桌布局回归', () => {
 
   it('四家 PlayerZone 处于独立九宫格区域', () => {
     expect(css).toContain('"west center east"');
-    expect(css).toContain('.player-zone--north { grid-area: north; }');
-    expect(css).toContain('.player-zone--west { grid-area: west; }');
-    expect(css).toContain('.player-zone--east { grid-area: east; }');
-    expect(css).toContain('.player-zone--south { grid-area: south; }');
+    expect(css).toContain('.player-slot--top { grid-area: north; }');
+    expect(css).toContain('.player-slot--left { grid-area: west; }');
+    expect(css).toContain('.player-slot--right { grid-area: east; }');
+    expect(css).toContain('.player-slot--bottom { grid-area: south; }');
+  });
+
+  it('牌谱回放按固定视觉槽位复用正常四人局的头像与手牌位移', () => {
+    expect(css).toMatch(/\.replay-screen \.player-slot--top \.player-zone-hand-wrap\s*\{[^}]*transform: translateX\(-250px\) translateY\(-30px\)/s);
+    expect(css).toMatch(/\.replay-screen \.player-slot--top \.player-zone-label\s*\{[^}]*transform: translateX\(-330px\) translateY\(5px\)/s);
+    expect(css).toMatch(/\.replay-screen \.player-slot--left \.player-zone-hand-wrap\s*\{[^}]*transform: translateX\(-120px\)/s);
+    expect(css).toMatch(/\.replay-screen \.player-slot--left \.player-zone-label\s*\{[^}]*transform: translateX\(-200px\)/s);
+    expect(css).toMatch(/\.replay-screen \.player-slot--right \.player-zone-hand-wrap\s*\{[^}]*transform: translateX\(80px\)/s);
+    expect(css).toMatch(/\.replay-screen \.player-slot--right \.player-zone-label\s*\{[^}]*transform: translateX\(220px\) translateY\(250px\)/s);
+    expect(css).not.toMatch(/\.replay-screen [^{]*\[data-player-index=/);
   });
 
   it('四家牌河放大后仍固定在中央周围并使用 6.5 张占位尺寸', () => {

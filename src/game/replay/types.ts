@@ -1,5 +1,5 @@
 import type { MatchResult, RoundWind, FullRuleConfig } from '../match/types';
-import type { PlayerId, RoundResult, TileId } from '../types';
+import type { DrawSource, PlayerId, RoundResult, TileId } from '../types';
 
 export const MATCH_LOG_VERSION = 1;
 
@@ -39,6 +39,7 @@ export interface TilesDealtEvent extends BaseGameEvent {
 export interface TileDrawnEvent extends BaseGameEvent {
   type: 'tile-drawn';
   tile: TileSnapshot;
+  source?: DrawSource;
 }
 
 export interface TileDiscardedEvent extends BaseGameEvent {
@@ -103,7 +104,11 @@ export interface RoundLog {
   dealer: PlayerId;
   honba: number;
   riichiSticks: number;
+  initialScores?: [number, number, number, number];
   initialHands?: TileSnapshot[][];
+  initialDoraIndicators?: TileSnapshot[];
+  liveWall?: TileSnapshot[];
+  deadWall?: TileSnapshot[];
   wallOrder?: TileSnapshot[];
   events: GameEvent[];
   result?: RoundResult;

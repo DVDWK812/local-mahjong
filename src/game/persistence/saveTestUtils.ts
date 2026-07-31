@@ -2,6 +2,7 @@ import { startMatch } from '../match/matchEngine';
 import { getRulePreset } from '../match/matchRules';
 import { sampleMatchLog } from '../replay/replayTestUtils';
 import type { SavedMatch } from './storageTypes';
+import { createReplayRecord } from './replayRecord';
 import { CURRENT_SAVE_VERSION } from './storageTypes';
 
 export function memoryStorage(): Storage {
@@ -27,5 +28,12 @@ export function sampleSavedMatch(): SavedMatch {
     gameState: matchState.currentGame,
     matchLog: sampleMatchLog(),
     ruleConfig,
+  };
+}
+
+export function sampleReplayRecord(overrides: Partial<ReturnType<typeof createReplayRecord>> = {}) {
+  return {
+    ...createReplayRecord({ log: sampleMatchLog(), updatedAt: new Date(0).toISOString() }),
+    ...overrides,
   };
 }

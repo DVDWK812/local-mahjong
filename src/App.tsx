@@ -10,7 +10,7 @@ import { MainMenu } from './components/MainMenu';
 import { MatchResultDialog } from './components/MatchResultDialog';
 import { DEFAULT_AI_PLAYER_SETTINGS, MatchSettings, type AIPlayerSetting } from './components/MatchSettings';
 import { ReplayLibrary } from './components/ReplayLibrary';
-import { ReplayScreen } from './components/ReplayScreen';
+import { ReplayDetail } from './components/ReplayDetail';
 import { RiichiModeMenu } from './components/RiichiModeMenu';
 import { RulesGuideScreen } from './components/rulesGuide/RulesGuideScreen';
 import { advanceAIAction, isAIPlayer } from './game/ai';
@@ -24,15 +24,17 @@ import { applyFinishedGameToMatch, chooseAgariYame, chooseMatchEnd, startMatch }
 import { getRulePreset, loadStoredRuleConfig, saveStoredRuleConfig, type RulePresetId } from './game/match/matchRules';
 import type { FullRuleConfig, MatchState } from './game/match/types';
 import { LocalStorageAdapter } from './game/persistence/saveManager';
-import type { ReplayMetadata, SavedMatch } from './game/persistence/storageTypes';
+import { createReplayRecord } from './game/persistence/replayRecord';
+import type { ReplayMetadata, ReplayRecord, SavedMatch } from './game/persistence/storageTypes';
 import { CURRENT_SAVE_VERSION } from './game/persistence/storageTypes';
-import { createInitialMatchLog } from './game/replay/eventRecorder';
-import { createReplay, pause, play, seekToEvent, setPlaybackSpeed, stepBackward, stepForward, type Replay } from './game/replay/replayEngine';
+import { createInitialMatchLog, finishMatchLog, recordGameStateTransition, startRoundInMatchLog } from './game/replay/eventRecorder';
+import type { MatchLog } from './game/replay/types';
 import type { GameState, PlayerId, TileId } from './game/types';
 
 interface ActiveGame {
   matchState: MatchState;
   gameState: GameState;
+  matchLog: MatchLog;
 }
 
 interface AppState {
@@ -44,7 +46,7 @@ interface AppState {
   menuNotice: string | null;
   savedMatch: SavedMatch | null;
   replayMetas: ReplayMetadata[];
-  replay: Replay | null;
+  replay: ReplayRecord | null;
   exitDialogOpen: boolean;
   exiting: boolean;
   exitSaveError: string | null;
@@ -73,7 +75,45 @@ function loadInitialRuleConfig(): FullRuleConfig {
 function createActiveGame(config: FullRuleConfig): ActiveGame {
   const matchState = startMatch(config.match);
   if (!matchState.currentGame) throw new Error('比赛未能创建东一局');
-  return { matchState, gameState: withRules(matchState.currentGame, config) };
+  const gameState = withRules(matchState.currentGame, config);
+  const emptyLog = createInitialMatchLog({
+    playerNames: gameState.players.map((player) => player.name) as [string, string, string, string],
+    initialDealer: matchState.initialDealer,
+    initialScores: [...matchState.scores],
+    ruleConfig: config,
+  });
+  return {
+    matchState,
+    gameState,
+    matchLog: startRoundInMatchLog(emptyLog, gameState, matchState.handNumber),
+  };
+}
+
+function updateActiveGameState(activeGame: ActiveGame, gameState: GameState): ActiveGame {
+  return {
+    ...activeGame,
+    gameState,
+    matchLog: recordGameStateTransition(activeGame.matchLog, activeGame.gameState, gameState),
+  };
+}
+
+function applyMatchProgress(activeGame: ActiveGame, matchState: MatchState, nextGameState: GameState | undefined, config: FullRuleConfig): ActiveGame {
+  if (matchState.phase === 'match-ended' && matchState.finalResult) {
+    return {
+      ...activeGame,
+      matchState,
+      matchLog: finishMatchLog(activeGame.matchLog, matchState.finalResult),
+    };
+  }
+  if (nextGameState) {
+    const gameState = withRules(nextGameState, config);
+    return {
+      matchState,
+      gameState,
+      matchLog: startRoundInMatchLog(activeGame.matchLog, gameState, matchState.handNumber),
+    };
+  }
+  return { ...activeGame, matchState };
 }
 
 function createSavedMatch(activeGame: ActiveGame, ruleConfig: FullRuleConfig): SavedMatch {
@@ -83,11 +123,7 @@ function createSavedMatch(activeGame: ActiveGame, ruleConfig: FullRuleConfig): S
     savedAt: new Date().toISOString(),
     matchState: activeGame.matchState,
     gameState: activeGame.gameState,
-    matchLog: createInitialMatchLog({
-      initialDealer: activeGame.matchState.initialDealer,
-      initialScores: [ruleConfig.match.startingPoints, ruleConfig.match.startingPoints, ruleConfig.match.startingPoints, ruleConfig.match.startingPoints],
-      ruleConfig,
-    }),
+    matchLog: activeGame.matchLog,
     ruleConfig,
   };
 }
@@ -117,6 +153,8 @@ export default function App() {
   const mountedRef = useRef(false);
   const exitSaveInProgressRef = useRef(false);
   const pendingExitSaveRef = useRef<SavedMatch | null>(null);
+  const pendingExitReplayRef = useRef<ReplayRecord | null>(null);
+  const automaticallySavedReplayIdsRef = useRef(new Set<string>());
   const activeGame = state.activeGame;
   const gameState = activeGame?.gameState;
   const matchState = activeGame?.matchState;
@@ -128,6 +166,28 @@ export default function App() {
       mountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!storage || !activeGame || matchState?.phase !== 'match-ended' || !matchState.finalResult) return;
+    const completedLog = finishMatchLog(activeGame.matchLog, matchState.finalResult);
+    if (automaticallySavedReplayIdsRef.current.has(completedLog.matchId)) return;
+    const record = createReplayRecord({ log: completedLog, matchState, completed: true });
+    void storage.saveReplay(record).then(async () => {
+      automaticallySavedReplayIdsRef.current.add(record.id);
+      await storage.deleteCurrentMatch();
+      const replays = await storage.listReplays();
+      if (mountedRef.current) {
+        setState((current) => ({
+          ...current,
+          replayMetas: replays,
+          savedMatch: null,
+          activeGame: current.activeGame?.matchLog.matchId === completedLog.matchId
+            ? { ...current.activeGame, matchLog: completedLog }
+            : current.activeGame,
+        }));
+      }
+    }).catch(() => undefined);
+  }, [activeGame, matchState?.phase, matchState?.finalResult]);
 
   useEffect(() => {
     if (!storage) return;
@@ -156,10 +216,7 @@ export default function App() {
           const applied = chooseMatchEnd(current.activeGame.matchState, chooseAgariYame(current.activeGame.matchState));
           return {
             ...current,
-            activeGame: {
-              matchState: applied.match,
-              gameState: applied.nextGameState ? withRules(applied.nextGameState, current.ruleConfig) : current.activeGame.gameState,
-            },
+            activeGame: applyMatchProgress(current.activeGame, applied.match, applied.nextGameState, current.ruleConfig),
           };
         });
       }, 300);
@@ -182,7 +239,7 @@ export default function App() {
         if (!current.activeGame || current.screen !== 'game' || current.exitDialogOpen || current.exiting) return current;
         const currentGame = current.activeGame.gameState;
         if (currentGame.currentPlayer === 0 && currentGame.phase === 'draw') {
-          return { ...current, activeGame: { ...current.activeGame, gameState: drawTile(currentGame, { settleTsumo: false }) } };
+          return { ...current, activeGame: updateActiveGameState(current.activeGame, drawTile(currentGame, { settleTsumo: false })) };
         }
         if (
           currentGame.currentPlayer === 0
@@ -191,9 +248,9 @@ export default function App() {
           && currentGame.players[0].drawnTile
           && !hasDrawAction(currentGame, 0)
         ) {
-          return { ...current, activeGame: { ...current.activeGame, gameState: discardTile(currentGame, 0, currentGame.players[0].drawnTile.instanceId) } };
+          return { ...current, activeGame: updateActiveGameState(current.activeGame, discardTile(currentGame, 0, currentGame.players[0].drawnTile.instanceId)) };
         }
-        return { ...current, activeGame: { ...current.activeGame, gameState: advanceAIAction(currentGame) } };
+        return { ...current, activeGame: updateActiveGameState(current.activeGame, advanceAIAction(currentGame)) };
       });
     }, 300);
     return () => window.clearTimeout(timer);
@@ -204,9 +261,19 @@ export default function App() {
   }
 
   function updateGame(updater: (game: GameState) => GameState) {
-    setState((current) => current.activeGame
-      ? { ...current, activeGame: { ...current.activeGame, gameState: updater(current.activeGame.gameState) } }
-      : current);
+    setState((current) => {
+      if (!current.activeGame) return current;
+      const before = current.activeGame.gameState;
+      const gameState = updater(before);
+      return {
+        ...current,
+        activeGame: {
+          ...current.activeGame,
+          gameState,
+          matchLog: recordGameStateTransition(current.activeGame.matchLog, before, gameState),
+        },
+      };
+    });
   }
 
   function handleRuleConfigChange(config: FullRuleConfig) {
@@ -253,10 +320,13 @@ export default function App() {
       if (!current.savedMatch) return { ...current, menuNotice: '没有可继续的对局。' };
       const matchState = current.savedMatch.matchState;
       const gameState = withRules(current.savedMatch.gameState ?? matchState.currentGame!, current.savedMatch.ruleConfig);
+      const matchLog = current.savedMatch.matchLog.rounds.length > 0
+        ? current.savedMatch.matchLog
+        : startRoundInMatchLog(current.savedMatch.matchLog, gameState, matchState.handNumber);
       return {
         ...current,
         screen: 'game',
-        activeGame: { matchState, gameState },
+        activeGame: { matchState, gameState, matchLog },
         ruleConfig: current.savedMatch.ruleConfig,
         exitDialogOpen: false,
         exiting: false,
@@ -273,20 +343,20 @@ export default function App() {
       const applied = applyFinishedGameToMatch(current.activeGame.matchState, current.activeGame.gameState);
       return {
         ...current,
-        activeGame: {
-          matchState: applied.match,
-          gameState: applied.nextGameState ? withRules(applied.nextGameState, current.ruleConfig) : current.activeGame.gameState,
-        },
+        activeGame: applyMatchProgress(current.activeGame, applied.match, applied.nextGameState, current.ruleConfig),
       };
     });
   }
 
-  async function saveExitMatchWithTimeout(save: SavedMatch): Promise<'saved' | 'timeout'> {
+  async function saveExitMatchWithTimeout(save: SavedMatch | null, replayRecord: ReplayRecord): Promise<'saved' | 'timeout'> {
     if (!storage) return 'saved';
     let timeoutId: ReturnType<typeof window.setTimeout> | null = null;
     try {
       return await Promise.race([
-        storage.saveCurrentMatch(save).then(() => 'saved' as const),
+        Promise.all([
+          save ? storage.saveCurrentMatch(save) : storage.deleteCurrentMatch(),
+          storage.saveReplay(replayRecord),
+        ]).then(() => 'saved' as const),
         new Promise<'timeout'>((resolve) => {
           timeoutId = window.setTimeout(() => resolve('timeout'), EXIT_SAVE_TIMEOUT_MS);
         }),
@@ -298,6 +368,7 @@ export default function App() {
 
   function returnToMainMenu(savedMatch: SavedMatch | null = null) {
     pendingExitSaveRef.current = null;
+    pendingExitReplayRef.current = null;
     if (!mountedRef.current) return;
     setState((current) => ({
       ...current,
@@ -317,16 +388,30 @@ export default function App() {
     const save = snapshot && snapshot.matchState.phase !== 'match-ended'
       ? pendingExitSaveRef.current ?? createSavedMatch(snapshot, state.ruleConfig)
       : null;
+    const completedLog = snapshot?.matchState.finalResult
+      ? finishMatchLog(snapshot.matchLog, snapshot.matchState.finalResult)
+      : snapshot?.matchLog;
+    const replayRecord = snapshot && completedLog
+      ? pendingExitReplayRef.current ?? createReplayRecord({
+        log: completedLog,
+        matchState: snapshot.matchState,
+        scores: snapshot.gameState.players.map((player) => player.score) as [number, number, number, number],
+        completed: snapshot.matchState.phase === 'match-ended',
+      })
+      : null;
+    if (!replayRecord) {
+      returnToMainMenu(save);
+      return;
+    }
     pendingExitSaveRef.current = save;
+    pendingExitReplayRef.current = replayRecord;
     exitSaveInProgressRef.current = true;
     if (mountedRef.current) setState((current) => ({ ...current, exiting: true, exitSaveError: null }));
     try {
-      if (save) {
-        const result = await saveExitMatchWithTimeout(save);
-        if (result === 'timeout') {
-          if (mountedRef.current) setState((current) => ({ ...current, exitSaveError: EXIT_SAVE_TIMEOUT_MESSAGE }));
-          return;
-        }
+      const result = await saveExitMatchWithTimeout(save, replayRecord);
+      if (result === 'timeout') {
+        if (mountedRef.current) setState((current) => ({ ...current, exitSaveError: EXIT_SAVE_TIMEOUT_MESSAGE }));
+        return;
       }
       returnToMainMenu(save);
     } catch {
@@ -339,6 +424,7 @@ export default function App() {
 
   function cancelExitGame() {
     pendingExitSaveRef.current = null;
+    pendingExitReplayRef.current = null;
     setState((current) => ({ ...current, exitDialogOpen: false, exiting: false, exitSaveError: null }));
   }
 
@@ -357,15 +443,37 @@ export default function App() {
 
   async function openReplay(id: string) {
     if (!storage) return;
-    const log = await storage.loadReplay(id);
-    if (log && mountedRef.current) setScreen('replay', { replay: createReplay(log) });
+    const record = await storage.getReplay(id).catch(() => null);
+    if (record && mountedRef.current) setScreen('replay-detail', { replay: record });
   }
 
   async function deleteReplay(id: string) {
     if (!storage) return;
+    if (typeof window !== 'undefined' && !window.confirm('确定删除这份牌谱吗？删除后无法恢复。')) return;
     await storage.deleteReplay(id);
     const replays = await storage.listReplays().catch(() => []);
     if (mountedRef.current) setState((current) => ({ ...current, replayMetas: replays }));
+  }
+
+  async function renameReplay(id: string) {
+    if (!storage || typeof window === 'undefined') return;
+    const currentTitle = state.replayMetas.find((replay) => replay.id === id)?.title ?? '';
+    const title = window.prompt('请输入新的牌谱标题', currentTitle);
+    if (title === null || !title.trim()) return;
+    await storage.renameReplay(id, title);
+    const replays = await storage.listReplays();
+    if (mountedRef.current) setState((current) => ({ ...current, replayMetas: replays }));
+  }
+
+  async function exportReplay(id: string) {
+    if (!storage || typeof window === 'undefined') return;
+    const json = await storage.exportReplay(id);
+    const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${id}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   if (state.screen === 'main-menu') {
@@ -449,30 +557,21 @@ export default function App() {
         <section className="menu-panel menu-panel--wide">
           <BackButton onClick={() => setScreen('main-menu')} />
           <p className="menu-path">主菜单 ＞ 牌谱研习</p>
-          <ReplayLibrary replays={state.replayMetas} onOpen={(id) => void openReplay(id)} onDelete={(id) => void deleteReplay(id)} />
+          <ReplayLibrary
+            replays={state.replayMetas}
+            onOpen={(id) => void openReplay(id)}
+            onRename={(id) => void renameReplay(id)}
+            onDelete={(id) => void deleteReplay(id)}
+            onExport={(id) => void exportReplay(id)}
+            onStartLocalMatch={() => setScreen('local-mode-menu')}
+          />
         </section>
       </main>
     );
   }
 
-  if (state.screen === 'replay' && state.replay) {
-    return (
-      <main className="menu-page">
-        <section className="menu-panel menu-panel--wide">
-          <BackButton onClick={() => setScreen('replay-library', { replay: null })} />
-          <p className="menu-path">主菜单 ＞ 牌谱研习 ＞ 回放</p>
-          <ReplayScreen
-            replay={state.replay}
-            onPlay={() => setState((current) => current.replay ? { ...current, replay: play(current.replay) } : current)}
-            onPause={() => setState((current) => current.replay ? { ...current, replay: pause(current.replay) } : current)}
-            onStepForward={() => setState((current) => current.replay ? { ...current, replay: stepForward(current.replay) } : current)}
-            onStepBackward={() => setState((current) => current.replay ? { ...current, replay: stepBackward(current.replay) } : current)}
-            onSeek={(index) => setState((current) => current.replay ? { ...current, replay: seekToEvent(current.replay, index) } : current)}
-            onSpeedChange={(speed) => setState((current) => current.replay ? { ...current, replay: setPlaybackSpeed(current.replay, speed) } : current)}
-          />
-        </section>
-      </main>
-    );
+  if (state.screen === 'replay-detail' && state.replay) {
+    return <ReplayDetail replay={state.replay} onBack={() => setScreen('replay-library', { replay: null })} />;
   }
 
   if (!activeGame || !gameState || !matchState) return null;
@@ -487,20 +586,14 @@ export default function App() {
               const applied = chooseMatchEnd(matchState, true);
               setState((current) => current.activeGame ? {
                 ...current,
-                activeGame: {
-                  matchState: applied.match,
-                  gameState: applied.nextGameState ? withRules(applied.nextGameState, current.ruleConfig) : current.activeGame.gameState,
-                },
+                activeGame: applyMatchProgress(current.activeGame, applied.match, applied.nextGameState, current.ruleConfig),
               } : current);
             }}>结束比赛</button>
             <button type="button" onClick={() => {
               const applied = chooseMatchEnd(matchState, false);
               setState((current) => current.activeGame ? {
                 ...current,
-                activeGame: {
-                  matchState: applied.match,
-                  gameState: applied.nextGameState ? withRules(applied.nextGameState, current.ruleConfig) : current.activeGame.gameState,
-                },
+                activeGame: applyMatchProgress(current.activeGame, applied.match, applied.nextGameState, current.ruleConfig),
               } : current);
             }}>继续连庄</button>
           </div>

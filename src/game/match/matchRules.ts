@@ -8,7 +8,7 @@ export type RulePresetInput = RulePresetId | LegacyRulePresetId;
 
 export const defaultMatchRuleConfig: MatchRuleConfig = {
   matchLength: 'east-only',
-  roundCount: 1,
+  matchCount: 1,
   startingPoints: 25000,
   targetPoints: 30000,
   returnPoints: 25000,
@@ -36,11 +36,15 @@ export function normalizeRulePresetId(id: RulePresetInput): RulePresetId {
   return id;
 }
 
-export function normalizeMatchRuleConfig(overrides: Partial<MatchRuleConfig> = {}): MatchRuleConfig {
-  const config = { ...defaultMatchRuleConfig, ...overrides };
-  if (overrides.roundCount === undefined) {
-    config.roundCount = config.matchLength === 'hanchan' ? 2 : 1;
-  }
+export type MatchRuleConfigInput = Partial<MatchRuleConfig> & { roundCount?: number };
+
+export function normalizeMatchRuleConfig(overrides: MatchRuleConfigInput = {}): MatchRuleConfig {
+  const { roundCount: legacyRoundCount, ...current } = overrides;
+  const config = {
+    ...defaultMatchRuleConfig,
+    ...current,
+    matchCount: normalizeMatchCount(current.matchCount ?? legacyRoundCount ?? defaultMatchRuleConfig.matchCount),
+  };
   if (config.matchLength === 'hanchan' && config.maxExtraRoundWind === 'south') {
     config.maxExtraRoundWind = 'west';
   }
@@ -48,7 +52,7 @@ export function normalizeMatchRuleConfig(overrides: Partial<MatchRuleConfig> = {
   return config;
 }
 
-export function createFullRuleConfig(round: Partial<RuleConfig> = {}, match: Partial<MatchRuleConfig> = {}): FullRuleConfig {
+export function createFullRuleConfig(round: Partial<RuleConfig> = {}, match: MatchRuleConfigInput = {}): FullRuleConfig {
   return {
     round: { ...defaultRuleConfig, ...round },
     match: normalizeMatchRuleConfig(match),
@@ -67,10 +71,11 @@ export function getRulePreset(id: RulePresetInput): FullRuleConfig {
         allowKokushiChankanAnkan: true,
         kiriageMangan: true,
         kazoeYakumanMode: 'yakuman',
+        tripleRonMode: 'allow',
       },
       {
         matchLength: 'hanchan',
-        roundCount: 2,
+        matchCount: 1,
         returnPoints: 25000,
         maxExtraRoundWind: 'west',
         useUma: false,
@@ -95,7 +100,7 @@ export function getRulePreset(id: RulePresetInput): FullRuleConfig {
       },
       {
         matchLength: 'east-only',
-        roundCount: 1,
+        matchCount: 1,
         returnPoints: 25000,
         maxExtraRoundWind: 'south',
         agariYame: true,
@@ -126,7 +131,7 @@ export function validateRuleConfig(config: FullRuleConfig): RuleConfigValidation
   if (!Number.isFinite(match.bankruptcyThreshold)) errors.push('击飞线必须是有效数值');
   if (!match.allowWestRound && match.maxExtraRoundWind !== 'none') errors.push('关闭延长局时，最大延长场风必须为无');
   if (!Number.isFinite(match.suddenDeathTarget) || match.suddenDeathTarget <= 0) errors.push('突然死亡目标必须大于零');
-  if (![1, 2, 3, 4].includes(match.roundCount)) errors.push('庄数必须为一到四之间的整数');
+  if (![1, 2, 3, 4].includes(match.matchCount)) errors.push('比赛场数必须为一到四之间的整数');
   if (!['disabled', 'sanbaiman', 'yakuman'].includes(round.kazoeYakumanMode)) errors.push('累计役满设置无效');
   return { valid: errors.length === 0, errors };
 }
@@ -156,13 +161,14 @@ export function validateUma(uma: [number, number, number, number]): void {
   if (Math.abs(total) > 0.0001) throw new Error('马点合计必须为零');
 }
 
-export function scheduledFinalWind(config: Pick<MatchRuleConfig, 'matchLength'> & Partial<Pick<MatchRuleConfig, 'roundCount'>> | MatchRuleConfig['matchLength']) {
-  if (typeof config === 'string') return config === 'east-only' ? 'east' : 'south';
-  const roundCount = config.roundCount ?? (config.matchLength === 'east-only' ? 1 : 2);
-  if (roundCount <= 1) return 'east';
-  if (roundCount === 2) return 'south';
-  if (roundCount === 3) return 'west';
-  return 'north';
+export function scheduledFinalWind(config: Pick<MatchRuleConfig, 'matchLength'> | MatchRuleConfig['matchLength']) {
+  const matchLength = typeof config === 'string' ? config : config.matchLength;
+  return matchLength === 'east-only' ? 'east' : 'south';
+}
+
+function normalizeMatchCount(value: number): 1 | 2 | 3 | 4 {
+  const rounded = Math.round(Number(value) || 1);
+  return Math.min(4, Math.max(1, rounded)) as 1 | 2 | 3 | 4;
 }
 
 export function maxExtraWindIndex(config: MatchRuleConfig): number {

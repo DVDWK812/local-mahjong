@@ -1,3 +1,5 @@
+export type TripleRonMode = 'allow' | 'abortive-draw';
+
 export interface RuleConfig {
   allowAncientYaku: boolean;
   allowDoubleYakuman: boolean;
@@ -12,7 +14,7 @@ export interface RuleConfig {
   abortOnFourWinds: boolean;
   abortOnFourRiichi: boolean;
   abortOnFourKans: boolean;
-  tripleRonMode: 'allow' | 'abortive-draw';
+  tripleRonMode: TripleRonMode;
   allowKokushiChankanAnkan: boolean;
   dealerContinuesOnTenpaiDraw: boolean;
   revealTenpaiHandsOnDraw: boolean;

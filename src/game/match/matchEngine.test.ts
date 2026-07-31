@@ -12,6 +12,9 @@ describe('match initialization', () => {
     expect(match.handNumber).toBe(1);
     expect(match.honba).toBe(0);
     expect(match.riichiSticks).toBe(0);
+    expect(match.currentMatchIndex).toBe(0);
+    expect(match.matchResults).toEqual([]);
+    expect(match.aggregateScores).toEqual([0, 0, 0, 0]);
   });
 
   it('starts a round with dynamic seat winds and dealer 14 tiles', () => {
@@ -36,6 +39,40 @@ describe('match initialization', () => {
     expect(game.riichiSticks).toBe(1);
     expect(game.pendingCall).toBeNull();
     expect(game.pendingKakan).toBeNull();
+  });
+});
+
+describe('multi-match series', () => {
+  it('records each complete match, resets the table, and aggregates match scores', () => {
+    let match = {
+      ...startMatch({ matchLength: 'east-only', matchCount: 2, allowWestRound: false, maxExtraRoundWind: 'none' }),
+      handNumber: 4 as const,
+      dealer: 3 as const,
+      scores: [30000, 25000, 25000, 20000] as [number, number, number, number],
+    };
+    const first = applyRoundResultToMatch(match, ronResult(0, 3, [1000, 0, 0, -1000], 'series-1'));
+    expect(first.continueMatch).toBe(true);
+    expect(first.match.phase).toBe('round-active');
+    expect(first.match.currentMatchIndex).toBe(1);
+    expect(first.match.matchResults).toHaveLength(1);
+    expect(first.match.aggregateScores).toEqual([6, 0, 0, -6]);
+    expect(first.match.scores).toEqual([25000, 25000, 25000, 25000]);
+    expect(first.match.roundWind).toBe('east');
+    expect(first.match.handNumber).toBe(1);
+    expect(first.match.honba).toBe(0);
+    expect(first.match.riichiSticks).toBe(0);
+
+    match = {
+      ...first.match,
+      handNumber: 4,
+      dealer: 3,
+      scores: [25000, 25000, 25000, 25000],
+    };
+    const second = applyRoundResultToMatch(match, ronResult(0, 3, [1000, 0, 0, -1000], 'series-2'));
+    expect(second.continueMatch).toBe(false);
+    expect(second.match.phase).toBe('match-ended');
+    expect(second.match.matchResults).toHaveLength(2);
+    expect(second.match.aggregateScores).toEqual([7, 0, 0, -7]);
   });
 });
 

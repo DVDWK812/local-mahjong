@@ -14,6 +14,7 @@ interface PlayerZoneProps {
   isDealer: boolean;
   isCurrentPlayer: boolean;
   showHand?: boolean;
+  concealHand?: boolean;
   showRiver?: boolean;
   showMelds?: boolean;
   doraIndicators?: TileModel[];
@@ -31,6 +32,13 @@ const windNames: Record<Wind, string> = {
   north: '北',
 };
 
+const slotNames: Record<PlayerPosition, 'bottom' | 'right' | 'top' | 'left'> = {
+  south: 'bottom',
+  east: 'right',
+  north: 'top',
+  west: 'left',
+};
+
 export function PlayerZone({
   playerIndex,
   position,
@@ -40,6 +48,7 @@ export function PlayerZone({
   isDealer,
   isCurrentPlayer,
   showHand = true,
+  concealHand,
   showRiver = true,
   showMelds = true,
   doraIndicators = [],
@@ -54,15 +63,16 @@ export function PlayerZone({
 
   return (
     <section
-      className={`player-zone player-zone--${position} ${showOpponentHand ? '' : 'player-zone--river-only'} ${showRiver ? '' : 'player-zone--no-river'} ${isCurrentPlayer ? 'player-zone--current' : ''}`}
+      className={`player-slot player-slot--${slotNames[position]} player-zone player-zone--${position} ${showOpponentHand ? '' : 'player-zone--river-only'} ${showRiver ? '' : 'player-zone--no-river'} ${isCurrentPlayer ? 'player-zone--current' : ''}`}
+      data-player-slot={slotNames[position]}
       data-player-zone={position}
       data-player-index={playerIndex}
       aria-label={`${player.name} 区域`}
     >
       <div className="player-zone-layout">
         {showOpponentHand ? (
-          <div className="player-zone-hand-wrap">
-            <HandTrack player={player} position={position} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
+          <div className={`player-zone-hand-wrap hand-slot hand-slot--${slotNames[position]}`} data-hand-slot={slotNames[position]}>
+            <HandTrack player={player} position={position} concealed={concealHand} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
           </div>
         ) : null}
 
@@ -77,9 +87,9 @@ export function PlayerZone({
         ) : null}
 
         {showOpponentHand && showMelds ? (
-          <div className="player-zone-meld-wrap" data-ai-meld-zone={player.id === 0 ? undefined : position}>
+          <div className={`player-zone-meld-wrap meld-slot meld-slot--${slotNames[position]}`} data-ai-meld-zone={player.id === 0 ? undefined : position}>
             <div className={`player-zone-meld-rotator player-zone-meld-rotator--${position}`}>
-              <PlayerMelds player={player} seatClass={`seat-${player.id} melds-${position}`} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
+              <PlayerMelds player={player} seatClass={`seat-${slotNames[position]} melds-${position}`} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
             </div>
           </div>
         ) : null}

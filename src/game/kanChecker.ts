@@ -3,6 +3,7 @@ import type { GameState, PendingCallOption, PlayerId, RoundResult, Tile, TileId 
 import { sortTiles } from './tileUtils';
 import { normalizeFuritenState } from './furiten';
 import { shanten } from './shanten';
+import { markRiverTileClaimed } from './callChecker';
 
 export type KanType = 'ankan' | 'minkan' | 'kakan';
 
@@ -468,20 +469,6 @@ function removePendingKakanTileFromDeclarer(state: GameState): GameState {
   return { ...state, players };
 }
 
-function markRiverTileClaimed(discardingPlayer: GameState['players'][number], instanceId: string, claimedBy: PlayerId): void {
-  const riverIndex = discardingPlayer.river.findIndex((riverTile) => riverTile.instanceId === instanceId);
-  if (riverIndex !== -1) {
-    discardingPlayer.river[riverIndex] = {
-      ...discardingPlayer.river[riverIndex],
-      claimed: true,
-      claimedBy,
-    };
-    if (discardingPlayer.riichiState?.riichiDiscardInstanceId === instanceId) {
-      discardingPlayer.pendingRiichiSidewaysDiscard = true;
-    }
-  }
-}
-
 function settleKanRound(state: GameState, result: RoundResult): GameState {
   return {
     ...state,
@@ -490,6 +477,7 @@ function settleKanRound(state: GameState, result: RoundResult): GameState {
     players: state.players.map((player, index) => ({
       ...player,
       score: player.score + (result.pointDeltas[index] ?? 0),
+      pendingRiichiSidewaysDiscard: false,
     })),
   };
 }

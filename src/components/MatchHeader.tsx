@@ -15,7 +15,7 @@ export function MatchHeader({ matchState }: MatchHeaderProps) {
   return (
     <section className="match-header" aria-label="比赛信息">
       <strong>{roundLabel(matchState)} {matchState.honba}本场 供托{matchState.riichiSticks}</strong>
-      <span>{matchState.matchLength === 'east-only' ? '东风场' : '南风场'}{isExtra ? ' · 延长局' : ''}</span>
+      <span>第{matchState.currentMatchIndex + 1}/{matchState.ruleConfig.matchCount}场 · {matchState.matchLength === 'east-only' ? '东风场' : '南风场'}{isExtra ? ' · 延长局' : ''}</span>
       <span>当前庄家：{dealer ? `${windLabel(dealer.seatWind)}家 ${dealer.name}` : `Player ${matchState.dealer + 1}`}</span>
     </section>
   );
