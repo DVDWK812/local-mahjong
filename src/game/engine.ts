@@ -8,6 +8,7 @@ import type { GameState, PlayerId, PlayerState, RoundResult, Tile } from './type
 import { sortTiles, WIND_ORDER } from './tileUtils';
 import { createShuffledWall, splitDeadWall } from './wall';
 import { buildRonResult, buildTsumoResult, canRon } from './winChecker';
+import { canDiscardTileByRules, clearKuikaeRestriction } from './kuikae';
 
 function createPlayers(): PlayerState[] {
   return WIND_ORDER.map((wind, index) => ({
@@ -94,6 +95,7 @@ export function createInitialGameState(): GameState {
     lastWinSource: null,
     lastLiveWallDiscarder: null,
     pendingAbortiveDrawAfterFourthKan: false,
+    kuikaeForbiddenTileIds: {},
   };
 }
 
@@ -140,6 +142,7 @@ export function drawTile(state: GameState, options: { settleTsumo?: boolean } = 
 
 export function discardTile(state: GameState, playerId: PlayerId, tileInstanceId: string): GameState {
   if (state.phase !== 'discard' || state.currentPlayer !== playerId) return state;
+  if (!canDiscardTileByRules(state, playerId, tileInstanceId)) return state;
 
   const players = clonePlayers(state.players);
   const player = players[playerId];
@@ -190,6 +193,7 @@ export function discardTile(state: GameState, playerId: PlayerId, tileInstanceId
     pendingCall: null,
     playerDiscardCounts: state.playerDiscardCounts.map((count, index) => index === playerId ? count + 1 : count),
     lastLiveWallDiscarder: state.lastDrawSource === 'live-wall' && state.wall.length === 0 ? playerId : state.lastLiveWallDiscarder,
+    kuikaeForbiddenTileIds: clearKuikaeRestriction(state, playerId),
   };
   const result = buildRonResult(nextState, playerId, discarded);
 
@@ -265,6 +269,7 @@ function settleRound(state: GameState, result: RoundResult): GameState {
       score: player.score + (result.pointDeltas[index] ?? 0),
       pendingRiichiSidewaysDiscard: false,
     })),
+    kuikaeForbiddenTileIds: {},
   };
 }
 

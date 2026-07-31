@@ -29,6 +29,11 @@ export function migrateSavedMatch(input: unknown): SavedMatch {
     return {
       ...current,
       ruleConfig,
+      gameState: current.gameState ? {
+        ...current.gameState,
+        ruleConfig: ruleConfig.round,
+        kuikaeForbiddenTileIds: current.gameState.kuikaeForbiddenTileIds ?? {},
+      } : undefined,
       matchState,
       matchLog: {
         ...current.matchLog,

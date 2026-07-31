@@ -110,6 +110,7 @@ export function createGameStateFromMatch(state: MatchState): GameState {
     lastWinSource: null,
     lastLiveWallDiscarder: null,
     pendingAbortiveDrawAfterFourthKan: false,
+    kuikaeForbiddenTileIds: {},
     matchRuleConfig: state.ruleConfig,
   };
 }

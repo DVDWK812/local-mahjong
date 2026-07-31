@@ -474,6 +474,7 @@ function settleKanRound(state: GameState, result: RoundResult): GameState {
     ...state,
     phase: 'round-ended',
     result,
+    kuikaeForbiddenTileIds: {},
     players: state.players.map((player, index) => ({
       ...player,
       score: player.score + (result.pointDeltas[index] ?? 0),

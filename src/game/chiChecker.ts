@@ -1,6 +1,7 @@
 import type { GameState, PendingCallOption, PlayerId, Tile, TileId } from './types';
 import { sortTiles } from './tileUtils';
 import { markRiverTileClaimed } from './callChecker';
+import { hasLegalDiscardAfterCall, isKuikaeEnabled, kuikaeForbiddenAfterChi, removeTilesByType, setKuikaeRestriction } from './kuikae';
 
 export function canChi(state: GameState, playerId: PlayerId): boolean {
   const discard = state.pendingCall?.tile ?? state.lastDiscard?.tile;
@@ -25,7 +26,10 @@ export function getChiOptions(state: GameState, discarder: PlayerId, discardedTi
     const sequence = [start, start + 1, start + 2] as TileId[];
     if (!sequence.includes(discardedTile.id)) return [];
     const usedTileIds = sequence.filter((id) => id !== discardedTile.id);
-    return hasTiles(player.hand, usedTileIds)
+    const remainingHand = removeTilesByType(player.hand, usedTileIds);
+    const legalAfterCall = remainingHand
+      && hasLegalDiscardAfterCall(remainingHand, kuikaeForbiddenAfterChi(usedTileIds), isKuikaeEnabled(state));
+    return hasTiles(player.hand, usedTileIds) && legalAfterCall
       ? [{
           type: 'chi' as const,
           player: caller,
@@ -78,6 +82,9 @@ export function executeChi(state: GameState, playerId: PlayerId, optionIndex = 0
   });
   caller.hand.sort(sortTiles);
   caller.drawnTile = null;
+  const kuikaeForbiddenTileIds = isKuikaeEnabled(state)
+    ? setKuikaeRestriction(state, playerId, kuikaeForbiddenAfterChi(option.usedTileIds))
+    : state.kuikaeForbiddenTileIds;
 
   return {
     ...state,
@@ -87,6 +94,7 @@ export function executeChi(state: GameState, playerId: PlayerId, optionIndex = 0
     pendingCall: null,
     callsOccurred: true,
     firstTurnInterrupted: true,
+    kuikaeForbiddenTileIds,
   };
 }
 

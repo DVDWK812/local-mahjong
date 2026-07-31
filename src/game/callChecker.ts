@@ -1,6 +1,7 @@
 import type { GameState, PendingCallOption, PlayerId, Tile } from './types';
 import { sortTiles } from './tileUtils';
 import { settleExhaustiveDraw } from './exhaustiveDraw';
+import { hasLegalDiscardAfterCall, isKuikaeEnabled, kuikaeForbiddenAfterPon, removeTilesByType, setKuikaeRestriction } from './kuikae';
 
 export function canPon(state: GameState, playerId: PlayerId): boolean {
   const discard = state.pendingCall?.tile ?? state.lastDiscard?.tile;
@@ -8,14 +9,16 @@ export function canPon(state: GameState, playerId: PlayerId): boolean {
   if (!discard || discarder === undefined || discarder === playerId) return false;
   if (state.players[playerId].riichi) return false;
   if (state.pendingCall && !state.pendingCall.options.some((option) => option.type === 'pon' && option.player === playerId)) return false;
-  return state.players[playerId].hand.filter((tile) => tile.id === discard.id).length >= 2;
+  return getPonOptions(state, discarder, discard).some((option) => option.player === playerId);
 }
 
 export function getPonOptions(state: GameState, discarder: PlayerId, discardedTile: Tile): PendingCallOption[] {
   return state.players.flatMap((player) => {
     if (player.id === discarder || player.riichi) return [];
-    const matchingTiles = player.hand.filter((tile) => tile.id === discardedTile.id);
-    return matchingTiles.length >= 2 ? [{ type: 'pon' as const, player: player.id }] : [];
+    const remainingHand = removeTilesByType(player.hand, [discardedTile.id, discardedTile.id]);
+    const legalAfterCall = remainingHand
+      && hasLegalDiscardAfterCall(remainingHand, kuikaeForbiddenAfterPon(discardedTile.id), isKuikaeEnabled(state));
+    return remainingHand && legalAfterCall ? [{ type: 'pon' as const, player: player.id }] : [];
   });
 }
 
@@ -55,6 +58,9 @@ export function executePon(state: GameState, playerId: PlayerId): GameState {
   });
   caller.hand.sort(sortTiles);
   caller.drawnTile = null;
+  const kuikaeForbiddenTileIds = isKuikaeEnabled(state)
+    ? setKuikaeRestriction(state, playerId, kuikaeForbiddenAfterPon(tile.id))
+    : state.kuikaeForbiddenTileIds;
 
   return {
     ...state,
@@ -64,6 +70,7 @@ export function executePon(state: GameState, playerId: PlayerId): GameState {
     pendingCall: null,
     callsOccurred: true,
     firstTurnInterrupted: true,
+    kuikaeForbiddenTileIds,
   };
 }
 

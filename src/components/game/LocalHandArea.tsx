@@ -7,6 +7,7 @@ interface LocalHandAreaProps {
   isCurrent: boolean;
   canDiscard: boolean;
   allowedDiscardInstanceIds?: string[];
+  kuikaeForbiddenTileIds?: TileId[];
   doraIndicators?: TileModel[];
   doraGlowEnabled?: boolean;
   hoveredTileType?: TileId | null;
@@ -25,12 +26,13 @@ const windNames: Record<Wind, string> = {
   north: '北',
 };
 
-export function LocalHandArea({ player, isCurrent, canDiscard, allowedDiscardInstanceIds, doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, concealHand = false, onDiscardPreviewChange, onDiscard }: LocalHandAreaProps) {
+export function LocalHandArea({ player, isCurrent, canDiscard, allowedDiscardInstanceIds, kuikaeForbiddenTileIds = [], doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, concealHand = false, onDiscardPreviewChange, onDiscard }: LocalHandAreaProps) {
   const drawnTileId = player.drawnTile?.instanceId;
   const baseTiles = drawnTileId ? player.hand.filter((tile) => tile.instanceId !== drawnTileId) : player.hand;
   const drawnTile = drawnTileId ? player.hand.find((tile) => tile.instanceId === drawnTileId) : null;
   const canClick = (tileInstanceId: string) =>
     !concealHand && canDiscard && (!allowedDiscardInstanceIds || allowedDiscardInstanceIds.includes(tileInstanceId));
+  const isKuikaeForbidden = (tileId: TileId) => kuikaeForbiddenTileIds.includes(tileId);
   const handleDiscard = (tileInstanceId: string) => {
     onDiscardPreviewChange?.(null);
     onHoveredTileTypeChange?.(null);
@@ -47,6 +49,7 @@ export function LocalHandArea({ player, isCurrent, canDiscard, allowedDiscardIns
         <span className="player-badges">
           {player.seatWind === 'east' ? <em className="dealer-marker">庄</em> : null}
           {player.riichi ? <em>立直</em> : null}
+          {kuikaeForbiddenTileIds.length > 0 ? <em className="kuikae-warning">食替禁止</em> : null}
         </span>
       </div>
       <div className="local-hand-track hand-slot hand-slot--bottom" data-hand-slot="bottom">
@@ -64,6 +67,7 @@ export function LocalHandArea({ player, isCurrent, canDiscard, allowedDiscardIns
               sameTileHoverEnabled={sameTileHoverEnabled}
               onHoveredTileTypeChange={onHoveredTileTypeChange}
               interactive={canClick(tile.instanceId)}
+              className={isKuikaeForbidden(tile.id) ? 'tile--kuikae-forbidden' : undefined}
               onPointerEnter={canClick(tile.instanceId) ? () => onDiscardPreviewChange?.(tile.instanceId) : undefined}
               onPointerLeave={canClick(tile.instanceId) ? () => onDiscardPreviewChange?.(null) : undefined}
               onPointerDown={canClick(tile.instanceId) ? () => onHoveredTileTypeChange?.(null) : undefined}
@@ -84,6 +88,7 @@ export function LocalHandArea({ player, isCurrent, canDiscard, allowedDiscardIns
                 sameTileHoverEnabled={sameTileHoverEnabled}
                 onHoveredTileTypeChange={onHoveredTileTypeChange}
                 interactive={canClick(drawnTile.instanceId)}
+                className={isKuikaeForbidden(drawnTile.id) ? 'tile--kuikae-forbidden' : undefined}
                 onPointerEnter={canClick(drawnTile.instanceId) ? () => onDiscardPreviewChange?.(drawnTile.instanceId) : undefined}
                 onPointerLeave={canClick(drawnTile.instanceId) ? () => onDiscardPreviewChange?.(null) : undefined}
                 onPointerDown={canClick(drawnTile.instanceId) ? () => onHoveredTileTypeChange?.(null) : undefined}

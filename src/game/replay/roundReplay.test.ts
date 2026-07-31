@@ -96,6 +96,20 @@ describe('buildReplayState', () => {
     expect(state.players[3].calls[0]).toMatchObject({ type: 'kan', kanType: 'kakan' });
   });
 
+  it('按牌谱保存规则重建食替限制，并在首次弃牌后清除', () => {
+    const called = tile(0, 'p0-a');
+    const round = baseRound([
+      event(0, { type: 'tile-discarded', actor: 0, tile: called }),
+      event(1, { type: 'chi-declared', actor: 1, from: 0, tiles: [called, tile(1, 'p1-a'), tile(2, 'p1-b')] }),
+      event(2, { type: 'tile-discarded', actor: 1, tile: tile(3, 'p1-c') }),
+    ]);
+    const enabled = getRulePreset('east-round');
+    const disabled = { ...enabled, round: { ...enabled.round, forbidKuikae: false } };
+    expect(buildReplayState(round, 2, { ruleConfig: enabled }).gameState.kuikaeForbiddenTileIds[1]).toEqual([0, 3]);
+    expect(buildReplayState(round, 2, { ruleConfig: disabled }).gameState.kuikaeForbiddenTileIds[1]).toBeUndefined();
+    expect(buildReplayState(round, 3, { ruleConfig: enabled }).gameState.kuikaeForbiddenTileIds[1]).toBeUndefined();
+  });
+
   it('被鸣走的顺延横牌在回放中继续顺延，且与正常状态标记一致', () => {
     const declaration = tile(0, 'p0-a');
     const firstCarry = tile(4, 'p0-red', true);

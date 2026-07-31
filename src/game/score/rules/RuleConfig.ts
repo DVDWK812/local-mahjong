@@ -19,6 +19,7 @@ export interface RuleConfig {
   dealerContinuesOnTenpaiDraw: boolean;
   revealTenpaiHandsOnDraw: boolean;
   preserveClaimedDiscardGap: boolean;
+  forbidKuikae: boolean;
 }
 
 export const defaultRuleConfig: RuleConfig = {
@@ -40,4 +41,5 @@ export const defaultRuleConfig: RuleConfig = {
   dealerContinuesOnTenpaiDraw: true,
   revealTenpaiHandsOnDraw: true,
   preserveClaimedDiscardGap: false,
+  forbidKuikae: true,
 };

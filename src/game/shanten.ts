@@ -1,4 +1,5 @@
 import type { Tile, TileId } from './types';
+import { filterKuikaeDiscardTiles } from './kuikae';
 import { ALL_TILE_IDS, tileLabel } from './tileUtils';
 import { cloneCounts, countTiles, normalizeCounts, remainingCounts, tilesToCounts, type TileCounts, type VisibleTiles } from './tileCounts';
 
@@ -149,8 +150,8 @@ export function ukeireCount(hand: Tile[] | TileCounts, visibleTiles: VisibleTile
   return ukeire(hand, visibleTiles).reduce((sum, tile) => sum + tile.remaining, 0);
 }
 
-export function recommendDiscards(hand: Tile[], visibleTiles: VisibleTiles): DiscardRecommendation[] {
-  const uniqueDiscardIds = [...new Set(hand.map((tile) => tile.id))] as TileId[];
+export function recommendDiscards(hand: Tile[], visibleTiles: VisibleTiles, forbiddenTileIds: readonly TileId[] = []): DiscardRecommendation[] {
+  const uniqueDiscardIds = [...new Set(filterKuikaeDiscardTiles(hand, forbiddenTileIds).map((tile) => tile.id))] as TileId[];
   const recommendations = uniqueDiscardIds.map((tileId) => {
     const afterDiscard = [...hand];
     const index = afterDiscard.findIndex((tile) => tile.id === tileId);

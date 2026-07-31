@@ -202,6 +202,7 @@ export interface GameState {
   lastWinSource: WinSource | null;
   lastLiveWallDiscarder: PlayerId | null;
   pendingAbortiveDrawAfterFourthKan: boolean;
+  kuikaeForbiddenTileIds: Partial<Record<PlayerId, TileId[]>>;
   ruleConfig?: Partial<import('./score/rules/RuleConfig').RuleConfig>;
   matchRuleConfig?: Partial<import('./match/types').MatchRuleConfig>;
 }

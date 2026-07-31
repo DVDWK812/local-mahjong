@@ -26,6 +26,7 @@ export type RuleDescriptionKey =
   | 'abortOnFourRiichi'
   | 'abortOnFourKans'
   | 'allowKokushiChankanAnkan'
+  | 'forbidKuikae'
   | 'tripleRonMode';
 
 export const ruleDescriptions: Record<RuleDescriptionKey, string> = {
@@ -56,5 +57,6 @@ export const ruleDescriptions: Record<RuleDescriptionKey, string> = {
   abortOnFourRiichi: '四名玩家全部立直后流局',
   abortOnFourKans: '同一局出现四次杠且不属于同一玩家四杠子时流局',
   allowKokushiChankanAnkan: '允许国士无双在其他玩家暗杠时抢杠和',
+  forbidKuikae: '开启后，吃碰后的第一次弃牌不得打出与本次鸣牌相同或可构成同一顺子的牌',
   tripleRonMode: '开启时三名玩家可同时荣和；关闭时沿用现有三家和流局处理',
 };

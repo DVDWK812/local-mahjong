@@ -6,6 +6,7 @@ import { canAnkan, canChankan, canKakan, canMinkan, declareChankanRon, executeKa
 import { recommendDiscards, shanten } from './shanten';
 import type { GameState, PlayerId, Tile, TileId } from './types';
 import { ALL_TILE_IDS } from './tileUtils';
+import { isKuikaeEnabled, kuikaeForbiddenForPlayer, legalDiscardTiles } from './kuikae';
 
 export const HUMAN_PLAYER_ID: PlayerId = 0;
 
@@ -47,13 +48,15 @@ export function selectAIDiscardTile(
   const allowedInstanceIds = allowedCandidates
     ? new Set(allowedCandidates.map((tile) => tile.instanceId))
     : null;
+  const legalTiles = legalDiscardTiles(state, playerId);
   const candidates = allowedInstanceIds
-    ? player.hand.filter((tile) => allowedInstanceIds.has(tile.instanceId))
-    : player.hand;
+    ? legalTiles.filter((tile) => allowedInstanceIds.has(tile.instanceId))
+    : legalTiles;
   if (candidates.length === 0) return null;
 
   const visibleCounts = getVisibleCountsForPlayer(state, playerId);
-  const recommendations = recommendDiscards(player.hand, visibleCounts);
+  const forbiddenTileIds = isKuikaeEnabled(state) ? kuikaeForbiddenForPlayer(state, playerId) : [];
+  const recommendations = recommendDiscards(player.hand, visibleCounts, forbiddenTileIds);
   for (const recommendation of recommendations) {
     const recommended = candidates.find((tile) => tile.id === recommendation.tileId);
     if (recommended) return recommended;

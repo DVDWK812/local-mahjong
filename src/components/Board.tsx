@@ -1,6 +1,7 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import { canPon } from '../game/callChecker';
 import { canChi } from '../game/chiChecker';
+import { isKuikaeEnabled, kuikaeForbiddenForPlayer, legalDiscardTiles } from '../game/kuikae';
 import { getDrawActionState } from '../game/interaction';
 import { canChankan, canMinkan, type KanType } from '../game/kanChecker';
 import type { MatchState } from '../game/match/types';
@@ -91,6 +92,13 @@ export function Board({
     || (gameState.phase === 'chankan-window' && canHumanChankan);
   const localPlayer = gameState.players[0];
   const riichiDrawnTile = localPlayer.riichi ? localPlayer.drawnTile?.instanceId : undefined;
+  const kuikaeForbiddenTileIds = isKuikaeEnabled(gameState) ? kuikaeForbiddenForPlayer(gameState, 0) : [];
+  const ruleAllowedDiscardIds = kuikaeForbiddenTileIds.length > 0
+    ? legalDiscardTiles(gameState, 0).map((tile) => tile.instanceId)
+    : undefined;
+  const allowedDiscardInstanceIds = riichiDrawnTile
+    ? ruleAllowedDiscardIds?.includes(riichiDrawnTile) === false ? [] : [riichiDrawnTile]
+    : ruleAllowedDiscardIds;
   const canDiscard = gameState.phase === 'discard' && gameState.currentPlayer === 0 && !promptOpen;
 
   const skipDrawActions = () => {
@@ -247,7 +255,8 @@ export function Board({
       analysisOpen={analysisOpen}
       actionPrompt={promptOpen ? actionPrompt : null}
       canDiscard={canDiscard}
-      allowedDiscardInstanceIds={riichiDrawnTile ? [riichiDrawnTile] : undefined}
+      allowedDiscardInstanceIds={allowedDiscardInstanceIds}
+      kuikaeForbiddenTileIds={kuikaeForbiddenTileIds}
       onOpenRulesGuide={onOpenRulesGuide ?? (() => undefined)}
       onToggleAnalysis={() => setAnalysisOpen((open) => !open)}
       onCloseAnalysis={() => setAnalysisOpen(false)}

@@ -68,6 +68,7 @@ export function settleExhaustiveDraw(state: GameState): GameState {
     phase: 'round-ended',
     result,
     honba: state.honba + result.honbaIncrement,
+    kuikaeForbiddenTileIds: {},
     players: state.players.map((player, index) => ({
       ...player,
       score: player.score + (result.pointDeltas[index] ?? 0),

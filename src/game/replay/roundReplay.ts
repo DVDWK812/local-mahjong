@@ -1,6 +1,7 @@
 import { seatWindForPlayer } from '../match/roundTransition';
 import type { FullRuleConfig } from '../match/types';
 import { markRiverTileClaimed } from '../callChecker';
+import { clearKuikaeRestriction, isKuikaeEnabled, kuikaeForbiddenAfterChi, kuikaeForbiddenAfterPon, setKuikaeRestriction } from '../kuikae';
 import { getTileRank, getTileSuit, sortTiles } from '../tileUtils';
 import type { CallSet, GamePhase, GameState, PlayerId, RoundResult, Tile } from '../types';
 import type { DrawEvent, GameEvent, MatchLog, RoundEndedEvent, RoundLog, SimpleCallEvent, TileSnapshot, WinDeclaredEvent } from './types';
@@ -212,6 +213,7 @@ function createInitialContext(round: RoundLog, options: ReplayBuildOptions): Mut
     lastWinSource: null,
     lastLiveWallDiscarder: null,
     pendingAbortiveDrawAfterFourthKan: false,
+    kuikaeForbiddenTileIds: {},
     ruleConfig: options.ruleConfig?.round,
     matchRuleConfig: options.ruleConfig?.match,
   };
@@ -292,6 +294,7 @@ function applyReplayAction(context: MutableReplayContext, event: GameEvent): voi
     state.phase = 'draw';
     state.turn += 1;
     state.playerDiscardCounts[event.actor] += 1;
+    state.kuikaeForbiddenTileIds = clearKuikaeRestriction(state, event.actor);
     return;
   }
 
@@ -356,10 +359,17 @@ function applyCall(context: MutableReplayContext, event: ReplayCallEvent): void 
   state.currentPlayer = actor;
   state.phase = 'discard';
   state.callsOccurred = true;
+  if (isKuikaeEnabled(state) && callType === 'chi') {
+    state.kuikaeForbiddenTileIds = setKuikaeRestriction(state, actor, kuikaeForbiddenAfterChi(call.usedTileIds ?? []));
+  } else if (isKuikaeEnabled(state) && callType === 'pon') {
+    const ponTileId = calledTile?.id ?? tiles[0]?.id;
+    if (ponTileId !== undefined) state.kuikaeForbiddenTileIds = setKuikaeRestriction(state, actor, kuikaeForbiddenAfterPon(ponTileId));
+  }
 }
 
 function settleResult(context: MutableReplayContext, result: RoundResult, applyScores: boolean): void {
   const state = context.gameState;
+  state.kuikaeForbiddenTileIds = {};
   context.settlementRiichiSticks ??= state.riichiSticks;
   if (applyScores && !context.scoresSettled) {
     const finalRiichiSticks = result.type === 'tsumo' || result.type === 'ron' ? 0 : state.riichiSticks;

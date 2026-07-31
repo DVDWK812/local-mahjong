@@ -49,6 +49,24 @@ describe('LocalHandArea', () => {
     expect(hidden).not.toContain('tsumogiri-marker');
   });
 
+  it('食替禁打时显示提示，并沿用不可点击的手牌状态', () => {
+    const state = createInitialGameState();
+    const allowed = state.players[0].hand.slice(1).map((tile) => tile.instanceId);
+    const html = renderToStaticMarkup(
+      <LocalHandArea
+        player={state.players[0]}
+        isCurrent
+        canDiscard
+        allowedDiscardInstanceIds={allowed}
+        kuikaeForbiddenTileIds={[state.players[0].hand[0].id]}
+        onDiscard={() => undefined}
+      />,
+    );
+    expect(html).toContain('食替禁止');
+    expect(html).toContain('tile--kuikae-forbidden');
+    expect(css).toContain('.tile--kuikae-forbidden');
+  });
+
   it('本家副露区域位于最右侧，并在副露较多时优先缩小副露牌', () => {
     const state = createInitialGameState();
     const call: CallSet = {

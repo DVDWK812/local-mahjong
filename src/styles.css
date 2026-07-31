@@ -2413,6 +2413,12 @@ button {
   transform: translateX(220px) translateY(250px);
 }
 
+.tile--kuikae-forbidden {
+  filter: saturate(0.25) brightness(0.62);
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
 .replay-screen .player-slot--top .player-zone-label,
 .replay-screen .player-slot--left .player-zone-label {
   grid-area: hand;
@@ -2687,6 +2693,16 @@ button {
   background: transparent;
 }
 
+.discard-river--south .discard-river-grid,
+.discard-river--north .discard-river-grid {
+  grid-template-columns: repeat(6, var(--river-tile-width));
+  grid-template-rows: repeat(3, var(--river-tile-height));
+  grid-auto-flow: row;
+  width: calc(var(--river-tile-width) * 6 + var(--river-gap) * 5);
+  height: calc(var(--river-tile-height) * 3 + var(--river-gap) * 2);
+  max-height: calc(var(--river-tile-height) * 3 + var(--river-gap) * 2);
+}
+
 .discard-river-tile {
   display: grid;
   grid-column: span 2;
@@ -2695,6 +2711,12 @@ button {
   height: var(--river-tile-height);
   min-width: var(--river-tile-width);
   min-height: var(--river-tile-height);
+}
+
+.discard-river--south .discard-river-tile,
+.discard-river--north .discard-river-tile {
+  grid-row: var(--river-row);
+  grid-column: var(--river-column);
 }
 
 .discard-river-tile--claimed {

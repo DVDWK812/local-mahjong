@@ -16,6 +16,7 @@ interface GameScreenProps {
   actionPrompt?: ReactNode;
   canDiscard: boolean;
   allowedDiscardInstanceIds?: string[];
+  kuikaeForbiddenTileIds?: TileId[];
   onOpenRulesGuide?: () => void;
   onToggleAnalysis: () => void;
   onCloseAnalysis: () => void;
@@ -37,6 +38,7 @@ export function GameScreen({
   actionPrompt,
   canDiscard,
   allowedDiscardInstanceIds,
+  kuikaeForbiddenTileIds = [],
   onOpenRulesGuide,
   onToggleAnalysis,
   onCloseAnalysis,
@@ -76,6 +78,7 @@ export function GameScreen({
         isCurrent={gameState.currentPlayer === 0}
         canDiscard={canDiscard}
         allowedDiscardInstanceIds={allowedDiscardInstanceIds}
+        kuikaeForbiddenTileIds={kuikaeForbiddenTileIds}
         onDiscard={onDiscard}
         doraIndicators={gameState.doraIndicators}
         doraGlowEnabled={doraGlowEnabled}

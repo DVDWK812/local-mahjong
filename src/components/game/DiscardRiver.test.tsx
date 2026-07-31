@@ -109,6 +109,58 @@ describe('DiscardRiver', () => {
     expect(css).not.toContain('scale(');
     expect(cssRule(css, '.discard-river-tile {')).not.toContain('position: absolute');
   });
+  it('上下牌河18张恰好按3行×6张排列', () => {
+    const state = createInitialGameState();
+    const player = { ...state.players[0], river: Array.from({ length: 18 }, (_, index) => createTile((index % 9) as 0, index)) };
+    const html = renderToStaticMarkup(<DiscardRiver player={player} position="south" />);
+    expect((html.match(/data-river-row="1"/g) ?? [])).toHaveLength(6);
+    expect((html.match(/data-river-row="2"/g) ?? [])).toHaveLength(6);
+    expect((html.match(/data-river-row="3"/g) ?? [])).toHaveLength(6);
+    expect(html).toContain('data-river-row="3" data-river-column="6"');
+    const horizontalRule = cssRule(css, '.discard-river--south .discard-river-grid');
+    expect(horizontalRule).toContain('grid-template-columns: repeat(6, var(--river-tile-width))');
+    expect(horizontalRule).toContain('grid-template-rows: repeat(3, var(--river-tile-height))');
+  });
+
+  it('第19张及后续牌固定在第三行向原阅读方向延伸', () => {
+    const state = createInitialGameState();
+    const player = { ...state.players[2], river: Array.from({ length: 20 }, (_, index) => createTile((index % 9) as 0, index)) };
+    const south = renderToStaticMarkup(<DiscardRiver player={player} position="south" />);
+    const north = renderToStaticMarkup(<DiscardRiver player={player} position="north" />);
+    expect(south).toContain('data-river-row="3" data-river-column="7"');
+    expect(south).toContain('data-river-row="3" data-river-column="8"');
+    expect(north).toContain('data-river-row="3" data-river-column="8"');
+    expect(cssRule(css, '.discard-river--north {')).toContain('transform: rotate(180deg)');
+  });
+
+  it('左右牌河不采用上下牌河的行列定位', () => {
+    const state = createInitialGameState();
+    const player = { ...state.players[1], river: Array.from({ length: 19 }, (_, index) => createTile((index % 9) as 0, index)) };
+    const west = renderToStaticMarkup(<DiscardRiver player={player} position="west" />);
+    const east = renderToStaticMarkup(<DiscardRiver player={player} position="east" />);
+    expect(west).not.toContain('data-river-row');
+    expect(east).not.toContain('data-river-column');
+    expect(cssRule(css, '.discard-river--west {')).toContain('transform: rotate(90deg)');
+    expect(cssRule(css, '.discard-river--east {')).toContain('transform: rotate(-90deg)');
+  });
+
+  it('立直横牌仍占一个顺序槽位，不会挤到下一行', () => {
+    const state = createInitialGameState();
+    const river = Array.from({ length: 19 }, (_, index) => createTile((index % 9) as 0, index));
+    const riichiTile = river[5];
+    const player = {
+      ...state.players[0],
+      river,
+      riichi: true,
+      riichiState: { declaredAtTurn: 4, ippatsuAvailable: true, kind: 'riichi' as const, riichiDiscardInstanceId: riichiTile.instanceId },
+    };
+    const html = renderToStaticMarkup(<DiscardRiver player={player} position="south" />);
+    expect(html).toContain('riichi-discard-slot');
+    expect(html).toContain('data-river-row="1" data-river-column="6"');
+    expect(html).toContain('data-river-row="2" data-river-column="1"');
+    expect(html).toContain('data-river-row="3" data-river-column="7"');
+  });
+
   it('keeps discard tile buttons fully opaque while claimed placeholders stay hidden', () => {
     const tileDisabledRule = cssRule(css, '.tile:disabled');
     const displayTileRule = cssRule(css, '.discard-river .tile');

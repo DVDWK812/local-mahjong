@@ -102,6 +102,18 @@ describe('比赛设置界面', () => {
     expect(config.round.tripleRonMode).toBe('allow');
   });
 
+  it('禁止食替位于单局规则、默认开启，旧配置缺失时迁移为开启', () => {
+    const config = getRulePreset('east-round');
+    const html = renderToStaticMarkup(<MatchSettings config={config} onConfigChange={() => undefined} />);
+    expect(html.indexOf('单局规则')).toBeLessThan(html.indexOf('禁止食替'));
+    expect(config.round.forbidKuikae).toBe(true);
+    const legacy = {
+      ...config,
+      round: Object.fromEntries(Object.entries(config.round).filter(([key]) => key !== 'forbidKuikae')) as typeof config.round,
+    };
+    expect(normalizeMatchSettingsConfig(legacy).round.forbidKuikae).toBe(true);
+  });
+
   it('旧配置缺少三家和字段时按开启处理', () => {
     const config = getRulePreset('east-round');
     const legacy = {

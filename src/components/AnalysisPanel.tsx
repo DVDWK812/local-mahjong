@@ -3,6 +3,7 @@ import { formatShanten, recommendDiscards, shanten, ukeire } from '../game/shant
 import { getVisibleTileCounts } from '../game/visibility';
 import { evaluateWin, potentialYaku, type WinContext } from '../game/scoreCalculator';
 import { Tile } from './Tile';
+import { isKuikaeEnabled, kuikaeForbiddenForPlayer } from '../game/kuikae';
 
 interface AnalysisPanelProps {
   gameState: GameState;
@@ -13,7 +14,8 @@ export function AnalysisPanel({ gameState }: AnalysisPanelProps) {
   const visibleCounts = getVisibleTileCounts(gameState).map((count) => count.visible);
   const shantenResult = shanten(player.hand);
   const waits = ukeire(player.hand, visibleCounts);
-  const recommendations = recommendDiscards(player.hand, visibleCounts);
+  const forbiddenTileIds = isKuikaeEnabled(gameState) ? kuikaeForbiddenForPlayer(gameState, 0) : [];
+  const recommendations = recommendDiscards(player.hand, visibleCounts, forbiddenTileIds);
   const context = createWinContext(gameState);
   const potential = potentialYaku(player.hand, context);
   const score = evaluateWin(player.hand, context);

@@ -74,6 +74,7 @@ export function normalizeMatchSettingsConfig(
     round: {
       ...config.round,
       preserveClaimedDiscardGap: config.round.preserveClaimedDiscardGap ?? false,
+      forbidKuikae: config.round.forbidKuikae ?? true,
       tripleRonMode: config.round.tripleRonMode ?? 'allow',
       ...roundPatch,
     },
@@ -248,6 +249,7 @@ export function MatchSettings({
           <CheckField label="四家立直" rule="abortOnFourRiichi" checked={round.abortOnFourRiichi} onChange={(checked) => setRound({ abortOnFourRiichi: checked })} />
           <CheckField label="四杠散了" rule="abortOnFourKans" checked={round.abortOnFourKans} onChange={(checked) => setRound({ abortOnFourKans: checked })} />
           <CheckField label="三家和" rule="tripleRonMode" checked={round.tripleRonMode !== 'abortive-draw'} onChange={(checked) => setRound({ tripleRonMode: checked ? 'allow' : 'abortive-draw' })} />
+          <CheckField label="禁止食替" rule="forbidKuikae" checked={round.forbidKuikae !== false} onChange={(checked) => setRound({ forbidKuikae: checked })} />
           <CheckField label="国士无双抢暗杠" rule="allowKokushiChankanAnkan" checked={round.allowKokushiChankanAnkan} onChange={(checked) => setRound({ allowKokushiChankanAnkan: checked })} />
         </div>
       </section>
