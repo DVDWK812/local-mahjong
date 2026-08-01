@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { getRulePreset } from '../match/matchRules';
 import type { ExhaustiveDrawResult, TileId, WinRoundResult } from '../types';
 import { createTile } from '../tileUtils';
+import { createInitialGameState } from '../engine';
+import { executeKan } from '../kanChecker';
+import { uraDoraIndicatorSlots } from '../wall';
 import { buildReplayState, initialScoresForRound, replayConservedPoints, resolveReplayFinalScores } from './roundReplay';
 import type { GameEvent, MatchLog, RoundLog, TileSnapshot } from './types';
 
@@ -143,6 +146,73 @@ describe('buildReplayState', () => {
     expect(state.gameState.players[2].drawnTile?.instanceId).toBe('dead-0');
     expect(state.wall.drawnDeadTiles.map((entry) => entry.instanceId)).toEqual(['dead-0']);
     expect(state.wall.rinshanRemaining).toBe(3);
+    expect(state.wall.liveWall.map((entry) => entry.instanceId)).toEqual(['live-0']);
+    expect(state.wall.doraIndicatorSlots.map((entry) => entry?.instanceId)).toEqual(['dead-4', 'dead-6', 'dead-8', 'dead-10', 'dead-12']);
+    expect(state.wall.uraIndicatorSlots.map((entry) => entry?.instanceId)).toEqual(['dead-5', 'dead-7', 'dead-9', 'dead-11', 'dead-13']);
+  });
+
+  it('连续四杠按固定槽位重建宝牌、岭上牌和活牌可摸边界且不发生实例重复', () => {
+    const dead = deadWall();
+    const events: GameEvent[] = [];
+    for (let index = 0; index < 4; index += 1) {
+      events.push(event(events.length, {
+        type: 'ankan-declared',
+        actor: 2,
+        from: 2,
+        tiles: [tile(5, `kan-${index}-0`), tile(5, `kan-${index}-1`), tile(5, `kan-${index}-2`), tile(5, `kan-${index}-3`)],
+      }));
+      events.push(event(events.length, { type: 'dora-revealed', tiles: [dead[6 + index * 2]] }));
+      events.push(event(events.length, { type: 'tile-drawn', actor: 2, tile: dead[index], source: 'rinshan' }));
+    }
+    const round = {
+      ...baseRound(events),
+      liveWall: [tile(7, 'live-0'), tile(8, 'live-1'), tile(9, 'live-2'), tile(10, 'live-3'), tile(11, 'live-4')],
+    };
+    const state = buildReplayState(round, events.length);
+    expect(state.gameState.doraIndicators.map((entry) => entry.instanceId)).toEqual(['dead-4', 'dead-6', 'dead-8', 'dead-10', 'dead-12']);
+    expect(state.wall.drawnDeadTiles.map((entry) => entry.instanceId)).toEqual(['dead-0', 'dead-1', 'dead-2', 'dead-3']);
+    expect(state.wall.liveWall.map((entry) => entry.instanceId)).toEqual(['live-0']);
+    expect(state.wall.deadWall.map((entry) => entry.instanceId)).toEqual(dead.map((entry) => entry.instanceId));
+    expect(new Set(state.wall.drawnDeadTiles.map((entry) => entry.instanceId)).size).toBe(4);
+    expect(state.gameState.doraIndicators.some((entry) => ['dead-5', 'dead-7', 'dead-9', 'dead-11', 'dead-13'].includes(entry.instanceId))).toBe(false);
+  });
+
+  it('正常游戏与回放重建在杠后使用完全相同的表宝、里宝、岭上牌和活牌边界', () => {
+    const dead = deadWall();
+    const live = [tile(7, 'live-0'), tile(8, 'live-1')];
+    const toRuntimeTile = (snapshot: TileSnapshot) => ({
+      ...createTile(snapshot.tileId, 0),
+      instanceId: snapshot.instanceId,
+      red: snapshot.red,
+    });
+    const initial = createInitialGameState();
+    const initialHand = baseRound().initialHands![2];
+    const normal = executeKan({
+      ...initial,
+      currentPlayer: 2,
+      phase: 'discard',
+      wall: live.map(toRuntimeTile),
+      deadWall: dead.map(toRuntimeTile),
+      doraIndicators: [toRuntimeTile(dead[4])],
+      players: initial.players.map((player) => player.id === 2 ? {
+        ...player,
+        hand: initialHand.map(toRuntimeTile),
+        drawnTile: toRuntimeTile(initialHand[3]),
+      } : player),
+    }, 2, 'ankan', 5);
+    const replayRound = baseRound([
+      event(0, { type: 'ankan-declared', actor: 2, from: 2, tiles: initialHand }),
+      event(1, { type: 'dora-revealed', tiles: [dead[6]] }),
+      event(2, { type: 'tile-drawn', actor: 2, tile: dead[0], source: 'rinshan' }),
+    ]);
+    const replay = buildReplayState(replayRound, 3);
+
+    expect(replay.gameState.doraIndicators.map((entry) => entry.instanceId))
+      .toEqual(normal.doraIndicators.map((entry) => entry.instanceId));
+    expect(replay.wall.uraIndicatorSlots.map((entry) => entry?.instanceId))
+      .toEqual(uraDoraIndicatorSlots(normal.deadWall).map((entry) => entry.instanceId));
+    expect(replay.gameState.players[2].drawnTile?.instanceId).toBe(normal.players[2].drawnTile?.instanceId);
+    expect(replay.wall.liveWall.length).toBe(normal.wall.length);
   });
 
   it('点数结算只应用一次，并可推导下一局初始分数', () => {

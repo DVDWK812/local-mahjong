@@ -3,6 +3,7 @@ import type { AbortiveDrawReason, GameState, PlayerId, ResultYaku, Tile as TileM
 import { tileLabel, windLabel } from '../game/tileUtils';
 import { PlayerMelds } from './PlayerMelds';
 import { Tile as TileView } from './Tile';
+import { activeUraDoraIndicators } from '../game/wall';
 
 interface ResultDialogProps {
   gameState: GameState;
@@ -61,7 +62,7 @@ function HandPreview({ title, tiles, doraIndicators = [], doraGlowEnabled = true
 
 function WinHandPreview({ gameState, winner, win, doraGlowEnabled = true }: { gameState: GameState; winner: GameState['players'][number]; win: WinResultEntry; doraGlowEnabled?: boolean }) {
   const concealedTiles = removeWinTileForDisplay(winner.hand, win.winTile, win.winType);
-  const uraIndicators = winner.riichi ? activeUraDoraIndicators(gameState) : [];
+  const uraIndicators = winner.riichi ? activeUraDoraIndicators(gameState.deadWall, gameState.doraIndicators.length) : [];
   return (
     <div className="result-tile-sections" aria-label="和牌牌组">
       <section className="result-tile-section result-concealed-hand">
@@ -92,12 +93,6 @@ function WinHandPreview({ gameState, winner, win, doraGlowEnabled = true }: { ga
       ) : null}
     </div>
   );
-}
-
-function activeUraDoraIndicators(state: GameState): TileModel[] {
-  return state.doraIndicators
-    .map((_, index) => state.deadWall[9 + index])
-    .filter((tile): tile is TileModel => Boolean(tile));
 }
 
 function removeWinTileForDisplay(hand: TileModel[], winTile: TileModel, winType: 'tsumo' | 'ron'): TileModel[] {

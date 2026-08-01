@@ -1,6 +1,7 @@
 import type { CallSet, GameState, PlayerId, PlayerState, Tile } from '../types';
 import type { ScoringMeld, WinningTileSource } from './scoringTypes';
 import type { WinContext } from './yakuChecker';
+import { activeUraDoraIndicators } from '../wall';
 
 export function callToScoringMeld(call: CallSet): ScoringMeld {
   const ids = call.type === 'chi' && call.sequence
@@ -63,19 +64,13 @@ export function createScoringWinContext(params: {
     roundWind: state.roundWind,
     seatWind: player.seatWind,
     doraIndicators: state.doraIndicators,
-    uraDoraIndicators: player.riichi ? activeUraDoraIndicators(state) : [],
+    uraDoraIndicators: player.riichi ? activeUraDoraIndicators(state.deadWall, state.doraIndicators.length) : [],
     honba: state.honba,
     riichiSticks: params.riichiSticks ?? state.riichiSticks,
     melds: callsToScoringMelds(player.calls),
     preWinHand,
     ruleConfig: state.ruleConfig,
   };
-}
-
-function activeUraDoraIndicators(state: GameState): Tile[] {
-  return state.doraIndicators
-    .map((_, index) => state.deadWall[9 + index])
-    .filter((tile): tile is Tile => Boolean(tile));
 }
 
 function inferWinningTileSource(state: GameState, playerId: PlayerId, winType: 'ron' | 'tsumo', winningTile: Tile): WinningTileSource {

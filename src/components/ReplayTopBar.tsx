@@ -13,6 +13,9 @@ interface ReplayTopBarProps {
   onPerspectiveChange: (playerId: PlayerId) => void;
   onToggleOpenHands: () => void;
   onToggleWall: () => void;
+  testModeEnabled?: boolean;
+  testModeConversionReason?: string;
+  onConvertToTestScenario?: () => void;
 }
 
 export function ReplayTopBar({
@@ -28,6 +31,9 @@ export function ReplayTopBar({
   onPerspectiveChange,
   onToggleOpenHands,
   onToggleWall,
+  testModeEnabled = false,
+  testModeConversionReason,
+  onConvertToTestScenario,
 }: ReplayTopBarProps) {
   return (
     <header className="replay-top-bar">
@@ -73,6 +79,12 @@ export function ReplayTopBar({
       </div>
 
       <div className="replay-top-bar__tools">
+        {testModeEnabled ? (
+          <>
+            <button type="button" disabled={!onConvertToTestScenario} title={testModeConversionReason} onClick={onConvertToTestScenario}>转为测试场景</button>
+            {testModeConversionReason ? <span className="replay-test-conversion-reason" role="status">无法转换：{testModeConversionReason}</span> : null}
+          </>
+        ) : null}
         <button type="button" aria-expanded={wallOpen} aria-controls="replay-wall-drawer" onClick={onToggleWall}>
           牌山
         </button>

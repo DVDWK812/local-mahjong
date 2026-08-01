@@ -35,6 +35,8 @@ interface BoardProps {
   sameTileHoverEnabled?: boolean;
   showTenpaiWaitsEnabled?: boolean;
   tsumoGiriDisplayEnabled?: boolean;
+  controlledPlayerId?: PlayerId;
+  revealAllHands?: boolean;
 }
 
 export function Board({
@@ -60,11 +62,13 @@ export function Board({
   sameTileHoverEnabled = true,
   showTenpaiWaitsEnabled = true,
   tsumoGiriDisplayEnabled = true,
+  controlledPlayerId = 0,
+  revealAllHands = false,
 }: BoardProps) {
   const [dismissedPromptKey, setDismissedPromptKey] = useState<string | null>(null);
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [hoveredTileType, setHoveredTileType] = useState<TileId | null>(null);
-  const promptKey = `${gameState.phase}-${gameState.currentPlayer}-${gameState.turn}-${gameState.players[0].drawnTile?.instanceId ?? 'none'}-${gameState.lastDiscard?.tile.instanceId ?? 'none'}`;
+  const promptKey = `${gameState.phase}-${gameState.currentPlayer}-${gameState.turn}-${controlledPlayerId}-${gameState.players[controlledPlayerId].drawnTile?.instanceId ?? 'none'}-${gameState.lastDiscard?.tile.instanceId ?? 'none'}`;
 
   useEffect(() => {
     setDismissedPromptKey(null);
@@ -74,32 +78,32 @@ export function Board({
     setHoveredTileType(null);
   }, [gameState]);
 
-  const drawActions = useMemo(() => getDrawActionState(gameState, 0), [gameState]);
-  const canHumanPon = canPon(gameState, 0);
-  const canHumanChi = canChi(gameState, 0);
-  const canHumanMinkan = canMinkan(gameState, 0);
-  const humanChiOptions = gameState.pendingCall?.options.filter((option) => option.type === 'chi' && option.player === 0) ?? [];
-  const humanMinkanOptions = gameState.pendingCall?.options.filter((option) => option.type === 'kan' && option.kanType === 'minkan' && option.player === 0) ?? [];
-  const canHumanChankan = canChankan(gameState, 0);
-  const canHumanRon = gameState.phase === 'ron-window' && !!gameState.pendingRon?.eligibleRonPlayers.includes(0) && !gameState.pendingRon.passedPlayers.includes(0);
+  const drawActions = useMemo(() => getDrawActionState(gameState, controlledPlayerId), [gameState, controlledPlayerId]);
+  const canHumanPon = canPon(gameState, controlledPlayerId);
+  const canHumanChi = canChi(gameState, controlledPlayerId);
+  const canHumanMinkan = canMinkan(gameState, controlledPlayerId);
+  const humanChiOptions = gameState.pendingCall?.options.filter((option) => option.type === 'chi' && option.player === controlledPlayerId) ?? [];
+  const humanMinkanOptions = gameState.pendingCall?.options.filter((option) => option.type === 'kan' && option.kanType === 'minkan' && option.player === controlledPlayerId) ?? [];
+  const canHumanChankan = canChankan(gameState, controlledPlayerId);
+  const canHumanRon = gameState.phase === 'ron-window' && !!gameState.pendingRon?.eligibleRonPlayers.includes(controlledPlayerId) && !gameState.pendingRon.passedPlayers.includes(controlledPlayerId);
   const hasDrawPrompt = gameState.phase === 'discard'
-    && gameState.currentPlayer === 0
+    && gameState.currentPlayer === controlledPlayerId
     && dismissedPromptKey !== promptKey
     && (drawActions.canTsumo || drawActions.canRiichi || drawActions.canKyuushuKyuuhai || drawActions.ankanCandidates.length > 0 || drawActions.kakanCandidates.length > 0);
   const promptOpen = hasDrawPrompt
     || canHumanRon
     || (gameState.phase === 'call-window' && (canHumanPon || canHumanChi || canHumanMinkan))
     || (gameState.phase === 'chankan-window' && canHumanChankan);
-  const localPlayer = gameState.players[0];
+  const localPlayer = gameState.players[controlledPlayerId];
   const riichiDrawnTile = localPlayer.riichi ? localPlayer.drawnTile?.instanceId : undefined;
-  const kuikaeForbiddenTileIds = isKuikaeEnabled(gameState) ? kuikaeForbiddenForPlayer(gameState, 0) : [];
+  const kuikaeForbiddenTileIds = isKuikaeEnabled(gameState) ? kuikaeForbiddenForPlayer(gameState, controlledPlayerId) : [];
   const ruleAllowedDiscardIds = kuikaeForbiddenTileIds.length > 0
-    ? legalDiscardTiles(gameState, 0).map((tile) => tile.instanceId)
+    ? legalDiscardTiles(gameState, controlledPlayerId).map((tile) => tile.instanceId)
     : undefined;
   const allowedDiscardInstanceIds = riichiDrawnTile
     ? ruleAllowedDiscardIds?.includes(riichiDrawnTile) === false ? [] : [riichiDrawnTile]
     : ruleAllowedDiscardIds;
-  const canDiscard = gameState.phase === 'discard' && gameState.currentPlayer === 0 && !promptOpen;
+  const canDiscard = gameState.phase === 'discard' && gameState.currentPlayer === controlledPlayerId && !promptOpen;
 
   const skipDrawActions = () => {
     setDismissedPromptKey(promptKey);
@@ -119,7 +123,7 @@ export function Board({
       {hasDrawPrompt ? (
         <ActionPrompt title="可执行操作">
           {drawActions.canTsumo && localPlayer.drawnTile ? (
-            <TileActionButton label="自摸" tile={localPlayer.drawnTile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onTsumo(0)} />
+            <TileActionButton label="自摸" tile={localPlayer.drawnTile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onTsumo(controlledPlayerId)} />
           ) : null}
           {drawActions.canRiichi ? (
             <div className="prompt-group">
@@ -136,37 +140,37 @@ export function Board({
                   hoveredTileType={hoveredTileType}
                   sameTileHoverEnabled={sameTileHoverEnabled}
                   onHoveredTileTypeChange={setHoveredTileType}
-                  onClick={() => onDeclareRiichi(0, tile.instanceId)}
+                  onClick={() => onDeclareRiichi(controlledPlayerId, tile.instanceId)}
                 />
               ))}
             </div>
           ) : null}
-          {drawActions.canKyuushuKyuuhai ? <button type="button" onClick={() => onDeclareKyuushuKyuuhai(0)}>九种九牌</button> : null}
+          {drawActions.canKyuushuKyuuhai ? <button type="button" onClick={() => onDeclareKyuushuKyuuhai(controlledPlayerId)}>九种九牌</button> : null}
           {drawActions.ankanCandidates.map((candidate) => (
             <CallOptionButton
               key={`ankan-${candidate.tileId}`}
               label="暗杠"
-              tiles={tilesForAnkan(gameState, 0, candidate.tileId)}
+              tiles={tilesForAnkan(gameState, controlledPlayerId, candidate.tileId)}
               doraIndicators={gameState.doraIndicators}
               doraGlowEnabled={doraGlowEnabled}
               hoveredTileType={hoveredTileType}
               sameTileHoverEnabled={sameTileHoverEnabled}
               onHoveredTileTypeChange={setHoveredTileType}
-              onClick={() => onKan(0, 'ankan', candidate.tileId)}
+              onClick={() => onKan(controlledPlayerId, 'ankan', candidate.tileId)}
             />
           ))}
           {drawActions.kakanCandidates.map((candidate) => (
             <CallOptionButton
               key={`kakan-${candidate.tileId}`}
               label="加杠"
-              tiles={tilesForKakan(gameState, 0, candidate.tileId)}
-              calledInstanceId={gameState.players[0].hand.find((tile) => tile.id === candidate.tileId)?.instanceId}
+              tiles={tilesForKakan(gameState, controlledPlayerId, candidate.tileId)}
+              calledInstanceId={gameState.players[controlledPlayerId].hand.find((tile) => tile.id === candidate.tileId)?.instanceId}
               doraIndicators={gameState.doraIndicators}
               doraGlowEnabled={doraGlowEnabled}
               hoveredTileType={hoveredTileType}
               sameTileHoverEnabled={sameTileHoverEnabled}
               onHoveredTileTypeChange={setHoveredTileType}
-              onClick={() => onKan(0, 'kakan', candidate.tileId)}
+              onClick={() => onKan(controlledPlayerId, 'kakan', candidate.tileId)}
             />
           ))}
           <button type="button" onClick={skipDrawActions}>跳过</button>
@@ -176,9 +180,9 @@ export function Board({
       {canHumanRon ? (
         <ActionPrompt title={`可以荣和 ${gameState.pendingRon ? tileLabel(gameState.pendingRon.tile.id) : ''}`}>
           {gameState.pendingRon ? (
-            <TileActionButton label="荣和" tile={gameState.pendingRon.tile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onRon(0)} />
+            <TileActionButton label="荣和" tile={gameState.pendingRon.tile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onRon(controlledPlayerId)} />
           ) : null}
-          <button type="button" onClick={() => onPassRon(0)}>跳过</button>
+          <button type="button" onClick={() => onPassRon(controlledPlayerId)}>跳过</button>
         </ActionPrompt>
       ) : null}
 
@@ -203,20 +207,20 @@ export function Board({
               hoveredTileType={hoveredTileType}
               sameTileHoverEnabled={sameTileHoverEnabled}
               onHoveredTileTypeChange={setHoveredTileType}
-              onClick={() => onKan(0, 'minkan')}
+              onClick={() => onKan(controlledPlayerId, 'minkan')}
             />
           ))}
           {canHumanPon ? (
             <CallOptionButton
               label="碰"
-              tiles={tilesForPon(gameState, 0)}
+              tiles={tilesForPon(gameState, controlledPlayerId)}
               calledInstanceId={gameState.pendingCall?.tile.instanceId}
               doraIndicators={gameState.doraIndicators}
               doraGlowEnabled={doraGlowEnabled}
               hoveredTileType={hoveredTileType}
               sameTileHoverEnabled={sameTileHoverEnabled}
               onHoveredTileTypeChange={setHoveredTileType}
-              onClick={() => onPon(0)}
+              onClick={() => onPon(controlledPlayerId)}
             />
           ) : null}
           {humanChiOptions.map((option, index) => (
@@ -230,7 +234,7 @@ export function Board({
               hoveredTileType={hoveredTileType}
               sameTileHoverEnabled={sameTileHoverEnabled}
               onHoveredTileTypeChange={setHoveredTileType}
-              onClick={() => onChi(0, index)}
+              onClick={() => onChi(controlledPlayerId, index)}
             />
           ))}
           <button type="button" onClick={onPassCall}>跳过</button>
@@ -240,9 +244,9 @@ export function Board({
       {gameState.phase === 'chankan-window' && canHumanChankan ? (
         <ActionPrompt title={`可以抢杠 ${gameState.pendingKakan ? tileLabel(gameState.pendingKakan.addedTile.id) : ''}`}>
           {gameState.pendingKakan ? (
-            <TileActionButton label="荣和" tile={gameState.pendingKakan.addedTile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onChankanRon(0)} />
+            <TileActionButton label="荣和" tile={gameState.pendingKakan.addedTile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onChankanRon(controlledPlayerId)} />
           ) : null}
-          <button type="button" onClick={() => onPassChankan(0)}>跳过</button>
+          <button type="button" onClick={() => onPassChankan(controlledPlayerId)}>跳过</button>
         </ActionPrompt>
       ) : null}
     </>
@@ -269,6 +273,8 @@ export function Board({
       onHoveredTileTypeChange={setHoveredTileType}
       showTenpaiWaitsEnabled={showTenpaiWaitsEnabled}
       tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled}
+      localPlayerId={controlledPlayerId}
+      revealAllHands={revealAllHands}
     />
   );
 }

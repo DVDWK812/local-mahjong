@@ -11,6 +11,7 @@ import { MatchResultDialog } from './components/MatchResultDialog';
 import { DEFAULT_AI_PLAYER_SETTINGS, MatchSettings, type AIPlayerSetting } from './components/MatchSettings';
 import { ReplayLibrary } from './components/ReplayLibrary';
 import { ReplayDetail } from './components/ReplayDetail';
+import { TestModeScreen } from './components/TestModeScreen';
 import { RiichiModeMenu } from './components/RiichiModeMenu';
 import { RulesGuideScreen } from './components/rulesGuide/RulesGuideScreen';
 import { advanceAIAction, isAIPlayer } from './game/ai';
@@ -30,6 +31,8 @@ import { CURRENT_SAVE_VERSION } from './game/persistence/storageTypes';
 import { createInitialMatchLog, finishMatchLog, recordGameStateTransition, startRoundInMatchLog } from './game/replay/eventRecorder';
 import type { MatchLog } from './game/replay/types';
 import type { GameState, PlayerId, TileId } from './game/types';
+import { currentTestModeAvailability } from './game/testMode/availability';
+import type { TestScenarioV1 } from './game/testMode/types';
 
 interface ActiveGame {
   matchState: MatchState;
@@ -56,6 +59,7 @@ interface AppState {
   showTenpaiWaitsEnabled: boolean;
   tsumoGiriDisplayEnabled: boolean;
   aiPlayerSettings: AIPlayerSetting[];
+  testScenario: TestScenarioV1 | null;
 }
 
 const storage = typeof window === 'undefined' ? null : new LocalStorageAdapter(window.localStorage);
@@ -129,8 +133,9 @@ function createSavedMatch(activeGame: ActiveGame, ruleConfig: FullRuleConfig): S
 }
 
 export default function App() {
+  const testModeAvailability = currentTestModeAvailability();
   const [state, setState] = useState<AppState>(() => ({
-    screen: 'main-menu',
+    screen: testModeAvailability.requested ? 'test-mode' : 'main-menu',
     activeGame: null,
     ruleConfig: loadInitialRuleConfig(),
     presetId: 'east-round',
@@ -148,6 +153,7 @@ export default function App() {
     showTenpaiWaitsEnabled: true,
     tsumoGiriDisplayEnabled: true,
     aiPlayerSettings: DEFAULT_AI_PLAYER_SETTINGS.map((setting) => ({ ...setting })),
+    testScenario: null,
   }));
 
   const mountedRef = useRef(false);
@@ -485,6 +491,8 @@ export default function App() {
         onLocalMode={() => setScreen('local-mode-menu')}
         onOnlineMode={() => setState((current) => ({ ...current, menuNotice: '联机模式敬请期待。' }))}
         onReplayStudy={() => void openReplayLibrary()}
+        testModeEnabled={testModeAvailability.enabled}
+        onTestMode={() => setScreen('test-mode', { testScenario: null })}
       />
     );
   }
@@ -571,7 +579,24 @@ export default function App() {
   }
 
   if (state.screen === 'replay-detail' && state.replay) {
-    return <ReplayDetail replay={state.replay} onBack={() => setScreen('replay-library', { replay: null })} />;
+    return (
+      <ReplayDetail
+        replay={state.replay}
+        onBack={() => setScreen('replay-library', { replay: null })}
+        testModeEnabled={testModeAvailability.enabled}
+        onConvertToTestScenario={(scenario) => setScreen('test-mode', { replay: null, testScenario: scenario })}
+      />
+    );
+  }
+
+  if (state.screen === 'test-mode' && testModeAvailability.enabled) {
+    return (
+      <TestModeScreen
+        key={state.testScenario?.id ?? 'test-mode-library'}
+        initialScenario={state.testScenario}
+        onExit={() => setScreen('main-menu', { testScenario: null })}
+      />
+    );
   }
 
   if (!activeGame || !gameState || !matchState) return null;

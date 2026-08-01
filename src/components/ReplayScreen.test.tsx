@@ -46,6 +46,75 @@ function privatePerspective(playerId: PlayerId): ReplayPerspectiveState {
   };
 }
 
+function opponentDrawRound(): RoundLog {
+  const value = round();
+  value.liveWall = [tile(17, 'opponent-draw'), tile(18, 'future-after-draw')];
+  value.events = [
+    {
+      type: 'tile-drawn',
+      eventId: 'draw-opponent',
+      sequence: 1,
+      roundId: value.roundId,
+      actor: 1,
+      tile: value.liveWall[0],
+    },
+    {
+      type: 'tile-discarded',
+      eventId: 'discard-opponent',
+      sequence: 2,
+      roundId: value.roundId,
+      actor: 1,
+      tile: value.liveWall[0],
+    },
+  ];
+  return value;
+}
+
+function callRound(type: 'chi-declared' | 'pon-declared' | 'minkan-declared'): RoundLog {
+  const value = round();
+  const called = tile(3, `${type}-called`);
+  const drawn = tile(type === 'chi-declared' ? 4 : 3, `${type}-drawn`);
+  const companions = type === 'chi-declared'
+    ? [tile(5, `${type}-hand-1`)]
+    : [tile(3, `${type}-hand-1`), ...(type === 'minkan-declared' ? [tile(3, `${type}-hand-2`)] : [])];
+  value.initialHands = [[called], companions, [], []];
+  value.liveWall = [drawn, tile(18, `${type}-future`)];
+  value.events = [
+    {
+      type: 'tile-drawn',
+      eventId: `${type}-draw`,
+      sequence: 1,
+      roundId: value.roundId,
+      actor: 1,
+      tile: drawn,
+    },
+    {
+      type: 'tile-discarded',
+      eventId: `${type}-discard`,
+      sequence: 2,
+      roundId: value.roundId,
+      actor: 0,
+      tile: called,
+    },
+    {
+      type,
+      eventId: `${type}-call`,
+      sequence: 3,
+      roundId: value.roundId,
+      actor: 1,
+      from: 0,
+      tiles: [called, drawn, ...companions],
+    },
+  ];
+  return value;
+}
+
+function renderWall(state: ReturnType<typeof buildReplayState>, cameraPlayerId: PlayerId, allOpen = false): string {
+  return renderToStaticMarkup(
+    <ReplayWallPanel replayState={state} allOpen={allOpen} cameraPlayerId={cameraPlayerId} />,
+  );
+}
+
 describe('ReplayScreen 视角边界', () => {
   const mahjongTableSource = readFileSync(resolve(process.cwd(), 'src/components/game/MahjongTable.tsx'), 'utf8');
   const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
@@ -239,10 +308,10 @@ describe('ReplayScreen 视角边界', () => {
     expect(html).toMatch(/center-score--south[^"]*"[^>]*data-center-slot="bottom"[^>]*data-center-player="2"/);
   });
 
-  it('普通视角不泄露未来牌山和里宝牌，全牌公开可查看', () => {
+  it('普通视角不泄露未来牌山和未公开里宝牌，全牌公开可查看', () => {
     const state = buildReplayState(round(), 0);
-    const hidden = renderToStaticMarkup(<ReplayWallPanel replayState={state} allOpen={false} />);
-    const open = renderToStaticMarkup(<ReplayWallPanel replayState={state} allOpen />);
+    const hidden = renderWall(state, 0);
+    const open = renderWall(state, 0, true);
     expect(hidden).not.toContain('牌山剩余');
     expect(open).not.toContain('牌山剩余');
     expect(open).not.toContain('当前摸牌位置');
@@ -250,39 +319,96 @@ describe('ReplayScreen 视角边界', () => {
     expect(open).not.toContain('已摸走');
     expect(open).not.toContain('宝牌指示牌：');
     expect(hidden).not.toContain(getTileAltById(17));
+    expect(hidden).not.toContain(getTileAltById(state.wall.originalDeadWall[5].id));
     expect(hidden).toContain('里宝牌保持牌背');
     expect(open).toContain(getTileAltById(17));
+    expect(open).toContain(getTileAltById(state.wall.originalDeadWall[5].id));
     expect(open).not.toContain('里宝牌位置已公开');
   });
 
   it('缺少牌山时显示安全降级提示', () => {
     const missing = { ...round(), liveWall: undefined, deadWall: undefined };
     const state = buildReplayState(missing, 0);
-    expect(renderToStaticMarkup(<ReplayWallPanel replayState={state} allOpen={false} />)).toContain('该牌谱未记录完整牌山');
+    expect(renderToStaticMarkup(<ReplayWallPanel replayState={state} allOpen={false} cameraPlayerId={0} />)).toContain('该牌谱未记录完整牌山');
   });
 
-  it('已摸走牌保留原牌面且不显示统计描述', () => {
-    const drawnRound = round();
-    drawnRound.events = [{
-      type: 'tile-drawn',
-      eventId: 'draw-1',
-      sequence: 1,
-      roundId: drawnRound.roundId,
-      actor: 1,
-      tile: drawnRound.liveWall![0],
-    }];
-    const state = buildReplayState(drawnRound, 1);
-    const html = renderToStaticMarkup(<ReplayWallPanel replayState={state} allOpen={false} />);
+  it('对手摸牌后弃牌前只标记已摸走但仍显示牌背', () => {
+    const state = buildReplayState(opponentDrawRound(), 1);
+    const html = renderWall(state, 0);
     expect(currentDrawSeatLabel(state)).toBe('南');
     expect(html).not.toContain('当前摸牌位置');
     expect(html).toContain('replay-wall-tile--drawn');
-    expect(html).toContain(getTileAltById(17));
+    expect(html).not.toContain(getTileAltById(17));
+    expect(html).toContain('alt="牌背"');
     expect(html).not.toContain('replay-wall__consumed');
+  });
+
+  it('对手弃牌后对应已摸走实例才在牌山抽屉显示正面', () => {
+    const state = buildReplayState(opponentDrawRound(), 2);
+    expect(renderWall(state, 0)).toContain(getTileAltById(17));
+  });
+
+  it.each([
+    ['吃', 'chi-declared'],
+    ['碰', 'pon-declared'],
+    ['大明杠', 'minkan-declared'],
+  ] as const)('%s公开动作使副露中的已摸走实例可见', (_label, type) => {
+    const state = buildReplayState(callRound(type), 3);
+    const drawn = state.wall.drawnLiveTiles[0];
+    expect(state.gameState.players[1].calls[0].tiles.some((entry) => entry.instanceId === drawn.instanceId)).toBe(true);
+    expect(renderWall(state, 0)).toContain(getTileAltById(drawn.id));
+  });
+
+  it('公开同牌型的另一实例不会泄露对手暗摸实例', () => {
+    const value = opponentDrawRound();
+    value.initialHands![0] = [tile(17, 'public-same-type')];
+    value.events = [
+      value.events[0],
+      {
+        type: 'tile-discarded',
+        eventId: 'discard-same-type-instance',
+        sequence: 2,
+        roundId: value.roundId,
+        actor: 0,
+        tile: value.initialHands![0][0],
+      },
+    ];
+    const state = buildReplayState(value, 2);
+    expect(state.gameState.players[0].river[0].instanceId).toBe('public-same-type');
+    expect(state.wall.drawnLiveTiles[0].instanceId).toBe('opponent-draw');
+    expect(renderWall(state, 0)).not.toContain(getTileAltById(17));
+  });
+
+  it('全牌公开允许查看对手暗摸牌与未来牌山', () => {
+    const state = buildReplayState(opponentDrawRound(), 1);
+    const html = renderWall(state, 0, true);
+    expect(html).toContain(getTileAltById(17));
+    expect(html).toContain(getTileAltById(18));
+  });
+
+  it('切换视角后按新的主视角重新计算暗摸牌权限', () => {
+    const state = buildReplayState(opponentDrawRound(), 1);
+    expect(renderWall(state, 0)).not.toContain(getTileAltById(17));
+    expect(renderWall(state, 1)).toContain(getTileAltById(17));
+    expect(renderWall(state, 2)).not.toContain(getTileAltById(17));
+    expect(renderWall(state, 3)).not.toContain(getTileAltById(17));
+  });
+
+  it('前进、后退再前进时牌山公开状态可重复', () => {
+    const value = opponentDrawRound();
+    const beforeDiscard = renderWall(buildReplayState(value, 1), 0);
+    const afterDiscard = renderWall(buildReplayState(value, 2), 0);
+    const rebuiltBeforeDiscard = renderWall(buildReplayState(value, 1), 0);
+    const rebuiltAfterDiscard = renderWall(buildReplayState(value, 2), 0);
+    expect(beforeDiscard).toBe(rebuiltBeforeDiscard);
+    expect(afterDiscard).toBe(rebuiltAfterDiscard);
+    expect(beforeDiscard).not.toContain(getTileAltById(17));
+    expect(afterDiscard).toContain(getTileAltById(17));
   });
 
   it('公开宝牌指示牌下方标注公开宝牌', () => {
     const state = buildReplayState(round(), 0);
-    const html = renderToStaticMarkup(<ReplayWallPanel replayState={state} allOpen={false} />);
+    const html = renderToStaticMarkup(<ReplayWallPanel replayState={state} allOpen={false} cameraPlayerId={0} />);
     expect(html).toContain('<small>公开宝牌</small>');
   });
 });

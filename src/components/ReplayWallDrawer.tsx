@@ -1,14 +1,16 @@
 import type { BuiltReplayState } from '../game/replay/roundReplay';
+import type { PlayerId } from '../game/types';
 import { ReplayWallPanel } from './ReplayWallPanel';
 
 interface ReplayWallDrawerProps {
   open: boolean;
   replayState: BuiltReplayState;
   allOpen: boolean;
+  cameraPlayerId: PlayerId;
   onClose: () => void;
 }
 
-export function ReplayWallDrawer({ open, replayState, allOpen, onClose }: ReplayWallDrawerProps) {
+export function ReplayWallDrawer({ open, replayState, allOpen, cameraPlayerId, onClose }: ReplayWallDrawerProps) {
   return (
     <>
       <button
@@ -29,7 +31,7 @@ export function ReplayWallDrawer({ open, replayState, allOpen, onClose }: Replay
           <button type="button" onClick={onClose}>关闭</button>
         </div>
         <div className="replay-wall-drawer__body">
-          <ReplayWallPanel replayState={replayState} allOpen={allOpen} />
+          <ReplayWallPanel replayState={replayState} allOpen={allOpen} cameraPlayerId={cameraPlayerId} />
         </div>
       </aside>
     </>

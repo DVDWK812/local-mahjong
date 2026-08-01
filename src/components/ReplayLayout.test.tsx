@@ -38,8 +38,8 @@ describe('Replay fullscreen layout', () => {
   it('牌山抽屉提供打开和关闭状态并复用现有牌山内容', () => {
     const replay = sampleReplayRecord();
     const state = buildReplayState(replay.log.rounds[0], 0);
-    const closed = renderToStaticMarkup(<ReplayWallDrawer open={false} replayState={state} allOpen={false} onClose={() => undefined} />);
-    const open = renderToStaticMarkup(<ReplayWallDrawer open replayState={state} allOpen onClose={() => undefined} />);
+    const closed = renderToStaticMarkup(<ReplayWallDrawer open={false} replayState={state} allOpen={false} cameraPlayerId={0} onClose={() => undefined} />);
+    const open = renderToStaticMarkup(<ReplayWallDrawer open replayState={state} allOpen cameraPlayerId={0} onClose={() => undefined} />);
     expect(closed).toContain('aria-hidden="true"');
     expect(closed).not.toContain('replay-wall-drawer is-open');
     expect(open).toContain('replay-wall-drawer is-open');

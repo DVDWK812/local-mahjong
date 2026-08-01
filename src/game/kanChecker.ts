@@ -4,6 +4,7 @@ import { sortTiles } from './tileUtils';
 import { normalizeFuritenState } from './furiten';
 import { shanten } from './shanten';
 import { markRiverTileClaimed } from './callChecker';
+import { advanceWallAfterKan } from './wall';
 
 export type KanType = 'ankan' | 'minkan' | 'kakan';
 
@@ -255,9 +256,15 @@ function applyKanDraw(state: GameState, playerId: PlayerId, kanType: KanType, ti
     };
   }
 
-  const newIndicator = state.deadWall[4 + state.doraIndicators.length];
-  const rinshanTile = state.deadWall[0];
-  const deadWall = state.deadWall.slice(1);
+  const wallAdvance = advanceWallAfterKan(state.wall, state.deadWall, Math.max(0, state.doraIndicators.length - 1));
+  const rinshanTile = wallAdvance.rinshanTile;
+  if (!rinshanTile) {
+    return {
+      ...state,
+      phase: 'exhaustive-draw',
+    };
+  }
+  const newIndicator = wallAdvance.doraIndicator;
   const doraIndicators = newIndicator ? [...state.doraIndicators, newIndicator] : [...state.doraIndicators];
   const players = state.players.map((player) => ({
     ...player,
@@ -276,7 +283,8 @@ function applyKanDraw(state: GameState, playerId: PlayerId, kanType: KanType, ti
   const nextState: GameState = {
     ...state,
     players,
-    deadWall,
+    wall: wallAdvance.liveWall,
+    deadWall: wallAdvance.deadWall,
     doraIndicators,
     currentPlayer: playerId,
     phase: 'discard',

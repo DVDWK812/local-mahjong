@@ -10,7 +10,8 @@ export type AppScreen =
   | 'rules-guide'
   | 'game'
   | 'replay-library'
-  | 'replay-detail';
+  | 'replay-detail'
+  | 'test-mode';
 
 export type PlayerCount = 3 | 4;
 export type RiichiLengthChoice = 'four-east' | 'four-south' | 'three-east' | 'three-south';

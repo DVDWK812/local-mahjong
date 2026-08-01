@@ -1,6 +1,6 @@
 import type { MatchState } from '../match/types';
 import type { MatchLog } from '../replay/types';
-import type { ReplayRecord } from './storageTypes';
+import type { ReplayRecord, ReplaySource } from './storageTypes';
 import { CURRENT_REPLAY_RECORD_VERSION } from './storageTypes';
 import { createFullRuleConfig, type MatchRuleConfigInput } from '../match/matchRules';
 
@@ -11,6 +11,7 @@ export function createReplayRecord(params: {
   title?: string;
   updatedAt?: string;
   scores?: [number, number, number, number];
+  source?: ReplaySource;
 }): ReplayRecord {
   const { matchState } = params;
   const log = {
@@ -35,7 +36,7 @@ export function createReplayRecord(params: {
     scores: [...scores] as [number, number, number, number],
     matchType,
     roundCount,
-    source: 'local-match',
+    source: params.source ?? 'local-match',
     status: params.completed || !!log.finalResult ? 'completed' : 'incomplete',
     log,
   };

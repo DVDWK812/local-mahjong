@@ -4,6 +4,70 @@ import { createReplayRecord, normalizeReplayRecord } from './replayRecord';
 import { LocalStorageAdapter, replayRecordKey, SaveManager } from './saveManager';
 import { memoryStorage, sampleSavedMatch } from './saveTestUtils';
 import { validateReplayRecord } from './storageValidation';
+import { createTile } from '../tileUtils';
+import type { CallSet, GameState, TileId } from '../types';
+import { createInitialGameState, discardTile } from '../engine';
+import { executeChi } from '../chiChecker';
+import { executePon } from '../callChecker';
+import { executeKan } from '../kanChecker';
+
+function callableSave(type: 'chi' | 'pon' | 'minkan') {
+  const save = sampleSavedMatch();
+  const base = save.gameState!;
+  const tile = (id: TileId, instanceId: string) => ({ ...createTile(id, 0), instanceId });
+  const called = tile(type === 'chi' ? 1 : 27, `${type}-called`);
+  const ownTiles = type === 'chi'
+    ? [tile(0, 'chi-own-0'), tile(2, 'chi-own-2')]
+    : Array.from({ length: type === 'pon' ? 2 : 3 }, (_, index) => tile(27, `${type}-own-${index}`));
+  const call: CallSet = type === 'chi'
+    ? { type: 'chi', tiles: [...ownTiles, called], from: 0, opened: true, calledTile: called, sequence: [0, 1, 2], usedTileIds: [0, 2] }
+    : type === 'pon'
+      ? { type: 'pon', tiles: [...ownTiles, called], from: 0, opened: true }
+      : { type: 'kan', kanType: 'minkan', tiles: [...ownTiles, called], from: 0, opened: true, calledTile: called };
+  const gameState: GameState = {
+    ...base,
+    wall: [],
+    deadWall: [],
+    doraIndicators: [],
+    kuikaeForbiddenTileIds: { 1: type === 'chi' ? [0, 2] : [27] },
+    players: base.players.map((player) => {
+      const cleared = { ...player, hand: [], river: [], calls: [], drawnTile: null };
+      if (player.id === 0) return { ...cleared, river: [{ ...called, claimed: true, claimedBy: 1 as const }] };
+      if (player.id === 1) return { ...cleared, calls: [call] };
+      return cleared;
+    }),
+  };
+  return { ...save, gameState, matchState: { ...save.matchState, currentGame: gameState } };
+}
+
+function setHand(state: GameState, playerId: 0 | 1 | 2 | 3, ids: TileId[]): GameState {
+  const hand = ids.map((id, index) => createTile(id, index % 4));
+  return {
+    ...state,
+    players: state.players.map((player) => player.id === playerId ? { ...player, hand, calls: [], river: [], drawnTile: null } : player),
+  };
+}
+
+function actualCallSave(type: 'chi' | 'pon' | 'minkan') {
+  const save = sampleSavedMatch();
+  let state = createInitialGameState();
+  state = { ...state, dealer: save.matchState.dealer, honba: save.matchState.honba };
+  const discardId: TileId = type === 'chi' ? 1 : 27;
+  state = setHand(state, 0, [discardId, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22, 28, 31, 33]);
+  state = setHand(state, 1, type === 'chi'
+    ? [0, 2, 4, 6, 8, 10, 12, 14, 18, 20, 22, 28, 31]
+    : [27, 27, ...(type === 'minkan' ? [27] : []), 1, 3, 5, 7, 9, 11, 13, 18, 20, 22] as TileId[]);
+  state = setHand(state, 2, [0, 4, 8, 9, 13, 17, 18, 22, 26, 28, 29, 31, 33]);
+  state = setHand(state, 3, [0, 4, 8, 9, 13, 17, 18, 22, 26, 28, 30, 31, 33]);
+  state = { ...state, currentPlayer: 0, phase: 'discard' };
+  const callWindow = discardTile(state, 0, state.players[0].hand[0].instanceId);
+  const gameState = type === 'chi'
+    ? executeChi(callWindow, 1, 0)
+    : type === 'pon'
+      ? executePon(callWindow, 1)
+      : executeKan(callWindow, 1, 'minkan');
+  return { ...save, gameState, matchState: { ...save.matchState, currentGame: gameState } };
+}
 
 function replay(id: string, updatedAt: string) {
   const log = { ...sampleMatchLog(), matchId: id };
@@ -17,6 +81,33 @@ describe('saveManager', () => {
     expect((await adapter.loadCurrentMatch())?.saveId).toBe('save-1');
     await adapter.deleteCurrentMatch();
     expect(await adapter.loadCurrentMatch()).toBeNull();
+  });
+
+  it.each(['chi', 'pon', 'minkan'] as const)('saves and restores a legal %s alias without losing call state', async (type) => {
+    const adapter = new LocalStorageAdapter(memoryStorage());
+    await adapter.saveCurrentMatch(callableSave(type));
+    const restored = (await adapter.loadCurrentMatch())!.gameState!;
+    const riverTile = restored.players[0].river[0];
+    const call = restored.players[1].calls[0];
+
+    expect(riverTile).toMatchObject({ claimed: true, claimedBy: 1 });
+    expect(call).toMatchObject({ from: 0, type: type === 'minkan' ? 'kan' : type });
+    expect(call.tiles.some((entry) => entry.instanceId === riverTile.instanceId)).toBe(true);
+    expect(restored.kuikaeForbiddenTileIds[1]).toEqual(type === 'chi' ? [0, 2] : [27]);
+  });
+
+  it.each(['chi', 'pon', 'minkan'] as const)('round-trips the real %s action state', async (type) => {
+    const adapter = new LocalStorageAdapter(memoryStorage());
+    const save = actualCallSave(type);
+    await adapter.saveCurrentMatch(save);
+    const restored = (await adapter.loadCurrentMatch())!.gameState!;
+    const riverTile = restored.players[0].river.find((entry) => entry.claimed)!;
+    const call = restored.players[1].calls[0];
+
+    expect(riverTile.claimedBy).toBe(1);
+    expect(call.from).toBe(0);
+    expect(call.tiles.some((entry) => entry.instanceId === riverTile.instanceId)).toBe(true);
+    expect(restored.kuikaeForbiddenTileIds).toEqual(save.gameState!.kuikaeForbiddenTileIds);
   });
 
   it('多份牌谱跨适配器实例持久化且不会互相覆盖，并按更新时间倒序', async () => {

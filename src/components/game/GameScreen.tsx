@@ -29,6 +29,8 @@ interface GameScreenProps {
   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
   showTenpaiWaitsEnabled?: boolean;
   tsumoGiriDisplayEnabled?: boolean;
+  localPlayerId?: PlayerId;
+  revealAllHands?: boolean;
 }
 
 export function GameScreen({
@@ -51,11 +53,13 @@ export function GameScreen({
   onHoveredTileTypeChange,
   showTenpaiWaitsEnabled = true,
   tsumoGiriDisplayEnabled = true,
+  localPlayerId = 0,
+  revealAllHands = false,
 }: GameScreenProps) {
   const [previewDiscardInstanceId, setPreviewDiscardInstanceId] = useState<string | null>(null);
-  const localPlayer = gameState.players[0];
+  const localPlayer = gameState.players[localPlayerId];
   const tenpaiDisplay = showTenpaiWaitsEnabled
-    ? buildTenpaiDisplay(gameState, 0, previewDiscardInstanceId ?? undefined)
+    ? buildTenpaiDisplay(gameState, localPlayerId, previewDiscardInstanceId ?? undefined)
     : null;
 
   useEffect(() => {
@@ -72,10 +76,10 @@ export function GameScreen({
         onToggleAnalysis={onToggleAnalysis}
         onReturnMenu={onReturnMenu}
       />
-      <MahjongTable gameState={gameState} matchState={matchState} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} />
+      <MahjongTable gameState={gameState} matchState={matchState} bottomPlayerId={localPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} />
       <LocalHandArea
         player={localPlayer}
-        isCurrent={gameState.currentPlayer === 0}
+        isCurrent={gameState.currentPlayer === localPlayerId}
         canDiscard={canDiscard}
         allowedDiscardInstanceIds={allowedDiscardInstanceIds}
         kuikaeForbiddenTileIds={kuikaeForbiddenTileIds}

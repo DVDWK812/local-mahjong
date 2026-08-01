@@ -124,8 +124,8 @@ describe('scoring context integration', () => {
       ...base,
       doraIndicators: [createTile(5, 0), createTile(12, 0)],
       deadWall: base.deadWall.map((tile, index) => {
-        if (index === 9) return createTile(3, 0);
-        if (index === 10) return createTile(4, 0);
+        if (index === 5) return createTile(3, 0);
+        if (index === 7) return createTile(4, 0);
         return tile;
       }),
       players: base.players.map((player, index) => index === 0 ? {

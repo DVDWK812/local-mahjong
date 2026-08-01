@@ -9,6 +9,8 @@ export const REPLAY_LIBRARY_KEY = 'local-mahjong.replays.v1';
 export const REPLAY_INDEX_KEY = 'local-mahjong.replay-index.v1';
 export const REPLAY_RECORD_KEY_PREFIX = 'local-mahjong.replay.v1.';
 
+export type ReplaySource = 'local-match' | 'test-mode';
+
 export type SerializableMatchState = MatchState;
 export type SerializableGameState = GameState;
 
@@ -32,7 +34,7 @@ export interface ReplayMetadata {
   scores: [number, number, number, number];
   matchType: 'four-east' | 'four-south' | 'single';
   roundCount: number;
-  source: 'local-match';
+  source: ReplaySource;
   status: 'completed' | 'incomplete' | 'corrupted';
   error?: string;
 }

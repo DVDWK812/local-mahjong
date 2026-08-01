@@ -4,6 +4,8 @@ import { advancePlaybackStep, scheduleReplayAdvance, shouldHandleReplayShortcut 
 import { buildReplayState, initialScoresForRound, replayActions, replayPhaseLabel, resolveReplayFinalScores, type BuiltReplayState } from '../game/replay/roundReplay';
 import type { ReplayController, RoundLog } from '../game/replay/types';
 import type { PlayerId, RoundResult } from '../game/types';
+import { convertReplayStepToTestScenario } from '../game/testMode/scenario';
+import type { TestScenarioV1 } from '../game/testMode/types';
 import { LocalHandArea } from './game/LocalHandArea';
 import { MahjongTable, type TableSeatMapping } from './game/MahjongTable';
 import { ReplayBottomBar } from './ReplayBottomBar';
@@ -24,9 +26,11 @@ const DEFAULT_PERSPECTIVE: ReplayPerspectiveState = {
 interface ReplayScreenProps {
   replay: ReplayRecord;
   onBack?: () => void;
+  testModeEnabled?: boolean;
+  onConvertToTestScenario?: (scenario: TestScenarioV1) => void;
 }
 
-export function ReplayScreen({ replay, onBack = () => undefined }: ReplayScreenProps) {
+export function ReplayScreen({ replay, onBack = () => undefined, testModeEnabled = false, onConvertToTestScenario }: ReplayScreenProps) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -44,6 +48,10 @@ export function ReplayScreen({ replay, onBack = () => undefined }: ReplayScreenP
       ruleConfig: replay.log.ruleConfig,
     })
     : null, [replay, round, reconstructedStep, roundInitialScores]);
+  const testScenarioConversion = useMemo(
+    () => testModeEnabled ? convertReplayStepToTestScenario(replay, roundIndex, reconstructedStep) : null,
+    [testModeEnabled, replay, roundIndex, reconstructedStep],
+  );
 
   useEffect(() => {
     if (!playing || !built) return;
@@ -135,6 +143,11 @@ export function ReplayScreen({ replay, onBack = () => undefined }: ReplayScreenP
         onPerspectiveChange={(playerId) => pauseAnd(() => setPerspective((current) => selectCameraPlayer(current, playerId)))}
         onToggleOpenHands={() => pauseAnd(() => setPerspective(toggleOpenHands))}
         onToggleWall={() => setWallOpen((current) => !current)}
+        testModeEnabled={testModeEnabled}
+        testModeConversionReason={testScenarioConversion && !testScenarioConversion.ok ? testScenarioConversion.reason : undefined}
+        onConvertToTestScenario={testScenarioConversion?.ok && onConvertToTestScenario
+          ? () => onConvertToTestScenario(testScenarioConversion.scenario)
+          : undefined}
       />
 
       <section className="replay-table-viewport">
@@ -143,7 +156,13 @@ export function ReplayScreen({ replay, onBack = () => undefined }: ReplayScreenP
           <span>{replayPhaseLabel(built.gameState.phase)}</span>
         </div>
         <ReplayTable replayState={built} perspective={perspective} />
-        <ReplayWallDrawer open={wallOpen} replayState={built} allOpen={perspective.isOpenHands} onClose={() => setWallOpen(false)} />
+        <ReplayWallDrawer
+          open={wallOpen}
+          replayState={built}
+          allOpen={perspective.isOpenHands}
+          cameraPlayerId={perspective.cameraPlayerId}
+          onClose={() => setWallOpen(false)}
+        />
       </section>
 
       <ReplayBottomBar

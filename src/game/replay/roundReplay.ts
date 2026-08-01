@@ -4,6 +4,7 @@ import { markRiverTileClaimed } from '../callChecker';
 import { clearKuikaeRestriction, isKuikaeEnabled, kuikaeForbiddenAfterChi, kuikaeForbiddenAfterPon, setKuikaeRestriction } from '../kuikae';
 import { getTileRank, getTileSuit, sortTiles } from '../tileUtils';
 import type { CallSet, GamePhase, GameState, PlayerId, RoundResult, Tile } from '../types';
+import { advanceWallAfterKan, doraIndicatorSlots, uraDoraIndicatorSlots } from '../wall';
 import type { DrawEvent, GameEvent, MatchLog, RoundEndedEvent, RoundLog, SimpleCallEvent, TileSnapshot, WinDeclaredEvent } from './types';
 
 const ACTION_TYPES = new Set<GameEvent['type']>([
@@ -170,7 +171,7 @@ function createInitialContext(round: RoundLog, options: ReplayBuildOptions): Mut
   const hands = round.initialHands ?? dealtHandsEvent(round)?.hands ?? [[], [], [], []];
   const { liveWall, deadWall, available } = resolveWall(round);
   const initialDora = round.initialDoraIndicators?.map(tileFromSnapshot)
-    ?? (deadWall[4] ? [deadWall[4]] : []);
+    ?? doraIndicatorSlots(deadWall).slice(0, 1);
   const scores = options.scores ?? round.initialScores ?? [25000, 25000, 25000, 25000];
   const names = options.playerNames ?? ['玩家1', '玩家2', '玩家3', '玩家4'];
   const players = ([0, 1, 2, 3] as PlayerId[]).map((id) => ({
@@ -235,18 +236,24 @@ function createInitialContext(round: RoundLog, options: ReplayBuildOptions): Mut
 function applyReplayAction(context: MutableReplayContext, event: GameEvent): void {
   const state = context.gameState;
   if (event.type === 'tile-drawn' && event.actor !== undefined) {
-    const tile = tileFromSnapshot(event.tile);
+    let tile = tileFromSnapshot(event.tile);
+    const source = event.source === 'rinshan' || state.deadWall.some((entry) => entry.instanceId === tile.instanceId)
+      ? 'rinshan'
+      : 'live-wall';
+    if (source === 'rinshan' && context.wallAvailable) {
+      const wallAdvance = advanceWallAfterKan(state.wall, context.originalDeadWall, context.drawnDeadTiles.length);
+      tile = wallAdvance.rinshanTile ?? tile;
+      state.wall = wallAdvance.liveWall;
+      state.deadWall = wallAdvance.deadWall;
+    }
     const player = state.players[event.actor];
     player.hand = [...player.hand, tile];
     player.drawnTile = tile;
     state.currentPlayer = event.actor;
     state.phase = 'discard';
-    const source = event.source === 'rinshan' || state.deadWall.some((entry) => entry.instanceId === tile.instanceId)
-      ? 'rinshan'
-      : 'live-wall';
     state.lastDrawSource = source;
     if (source === 'rinshan') {
-      state.deadWall = removeTile(state.deadWall, tile.instanceId);
+      if (!context.wallAvailable) state.deadWall = removeTile(state.deadWall, tile.instanceId);
       context.drawnDeadTiles.push(tile);
     } else {
       state.wall = removeTile(state.wall, tile.instanceId);
@@ -304,9 +311,13 @@ function applyReplayAction(context: MutableReplayContext, event: GameEvent): voi
   }
 
   if (event.type === 'dora-revealed') {
-    for (const snapshot of event.tiles ?? []) {
-      if (!state.doraIndicators.some((tile) => tile.instanceId === snapshot.instanceId)) {
-        state.doraIndicators = [...state.doraIndicators, tileFromSnapshot(snapshot)];
+    const expected = context.wallAvailable
+      ? doraIndicatorSlots(context.originalDeadWall)[state.doraIndicators.length]
+      : undefined;
+    const snapshots = expected ? [expected] : (event.tiles ?? []).map(tileFromSnapshot);
+    for (const tile of snapshots) {
+      if (!state.doraIndicators.some((indicator) => indicator.instanceId === tile.instanceId)) {
+        state.doraIndicators = [...state.doraIndicators, tile];
       }
     }
     return;
@@ -424,8 +435,6 @@ function isConservedScoreSet(scores: ScoreTuple, riichiSticks: number, expectedT
 
 function buildWallState(context: MutableReplayContext): ReplayWallState {
   const available = context.wallAvailable;
-  const doraPositions = [4, 6, 8, 10, 12];
-  const uraPositions = [5, 7, 9, 11, 13];
   return {
     available,
     originalLiveWall: [...context.originalLiveWall],
@@ -437,8 +446,8 @@ function buildWallState(context: MutableReplayContext): ReplayWallState {
     nextLiveTile: context.gameState.wall[0],
     rinshanRemaining: Math.max(0, 4 - context.drawnDeadTiles.length),
     currentDrawPosition: context.drawnLiveTiles.length,
-    doraIndicatorSlots: doraPositions.map((index) => context.originalDeadWall[index]),
-    uraIndicatorSlots: uraPositions.map((index) => context.originalDeadWall[index]),
+    doraIndicatorSlots: doraIndicatorSlots(context.originalDeadWall),
+    uraIndicatorSlots: uraDoraIndicatorSlots(context.originalDeadWall),
   };
 }
 

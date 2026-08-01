@@ -1,21 +1,25 @@
 import type { BuiltReplayState } from '../game/replay/roundReplay';
-import type { Tile as TileModel, Wind } from '../game/types';
+import type { GameState, PlayerId, Tile as TileModel, Wind } from '../game/types';
 import { Tile } from './Tile';
 
 interface ReplayWallPanelProps {
   replayState: BuiltReplayState;
   allOpen: boolean;
+  cameraPlayerId: PlayerId;
   doraGlowEnabled?: boolean;
 }
 
-export function ReplayWallPanel({ replayState, allOpen, doraGlowEnabled = true }: ReplayWallPanelProps) {
+export function ReplayWallPanel({ replayState, allOpen, cameraPlayerId, doraGlowEnabled = true }: ReplayWallPanelProps) {
   const { wall } = replayState;
   if (!wall.available) {
     return <aside className="replay-wall replay-wall--missing">该牌谱未记录完整牌山。</aside>;
   }
   const drawnLiveIds = new Set(wall.drawnLiveTiles.map((tile) => tile.instanceId));
   const drawnDeadIds = new Set(wall.drawnDeadTiles.map((tile) => tile.instanceId));
+  const publicIds = replayPublicTileInstanceIds(replayState.gameState);
   const publicDoraIds = new Set(replayState.gameState.doraIndicators.map((tile) => tile.instanceId));
+  const viewerKnownIds = new Set(replayState.gameState.players[cameraPlayerId].hand.map((tile) => tile.instanceId));
+  const visibleConsumedIds = new Set([...publicIds, ...viewerKnownIds]);
   const nextId = wall.nextLiveTile?.instanceId;
 
   return (
@@ -24,7 +28,8 @@ export function ReplayWallPanel({ replayState, allOpen, doraGlowEnabled = true }
         label="普通牌山"
         tiles={wall.originalLiveWall}
         consumedIds={drawnLiveIds}
-        publicIds={new Set()}
+        visibleConsumedIds={visibleConsumedIds}
+        alwaysVisibleIds={new Set()}
         nextId={nextId}
         allOpen={allOpen}
         doraIndicators={replayState.gameState.doraIndicators}
@@ -34,7 +39,8 @@ export function ReplayWallPanel({ replayState, allOpen, doraGlowEnabled = true }
         label="王牌（岭上／宝牌／里宝牌）"
         tiles={wall.originalDeadWall}
         consumedIds={drawnDeadIds}
-        publicIds={publicDoraIds}
+        visibleConsumedIds={visibleConsumedIds}
+        alwaysVisibleIds={publicDoraIds}
         allOpen={allOpen}
         doraIndicators={replayState.gameState.doraIndicators}
         doraGlowEnabled={doraGlowEnabled}
@@ -51,7 +57,8 @@ interface WallRowProps {
   label: string;
   tiles: TileModel[];
   consumedIds: Set<string>;
-  publicIds: Set<string>;
+  visibleConsumedIds: Set<string>;
+  alwaysVisibleIds: Set<string>;
   nextId?: string;
   allOpen: boolean;
   doraIndicators: TileModel[];
@@ -59,15 +66,18 @@ interface WallRowProps {
   deadWall?: boolean;
 }
 
-function WallRow({ label, tiles, consumedIds, publicIds, nextId, allOpen, doraIndicators, doraGlowEnabled, deadWall = false }: WallRowProps) {
+function WallRow({ label, tiles, consumedIds, visibleConsumedIds, alwaysVisibleIds, nextId, allOpen, doraIndicators, doraGlowEnabled, deadWall = false }: WallRowProps) {
   return (
     <section className="replay-wall__section" aria-label={label}>
       <strong>{label}</strong>
       <div className={`replay-wall__tiles ${deadWall ? 'replay-wall__tiles--dead-wall' : 'replay-wall__tiles--live-wall'}`}>
         {tiles.map((tile, index) => {
           const consumed = consumedIds.has(tile.instanceId);
-          const publicTile = allOpen || publicIds.has(tile.instanceId);
-          const slotType = deadWall ? deadWallSlotLabel(index, publicIds.has(tile.instanceId)) : '';
+          // consumed 只描述牌山记账；牌面必须由 instanceId 公开权限独立决定。
+          const visible = allOpen
+            || alwaysVisibleIds.has(tile.instanceId)
+            || (consumed && visibleConsumedIds.has(tile.instanceId));
+          const slotType = deadWall ? deadWallSlotLabel(index, alwaysVisibleIds.has(tile.instanceId)) : '';
           return (
             <span
               key={tile.instanceId}
@@ -75,8 +85,8 @@ function WallRow({ label, tiles, consumedIds, publicIds, nextId, allOpen, doraIn
               title={consumed ? '已摸走' : tile.instanceId === nextId ? '下一张' : slotType}
             >
               <Tile
-                tile={consumed || publicTile ? tile : undefined}
-                faceDown={!consumed && !publicTile}
+                tile={visible ? tile : undefined}
+                faceDown={!visible}
                 compact
                 interactive={false}
                 doraIndicators={consumed ? [] : doraIndicators}
@@ -89,6 +99,28 @@ function WallRow({ label, tiles, consumedIds, publicIds, nextId, allOpen, doraIn
       </div>
     </section>
   );
+}
+
+export function replayPublicTileInstanceIds(state: GameState): Set<string> {
+  const publicIds = new Set<string>();
+  for (const indicator of state.doraIndicators) publicIds.add(indicator.instanceId);
+  for (const player of state.players) {
+    for (const riverTile of player.river) publicIds.add(riverTile.instanceId);
+    for (const call of player.calls) {
+      for (const callTile of call.tiles) publicIds.add(callTile.instanceId);
+    }
+  }
+  if (state.result?.type === 'tsumo' || state.result?.type === 'ron') {
+    for (const winner of state.result.winners) {
+      for (const tile of state.players[winner.winner].hand) publicIds.add(tile.instanceId);
+      publicIds.add(winner.winTile.instanceId);
+    }
+  } else if (state.result?.type === 'exhaustive-draw') {
+    for (const playerId of state.result.revealHands ?? []) {
+      for (const tile of state.players[playerId].hand) publicIds.add(tile.instanceId);
+    }
+  }
+  return publicIds;
 }
 
 export function currentDrawSeatLabel(replayState: BuiltReplayState): string {
