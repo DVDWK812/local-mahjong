@@ -5,11 +5,12 @@ interface MainMenuProps {
   onLocalMode: () => void;
   onOnlineMode: () => void;
   onReplayStudy: () => void;
+  onSettings: () => void;
   testModeEnabled?: boolean;
   onTestMode?: () => void;
 }
 
-export function MainMenu({ hasSave, notice, onContinue, onLocalMode, onOnlineMode, onReplayStudy, testModeEnabled = false, onTestMode = () => undefined }: MainMenuProps) {
+export function MainMenu({ hasSave, notice, onContinue, onLocalMode, onOnlineMode, onReplayStudy, onSettings, testModeEnabled = false, onTestMode = () => undefined }: MainMenuProps) {
   return (
     <main className="menu-page">
       <section className="menu-panel">
@@ -21,6 +22,7 @@ export function MainMenu({ hasSave, notice, onContinue, onLocalMode, onOnlineMod
           <button type="button" onClick={onLocalMode}>本地模式</button>
           <button type="button" onClick={onOnlineMode}>联机模式 <span>敬请期待</span></button>
           <button type="button" onClick={onReplayStudy}>牌谱研习</button>
+          <button type="button" onClick={onSettings}>设置</button>
           {testModeEnabled ? <button type="button" className="test-mode-entry" onClick={onTestMode}>测试模式 <span>开发者</span></button> : null}
         </div>
       </section>

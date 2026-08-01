@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createInitialGameState, declareRiichi, discardTile, drawTile } from './engine';
-import { getDrawActionState, hasDrawAction, isRiichiAnkanWaitPreserving } from './interaction';
-import { executeKan } from './kanChecker';
+import { getDrawActionState, hasDrawAction } from './interaction';
+import { executeKan, isRiichiAnkanWaitPreserving } from './kanChecker';
 import { createTile } from './tileUtils';
 import type { GameState, PlayerId, Tile, TileId } from './types';
 

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { AppScreen, RiichiLengthChoice, SetupSelection } from './app/navigation';
 import { matchLengthForChoice, pathLabel, presetForChoice } from './app/navigation';
+import { APP_SETTINGS_LOAD_FAILURE_NOTICE, loadAppSettings, persistAppSettingsUpdate, type AppSettingsV1, type ResolutionPreset } from './app/appSettings';
 import { BackButton } from './components/BackButton';
 import { Board } from './components/Board';
 import { ExitGameDialog } from './components/ExitGameDialog';
@@ -14,6 +15,9 @@ import { ReplayDetail } from './components/ReplayDetail';
 import { TestModeScreen } from './components/TestModeScreen';
 import { RiichiModeMenu } from './components/RiichiModeMenu';
 import { RulesGuideScreen } from './components/rulesGuide/RulesGuideScreen';
+import { SettingsScreen } from './components/SettingsScreen';
+import { AppResolutionViewport } from './components/layout/AppResolutionViewport';
+import { DesktopTableViewport } from './components/layout/DesktopTableViewport';
 import { advanceAIAction, isAIPlayer } from './game/ai';
 import { declareKyuushuKyuuhai } from './game/abortiveDraw';
 import { canPon, executePon, passCall } from './game/callChecker';
@@ -22,7 +26,7 @@ import { declareRiichi, declareRon, declareTsumo, discardTile, drawTile, passRon
 import { hasDrawAction } from './game/interaction';
 import { canChankan, canMinkan, declareChankanRon, executeKan, passChankan, type KanType } from './game/kanChecker';
 import { applyFinishedGameToMatch, chooseAgariYame, chooseMatchEnd, startMatch } from './game/match/matchEngine';
-import { getRulePreset, loadStoredRuleConfig, saveStoredRuleConfig, type RulePresetId } from './game/match/matchRules';
+import { createRuleConfigStorageAdapter, getRulePreset, loadStoredRuleConfig, persistRuleConfigUpdate, type RulePresetId } from './game/match/matchRules';
 import type { FullRuleConfig, MatchState } from './game/match/types';
 import { LocalStorageAdapter } from './game/persistence/saveManager';
 import { createReplayRecord } from './game/persistence/replayRecord';
@@ -60,20 +64,33 @@ interface AppState {
   tsumoGiriDisplayEnabled: boolean;
   aiPlayerSettings: AIPlayerSetting[];
   testScenario: TestScenarioV1 | null;
+  appSettings: AppSettingsV1;
+  appSettingsNotice: string | null;
 }
 
-const storage = typeof window === 'undefined' ? null : new LocalStorageAdapter(window.localStorage);
+const browserLocalStorage = getBrowserLocalStorage();
+const storage = browserLocalStorage ? new LocalStorageAdapter(browserLocalStorage) : null;
+const ruleConfigStorage = browserLocalStorage ? createRuleConfigStorageAdapter(browserLocalStorage) : null;
+const appSettingsStorage = ruleConfigStorage;
 const EXIT_SAVE_TIMEOUT_MS = 3000;
 const EXIT_SAVE_TIMEOUT_MESSAGE = '牌谱保存超时，可直接退出或重试保存。';
 const EXIT_SAVE_ERROR_MESSAGE = '牌谱保存失败，可直接退出或重试保存。';
+
+function getBrowserLocalStorage(): Storage | null {
+  try {
+    return typeof window === 'undefined' ? null : window.localStorage;
+  } catch {
+    return null;
+  }
+}
 
 function withRules(gameState: GameState, config: FullRuleConfig): GameState {
   return { ...gameState, ruleConfig: config.round, matchRuleConfig: config.match };
 }
 
 function loadInitialRuleConfig(): FullRuleConfig {
-  if (typeof window === 'undefined') return getRulePreset('east-round');
-  return loadStoredRuleConfig(window.localStorage);
+  if (!ruleConfigStorage) return getRulePreset('east-round');
+  return loadStoredRuleConfig(ruleConfigStorage);
 }
 
 function createActiveGame(config: FullRuleConfig): ActiveGame {
@@ -134,27 +151,32 @@ function createSavedMatch(activeGame: ActiveGame, ruleConfig: FullRuleConfig): S
 
 export default function App() {
   const testModeAvailability = currentTestModeAvailability();
-  const [state, setState] = useState<AppState>(() => ({
-    screen: testModeAvailability.requested ? 'test-mode' : 'main-menu',
-    activeGame: null,
-    ruleConfig: loadInitialRuleConfig(),
-    presetId: 'east-round',
-    selection: {},
-    menuNotice: null,
-    savedMatch: null,
-    replayMetas: [],
-    replay: null,
-    exitDialogOpen: false,
-    exiting: false,
-    exitSaveError: null,
-    rulesGuideOpen: false,
-    doraGlowEnabled: true,
-    sameTileHoverEnabled: true,
-    showTenpaiWaitsEnabled: true,
-    tsumoGiriDisplayEnabled: true,
-    aiPlayerSettings: DEFAULT_AI_PLAYER_SETTINGS.map((setting) => ({ ...setting })),
-    testScenario: null,
-  }));
+  const [state, setState] = useState<AppState>(() => {
+    const appSettingsResult = loadAppSettings(appSettingsStorage ?? undefined);
+    return {
+      screen: testModeAvailability.requested ? 'test-mode' : 'main-menu',
+      activeGame: null,
+      ruleConfig: loadInitialRuleConfig(),
+      presetId: 'east-round',
+      selection: {},
+      menuNotice: null,
+      savedMatch: null,
+      replayMetas: [],
+      replay: null,
+      exitDialogOpen: false,
+      exiting: false,
+      exitSaveError: null,
+      rulesGuideOpen: false,
+      doraGlowEnabled: true,
+      sameTileHoverEnabled: true,
+      showTenpaiWaitsEnabled: true,
+      tsumoGiriDisplayEnabled: true,
+      aiPlayerSettings: DEFAULT_AI_PLAYER_SETTINGS.map((setting) => ({ ...setting })),
+      testScenario: null,
+      appSettings: appSettingsResult.settings,
+      appSettingsNotice: appSettingsResult.ok ? null : APP_SETTINGS_LOAD_FAILURE_NOTICE,
+    };
+  });
 
   const mountedRef = useRef(false);
   const exitSaveInProgressRef = useRef(false);
@@ -283,8 +305,25 @@ export default function App() {
   }
 
   function handleRuleConfigChange(config: FullRuleConfig) {
-    setState((current) => ({ ...current, ruleConfig: config, presetId: 'custom' }));
-    if (typeof window !== 'undefined') saveStoredRuleConfig(config, window.localStorage);
+    const outcome = ruleConfigStorage
+      ? persistRuleConfigUpdate(config, ruleConfigStorage)
+      : { config, notice: null };
+    setState((current) => ({
+      ...current,
+      ruleConfig: outcome.config,
+      presetId: 'custom',
+      menuNotice: outcome.notice,
+    }));
+  }
+
+  function handleResolutionPresetChange(resolutionPreset: ResolutionPreset) {
+    const settings: AppSettingsV1 = { ...state.appSettings, resolutionPreset };
+    const outcome = persistAppSettingsUpdate(settings, appSettingsStorage ?? undefined);
+    setState((current) => ({
+      ...current,
+      appSettings: outcome.settings,
+      appSettingsNotice: outcome.notice,
+    }));
   }
 
   function chooseLength(choice: RiichiLengthChoice) {
@@ -482,8 +521,12 @@ export default function App() {
     URL.revokeObjectURL(url);
   }
 
+  function renderScreen(content: ReactNode) {
+    return <AppResolutionViewport preset={state.appSettings.resolutionPreset}>{content}</AppResolutionViewport>;
+  }
+
   if (state.screen === 'main-menu') {
-    return (
+    return renderScreen(
       <MainMenu
         hasSave={!!state.savedMatch}
         notice={state.menuNotice}
@@ -491,14 +534,28 @@ export default function App() {
         onLocalMode={() => setScreen('local-mode-menu')}
         onOnlineMode={() => setState((current) => ({ ...current, menuNotice: '联机模式敬请期待。' }))}
         onReplayStudy={() => void openReplayLibrary()}
+        onSettings={() => setScreen('settings')}
         testModeEnabled={testModeAvailability.enabled}
         onTestMode={() => setScreen('test-mode', { testScenario: null })}
       />
     );
   }
 
+  if (state.screen === 'settings') {
+    return renderScreen(
+      <DesktopTableViewport surface="settings" onReturnMenu={() => setScreen('main-menu')}>
+        <SettingsScreen
+          settings={state.appSettings}
+          notice={state.appSettingsNotice}
+          onResolutionPresetChange={handleResolutionPresetChange}
+          onBack={() => setScreen('main-menu')}
+        />
+      </DesktopTableViewport>
+    );
+  }
+
   if (state.screen === 'local-mode-menu') {
-    return (
+    return renderScreen(
       <LocalModeMenu
         notice={state.menuNotice}
         onBack={() => setScreen('main-menu')}
@@ -509,7 +566,7 @@ export default function App() {
   }
 
   if (state.screen === 'riichi-player-count') {
-    return (
+    return renderScreen(
       <RiichiModeMenu
         notice={state.menuNotice}
         onBack={() => setScreen('local-mode-menu')}
@@ -521,19 +578,20 @@ export default function App() {
   }
 
   if (state.screen === 'rules-guide') {
-    return <RulesGuideScreen ruleConfig={state.ruleConfig} onBack={() => setScreen('riichi-player-count')} />;
+    return renderScreen(<RulesGuideScreen ruleConfig={state.ruleConfig} onBack={() => setScreen('riichi-player-count')} />);
   }
 
   if (state.screen === 'riichi-four-player-length') {
-    return <GameTypeMenu onBack={() => setScreen('riichi-player-count')} onEast={() => chooseLength('four-east')} onSouth={() => chooseLength('four-south')} />;
+    return renderScreen(<GameTypeMenu onBack={() => setScreen('riichi-player-count')} onEast={() => chooseLength('four-east')} onSouth={() => chooseLength('four-south')} />);
   }
 
   if (state.screen === 'match-settings') {
     const matchTypeLabel = state.selection.lengthChoice === 'four-south' ? '四人南' : '四人东';
-    return (
+    return renderScreen(
       <main className="menu-page">
         <section className="menu-panel menu-panel--wide">
           <p className="menu-path">{settingsPath}</p>
+          {state.menuNotice ? <p className="menu-notice" role="status">{state.menuNotice}</p> : null}
           <MatchSettings
             config={state.ruleConfig}
             pathLabel={settingsPath}
@@ -560,7 +618,7 @@ export default function App() {
   }
 
   if (state.screen === 'replay-library') {
-    return (
+    return renderScreen(
       <main className="menu-page">
         <section className="menu-panel menu-panel--wide">
           <BackButton onClick={() => setScreen('main-menu')} />
@@ -579,10 +637,12 @@ export default function App() {
   }
 
   if (state.screen === 'replay-detail' && state.replay) {
-    return (
+    return renderScreen(
       <ReplayDetail
         replay={state.replay}
-        onBack={() => setScreen('replay-library', { replay: null })}
+        onBack={() => state.replay?.source === 'test-mode'
+          ? setScreen('test-mode', { replay: null, testScenario: null })
+          : setScreen('replay-library', { replay: null })}
         testModeEnabled={testModeAvailability.enabled}
         onConvertToTestScenario={(scenario) => setScreen('test-mode', { replay: null, testScenario: scenario })}
       />
@@ -590,18 +650,19 @@ export default function App() {
   }
 
   if (state.screen === 'test-mode' && testModeAvailability.enabled) {
-    return (
+    return renderScreen(
       <TestModeScreen
         key={state.testScenario?.id ?? 'test-mode-library'}
         initialScenario={state.testScenario}
+        onOpenReplay={(replay) => setScreen('replay-detail', { replay, testScenario: null })}
         onExit={() => setScreen('main-menu', { testScenario: null })}
       />
     );
   }
 
-  if (!activeGame || !gameState || !matchState) return null;
+  if (!activeGame || !gameState || !matchState) return renderScreen(null);
 
-  return (
+  return renderScreen(
     <>
       {matchState.phase === 'match-end-choice' && matchState.pendingEndChoice ? (
         <section className="call-panel call-panel--overlay">

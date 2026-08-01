@@ -19,16 +19,17 @@ describe('菜单和页面导航', () => {
     expect(html).toContain('本地模式');
     expect(html).toContain('联机模式');
     expect(html).toContain('牌谱研习');
+    expect(html).toContain('设置');
     expect(html).not.toContain('river-board');
   });
 
   it('主菜单存在存档时显示继续对局', () => {
-    const html = renderToStaticMarkup(<MainMenu hasSave notice={null} onContinue={() => undefined} onLocalMode={() => undefined} onOnlineMode={() => undefined} onReplayStudy={() => undefined} />);
+    const html = renderToStaticMarkup(<MainMenu hasSave notice={null} onContinue={() => undefined} onLocalMode={() => undefined} onOnlineMode={() => undefined} onReplayStudy={() => undefined} onSettings={() => undefined} />);
     expect(html).toContain('继续对局');
   });
 
   it('主菜单显示联机模式敬请期待', () => {
-    const html = renderToStaticMarkup(<MainMenu hasSave={false} notice="联机模式敬请期待。" onContinue={() => undefined} onLocalMode={() => undefined} onOnlineMode={() => undefined} onReplayStudy={() => undefined} />);
+    const html = renderToStaticMarkup(<MainMenu hasSave={false} notice="联机模式敬请期待。" onContinue={() => undefined} onLocalMode={() => undefined} onOnlineMode={() => undefined} onReplayStudy={() => undefined} onSettings={() => undefined} />);
     expect(html).toContain('联机模式');
     expect(html).toContain('敬请期待');
   });
@@ -140,7 +141,7 @@ describe('菜单和页面导航', () => {
   });
 
   it('同一时间只渲染一个主菜单页面', () => {
-    const html = renderToStaticMarkup(<MainMenu hasSave={false} onContinue={() => undefined} onLocalMode={() => undefined} onOnlineMode={() => undefined} onReplayStudy={() => undefined} />);
+    const html = renderToStaticMarkup(<MainMenu hasSave={false} onContinue={() => undefined} onLocalMode={() => undefined} onOnlineMode={() => undefined} onReplayStudy={() => undefined} onSettings={() => undefined} />);
     expect((html.match(/menu-page/g) ?? []).length).toBe(1);
     expect(html).not.toContain('选择玩法');
   });

@@ -1,4 +1,5 @@
 import type { Suit, Tile, TileId, Wind } from './types';
+import { productionRandomSource, type RandomSource } from './randomSource';
 
 export const ALL_TILE_IDS: TileId[] = [
   0, 1, 2, 3, 4, 5, 6, 7, 8,
@@ -23,7 +24,7 @@ export function getTileRank(id: TileId): number {
   return id - 26;
 }
 
-export function createTile(id: TileId, copyIndex: number): Tile {
+export function createTile(id: TileId, copyIndex: number, randomSource: RandomSource = productionRandomSource): Tile {
   const red = (id === 4 || id === 13 || id === 22) && copyIndex === 0;
 
   return {
@@ -31,7 +32,7 @@ export function createTile(id: TileId, copyIndex: number): Tile {
     suit: getTileSuit(id),
     rank: getTileRank(id),
     red,
-    instanceId: `${id}-${copyIndex}-${crypto.randomUUID()}`,
+    instanceId: randomSource.nextId(`${id}-${copyIndex}`),
   };
 }
 

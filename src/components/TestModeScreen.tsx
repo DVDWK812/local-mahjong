@@ -1,17 +1,28 @@
 import { useMemo, useState } from 'react';
 import { Board } from './Board';
 import { TestModeDebugPanel } from './TestModeDebugPanel';
+import { SeededSimulationPanel } from './SeededSimulationPanel';
+import { DialogKeyboardLab } from './DialogKeyboardLab';
+import { DesktopTableViewport } from './layout/DesktopTableViewport';
 import { createReplayRecord } from '../game/persistence/replayRecord';
 import type { MatchLog } from '../game/replay/types';
 import { applyOfficialTestModeAction, createTestModeMatchLog, recordTestModeAction, type OfficialTestModeAction } from '../game/testMode/actions';
-import { getBuiltInTestScenarios } from '../game/testMode/builtInScenarios';
 import { cloneTestScenario, countCompletedKans, loadTestScenarioState, parseTestScenarioJson, runtimeInvariantChecks, scenarioFromGameState, serializeTestScenario, stateSummary, TestScenarioValidationError, validateTestScenario } from '../game/testMode/scenario';
-import type { TestModeActionLogEntry, TestScenarioV1 } from '../game/testMode/types';
+import { createMemoryTestStorage, executeTestCase, failureReportFromResult, getBuiltInTestCases, parseTestCaseDefinitionJson, playableTestCaseFromScenario, TEST_CASE_CATEGORY_LABELS, TEST_CASE_KIND_LABELS, TEST_CASE_STATUS_LABELS, type TestStorageFailureMode } from '../game/testMode/testCases';
+import { TEST_CASE_CATEGORIES, type TestCaseCategory, type TestCaseDefinitionV1, type TestCaseRunResultV1, type TestCaseRunStatus, type TestModeActionLogEntry, type TestScenarioV1 } from '../game/testMode/types';
+import type { ReplayRecord } from '../game/persistence/storageTypes';
+import { p0PersistenceRunners } from '../game/testMode/p0RegressionCases';
+import { stab007PersistenceRunners } from '../game/testMode/stab007Cases';
+import { stab008PersistenceRunners } from '../game/testMode/stab008Cases';
+import { p0ReplayRunners } from './TestModeP0ReplayRunner';
+import { getRulePreset } from '../game/match/matchRules';
+import { runSeededBatch, serializeSeededFailure } from '../game/testMode/seededSimulation';
 import type { GameState, PlayerId } from '../game/types';
 
 interface TestModeScreenProps {
   initialScenario?: TestScenarioV1 | null;
   onExit: () => void;
+  onOpenReplay?: (replay: ReplayRecord) => void;
 }
 
 interface TestSession {
@@ -22,14 +33,26 @@ interface TestSession {
   actionLog: TestModeActionLogEntry[];
 }
 
-export function TestModeScreen({ initialScenario = null, onExit }: TestModeScreenProps) {
+interface TestCaseRuntimeState {
+  status: TestCaseRunStatus;
+  result?: TestCaseRunResultV1;
+}
+
+export function TestModeScreen({ initialScenario = null, onExit, onOpenReplay }: TestModeScreenProps) {
   const [session, setSession] = useState<TestSession | null>(() => initialScenario ? createSession(initialScenario) : null);
   const [importText, setImportText] = useState('');
   const [messages, setMessages] = useState<string[]>([]);
+  const [importedCases, setImportedCases] = useState<TestCaseDefinitionV1[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<'all' | TestCaseCategory>('all');
+  const [caseStates, setCaseStates] = useState<Record<string, TestCaseRuntimeState>>({});
   const [debugOpen, setDebugOpen] = useState(true);
   const [allOpen, setAllOpen] = useState(false);
   const [runtimeError, setRuntimeError] = useState<string | null>(null);
-  const builtIns = useMemo(getBuiltInTestScenarios, []);
+  const [storageFailureMode, setStorageFailureMode] = useState<TestStorageFailureMode>('none');
+  const builtIns = useMemo(getBuiltInTestCases, []);
+  const testStorage = useMemo(() => createMemoryTestStorage(storageFailureMode), [storageFailureMode]);
+  const testCases = useMemo(() => [...builtIns, ...importedCases], [builtIns, importedCases]);
+  const visibleCases = selectedCategory === 'all' ? testCases : testCases.filter((testCase) => testCase.category === selectedCategory);
   const checks = useMemo(() => session ? runtimeInvariantChecks(session.initialScenario, session.gameState) : [], [session]);
   const failedChecks = checks.filter((entry) => !entry.passed);
 
@@ -44,6 +67,64 @@ export function TestModeScreen({ initialScenario = null, onExit }: TestModeScree
     setRuntimeError(null);
     setAllOpen(false);
     setDebugOpen(true);
+  };
+
+  const runTestCase = async (testCase: TestCaseDefinitionV1) => {
+    if (testCase.kind === 'playable') {
+      startScenario(testCase.scenario);
+      return;
+    }
+    setCaseStates((current) => ({ ...current, [testCase.id]: { status: 'running' } }));
+    try {
+      const result = await executeTestCase(testCase, {
+        storage: testStorage,
+        persistenceRunners: { ...p0PersistenceRunners, ...stab007PersistenceRunners, ...stab008PersistenceRunners },
+        replayRunners: p0ReplayRunners,
+        seededRunner: async (seededCase) => {
+          const batch = await runSeededBatch({
+            seed: seededCase.seed,
+            ruleConfig: getRulePreset('east-round'),
+            rounds: seededCase.iterations,
+          });
+          if (batch.failure) throw new Error(serializeSeededFailure(batch.failure));
+          return [
+            `seed=${seededCase.seed}`,
+            `完成${batch.completedRounds}/${batch.requestedRounds}局`,
+            '每动作不变量全部通过',
+          ];
+        },
+      });
+      setCaseStates((current) => ({ ...current, [testCase.id]: { status: result.status, result } }));
+    } catch (error) {
+      const result: TestCaseRunResultV1 = {
+        version: 1,
+        caseId: testCase.id,
+        relatedAuditId: testCase.relatedAuditId ?? null,
+        status: 'failed',
+        currentStep: '执行用例',
+        expected: [...testCase.expectedResults],
+        actual: [error instanceof Error ? error.message : '未知执行错误'],
+        stateSummary: '执行器抛出未处理异常，测试中心已保留失败结果。',
+        artifacts: [{ name: `${testCase.id}.test-case.json`, mediaType: 'application/json', content: JSON.stringify(testCase, null, 2) }],
+      };
+      setCaseStates((current) => ({ ...current, [testCase.id]: { status: 'failed', result } }));
+    }
+  };
+
+  const markManualResult = (testCase: TestCaseDefinitionV1, status: 'passed' | 'failed') => {
+    const previous = caseStates[testCase.id]?.result;
+    const result: TestCaseRunResultV1 = {
+      version: 1,
+      caseId: testCase.id,
+      relatedAuditId: testCase.relatedAuditId ?? null,
+      status,
+      currentStep: previous?.currentStep ?? '人工确认',
+      expected: [...testCase.expectedResults],
+      actual: [status === 'passed' ? '人工确认通过' : '人工确认失败'],
+      stateSummary: previous?.stateSummary ?? '人工验收结果',
+      artifacts: previous?.artifacts ?? [{ name: `${testCase.id}.test-case.json`, mediaType: 'application/json', content: JSON.stringify(testCase, null, 2) }],
+    };
+    setCaseStates((current) => ({ ...current, [testCase.id]: { status, result } }));
   };
 
   const applyAction = (label: string, action: OfficialTestModeAction) => {
@@ -76,37 +157,93 @@ export function TestModeScreen({ initialScenario = null, onExit }: TestModeScree
       <main className="test-mode-library">
         <header className="test-mode-heading">
           <span className="test-environment-badge">测试环境</span>
-          <div><h1>开发者测试模式</h1><p>加载确定性场景后，所有操作继续使用正式牌桌、规则引擎与事件记录器。</p></div>
+          <div><h1>开发者测试用例中心</h1><p>统一管理对局、牌谱、存档、版本、随机性和界面测试；可操作对局继续使用正式引擎。</p></div>
           <button type="button" onClick={onExit}>返回主菜单</button>
         </header>
-        <section className="test-mode-scenario-grid" aria-label="内置测试场景">
-          {builtIns.map((scenario) => (
-            <article key={scenario.id} className="test-mode-scenario-card">
-              <strong>{scenario.name}</strong>
-              <code>{scenario.id}</code>
-              <p>{scenario.description}</p>
-              <ol>{scenario.instructions.map((instruction) => <li key={instruction}>{instruction}</li>)}</ol>
-              <button type="button" onClick={() => startScenario(scenario)}>加载场景</button>
-            </article>
+        <nav className="test-case-categories" aria-label="测试用例分类">
+          <button type="button" aria-pressed={selectedCategory === 'all'} onClick={() => setSelectedCategory('all')}>全部</button>
+          {TEST_CASE_CATEGORIES.map((category) => (
+            <button type="button" key={category} aria-pressed={selectedCategory === category} onClick={() => setSelectedCategory(category)}>
+              {TEST_CASE_CATEGORY_LABELS[category]}
+            </button>
           ))}
+        </nav>
+        <section className="test-storage-failure-panel" aria-label="模拟存储失败">
+          <h2>模拟存储失败</h2>
+          <label>测试适配器故障
+            <select value={storageFailureMode} onChange={(event) => setStorageFailureMode(event.target.value as TestStorageFailureMode)}>
+              <option value="none">不模拟</option>
+              <option value="get-error">读取 SecurityError</option>
+              <option value="set-security">写入 SecurityError</option>
+              <option value="set-quota">写入 QuotaExceededError</option>
+              <option value="set-error">写入普通 Error</option>
+              <option value="remove-error">删除 SecurityError</option>
+            </select>
+          </label>
+          <p>故障仅注入测试中心内存适配器，不读取或修改 window.localStorage。</p>
+        </section>
+        <SeededSimulationPanel onOpenFailureScenario={startScenario} />
+        <DialogKeyboardLab />
+        <section className="test-mode-scenario-grid" aria-label="测试用例库">
+          {visibleCases.map((testCase) => {
+            const runtime = caseStates[testCase.id] ?? { status: 'not-run' as const };
+            const report = runtime.result ? failureReportFromResult(testCase, runtime.result) : '';
+            return (
+              <article key={testCase.id} className="test-mode-scenario-card" data-case-kind={testCase.kind}>
+                <header className="test-case-card-header">
+                  <strong>{testCase.name}</strong>
+                  <span className={`test-case-status is-${runtime.status}`}>{TEST_CASE_STATUS_LABELS[runtime.status]}</span>
+                </header>
+                <code>{testCase.id}</code>
+                <span>{TEST_CASE_CATEGORY_LABELS[testCase.category]} · {TEST_CASE_KIND_LABELS[testCase.kind]}</span>
+                <p>{testCase.description}</p>
+                <p>预期：{testCase.expectedResults.join('；') || '按人工步骤确认'}</p>
+                {testCase.manualSteps.length > 0 ? <ol>{testCase.manualSteps.map((step) => <li key={step}>{step}</li>)}</ol> : null}
+                <div className="test-case-tags">{testCase.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+                <button type="button" disabled={runtime.status === 'running'} onClick={() => void runTestCase(testCase)}>
+                  {testCase.kind === 'playable' ? '进入正式牌桌' : runtime.status === 'running' ? '运行中…' : '运行用例'}
+                </button>
+                {testCase.kind === 'replay' && testCase.replay && onOpenReplay ? (
+                  <button type="button" onClick={() => onOpenReplay(testCase.replay!)}>人工查看附带牌谱</button>
+                ) : null}
+                {runtime.result ? (
+                  <section className="test-case-result" aria-label={`${testCase.id}运行结果`}>
+                    <span>当前步骤：{runtime.result.currentStep}</span>
+                    <span>实际：{runtime.result.actual.join('；')}</span>
+                    <span>状态摘要：{runtime.result.stateSummary}</span>
+                    {runtime.status === 'manual-confirmation' ? <div><button type="button" onClick={() => markManualResult(testCase, 'passed')}>标记通过</button><button type="button" onClick={() => markManualResult(testCase, 'failed')}>标记失败</button></div> : null}
+                    {runtime.status === 'failed' ? <div><button type="button" onClick={() => void copyText(report)}>复制失败报告</button><button type="button" onClick={() => downloadJson(`${testCase.id}.failure.json`, report)}>导出相关JSON</button></div> : null}
+                  </section>
+                ) : null}
+              </article>
+            );
+          })}
         </section>
         <section className="test-mode-import">
-          <h2>导入 TestScenario JSON</h2>
-          <textarea aria-label="TestScenario JSON" value={importText} onChange={(event) => setImportText(event.target.value)} placeholder="粘贴 TestScenarioV1 JSON" />
+          <h2>导入 TestScenario 或 TestCase JSON</h2>
+          <textarea aria-label="TestScenario或TestCase JSON" value={importText} onChange={(event) => setImportText(event.target.value)} placeholder="粘贴 TestScenarioV1 或 TestCaseDefinitionV1 JSON" />
           <div>
-            <input aria-label="选择TestScenario文件" type="file" accept="application/json,.json" onChange={(event) => {
+            <input aria-label="选择测试JSON文件" type="file" accept="application/json,.json" onChange={(event) => {
               const file = event.target.files?.[0];
               if (file) void file.text().then(setImportText).catch(() => setMessages(['$: 无法读取所选文件']));
             }} />
             <button type="button" onClick={() => {
               try {
-                startScenario(parseTestScenarioJson(importText));
+                const raw = JSON.parse(importText) as { kind?: unknown };
+                if (raw?.kind) {
+                  const testCase = parseTestCaseDefinitionJson(importText);
+                  setImportedCases((current) => [...current.filter((entry) => entry.id !== testCase.id), testCase]);
+                  setSelectedCategory(testCase.category);
+                  setMessages([`${testCase.id}：已注册到测试用例中心`]);
+                } else {
+                  startScenario(parseTestScenarioJson(importText));
+                }
               } catch (error) {
                 setMessages(error instanceof TestScenarioValidationError
                   ? error.issues.map((issue) => `${issue.path}: ${issue.message}`)
-                  : ['$: 导入失败']);
+                  : [error instanceof Error ? `$: ${error.message}` : '$: 导入失败']);
               }
-            }}>校验并加载</button>
+            }}>校验并导入</button>
           </div>
           {messages.length > 0 ? <ul className="test-mode-errors" role="alert">{messages.map((message) => <li key={message}>{message}</li>)}</ul> : null}
         </section>
@@ -115,13 +252,19 @@ export function TestModeScreen({ initialScenario = null, onExit }: TestModeScree
   }
 
   const currentScenario = scenarioFromSession(session);
-  const failureReport = [
-    stateSummary(session.initialScenario, session.gameState, session.actionLog.length),
-    '',
-    '最近动作:',
-    ...session.actionLog.slice(-20).map((entry) => `#${entry.sequence} ${entry.label} ${entry.phase} player=${entry.currentPlayer}`),
-    runtimeError ? `异常: ${runtimeError}` : '',
-  ].filter(Boolean).join('\n');
+  const playableCase = playableTestCaseFromScenario(session.initialScenario);
+  const failureResult: TestCaseRunResultV1 = {
+    version: 1,
+    caseId: playableCase.id,
+    relatedAuditId: playableCase.relatedAuditId ?? null,
+    status: 'failed',
+    currentStep: `正式动作 #${session.actionLog.length}`,
+    expected: [...playableCase.expectedResults],
+    actual: [...(runtimeError ? [runtimeError] : []), ...failedChecks.map((entry) => `${entry.label}：${entry.detail}`)],
+    stateSummary: stateSummary(session.initialScenario, session.gameState, session.actionLog.length),
+    artifacts: [{ name: `${currentScenario.id}.json`, mediaType: 'application/json', content: serializeTestScenario(currentScenario) }],
+  };
+  const failureReport = failureReportFromResult(playableCase, failureResult);
   const replayRecord = createReplayRecord({
     log: session.matchLog,
     scores: session.gameState.players.map((player) => player.score) as [number, number, number, number],
@@ -131,7 +274,8 @@ export function TestModeScreen({ initialScenario = null, onExit }: TestModeScree
   });
 
   return (
-    <div className="test-mode-session" data-testid="test-mode-session">
+    <DesktopTableViewport surface="test-mode" onReturnMenu={() => setSession(null)}>
+      <div className="test-mode-session" data-testid="test-mode-session">
       <Board
         gameState={session.gameState}
         controlledPlayerId={session.controlPlayerId}
@@ -154,6 +298,7 @@ export function TestModeScreen({ initialScenario = null, onExit }: TestModeScree
         }}
         onReset={() => setSession(createSession(session.initialScenario))}
         onReturnMenu={() => setSession(null)}
+        desktopViewport={false}
       />
 
       <header className="test-mode-toolbar" aria-label="测试模式工具栏">
@@ -193,8 +338,10 @@ export function TestModeScreen({ initialScenario = null, onExit }: TestModeScree
         matchLog={session.matchLog}
         actionLog={session.actionLog}
         checks={checks}
+        viewerPlayerId={session.controlPlayerId}
       />
-    </div>
+      </div>
+    </DesktopTableViewport>
   );
 }
 

@@ -5,6 +5,7 @@ import { normalizeFuritenState } from './furiten';
 import { shanten } from './shanten';
 import { markRiverTileClaimed } from './callChecker';
 import { advanceWallAfterKan } from './wall';
+import { settleRoundState } from './roundSettlement';
 
 export type KanType = 'ankan' | 'minkan' | 'kakan';
 
@@ -13,13 +14,16 @@ export interface KanCandidate {
   tileId: TileId;
 }
 
+export interface RiichiAnkanWaitEvaluation {
+  beforeWaits: TileId[];
+  afterWaits: TileId[];
+  waitPreserving: boolean;
+}
+
 export function canAnkan(state: GameState, playerId: PlayerId, tileId?: TileId): boolean {
   const player = state.players[playerId];
   if (!player || state.phase !== 'discard' || state.currentPlayer !== playerId) return false;
-  const candidates = getAnkanCandidates(state, playerId);
-  const legalCandidates = player.riichi
-    ? candidates.filter((candidate) => isRiichiAnkanWaitPreserving(state, playerId, candidate.tileId))
-    : candidates;
+  const legalCandidates = getLegalAnkanCandidates(state, playerId);
   return tileId === undefined ? legalCandidates.length > 0 : legalCandidates.some((candidate) => candidate.tileId === tileId);
 }
 
@@ -47,6 +51,32 @@ export function getAnkanCandidates(state: GameState, playerId: PlayerId): KanCan
   return [...counts.entries()]
     .filter(([, count]) => count >= 4)
     .map(([tileId]) => ({ type: 'ankan' as const, tileId }));
+}
+
+export function getLegalAnkanCandidates(state: GameState, playerId: PlayerId): KanCandidate[] {
+  const player = state.players[playerId];
+  if (!player || state.phase !== 'discard' || state.currentPlayer !== playerId) return [];
+  return getAnkanCandidates(state, playerId)
+    .filter((candidate) => !player.riichi || evaluateRiichiAnkanWaits(state, playerId, candidate.tileId).waitPreserving);
+}
+
+export function evaluateRiichiAnkanWaits(state: GameState, playerId: PlayerId, tileId: TileId): RiichiAnkanWaitEvaluation {
+  const player = state.players[playerId];
+  if (!player) return { beforeWaits: [], afterWaits: [], waitPreserving: false };
+  const beforeHand = player.drawnTile?.id === tileId ? removeTilesForWaitCheck(player.hand, tileId, 1) : player.hand;
+  const beforeWaits = [...waitsForHandWithFixedMelds(beforeHand, 0)].sort((a, b) => a - b);
+  const afterHand = removeTilesForWaitCheck(player.hand, tileId, 4);
+  const hasQuad = afterHand.length === player.hand.length - 4;
+  const afterWaits = hasQuad ? [...waitsForHandWithFixedMelds(afterHand, 1)].sort((a, b) => a - b) : [];
+  return {
+    beforeWaits,
+    afterWaits,
+    waitPreserving: hasQuad && (!player.riichi || sameSet(new Set(beforeWaits), new Set(afterWaits))),
+  };
+}
+
+export function isRiichiAnkanWaitPreserving(state: GameState, playerId: PlayerId, tileId: TileId): boolean {
+  return evaluateRiichiAnkanWaits(state, playerId, tileId).waitPreserving;
 }
 
 export function getKakanCandidates(state: GameState, playerId: PlayerId): KanCandidate[] {
@@ -335,17 +365,6 @@ function countHandTiles(hand: Tile[]): Map<TileId, number> {
   return counts;
 }
 
-function isRiichiAnkanWaitPreserving(state: GameState, playerId: PlayerId, tileId: TileId): boolean {
-  const player = state.players[playerId];
-  if (!player?.riichi) return true;
-  const beforeHand = player.drawnTile?.id === tileId ? removeTilesForWaitCheck(player.hand, tileId, 1) : player.hand;
-  const before = waitsForHandWithFixedMelds(beforeHand, 0);
-  const afterHand = removeTilesForWaitCheck(player.hand, tileId, 4);
-  if (afterHand.length !== player.hand.length - 4) return false;
-  const after = waitsForHandWithFixedMelds(afterHand, 1);
-  return sameSet(before, after);
-}
-
 function waitsForHandWithFixedMelds(hand: Tile[], fixedMelds: number): Set<TileId> {
   const waits = new Set<TileId>();
   for (let id = 0; id < 34; id += 1) {
@@ -478,15 +497,5 @@ function removePendingKakanTileFromDeclarer(state: GameState): GameState {
 }
 
 function settleKanRound(state: GameState, result: RoundResult): GameState {
-  return {
-    ...state,
-    phase: 'round-ended',
-    result,
-    kuikaeForbiddenTileIds: {},
-    players: state.players.map((player, index) => ({
-      ...player,
-      score: player.score + (result.pointDeltas[index] ?? 0),
-      pendingRiichiSidewaysDiscard: false,
-    })),
-  };
+  return settleRoundState(state, result);
 }

@@ -2,8 +2,10 @@ import { validateMatchState } from '../match/matchEngine';
 import { validateMatchLog } from '../replay/validation';
 import type { ReplayRecord, SavedMatch } from './storageTypes';
 import { validateTileInstanceRegions } from '../tileInstanceValidation';
+import { assertCurrentFormatVersion } from '../versionPolicy';
 
 export function validateSavedMatch(save: SavedMatch): void {
+  assertCurrentFormatVersion('SavedMatch', save?.version);
   if (!save.saveId) throw new Error('saveId is required');
   if (!save.savedAt) throw new Error('savedAt is required');
   const matchIssues = validateMatchState(save.matchState);
@@ -19,7 +21,7 @@ export function validateSavedMatch(save: SavedMatch): void {
 
 export function validateReplayRecord(record: ReplayRecord): void {
   if (!record || typeof record !== 'object') throw new Error('Replay record is not an object');
-  if (record.version !== 1) throw new Error('Unsupported replay record version');
+  assertCurrentFormatVersion('ReplayRecord', record.version);
   if (!record.id || record.id !== record.matchId || record.log.matchId !== record.id) {
     throw new Error('Replay id does not match match log');
   }

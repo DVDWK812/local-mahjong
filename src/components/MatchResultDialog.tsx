@@ -1,4 +1,5 @@
 import type { MatchState } from '../game/match/types';
+import { Dialog, DIALOG_INTERACTION_POLICIES } from './Dialog';
 
 interface MatchResultDialogProps {
   matchState: MatchState;
@@ -14,14 +15,13 @@ export function MatchResultDialog({ matchState, onNewMatch }: MatchResultDialogP
     .sort((a, b) => b.score - a.score
       || (a.player - matchState.initialDealer + 4) % 4 - (b.player - matchState.initialDealer + 4) % 4);
   return (
-    <div className="result-backdrop" role="presentation">
-      <section className="result-dialog" role="dialog" aria-modal="true" aria-labelledby="match-result-title">
+    <Dialog policy={DIALOG_INTERACTION_POLICIES.matchResult} labelledBy="match-result-title" describedBy="match-result-description" testId="match-result-dialog">
         <div className="result-header">
           <div>
             <h2 id="match-result-title">整场比赛总结</h2>
-            <p>共完成{matchResults.length}场；总分同分时按起庄顺序优先</p>
+            <p id="match-result-description">共完成{matchResults.length}场；总分同分时按起庄顺序优先</p>
           </div>
-          <button type="button" onClick={onNewMatch}>新比赛</button>
+          <button type="button" onClick={onNewMatch} data-dialog-initial-focus="true">新比赛</button>
         </div>
         <h3>总排名</h3>
         <div className="match-result-table">
@@ -58,7 +58,6 @@ export function MatchResultDialog({ matchState, onNewMatch }: MatchResultDialogP
             <p>供托归属：{matchResult.leftoverRiichiSticksAwardedTo === undefined ? '未分配' : `Player ${matchResult.leftoverRiichiSticksAwardedTo + 1}`}</p>
           </section>
         ))}
-      </section>
-    </div>
+    </Dialog>
   );
 }

@@ -47,15 +47,19 @@ export function applyOfficialTestModeAction(state: GameState, action: OfficialTe
 }
 
 export function createTestModeMatchLog(scenario: TestScenarioV1): MatchLog {
+  const initialGameState = initialStateForRecordedScenario(scenario.gameState);
   const initial = createInitialMatchLog({
     matchId: `test-mode-${scenario.id}`,
     playerNames: scenario.gameState.players.map((player) => player.name) as [string, string, string, string],
     playerTypes: ['human', 'human', 'human', 'human'],
     initialDealer: scenario.gameState.dealer,
-    initialScores: scenario.gameState.players.map((player) => player.score) as [number, number, number, number],
+    initialScores: initialGameState.players.map((player) => player.score) as [number, number, number, number],
     ruleConfig: scenario.ruleConfig,
   });
-  return startRoundInMatchLog(initial, scenario.gameState, scenario.handNumber);
+  const started = startRoundInMatchLog(initial, initialGameState, scenario.handNumber);
+  return scenario.gameState.result
+    ? recordGameStateTransition(started, initialGameState, scenario.gameState)
+    : started;
 }
 
 export function recordTestModeAction(log: MatchLog, before: GameState, after: GameState): MatchLog {
@@ -64,4 +68,21 @@ export function recordTestModeAction(log: MatchLog, before: GameState, after: Ga
 
 export function shouldAutomaticallyAdvanceTestModeAI(_manualPlayerIds: readonly PlayerId[], _currentPlayer: PlayerId): false {
   return false;
+}
+
+function initialStateForRecordedScenario(state: GameState): GameState {
+  const result = state.result;
+  if (!result) return state;
+  const honbaIncrement = result.type === 'abortive-draw' || result.type === 'exhaustive-draw' ? result.honbaIncrement : 0;
+  return {
+    ...state,
+    phase: 'discard',
+    result: null,
+    honba: state.honba - honbaIncrement,
+    riichiSticks: result.settlementRiichiSticks ?? state.riichiSticks,
+    players: state.players.map((player, index) => ({
+      ...player,
+      score: player.score - (result.pointDeltas[index] ?? 0),
+    })),
+  };
 }

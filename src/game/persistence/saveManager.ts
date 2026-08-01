@@ -1,9 +1,10 @@
-import { migrateSavedMatch } from './migration';
+import { migrateSavedMatch, SavedMatchCompatibilityError } from './migration';
 import { createReplayRecord, normalizeReplayRecord } from './replayRecord';
 import { validateReplayRecord, validateSavedMatch } from './storageValidation';
 import type { ReplayMetadata, ReplayRecord, SavedMatch, StorageAdapter } from './storageTypes';
 import { CURRENT_MATCH_SAVE_KEY, REPLAY_INDEX_KEY, REPLAY_LIBRARY_KEY, REPLAY_RECORD_KEY_PREFIX } from './storageTypes';
 import type { MatchLog } from '../replay/types';
+import { FormatVersionError } from '../versionPolicy';
 
 export function replayRecordKey(id: string): string {
   return `${REPLAY_RECORD_KEY_PREFIX}${id}`;
@@ -20,9 +21,20 @@ export class LocalStorageAdapter implements StorageAdapter {
   async loadCurrentMatch(): Promise<SavedMatch | null> {
     const raw = this.storage.getItem(CURRENT_MATCH_SAVE_KEY);
     if (!raw) return null;
-    const save = migrateSavedMatch(JSON.parse(raw));
-    validateSavedMatch(save);
-    return save;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      throw new SavedMatchCompatibilityError('JSON 无法解析');
+    }
+    try {
+      const save = migrateSavedMatch(parsed);
+      validateSavedMatch(save);
+      return save;
+    } catch (error) {
+      if (error instanceof SavedMatchCompatibilityError || error instanceof FormatVersionError) throw error;
+      throw new SavedMatchCompatibilityError(error instanceof Error ? error.message : String(error));
+    }
   }
 
   async deleteCurrentMatch(): Promise<void> {

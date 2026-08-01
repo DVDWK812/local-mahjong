@@ -9,6 +9,8 @@ import { sortTiles, WIND_ORDER } from './tileUtils';
 import { createShuffledWall, splitDeadWall } from './wall';
 import { buildRonResult, buildTsumoResult, canRon } from './winChecker';
 import { canDiscardTileByRules, clearKuikaeRestriction } from './kuikae';
+import { settleRoundState } from './roundSettlement';
+import { productionRandomSource, type RandomSource } from './randomSource';
 
 function createPlayers(): PlayerState[] {
   return WIND_ORDER.map((wind, index) => ({
@@ -65,8 +67,8 @@ function dealInitialHands(players: PlayerState[], liveWall: Tile[]): { players: 
   return { players: dealtPlayers, wall };
 }
 
-export function createInitialGameState(): GameState {
-  const { liveWall, deadWall, doraIndicators } = splitDeadWall(createShuffledWall());
+export function createInitialGameState(randomSource: RandomSource = productionRandomSource): GameState {
+  const { liveWall, deadWall, doraIndicators } = splitDeadWall(createShuffledWall(randomSource));
   const { players, wall } = dealInitialHands(createPlayers(), liveWall);
 
   return {
@@ -99,8 +101,8 @@ export function createInitialGameState(): GameState {
   };
 }
 
-export function resetGame(): GameState {
-  return createInitialGameState();
+export function resetGame(randomSource: RandomSource = productionRandomSource): GameState {
+  return createInitialGameState(randomSource);
 }
 
 export function drawTile(state: GameState, options: { settleTsumo?: boolean } = {}): GameState {
@@ -259,18 +261,7 @@ function openCallWindowOrContinue(state: GameState, discarder: PlayerId, discard
 }
 
 function settleRound(state: GameState, result: RoundResult): GameState {
-  return {
-    ...state,
-    phase: 'round-ended',
-    result,
-    honba: result.type === 'abortive-draw' || result.type === 'exhaustive-draw' ? state.honba + result.honbaIncrement : state.honba,
-    players: state.players.map((player, index) => ({
-      ...player,
-      score: player.score + (result.pointDeltas[index] ?? 0),
-      pendingRiichiSidewaysDiscard: false,
-    })),
-    kuikaeForbiddenTileIds: {},
-  };
+  return settleRoundState(state, result);
 }
 
 export { buildAbortiveDrawResult };

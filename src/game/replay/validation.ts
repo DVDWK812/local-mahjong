@@ -1,7 +1,8 @@
 import type { GameEvent, MatchLog, ReplayState, TileSnapshot } from './types';
+import { assertCurrentFormatVersion } from '../versionPolicy';
 
 export function validateMatchLog(log: MatchLog): void {
-  if (log.version < 1) throw new Error('Unsupported match log version');
+  assertCurrentFormatVersion('MatchLog', log?.version);
   const events = log.rounds.flatMap((round) => round.events);
   validateEvents(events);
   log.rounds.forEach((round) => {

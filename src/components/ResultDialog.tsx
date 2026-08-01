@@ -4,6 +4,7 @@ import { tileLabel, windLabel } from '../game/tileUtils';
 import { PlayerMelds } from './PlayerMelds';
 import { Tile as TileView } from './Tile';
 import { activeUraDoraIndicators } from '../game/wall';
+import { Dialog, DIALOG_INTERACTION_POLICIES } from './Dialog';
 
 interface ResultDialogProps {
   gameState: GameState;
@@ -32,20 +33,18 @@ interface WinScoreBreakdown {
 
 function ResultShell({ title, subtitle, children, onReset, continueLabel }: ResultShellProps) {
   return (
-    <div className="result-backdrop" role="presentation">
-      <section className="result-dialog" role="dialog" aria-modal="true" aria-labelledby="result-title">
+    <Dialog policy={DIALOG_INTERACTION_POLICIES.result} labelledBy="result-title" describedBy="result-description" testId="result-dialog">
         <header className="result-header">
           <div>
             <h2 id="result-title">{title}</h2>
-            <p>{subtitle}</p>
+            <p id="result-description">{subtitle}</p>
           </div>
         </header>
         <div className="result-body">{children}</div>
         <footer className="result-actions">
-          <button type="button" onClick={onReset}>{continueLabel}</button>
+          <button type="button" onClick={onReset} data-dialog-initial-focus="true">{continueLabel}</button>
         </footer>
-      </section>
-    </div>
+    </Dialog>
   );
 }
 
@@ -202,9 +201,10 @@ function winDisplayDeltas(gameState: GameState, result: WinRoundResult): number[
   ));
 }
 
-export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, continueLabel = '继续', displayPointDeltas, resultRiichiSticks = gameState.riichiSticks }: ResultDialogProps) {
+export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, continueLabel = '继续', displayPointDeltas, resultRiichiSticks }: ResultDialogProps) {
   const result = gameState.result;
   if (!result) return null;
+  const settlementRiichiSticks = resultRiichiSticks ?? result.settlementRiichiSticks ?? gameState.riichiSticks;
 
   if (result.type === 'exhaustive-draw') {
     return (
@@ -257,7 +257,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, conti
           const from = win.from === null ? null : gameState.players[win.from];
           const hasYakuman = win.yaku.some((yaku) => yaku.yakuman);
           const yakuRows = reconciledYakuRows(win);
-          const breakdown = winScoreBreakdown(gameState, result, win, resultRiichiSticks);
+          const breakdown = winScoreBreakdown(gameState, result, win, settlementRiichiSticks);
           const limit = limitLabel(win);
           return (
             <article key={`${win.winner}-${win.winType}`} className="result-card">
@@ -280,7 +280,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, conti
                 <p>合计：{hasYakuman ? '役满' : `${win.han}番${win.fu}符`}</p>
                 <p>牌型得点：{formatPoints(breakdown.handPoints)}点</p>
                 <p>本场奖励：{gameState.honba}本场 × 300点 = {formatPoints(breakdown.honbaBonus)}点</p>
-                <p>供托奖励：{resultRiichiSticks}根 × 1000点 = {formatPoints(breakdown.stickBonus)}点</p>
+                <p>供托奖励：{settlementRiichiSticks}根 × 1000点 = {formatPoints(breakdown.stickBonus)}点</p>
                 {breakdown.paymentNote ? <p>{breakdown.paymentNote}</p> : null}
                 <p>获得总计：{formatPoints(breakdown.total)}点</p>
               </div>

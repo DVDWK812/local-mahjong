@@ -381,7 +381,7 @@ function applyCall(context: MutableReplayContext, event: ReplayCallEvent): void 
 function settleResult(context: MutableReplayContext, result: RoundResult, applyScores: boolean): void {
   const state = context.gameState;
   state.kuikaeForbiddenTileIds = {};
-  context.settlementRiichiSticks ??= state.riichiSticks;
+  context.settlementRiichiSticks ??= result.settlementRiichiSticks ?? state.riichiSticks;
   if (applyScores && !context.scoresSettled) {
     const finalRiichiSticks = result.type === 'tsumo' || result.type === 'ron' ? 0 : state.riichiSticks;
     const authoritative = context.authoritativeFinalScores;
@@ -405,7 +405,9 @@ function settleResult(context: MutableReplayContext, result: RoundResult, applyS
   } else if (result.type === 'tsumo') {
     state.lastWinSource = 'normal-tsumo';
   }
-  state.result = result;
+  state.result = result.settlementRiichiSticks === undefined
+    ? { ...result, settlementRiichiSticks: context.settlementRiichiSticks }
+    : result;
   state.phase = 'round-ended';
   state.players = state.players.map((player) => ({ ...player, pendingRiichiSidewaysDiscard: false }));
   context.riichiDiscardPending.clear();

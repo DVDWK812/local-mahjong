@@ -24,6 +24,7 @@ describe('GameScreen', () => {
       />,
     );
     expect(html).toContain('data-testid="game-screen"');
+    expect(html).toContain('data-desktop-table-surface="game"');
     expect(html).toContain('对局状态栏');
     expect(html).toContain('麻将牌桌');
     expect(html).toContain('本家手牌');

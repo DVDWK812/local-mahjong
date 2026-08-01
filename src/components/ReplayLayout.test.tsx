@@ -13,11 +13,14 @@ describe('Replay fullscreen layout', () => {
 
   it('回放根节点占满视口且中央区域不会引起整页滚动', () => {
     const screenRule = css.match(/\.replay-screen\s*\{([^}]*)\}/s)?.[1] ?? '';
+    const viewportRule = css.match(/\.app-resolution-viewport\s*\{([^}]*)\}/s)?.[1] ?? '';
     expect(screenRule).toContain('display: flex');
     expect(screenRule).toContain('flex-direction: column');
-    expect(screenRule).toContain('width: 100vw');
-    expect(screenRule).toContain('height: 100dvh');
+    expect(screenRule).toContain('width: 100%');
+    expect(screenRule).toContain('height: 100%');
     expect(screenRule).toContain('overflow: hidden');
+    expect(viewportRule).toContain('width: 100%');
+    expect(viewportRule).toContain('height: 100dvh');
     expect(css).toMatch(/\.replay-table-viewport\s*\{[^}]*flex:\s*1 1 auto;[^}]*min-height:\s*0;[^}]*overflow:\s*hidden;/s);
   });
 

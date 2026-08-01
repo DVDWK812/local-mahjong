@@ -2,6 +2,7 @@ import type { MatchLength } from '../game/match/types';
 
 export type AppScreen =
   | 'main-menu'
+  | 'settings'
   | 'local-mode-menu'
   | 'riichi-player-count'
   | 'riichi-four-player-length'

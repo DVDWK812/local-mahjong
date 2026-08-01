@@ -107,6 +107,8 @@ export interface WinRoundResult {
   type: 'tsumo' | 'ron';
   winners: WinResultEntry[];
   pointDeltas: number[];
+  /** Number of table sticks immediately before this result was settled. */
+  settlementRiichiSticks?: number;
 }
 
 export interface AbortiveDrawResult {
@@ -119,6 +121,8 @@ export interface AbortiveDrawResult {
   riichiSticksCarryOver: boolean;
   scoreDeltas: number[];
   pointDeltas: number[];
+  /** Number of table sticks immediately before this result was settled. */
+  settlementRiichiSticks?: number;
 }
 
 export interface ExhaustiveDrawResult {
@@ -132,6 +136,8 @@ export interface ExhaustiveDrawResult {
   riichiSticksCarryOver: boolean;
   nagashiManganPlayers?: PlayerId[];
   revealHands?: PlayerId[];
+  /** Number of table sticks immediately before this result was settled. */
+  settlementRiichiSticks?: number;
 }
 
 export type RoundResult = WinRoundResult | AbortiveDrawResult | ExhaustiveDrawResult;

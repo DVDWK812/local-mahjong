@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   getRulePreset,
+  loadStoredRuleConfigResult,
   loadStoredRuleConfig,
   normalizeRulePresetId,
+  persistRuleConfigUpdate,
+  removeStoredRuleConfig,
+  RuleConfigStorageError,
   RULE_CONFIG_STORAGE_KEY,
   saveStoredRuleConfig,
   validateRuleConfig,
@@ -13,6 +17,8 @@ function memoryStorage() {
   return {
     getItem: (key: string) => store.get(key) ?? null,
     setItem: (key: string, value: string) => { store.set(key, value); },
+    removeItem: (key: string) => { store.delete(key); },
+    peek: (key: string) => store.get(key) ?? null,
   };
 }
 
@@ -99,4 +105,66 @@ describe('比赛规则预设和校验', () => {
     storage.setItem(RULE_CONFIG_STORAGE_KEY, '{bad');
     expect(loadStoredRuleConfig(storage).match.matchLength).toBe('east-only');
   });
+
+  it('读取抛错时返回默认配置和统一的读取错误，不让异常逃逸', () => {
+    const failure = namedError('SecurityError', 'storage disabled');
+    const result = loadStoredRuleConfigResult({
+      getItem: () => { throw failure; },
+      setItem: () => undefined,
+      removeItem: () => undefined,
+    });
+    expect(result.ok).toBe(false);
+    expect(result.config).toEqual(getRulePreset('east-round'));
+    if (result.ok) throw new Error('Expected read failure');
+    expect(result.error).toBeInstanceOf(RuleConfigStorageError);
+    expect(result.error).toMatchObject({ operation: 'read', kind: 'security' });
+  });
+
+  it.each([
+    ['SecurityError', 'security'],
+    ['QuotaExceededError', 'quota'],
+    ['Error', 'unknown'],
+  ] as const)('写入抛 %s 时返回失败、保留原配置且不抛异常', (name, kind) => {
+    const original = JSON.stringify({ version: 1, config: getRulePreset('south-round') });
+    const values = new Map([[RULE_CONFIG_STORAGE_KEY, original]]);
+    const storage = {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: () => { throw namedError(name, 'write failed'); },
+      removeItem: (key: string) => { values.delete(key); },
+    };
+    const next = { ...getRulePreset('east-round'), match: { ...getRulePreset('east-round').match, targetPoints: 32000 } };
+    const outcome = persistRuleConfigUpdate(next, storage);
+    expect(outcome.result).toMatchObject({ ok: false, error: { operation: 'write', kind } });
+    expect(outcome.config).toBe(next);
+    expect(outcome.config.match.targetPoints).toBe(32000);
+    expect(outcome.notice).toContain('已应用');
+    expect(values.get(RULE_CONFIG_STORAGE_KEY)).toBe(original);
+  });
+
+  it('删除抛错时返回统一错误并保留原配置', () => {
+    const original = JSON.stringify({ version: 1, config: getRulePreset('south-round') });
+    const values = new Map([[RULE_CONFIG_STORAGE_KEY, original]]);
+    const result = removeStoredRuleConfig({
+      getItem: (key) => values.get(key) ?? null,
+      setItem: (key, value) => { values.set(key, value); },
+      removeItem: () => { throw namedError('SecurityError', 'remove failed'); },
+    });
+    expect(result).toMatchObject({ ok: false, error: { operation: 'remove', kind: 'security' } });
+    expect(values.get(RULE_CONFIG_STORAGE_KEY)).toBe(original);
+  });
+
+  it('普通浏览器适配器成功写入与删除路径保持不变', () => {
+    const storage = memoryStorage();
+    expect(saveStoredRuleConfig(getRulePreset('south-round'), storage)).toEqual({ ok: true });
+    expect(persistRuleConfigUpdate(getRulePreset('south-round'), storage).notice).toBeNull();
+    expect(loadStoredRuleConfig(storage).match.matchLength).toBe('hanchan');
+    expect(removeStoredRuleConfig(storage)).toEqual({ ok: true });
+    expect(storage.peek(RULE_CONFIG_STORAGE_KEY)).toBeNull();
+  });
 });
+
+function namedError(name: string, message: string): Error {
+  const error = new Error(message);
+  error.name = name;
+  return error;
+}

@@ -2,11 +2,12 @@ import { canPon, executePon, passCall } from './callChecker';
 import { canDeclareKyuushuKyuuhai, declareKyuushuKyuuhai } from './abortiveDraw';
 import { executeChi, findUsefulChiOption } from './chiChecker';
 import { declareRiichi, discardTile, drawTile, getRiichiDiscardCandidates } from './engine';
-import { canAnkan, canChankan, canKakan, canMinkan, declareChankanRon, executeKan, passChankan } from './kanChecker';
+import { canChankan, canKakan, canMinkan, declareChankanRon, executeKan, getLegalAnkanCandidates, passChankan, type KanCandidate } from './kanChecker';
 import { recommendDiscards, shanten } from './shanten';
 import type { GameState, PlayerId, Tile, TileId } from './types';
-import { ALL_TILE_IDS } from './tileUtils';
 import { isKuikaeEnabled, kuikaeForbiddenForPlayer, legalDiscardTiles } from './kuikae';
+import { getVisibleTileCounts } from './visibility';
+import { productionRandomSource, randomValue, type RandomSource } from './randomSource';
 
 export const HUMAN_PLAYER_ID: PlayerId = 0;
 
@@ -15,31 +16,17 @@ export function isAIPlayer(playerId: PlayerId): boolean {
 }
 
 export function getVisibleCountsForPlayer(state: GameState, playerId: PlayerId): number[] {
-  const visible = Array.from({ length: 34 }, () => 0);
-  const seenInstances = new Set<string>();
-  const countVisibleTile = (tile: Tile) => {
-    if (seenInstances.has(tile.instanceId)) return;
-    seenInstances.add(tile.instanceId);
-    visible[tile.id] += 1;
-  };
+  return getVisibleTileCounts(state, playerId).map((count) => count.visible);
+}
 
-  state.players.forEach((player) => {
-    player.river.forEach(countVisibleTile);
-    player.calls.forEach((call) => {
-      call.tiles.forEach(countVisibleTile);
-    });
-  });
-
-  state.doraIndicators.forEach(countVisibleTile);
-  state.players[playerId].hand.forEach(countVisibleTile);
-
-  return ALL_TILE_IDS.map((id) => visible[id]);
+export function getAIAnkanCandidates(state: GameState, playerId: PlayerId): KanCandidate[] {
+  return isAIPlayer(playerId) ? getLegalAnkanCandidates(state, playerId) : [];
 }
 
 export function selectAIDiscardTile(
   state: GameState,
   playerId: PlayerId,
-  rng: () => number = Math.random,
+  rng: RandomSource | (() => number) = productionRandomSource,
   allowedCandidates?: readonly Tile[],
 ): Tile | null {
   const player = state.players[playerId];
@@ -62,11 +49,24 @@ export function selectAIDiscardTile(
     if (recommended) return recommended;
   }
 
-  const index = Math.min(candidates.length - 1, Math.floor(rng() * candidates.length));
+  return selectAIRandomLegalDiscardTile(state, playerId, rng, candidates);
+}
+
+export function selectAIRandomLegalDiscardTile(
+  state: GameState,
+  playerId: PlayerId,
+  rng: RandomSource | (() => number) = productionRandomSource,
+  allowedCandidates?: readonly Tile[],
+): Tile | null {
+  const legal = legalDiscardTiles(state, playerId);
+  const allowed = allowedCandidates ? new Set(allowedCandidates.map((tile) => tile.instanceId)) : null;
+  const candidates = allowed ? legal.filter((tile) => allowed.has(tile.instanceId)) : legal;
+  if (candidates.length === 0) return null;
+  const index = Math.min(candidates.length - 1, Math.floor(randomValue(rng) * candidates.length));
   return candidates[index];
 }
 
-export function advanceAIAction(state: GameState, rng: () => number = Math.random): GameState {
+export function advanceAIAction(state: GameState, rng: RandomSource | (() => number) = productionRandomSource): GameState {
   if (state.phase === 'chankan-window') {
     const aiWinner = state.pendingKakan?.eligibleRonPlayers.find((playerId) => isAIPlayer(playerId) && canChankan(state, playerId));
     if (aiWinner !== undefined) return declareChankanRon(state, aiWinner);
@@ -109,7 +109,7 @@ export function advanceAIAction(state: GameState, rng: () => number = Math.rando
         return discardTile(riichiState, playerId, riichiDiscard.instanceId);
       }
     }
-    if ((canAnkan(state, playerId) || canKakan(state, playerId)) && shouldKan(state, playerId)) {
+    if ((getAIAnkanCandidates(state, playerId).length > 0 || canKakan(state, playerId)) && shouldKan(state, playerId)) {
       return executeKan(state, playerId);
     }
     const tile = selectAIDiscardTile(state, playerId, rng);

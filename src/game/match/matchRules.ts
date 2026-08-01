@@ -138,22 +138,121 @@ export function validateRuleConfig(config: FullRuleConfig): RuleConfigValidation
 
 export const RULE_CONFIG_STORAGE_KEY = 'local-mahjong.rule-config.v1';
 
-export function loadStoredRuleConfig(storage: Pick<Storage, 'getItem'> = localStorage): FullRuleConfig {
-  try {
-    const raw = storage.getItem(RULE_CONFIG_STORAGE_KEY);
-    if (!raw) return getRulePreset('east-round');
-    const parsed = JSON.parse(raw) as { version?: number; config?: FullRuleConfig };
-    const config = parsed.version === 1 && parsed.config
-      ? createFullRuleConfig(parsed.config.round, parsed.config.match)
-      : getRulePreset('east-round');
-    return validateRuleConfig(config).valid ? config : getRulePreset('east-round');
-  } catch {
-    return getRulePreset('east-round');
+export interface RuleConfigStorageAdapter {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+}
+
+export type RuleConfigStorageOperation = 'read' | 'write' | 'remove';
+export type RuleConfigStorageErrorKind = 'security' | 'quota' | 'invalid-data' | 'unknown';
+
+export class RuleConfigStorageError extends Error {
+  readonly operation: RuleConfigStorageOperation;
+  readonly kind: RuleConfigStorageErrorKind;
+  readonly cause: unknown;
+
+  constructor(operation: RuleConfigStorageOperation, cause: unknown, kind = classifyStorageError(cause)) {
+    super(`规则配置${operationLabel(operation)}失败：${errorMessage(cause)}`);
+    this.name = 'RuleConfigStorageError';
+    this.operation = operation;
+    this.kind = kind;
+    this.cause = cause;
   }
 }
 
-export function saveStoredRuleConfig(config: FullRuleConfig, storage: Pick<Storage, 'setItem'> = localStorage): void {
-  storage.setItem(RULE_CONFIG_STORAGE_KEY, JSON.stringify({ version: 1, config }));
+export type RuleConfigStorageResult =
+  | { ok: true }
+  | { ok: false; error: RuleConfigStorageError };
+
+export type RuleConfigLoadResult =
+  | { ok: true; config: FullRuleConfig }
+  | { ok: false; config: FullRuleConfig; error: RuleConfigStorageError };
+
+export const RULE_CONFIG_SAVE_FAILURE_NOTICE = '规则设置已应用，但无法保存到浏览器；刷新页面后可能恢复原设置。';
+
+export function createRuleConfigStorageAdapter(storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>): RuleConfigStorageAdapter {
+  return {
+    getItem: (key) => storage.getItem(key),
+    setItem: (key, value) => storage.setItem(key, value),
+    removeItem: (key) => storage.removeItem(key),
+  };
+}
+
+export function loadStoredRuleConfigResult(storage?: RuleConfigStorageAdapter): RuleConfigLoadResult {
+  try {
+    const target = storage ?? defaultRuleConfigStorage();
+    const raw = target.getItem(RULE_CONFIG_STORAGE_KEY);
+    if (!raw) return { ok: true, config: getRulePreset('east-round') };
+    const parsed = JSON.parse(raw) as { version?: number; config?: FullRuleConfig };
+    if (parsed.version !== 1 || !parsed.config) {
+      return failedLoad(new Error('配置版本或内容无效'), 'invalid-data');
+    }
+    const config = createFullRuleConfig(parsed.config.round, parsed.config.match);
+    if (!validateRuleConfig(config).valid) return failedLoad(new Error('配置校验失败'), 'invalid-data');
+    return { ok: true, config };
+  } catch (error) {
+    return failedLoad(error, error instanceof SyntaxError ? 'invalid-data' : undefined);
+  }
+}
+
+export function loadStoredRuleConfig(storage?: RuleConfigStorageAdapter): FullRuleConfig {
+  return loadStoredRuleConfigResult(storage).config;
+}
+
+export function saveStoredRuleConfig(config: FullRuleConfig, storage?: RuleConfigStorageAdapter): RuleConfigStorageResult {
+  try {
+    const target = storage ?? defaultRuleConfigStorage();
+    target.setItem(RULE_CONFIG_STORAGE_KEY, JSON.stringify({ version: 1, config }));
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: new RuleConfigStorageError('write', error) };
+  }
+}
+
+export function persistRuleConfigUpdate(config: FullRuleConfig, storage?: RuleConfigStorageAdapter): {
+  config: FullRuleConfig;
+  result: RuleConfigStorageResult;
+  notice: string | null;
+} {
+  const result = saveStoredRuleConfig(config, storage);
+  return { config, result, notice: result.ok ? null : RULE_CONFIG_SAVE_FAILURE_NOTICE };
+}
+
+export function removeStoredRuleConfig(storage?: RuleConfigStorageAdapter): RuleConfigStorageResult {
+  try {
+    const target = storage ?? defaultRuleConfigStorage();
+    target.removeItem(RULE_CONFIG_STORAGE_KEY);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: new RuleConfigStorageError('remove', error) };
+  }
+}
+
+function failedLoad(error: unknown, kind?: RuleConfigStorageErrorKind): RuleConfigLoadResult {
+  return { ok: false, config: getRulePreset('east-round'), error: new RuleConfigStorageError('read', error, kind) };
+}
+
+function defaultRuleConfigStorage(): RuleConfigStorageAdapter {
+  if (typeof localStorage === 'undefined') throw new RuleConfigStorageError('read', new Error('localStorage 不可用'));
+  return createRuleConfigStorageAdapter(localStorage);
+}
+
+function classifyStorageError(error: unknown): RuleConfigStorageErrorKind {
+  const name = error instanceof Error ? error.name : '';
+  if (name === 'SecurityError') return 'security';
+  if (name === 'QuotaExceededError') return 'quota';
+  return 'unknown';
+}
+
+function operationLabel(operation: RuleConfigStorageOperation): string {
+  if (operation === 'read') return '读取';
+  if (operation === 'write') return '写入';
+  return '删除';
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error && error.message ? error.message : '未知存储错误';
 }
 
 export function validateUma(uma: [number, number, number, number]): void {

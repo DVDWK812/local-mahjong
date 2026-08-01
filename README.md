@@ -37,14 +37,18 @@ http://localhost:5173
 
 ```bash
 npm test
+npm run test:stress
+npm run test:stress:long
 npm run build
 ```
 
-Current verified baseline:
+Current verified stability baseline (2026-08-01):
 
-- 45 test files
-- 255 passing tests
+- 97 test files in the default suite
+- 867 passing tests
 - 0 skipped tests
+- 10 consecutive full-suite runs passed
+- 500-round and 5000-round deterministic stress tests pass
 - production build passes
 
 ## Key Docs
@@ -54,6 +58,8 @@ Current verified baseline:
 - `REPLAY_FORMAT.md`
 - `SAVE_FORMAT.md`
 - `SCORING_AUDIT.md`
+- `docs/STABILITY_AUDIT_FINAL.md`
+- `docs/TEST_MODE.md`
 
 ## Notes
 

@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run --exclude src/game/testMode/*.stress*.test.ts",
+    "test:stress": "vitest run src/game/testMode/seededSimulation.stress.test.ts --testTimeout=120000",
+    "test:stress:long": "vitest run src/game/testMode/seededSimulation.stressLong.test.ts --testTimeout=600000"
   },
   "dependencies": {
     "react": "^19.0.0",

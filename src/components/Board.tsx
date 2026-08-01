@@ -37,6 +37,7 @@ interface BoardProps {
   tsumoGiriDisplayEnabled?: boolean;
   controlledPlayerId?: PlayerId;
   revealAllHands?: boolean;
+  desktopViewport?: boolean;
 }
 
 export function Board({
@@ -64,6 +65,7 @@ export function Board({
   tsumoGiriDisplayEnabled = true,
   controlledPlayerId = 0,
   revealAllHands = false,
+  desktopViewport = true,
 }: BoardProps) {
   const [dismissedPromptKey, setDismissedPromptKey] = useState<string | null>(null);
   const [analysisOpen, setAnalysisOpen] = useState(false);
@@ -275,6 +277,7 @@ export function Board({
       tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled}
       localPlayerId={controlledPlayerId}
       revealAllHands={revealAllHands}
+      desktopViewport={desktopViewport}
     />
   );
 }

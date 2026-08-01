@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { advanceAIAction, getVisibleCountsForPlayer, isAIPlayer, selectAIDiscardTile } from './ai';
 import { createInitialGameState, declareRiichi, discardTile, getRiichiDiscardCandidates } from './engine';
+import { createSeededRandomSource } from './randomSource';
 import { createTile } from './tileUtils';
 import type { GameState, PlayerId, Tile, TileId } from './types';
+
+function createTestGameState(): GameState {
+  return createInitialGameState(createSeededRandomSource('ai-test-state'));
+}
 
 function withAIToDraw(state: GameState, playerId: PlayerId = 1): GameState {
   return {
@@ -30,7 +35,7 @@ function setHand(state: GameState, playerId: PlayerId, ids: TileId[]): GameState
 }
 
 function discardIntoCallWindow(discardId: TileId, aiHand: TileId[], aiPlayer: PlayerId = 1): GameState {
-  let state = createInitialGameState();
+  let state = createTestGameState();
   state = setHand(state, 0, [discardId, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22, 27, 31, 33]);
   state = setHand(state, aiPlayer, aiHand);
   state = setHand(state, 2, [0, 4, 8, 9, 13, 17, 18, 22, 26, 27, 29, 31, 33]);
@@ -41,7 +46,7 @@ function discardIntoCallWindow(discardId: TileId, aiHand: TileId[], aiPlayer: Pl
 
 function riichiReadyState(playerId: PlayerId = 1): GameState {
   return setHand(
-    withAIToDiscard(createInitialGameState(), playerId),
+    withAIToDiscard(createTestGameState(), playerId),
     playerId,
     [0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23, 27, 31],
   );
@@ -56,7 +61,7 @@ describe('AI auto play', () => {
   });
 
   it('builds visible counts from public tiles, dora indicators, and AI own hand', () => {
-    const state = createInitialGameState();
+    const state = createTestGameState();
     const counts = getVisibleCountsForPlayer(state, 1);
     const ownHandTotal = state.players[1].hand.length;
     const publicTotal = state.players.reduce((sum, player) => sum + player.river.length, 0) + state.doraIndicators.length;
@@ -64,7 +69,7 @@ describe('AI auto play', () => {
   });
 
   it('selects a discard from the AI hand', () => {
-    const state = setHand(withAIToDiscard(createInitialGameState(), 1), 1, [0, 1, 2, 3, 4, 5, 9, 10, 11, 18, 19, 20, 27, 31]);
+    const state = setHand(withAIToDiscard(createTestGameState(), 1), 1, [0, 1, 2, 3, 4, 5, 9, 10, 11, 18, 19, 20, 27, 31]);
     const selected = selectAIDiscardTile(state, 1, () => 0);
     expect(selected).not.toBeNull();
     expect(state.players[1].hand.some((tile) => tile.instanceId === selected?.instanceId)).toBe(true);
@@ -86,7 +91,7 @@ describe('AI auto play', () => {
   });
 
   it('never selects a higher-ranked non-candidate discard', () => {
-    const state = setHand(withAIToDiscard(createInitialGameState(), 1), 1, [0, 1, 2, 3, 4, 5, 9, 10, 11, 18, 19, 20, 27, 31]);
+    const state = setHand(withAIToDiscard(createTestGameState(), 1), 1, [0, 1, 2, 3, 4, 5, 9, 10, 11, 18, 19, 20, 27, 31]);
     const unrestricted = selectAIDiscardTile(state, 1, () => 0);
     const allowed = state.players[1].hand.find((tile) => tile.id !== unrestricted?.id);
     if (!allowed) throw new Error('Expected an alternate candidate');
@@ -97,7 +102,7 @@ describe('AI auto play', () => {
   });
 
   it('does not declare riichi when there are no riichi discard candidates', () => {
-    const state = setHand(withAIToDiscard(createInitialGameState(), 1), 1, [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26]);
+    const state = setHand(withAIToDiscard(createTestGameState(), 1), 1, [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26]);
     expect(getRiichiDiscardCandidates(state, 1)).toHaveLength(0);
     const beforeScore = state.players[1].score;
     const after = advanceAIAction(state, () => 0);
@@ -109,7 +114,7 @@ describe('AI auto play', () => {
   it('keeps red and ordinary five candidates distinguished by tile instance', () => {
     const redFive = { ...createTile(4, 0), red: true };
     const ordinaryFive = { ...createTile(4, 1), red: false };
-    const state = setHand(withAIToDiscard(createInitialGameState(), 1), 1, [0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23]);
+    const state = setHand(withAIToDiscard(createTestGameState(), 1), 1, [0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23]);
     const hand: Tile[] = [...state.players[1].hand, redFive, ordinaryFive];
     const withFives = {
       ...state,
@@ -121,7 +126,7 @@ describe('AI auto play', () => {
   });
 
   it('draws one tile for AI without mutating previous state', () => {
-    const before = withAIToDraw(createInitialGameState(), 1);
+    const before = withAIToDraw(createTestGameState(), 1);
     const previousWallLength = before.wall.length;
     const previousHandLength = before.players[1].hand.length;
     const after = advanceAIAction(before, () => 0);
@@ -135,7 +140,7 @@ describe('AI auto play', () => {
   });
 
   it('discards one tile for AI and advances to the next player', () => {
-    const base = withAIToDiscard(createInitialGameState(), 1);
+    const base = withAIToDiscard(createTestGameState(), 1);
     const before = [
       [0, 1, 3, 4, 6, 7, 9, 11, 13, 15, 18, 20, 22],
       [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6],
@@ -157,7 +162,7 @@ describe('AI auto play', () => {
       [0, 2, 5, 8, 10, 12, 14, 16, 19, 21, 23, 25, 27],
       [1, 3, 6, 9, 11, 13, 15, 17, 18, 20, 22, 24, 28],
       [2, 4, 7, 10, 12, 14, 16, 19, 21, 23, 25, 26, 29],
-    ].reduce((state, ids, playerId) => setHand(state, playerId as PlayerId, ids as TileId[]), createInitialGameState());
+    ].reduce((state, ids, playerId) => setHand(state, playerId as PlayerId, ids as TileId[]), createTestGameState());
     const playerDiscard = initial.players[0].hand[0];
     let state = discardTile(initial, 0, playerDiscard.instanceId);
 
@@ -174,7 +179,7 @@ describe('AI auto play', () => {
 
   it('settles exhaustive draw when an AI tries to draw from an empty wall', () => {
     const before = {
-      ...withAIToDraw(createInitialGameState(), 1),
+      ...withAIToDraw(createTestGameState(), 1),
       wall: [],
     };
     const after = advanceAIAction(before, () => 0);
@@ -234,7 +239,7 @@ describe('AI auto play', () => {
   });
 
   it('AI does not perform illegal chi from a non-lower seat and passes normally', () => {
-    let state = createInitialGameState();
+    let state = createTestGameState();
     state = setHand(state, 0, [1, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22, 27, 31, 33]);
     state = setHand(state, 1, [4, 6, 8, 10, 12, 14, 18, 20, 22, 24, 27, 31, 33]);
     state = setHand(state, 2, [0, 2, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]);

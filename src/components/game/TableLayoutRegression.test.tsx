@@ -11,7 +11,7 @@ describe('牌桌布局回归', () => {
   const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
 
   it('中央区使用较小方形尺寸且文本不换行', () => {
-    expect(css).toContain('--center-size: clamp(120px, 11vw, 180px)');
+    expect(css).toContain('--center-size: 164px');
     expect(css).toContain('width: var(--center-size)');
     expect(css).toContain('height: var(--center-size)');
     expect(css).toContain('.center-round strong');
@@ -26,18 +26,14 @@ describe('牌桌布局回归', () => {
     expect(css).toContain('.player-slot--bottom { grid-area: south; }');
   });
 
-  it('牌谱回放按固定视觉槽位复用正常四人局的头像与手牌位移', () => {
-    expect(css).toMatch(/\.replay-screen \.player-slot--top \.player-zone-hand-wrap\s*\{[^}]*transform: translateX\(-250px\) translateY\(-30px\)/s);
-    expect(css).toMatch(/\.replay-screen \.player-slot--top \.player-zone-label\s*\{[^}]*transform: translateX\(-330px\) translateY\(5px\)/s);
-    expect(css).toMatch(/\.replay-screen \.player-slot--left \.player-zone-hand-wrap\s*\{[^}]*transform: translateX\(-120px\)/s);
-    expect(css).toMatch(/\.replay-screen \.player-slot--left \.player-zone-label\s*\{[^}]*transform: translateX\(-200px\)/s);
-    expect(css).toMatch(/\.replay-screen \.player-slot--right \.player-zone-hand-wrap\s*\{[^}]*transform: translateX\(80px\)/s);
-    expect(css).toMatch(/\.replay-screen \.player-slot--right \.player-zone-label\s*\{[^}]*transform: translateX\(220px\) translateY\(250px\)/s);
+  it('牌谱回放按固定视觉槽位复用正常四人局几何且不再使用越界位移', () => {
+    expect(css).toContain('.player-slot--top { grid-area: north; }');
+    expect(css).not.toMatch(/\.replay-screen \.player-slot--(?:top|left|right) [^{]*\{[^}]*translateX/s);
     expect(css).not.toMatch(/\.replay-screen [^{]*\[data-player-index=/);
   });
 
   it('四家牌河放大后仍固定在中央周围并使用 6.5 张占位尺寸', () => {
-    expect(css).toContain('--river-tile-width: clamp(28px, 2.65vw, 48px)');
+    expect(css).toContain('--river-tile-width: 27px');
     expect(css).toContain('--river-area-width');
     expect(css).toContain('--river-area-height');
     expect(css).toContain('grid-template-columns: repeat(13, var(--river-half-width))');
@@ -55,25 +51,24 @@ describe('牌桌布局回归', () => {
 
   it('对手手牌和宝牌指示牌尺寸放大，且三名 AI 均有独立副露区', () => {
     const html = renderToStaticMarkup(<MahjongTable gameState={createInitialGameState()} matchState={createMatch()} />);
-    expect(css).toContain('--opponent-tile-width: clamp(25px, 2.2vw, 39px)');
-    expect(css).toContain('width: clamp(30px, 2.7vw, 45px)');
+    expect(css).toContain('--opponent-tile-width: 23px');
+    expect(css).toContain('width: 32px');
     expect((html.match(/data-table-meld-zone=/g) ?? [])).toHaveLength(3);
-    expect(css).toContain('--side-player-outset: clamp(24px, 3vw, 56px)');
-    expect(css).toContain('--opponent-edge-gap: clamp(8px, 1vw, 18px)');
+    expect(css).toContain('--side-player-outset: 18px');
+    expect(css).toContain('--opponent-edge-gap: 8px');
     expect(css).toContain('--side-player-edge-shift: calc(var(--side-player-outset) + var(--opponent-edge-gap))');
-    expect(css).toContain('translate: 0 calc(-1 * var(--opponent-edge-gap))');
-    expect(css).toContain('translate: calc(-1 * var(--side-player-edge-shift)) 0');
-    expect(css).toContain('translate: var(--side-player-edge-shift) 0');
+    expect(css).toContain('translate: none');
     expect(css).toContain('.table-meld-anchor--north');
     expect(css).toContain('.table-meld-anchor--east');
     expect(css).toContain('.table-meld-anchor--west');
     expect(css).toContain('flex-direction: column');
   });
 
-  it('小视口下页面仍保持单屏无纵向溢出', () => {
+  it('桌面视口保持单屏无溢出且小于最低尺寸由外壳拒绝', () => {
     expect(css).toContain('height: 100dvh');
     expect(css).toContain('overflow: hidden');
-    expect(css).toContain('@media (max-width: 900px)');
+    expect(css).toContain('.desktop-table-viewport--unsupported');
+    expect(css).toContain('.desktop-table-too-small');
   });
 
   it('DOM 中玩家 ID、手牌和中央牌河不是同一容器，且中央区不显示玩家姓名', () => {

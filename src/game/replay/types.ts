@@ -1,7 +1,8 @@
 import type { MatchResult, RoundWind, FullRuleConfig } from '../match/types';
 import type { DrawSource, PlayerId, RoundResult, TileId } from '../types';
+import { CURRENT_FORMAT_VERSION } from '../versionPolicy';
 
-export const MATCH_LOG_VERSION = 1;
+export const MATCH_LOG_VERSION = CURRENT_FORMAT_VERSION;
 
 export interface TileSnapshot {
   instanceId: string;

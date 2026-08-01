@@ -10,6 +10,8 @@ import { createInitialGameState, discardTile } from '../engine';
 import { executeChi } from '../chiChecker';
 import { executePon } from '../callChecker';
 import { executeKan } from '../kanChecker';
+import { CURRENT_MATCH_SAVE_KEY, REPLAY_INDEX_KEY } from './storageTypes';
+import { CURRENT_FORMAT_VERSION, FormatVersionError } from '../versionPolicy';
 
 function callableSave(type: 'chi' | 'pon' | 'minkan') {
   const save = sampleSavedMatch();
@@ -75,12 +77,61 @@ function replay(id: string, updatedAt: string) {
 }
 
 describe('saveManager', () => {
+  it.each([
+    [0, false, 'older'],
+    [1, true, null],
+    [2, false, 'future'],
+  ] as const)('ReplayRecord版本%s按统一策略处理', (version, accepted, reason) => {
+    const input = { ...replay('versioned', '2026-01-01T00:00:00.000Z'), version };
+    if (accepted) {
+      expect(normalizeReplayRecord(input).version).toBe(CURRENT_FORMAT_VERSION);
+      return;
+    }
+    try {
+      normalizeReplayRecord(input);
+      throw new Error('Expected version rejection');
+    } catch (error) {
+      expect(error).toBeInstanceOf(FormatVersionError);
+      expect(error).toMatchObject({ format: 'ReplayRecord', actualVersion: version, supportedVersion: CURRENT_FORMAT_VERSION, reason });
+    }
+  });
+
+  it('ReplayRecord当前版本也拒绝内部未来MatchLog版本', () => {
+    const current = replay('nested-future', '2026-01-01T00:00:00.000Z');
+    expect(() => normalizeReplayRecord({ ...current, log: { ...current.log, version: 2 } })).toThrowError(expect.objectContaining({
+      format: 'MatchLog',
+      actualVersion: 2,
+      supportedVersion: CURRENT_FORMAT_VERSION,
+      reason: 'future',
+    }));
+  });
+
+  it('SavedMatch和其MatchLog共用统一版本判断', async () => {
+    const adapter = new LocalStorageAdapter(memoryStorage());
+    await expect(adapter.saveCurrentMatch({ ...sampleSavedMatch(), version: 2 })).rejects.toThrowError(expect.objectContaining({
+      format: 'SavedMatch', actualVersion: 2, supportedVersion: CURRENT_FORMAT_VERSION,
+    }));
+    const save = sampleSavedMatch();
+    await expect(adapter.saveCurrentMatch({ ...save, matchLog: { ...save.matchLog, version: 2 } })).rejects.toThrowError(expect.objectContaining({
+      format: 'MatchLog', actualVersion: 2, supportedVersion: CURRENT_FORMAT_VERSION,
+    }));
+  });
+
   it('saves, loads, and deletes the current match', async () => {
     const adapter = new LocalStorageAdapter(memoryStorage());
     await adapter.saveCurrentMatch(sampleSavedMatch());
     expect((await adapter.loadCurrentMatch())?.saveId).toBe('save-1');
     await adapter.deleteCurrentMatch();
     expect(await adapter.loadCurrentMatch()).toBeNull();
+  });
+
+  it.each([
+    ['损坏JSON', '{broken-json', /不兼容.*JSON/],
+    ['缺少核心结构', JSON.stringify({ version: 1, saveId: 'legacy' }), /不兼容.*matchState/],
+  ])('%s会返回明确兼容错误而不是泄漏未处理异常', async (_label, raw, expected) => {
+    const stored = memoryStorage();
+    stored.setItem(CURRENT_MATCH_SAVE_KEY, raw);
+    await expect(new LocalStorageAdapter(stored).loadCurrentMatch()).rejects.toThrow(expected as RegExp);
   });
 
   it.each(['chi', 'pon', 'minkan'] as const)('saves and restores a legal %s alias without losing call state', async (type) => {
@@ -171,6 +222,22 @@ describe('saveManager', () => {
     const listed = await adapter.listReplays();
     expect(listed.find((item) => item.id === 'good')?.status).toBe('incomplete');
     expect(listed.find((item) => item.id === 'bad')?.status).toBe('corrupted');
+  });
+
+  it('未来版本记录逐条标记损坏且不阻塞当前版本牌谱', async () => {
+    const stored = memoryStorage();
+    const adapter = new LocalStorageAdapter(stored);
+    await adapter.saveReplay(replay('good-version', '2026-02-01T00:00:00.000Z'));
+    const future = { ...replay('future-version', '2026-01-01T00:00:00.000Z'), version: 2 };
+    stored.setItem(replayRecordKey('future-version'), JSON.stringify(future));
+    stored.setItem(REPLAY_INDEX_KEY, JSON.stringify(['good-version', 'future-version']));
+
+    const listed = await adapter.listReplays();
+    expect(listed.find((item) => item.id === 'good-version')?.status).toBe('incomplete');
+    expect(listed.find((item) => item.id === 'future-version')).toMatchObject({
+      status: 'corrupted',
+      error: expect.stringContaining('实际版本 2，支持版本 1'),
+    });
   });
 
   it('保存异常会进入 error 状态而不会停留在 saving', async () => {

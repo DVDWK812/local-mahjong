@@ -106,7 +106,16 @@ describe('DiscardRiver', () => {
     expect((html.match(/class="tile-image"/g) ?? [])).toHaveLength(13);
     expect(css).toContain('calc(var(--river-half-width) * 13 + var(--river-gap) * 12)');
     expect(css).toContain('calc(var(--river-tile-height) * 4 + var(--river-gap) * 3)');
-    expect(css).not.toContain('scale(');
+    const riverRules = [
+      '.discard-river {',
+      '.discard-river-grid {',
+      '.discard-river--north {',
+      '.discard-river--south {',
+      '.discard-river--west {',
+      '.discard-river--east {',
+      '.discard-river-tile {',
+    ].map((selector) => cssRule(css, selector)).join('\n');
+    expect(riverRules).not.toContain('scale(');
     expect(cssRule(css, '.discard-river-tile {')).not.toContain('position: absolute');
   });
   it('上下牌河18张恰好按3行×6张排列', () => {

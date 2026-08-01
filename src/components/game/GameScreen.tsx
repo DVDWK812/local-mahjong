@@ -8,6 +8,7 @@ import { AnalysisDrawer } from './AnalysisDrawer';
 import { GameTopBar } from './GameTopBar';
 import { LocalHandArea } from './LocalHandArea';
 import { MahjongTable } from './MahjongTable';
+import { DesktopTableViewport } from '../layout/DesktopTableViewport';
 
 interface GameScreenProps {
   gameState: GameState;
@@ -31,6 +32,7 @@ interface GameScreenProps {
   tsumoGiriDisplayEnabled?: boolean;
   localPlayerId?: PlayerId;
   revealAllHands?: boolean;
+  desktopViewport?: boolean;
 }
 
 export function GameScreen({
@@ -55,6 +57,7 @@ export function GameScreen({
   tsumoGiriDisplayEnabled = true,
   localPlayerId = 0,
   revealAllHands = false,
+  desktopViewport = true,
 }: GameScreenProps) {
   const [previewDiscardInstanceId, setPreviewDiscardInstanceId] = useState<string | null>(null);
   const localPlayer = gameState.players[localPlayerId];
@@ -66,7 +69,7 @@ export function GameScreen({
     setPreviewDiscardInstanceId(null);
   }, [gameState]);
 
-  return (
+  const screen = (
     <main className="game-screen" data-testid="game-screen">
       <GameTopBar
         gameState={gameState}
@@ -98,4 +101,7 @@ export function GameScreen({
       <ResultDialog gameState={gameState} onReset={onReset} doraGlowEnabled={doraGlowEnabled} />
     </main>
   );
+  return desktopViewport
+    ? <DesktopTableViewport surface="game" onReturnMenu={onReturnMenu}>{screen}</DesktopTableViewport>
+    : screen;
 }

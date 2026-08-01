@@ -1,9 +1,10 @@
 import type { GameState } from '../types';
 import type { FullRuleConfig, MatchState } from '../match/types';
 import type { MatchLog } from '../replay/types';
+import { CURRENT_FORMAT_VERSION } from '../versionPolicy';
 
-export const CURRENT_SAVE_VERSION = 1;
-export const CURRENT_REPLAY_RECORD_VERSION = 1;
+export const CURRENT_SAVE_VERSION = CURRENT_FORMAT_VERSION;
+export const CURRENT_REPLAY_RECORD_VERSION = CURRENT_FORMAT_VERSION;
 export const CURRENT_MATCH_SAVE_KEY = 'local-mahjong.current-match.v1';
 export const REPLAY_LIBRARY_KEY = 'local-mahjong.replays.v1';
 export const REPLAY_INDEX_KEY = 'local-mahjong.replay-index.v1';

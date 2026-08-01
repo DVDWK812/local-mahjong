@@ -44,6 +44,9 @@ describe('ResultDialog', () => {
     expect(html).toContain('宝牌');
     expect(html).toContain('点数变化');
     expect(html).toContain('继续');
+    expect(html).toContain('data-dialog-escape-behavior="blocked"');
+    expect(html).toContain('data-dialog-backdrop-behavior="blocked"');
+    expect(html).toContain('aria-describedby="result-description"');
   });
 
   it('回放结果用整局净变化展示，同时保留毛收入与供托说明', () => {
@@ -86,5 +89,32 @@ describe('ResultDialog', () => {
     expect(html).toContain('获得总计：4,000点');
     expect(html).toContain('+3,000');
     expect(html).toContain('-1,500');
+  });
+
+  it('权威供托清零后仍从结算快照展示供托奖励', () => {
+    const base = createInitialGameState();
+    const state: GameState = {
+      ...base,
+      riichiSticks: 0,
+      result: {
+        type: 'ron',
+        settlementRiichiSticks: 3,
+        winners: [{
+          winner: 1,
+          from: 0,
+          winType: 'ron',
+          winTile: base.players[0].hand[0],
+          yaku: [{ name: '断幺九', han: 1 }],
+          han: 1,
+          fu: 30,
+          points: 4000,
+          pointDeltas: [-1000, 4000, 0, 0],
+        }],
+        pointDeltas: [-1000, 4000, 0, 0],
+      },
+    };
+    const html = renderToStaticMarkup(<ResultDialog gameState={state} onReset={() => undefined} />);
+    expect(html).toContain('供托奖励：3根 × 1000点 = 3,000点');
+    expect(html).toContain('牌型得点：1,000点');
   });
 });

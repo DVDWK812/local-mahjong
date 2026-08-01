@@ -1,31 +1,51 @@
-import type { GameState, TileId, VisibleTileCount } from './types';
+import type { GameState, PlayerId, Tile, TileId, VisibleTileCount } from './types';
 import { ALL_TILE_IDS } from './tileUtils';
 
-export function getVisibleTileCounts(state: GameState): VisibleTileCount[] {
-  const visibleById = new Map<TileId, number>();
-  ALL_TILE_IDS.forEach((id) => visibleById.set(id, 0));
+export interface VisibleTileInstance {
+  instanceId: string;
+  tileId: TileId;
+  red: boolean;
+  sourceRegions: string[];
+}
+
+export interface VisibleTileCountDetail extends VisibleTileCount {
+  instances: VisibleTileInstance[];
+}
+
+export function getVisibleTileCounts(state: GameState, playerId: PlayerId = 0): VisibleTileCountDetail[] {
+  const instances = new Map<string, VisibleTileInstance>();
+  const addVisibleTile = (tile: Tile, sourceRegion: string) => {
+    const existing = instances.get(tile.instanceId);
+    if (existing) {
+      if (!existing.sourceRegions.includes(sourceRegion)) existing.sourceRegions.push(sourceRegion);
+      return;
+    }
+    instances.set(tile.instanceId, {
+      instanceId: tile.instanceId,
+      tileId: tile.id,
+      red: tile.red,
+      sourceRegions: [sourceRegion],
+    });
+  };
 
   state.players.forEach((player) => {
-    player.river.forEach((tile) => visibleById.set(tile.id, (visibleById.get(tile.id) ?? 0) + 1));
-    player.calls.forEach((call) => {
-      call.tiles.forEach((tile) => visibleById.set(tile.id, (visibleById.get(tile.id) ?? 0) + 1));
+    player.river.forEach((tile) => addVisibleTile(tile, `player-${player.id}-river`));
+    player.calls.forEach((call, callIndex) => {
+      call.tiles.forEach((tile) => addVisibleTile(tile, `player-${player.id}-call-${callIndex}`));
     });
   });
 
-  state.doraIndicators.forEach((tile) => {
-    visibleById.set(tile.id, (visibleById.get(tile.id) ?? 0) + 1);
-  });
-
-  state.players[0].hand.forEach((tile) => {
-    visibleById.set(tile.id, (visibleById.get(tile.id) ?? 0) + 1);
-  });
+  state.doraIndicators.forEach((tile) => addVisibleTile(tile, 'dora-indicator'));
+  state.players[playerId]?.hand.forEach((tile) => addVisibleTile(tile, `player-${playerId}-hand`));
 
   return ALL_TILE_IDS.map((id) => {
-    const visible = visibleById.get(id) ?? 0;
+    const visibleInstances = [...instances.values()].filter((instance) => instance.tileId === id);
+    const visible = Math.min(4, visibleInstances.length);
     return {
       id,
       visible,
-      remaining: 4 - visible,
+      remaining: Math.max(0, 4 - visible),
+      instances: visibleInstances,
     };
   });
 }

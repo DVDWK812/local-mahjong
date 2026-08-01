@@ -1,5 +1,6 @@
 import type { Tile } from './types';
 import { ALL_TILE_IDS, createTile } from './tileUtils';
+import { productionRandomSource, type RandomSource } from './randomSource';
 
 export const RINSHAN_SLOT_INDICES = [0, 1, 2, 3] as const;
 export const DORA_INDICATOR_SLOT_INDICES = [4, 6, 8, 10, 12] as const;
@@ -49,23 +50,23 @@ export function activeUraDoraIndicators(deadWall: Tile[], revealedDoraCount: num
   return uraDoraIndicatorSlots(deadWall).slice(0, revealedDoraCount);
 }
 
-export function buildWall(): Tile[] {
-  return ALL_TILE_IDS.flatMap((id) => [0, 1, 2, 3].map((copyIndex) => createTile(id, copyIndex)));
+export function buildWall(randomSource: RandomSource = productionRandomSource): Tile[] {
+  return ALL_TILE_IDS.flatMap((id) => [0, 1, 2, 3].map((copyIndex) => createTile(id, copyIndex, randomSource)));
 }
 
-export function shuffleWall(tiles: Tile[]): Tile[] {
+export function shuffleWall(tiles: Tile[], randomSource: RandomSource = productionRandomSource): Tile[] {
   const shuffled = [...tiles];
 
   for (let i = shuffled.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(randomSource.next() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
   return shuffled;
 }
 
-export function createShuffledWall(): Tile[] {
-  return shuffleWall(buildWall());
+export function createShuffledWall(randomSource: RandomSource = productionRandomSource): Tile[] {
+  return shuffleWall(buildWall(randomSource), randomSource);
 }
 
 export function splitDeadWall(wall: Tile[]): { liveWall: Tile[]; deadWall: Tile[]; doraIndicators: Tile[] } {

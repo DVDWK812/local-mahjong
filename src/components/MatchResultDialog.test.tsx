@@ -32,5 +32,8 @@ describe('MatchResultDialog', () => {
     expect(html).toContain('33,400点');
     expect(html).toContain('最终比赛分');
     expect(html).toContain('残余供托');
+    expect(html).toContain('data-dialog-escape-behavior="blocked"');
+    expect(html).toContain('data-dialog-backdrop-behavior="blocked"');
+    expect(html).toContain('aria-describedby="match-result-description"');
   });
 });

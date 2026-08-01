@@ -11,6 +11,7 @@ import { MahjongTable, type TableSeatMapping } from './game/MahjongTable';
 import { ReplayBottomBar } from './ReplayBottomBar';
 import { ReplayTopBar } from './ReplayTopBar';
 import { ReplayWallDrawer } from './ReplayWallDrawer';
+import { DesktopTableViewport } from './layout/DesktopTableViewport';
 import { ResultDialog } from './ResultDialog';
 
 export interface ReplayPerspectiveState {
@@ -129,7 +130,8 @@ export function ReplayScreen({ replay, onBack = () => undefined, testModeEnabled
   });
 
   return (
-    <main className="replay-screen" aria-label="牌谱逐步回放" data-testid="replay-screen">
+    <DesktopTableViewport surface="replay" onReturnMenu={onBack}>
+      <main className="replay-screen" aria-label="牌谱逐步回放" data-testid="replay-screen">
       <ReplayTopBar
         roundLabel={`${roundLabel(round)} · ${round.honba}本场`}
         stepIndex={stepIndex}
@@ -188,7 +190,8 @@ export function ReplayScreen({ replay, onBack = () => undefined, testModeEnabled
         initialScores={roundInitialScores}
         onClose={() => pauseAnd(() => setStepIndex(stepPlan.realLastStep))}
       />
-    </main>
+      </main>
+    </DesktopTableViewport>
   );
 }
 

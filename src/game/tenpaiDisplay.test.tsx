@@ -5,6 +5,7 @@ import { TenpaiWaitPanel } from '../components/TenpaiWaitPanel';
 import { buildTenpaiDisplay, countVisibleRemainingTiles, getCurrentWaits } from './tenpaiDisplay';
 import { createInitialGameState } from './engine';
 import { getFuritenState } from './furiten';
+import { createSeededRandomSource } from './randomSource';
 import type { CallSet, GameState, PlayerState, Tile, TileId } from './types';
 import { getTileRank, getTileSuit } from './tileUtils';
 import { canRon } from './winChecker';
@@ -28,7 +29,7 @@ function tiles(ids: TileId[]): Tile[] {
 }
 
 function withPlayer(partial: Partial<PlayerState>, statePatch: Partial<GameState> = {}): GameState {
-  const base = createInitialGameState();
+  const base = createInitialGameState(createSeededRandomSource('tenpai-display-test-state'));
   return {
     ...base,
     currentPlayer: 1,
@@ -194,7 +195,7 @@ describe('听牌及可见剩余量提示数据', () => {
     expect(buildTenpaiDisplay(withPlayer({ hand: tiles([0, 1, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22, 24]) }), 0)).toBeNull();
     expect(buildTenpaiDisplay(withPlayer({ hand: tiles([...ryanmenHand, 2]), drawnTile: tile(2) }, { currentPlayer: 0, phase: 'discard' }), 0)).toBeNull();
     expect(buildTenpaiDisplay(withPlayer({ hand: tiles(ryanmenHand) }, { phase: 'round-ended' }), 0)).toBeNull();
-    expect(buildTenpaiDisplay(createInitialGameState(), 0)).toBeNull();
+    expect(buildTenpaiDisplay(createInitialGameState(createSeededRandomSource('tenpai-display-test-state')), 0)).toBeNull();
   });
 
   it('关闭设置后不显示，且显示功能不改变牌局状态', () => {

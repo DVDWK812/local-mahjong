@@ -3,6 +3,7 @@ import type { MatchLog } from '../replay/types';
 import type { ReplayRecord, ReplaySource } from './storageTypes';
 import { CURRENT_REPLAY_RECORD_VERSION } from './storageTypes';
 import { createFullRuleConfig, type MatchRuleConfigInput } from '../match/matchRules';
+import { assertCurrentFormatVersion } from '../versionPolicy';
 
 export function createReplayRecord(params: {
   log: MatchLog;
@@ -13,6 +14,7 @@ export function createReplayRecord(params: {
   scores?: [number, number, number, number];
   source?: ReplaySource;
 }): ReplayRecord {
+  assertCurrentFormatVersion('MatchLog', params.log?.version);
   const { matchState } = params;
   const log = {
     ...params.log,
@@ -46,7 +48,9 @@ export function normalizeReplayRecord(input: unknown): ReplayRecord {
   if (!input || typeof input !== 'object') throw new Error('牌谱记录不是对象');
   const candidate = input as Partial<ReplayRecord & MatchLog>;
   if ('log' in candidate && candidate.log) {
+    assertCurrentFormatVersion('ReplayRecord', candidate.version);
     const log = candidate.log;
+    assertCurrentFormatVersion('MatchLog', log.version);
     return createReplayRecord({
       log,
       completed: candidate.status === 'completed',
@@ -55,6 +59,7 @@ export function normalizeReplayRecord(input: unknown): ReplayRecord {
     });
   }
   if ('matchId' in candidate && 'rounds' in candidate) {
+    assertCurrentFormatVersion('MatchLog', candidate.version);
     return createReplayRecord({ log: candidate as MatchLog });
   }
   throw new Error('牌谱缺少日志数据');
