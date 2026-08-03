@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { Board } from './Board';
+import { Board, TileActionButton } from './Board';
 import { createInitialGameState } from '../game/engine';
 import { getDrawActionState } from '../game/interaction';
 import { createTile } from '../game/tileUtils';
@@ -60,5 +60,35 @@ describe('立直候选提示', () => {
     expect(riichiCandidateCount).toBeGreaterThan(0);
     expect(tileActionButtonCount - visibleActionLabelCount).toBe(riichiCandidateCount);
     expect((html.match(/class="tile-image"/g) ?? []).length).toBeGreaterThanOrEqual(riichiCandidateCount);
+  });
+
+  it('悬停、切换、移出、按下和点击候选时同步更新并清除听牌预览', () => {
+    const candidates = getDrawActionState(withRiichiPrompt(), 0).riichiDiscardCandidates;
+    expect(candidates.length).toBeGreaterThan(1);
+    const previews: Array<string | null> = [];
+    let clicked = '';
+    const candidateButton = (tile: Tile) => TileActionButton({
+      label: '立直',
+      tile,
+      onPreviewChange: (active) => previews.push(active ? tile.instanceId : null),
+      onClick: () => { clicked = tile.instanceId; },
+    });
+    const first = candidateButton(candidates[0]);
+    const second = candidateButton(candidates[1]);
+
+    first.props.onPointerEnter();
+    first.props.onPointerLeave();
+    second.props.onPointerEnter();
+    expect(previews.slice(-3)).toEqual([candidates[0].instanceId, null, candidates[1].instanceId]);
+
+    second.props.onPointerLeave();
+    second.props.onPointerEnter();
+    second.props.onPointerDown();
+    expect(previews[previews.length - 1]).toBeNull();
+
+    second.props.onPointerEnter();
+    second.props.onClick();
+    expect(previews[previews.length - 1]).toBeNull();
+    expect(clicked).toBe(candidates[1].instanceId);
   });
 });

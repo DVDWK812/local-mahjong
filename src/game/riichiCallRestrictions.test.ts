@@ -23,7 +23,7 @@ function withRiichiPlayer(state: GameState, playerId: PlayerId, handIds: TileId[
 }
 
 describe('riichi call restrictions', () => {
-  it('立直后不生成吃、碰、大明杠候选', () => {
+  it('立直后不生成吃、碰、明杠候选', () => {
     const discard = createTile(3, 0);
     const state = withRiichiPlayer(createInitialGameState(), 1, [1, 2, 3, 3, 3, 4, 5, 6, 10, 11, 12, 18, 18]);
     expect(getChiOptions(state, 0, discard).filter((option) => option.player === 1)).toHaveLength(0);
@@ -31,7 +31,7 @@ describe('riichi call restrictions', () => {
     expect(getMinkanOptions(state, 0, discard).filter((option) => option.player === 1)).toHaveLength(0);
   });
 
-  it('引擎拒绝立直后的吃、碰和大明杠请求', () => {
+  it('引擎拒绝立直后的吃、碰和明杠请求', () => {
     const discard = createTile(3, 0);
     const base = withRiichiPlayer(createInitialGameState(), 1, [1, 2, 3, 3, 3, 4, 5, 6, 10, 11, 12, 18, 18]);
     const state: GameState = {

@@ -87,9 +87,9 @@ function withHumanRonPrompt(): GameState {
 describe('ActionPrompt 鸣牌与和牌提示', () => {
   const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
 
-  it('同时显示吃、碰、大明杠和跳过', () => {
+  it('同时显示吃、碰、明杠和跳过', () => {
     const html = renderToStaticMarkup(<Board gameState={withHumanCallWindow()} {...handlers} />);
-    expect(html).toContain('aria-label="大明杠');
+    expect(html).toContain('aria-label="明杠');
     expect(html).toContain('aria-label="碰');
     expect(html).toContain('aria-label="吃');
     expect(html).toContain('跳过');

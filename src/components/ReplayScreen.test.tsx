@@ -351,7 +351,7 @@ describe('ReplayScreen 视角边界', () => {
   it.each([
     ['吃', 'chi-declared'],
     ['碰', 'pon-declared'],
-    ['大明杠', 'minkan-declared'],
+    ['明杠', 'minkan-declared'],
   ] as const)('%s公开动作使副露中的已摸走实例可见', (_label, type) => {
     const state = buildReplayState(callRound(type), 3);
     const drawn = state.wall.drawnLiveTiles[0];

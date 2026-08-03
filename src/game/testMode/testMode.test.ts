@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { canAnkan, canKakan, canMinkan, executeKan } from '../kanChecker';
 import { drawTile, discardTile } from '../engine';
+import { canTsumo } from '../winChecker';
 import { createReplayRecord } from '../persistence/replayRecord';
 import { applyOfficialTestModeAction, createTestModeMatchLog, recordTestModeAction, shouldAutomaticallyAdvanceTestModeAI } from './actions';
-import { getBuiltInTestScenario, getBuiltInTestScenarios } from './builtInScenarios';
+import { getBuiltInTestScenario, getBuiltInTestScenarios, getChiihouExampleScenario } from './builtInScenarios';
 import { isTestModeEnabled, isTestModeRequested } from './availability';
 import { cloneTestScenario, convertReplayStepToTestScenario, loadTestScenarioState, parseTestScenarioJson, runtimeInvariantChecks, serializeTestScenario, validateTestScenario } from './scenario';
 import { buildReplayState } from '../replay/roundReplay';
@@ -18,11 +19,11 @@ describe('开发者测试模式', () => {
     expect(isTestModeRequested({ DEV: true }, '?testMode=0')).toBe(false);
   });
 
-  it('四个内置场景重复构建与重复加载都深度等价且使用稳定可读instanceId', () => {
+  it('五个内置场景重复构建与重复加载都深度等价且使用稳定可读instanceId', () => {
     const first = getBuiltInTestScenarios();
     const second = getBuiltInTestScenarios();
     expect(first).toEqual(second);
-    expect(first.map((scenario) => scenario.id)).toEqual(['STAB-001-ANKAN', 'STAB-001-MINKAN', 'STAB-001-KAKAN', 'STAB-001-FOUR-KANS']);
+    expect(first.map((scenario) => scenario.id)).toEqual(['STAB-001-ANKAN', 'STAB-001-MINKAN', 'STAB-001-KAKAN', 'STAB-001-FOUR-KANS', 'UI-RIICHI-WAIT-PREVIEW']);
     first.forEach((scenario) => {
       expect(validateTestScenario(scenario)).toEqual({ valid: true, issues: [] });
       expect(scenario.declaredTileCount).toBe(136);
@@ -64,6 +65,29 @@ describe('开发者测试模式', () => {
   it('JSON导出再导入保持场景等价', () => {
     const scenario = getBuiltInTestScenario('STAB-001-KAKAN')!;
     expect(parseTestScenarioJson(serializeTestScenario(scenario))).toEqual(scenario);
+  });
+
+  it('地和示例从庄家首弃开始，经无人鸣牌和闲家首摸后由正式逻辑判定为地和', () => {
+    const scenario = getChiihouExampleScenario();
+    expect(validateTestScenario(scenario)).toEqual({ valid: true, issues: [] });
+    expect(scenario.version).toBe(1);
+    expect(scenario.declaredTileCount).toBe(136);
+    expect(parseTestScenarioJson(serializeTestScenario(scenario))).toEqual(scenario);
+    let state = loadTestScenarioState(scenario);
+    expect(state).toMatchObject({ currentPlayer: 0, phase: 'discard', callsOccurred: false });
+    expect(state.players[0].river).toHaveLength(0);
+    expect(state.players[1].hand).toHaveLength(13);
+    expect(canTsumo(state, 1)).toBeNull();
+
+    state = applyOfficialTestModeAction(state, { type: 'discard', playerId: 0, tileInstanceId: state.players[0].drawnTile!.instanceId });
+    expect(state).toMatchObject({ currentPlayer: 1, phase: 'draw', callsOccurred: false });
+    expect(state.players[0].river).toHaveLength(1);
+    state = applyOfficialTestModeAction(state, { type: 'draw' });
+    expect(state.players[1].drawnTile?.id).toBe(14);
+    expect(state.playerDrawCounts[1]).toBe(1);
+    const win = canTsumo(state, 1);
+    expect(win).not.toBeNull();
+    expect(win?.yaku.some((yaku) => yaku.name === '地和' && yaku.yakuman)).toBe(true);
   });
 
   it('测试动作分派与正式execute、discard、draw入口结果一致', () => {

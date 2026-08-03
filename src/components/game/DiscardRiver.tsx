@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import type { PlayerState, Tile as TileModel, TileId } from '../../game/types';
 import { Tile } from '../Tile';
 
@@ -24,36 +23,50 @@ export function DiscardRiver({ player, position, preserveClaimedDiscardGap = fal
     ? player.river
     : player.river.filter((tile) => !isClaimedDiscard(tile));
   const isHorizontalRiver = position === 'south' || position === 'north';
+  const riverRows = [visibleRiver.slice(0, 6), visibleRiver.slice(6, 12), visibleRiver.slice(12)]
+    .filter((row) => row.length > 0);
 
   return (
     <div className={`discard-river discard-river--${position}`} aria-label={`${player.name} 牌河`} data-position={position}>
       <div className="discard-river-grid">
-        {visibleRiver.map((tile, index) => {
-          const isRiichiDiscard = tile.isRiichiDiscard === true || riichiDiscardInstanceId === tile.instanceId;
-          const isClaimed = isClaimedDiscard(tile);
-          const row = Math.min(3, Math.floor(index / 6) + 1);
-          const column = index < 18 ? (index % 6) + 1 : index - 11;
-          const className = [
-            'discard-river-tile',
-            isRiichiDiscard ? 'discard-river-tile--riichi riichi-discard-slot' : '',
-            isClaimed ? 'discard-river-tile--claimed' : '',
-          ].filter(Boolean).join(' ');
+        {riverRows.map((tiles, rowIndex) => (
+          <div className="discard-river-row" data-river-line={rowIndex + 1} key={rowIndex}>
+            {tiles.map((tile, columnIndex) => {
+              const isRiichiDiscard = tile.isRiichiDiscard === true || riichiDiscardInstanceId === tile.instanceId;
+              const isClaimed = isClaimedDiscard(tile);
+              const className = [
+                'discard-river-tile',
+                isRiichiDiscard ? 'discard-river-tile--riichi' : '',
+                isClaimed ? 'discard-river-tile--claimed' : '',
+              ].filter(Boolean).join(' ');
 
-          return (
-            <span
-              key={tile.instanceId}
-              className={className}
-              data-river-row={isHorizontalRiver ? row : undefined}
-              data-river-column={isHorizontalRiver ? column : undefined}
-              style={isHorizontalRiver ? {
-                '--river-row': row,
-                '--river-column': column,
-              } as CSSProperties : undefined}
-            >
-              {isClaimed ? <span className="discard-river-claimed-placeholder" aria-hidden="true" /> : <Tile tile={tile} compact interactive={false} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />}
-            </span>
-          );
-        })}
+              return (
+                <span
+                  key={tile.instanceId}
+                  className={className}
+                  data-river-row={isHorizontalRiver ? rowIndex + 1 : undefined}
+                  data-river-column={isHorizontalRiver ? columnIndex + 1 : undefined}
+                >
+                  {isClaimed ? (
+                    isRiichiDiscard ? (
+                      <span className="riichi-discard-slot">
+                        <span className="discard-river-claimed-placeholder" aria-hidden="true" />
+                      </span>
+                    ) : (
+                      <span className="discard-river-claimed-placeholder" aria-hidden="true" />
+                    )
+                  ) : isRiichiDiscard ? (
+                    <span className="riichi-discard-slot">
+                      <Tile tile={tile} compact interactive={false} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
+                    </span>
+                  ) : (
+                    <Tile tile={tile} compact interactive={false} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
+                  )}
+                </span>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );

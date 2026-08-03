@@ -108,7 +108,7 @@ describe('立直宣言牌被鸣后的横牌显示状态', () => {
     expect(afterNext.players[0].pendingRiichiSidewaysDiscard).toBe(false);
   });
 
-  it('立直宣言牌被大明杠后，同样让下一张实际弃牌横置', () => {
+  it('立直宣言牌被明杠后，同样让下一张实际弃牌横置', () => {
     const afterDiscard = discardDeclaration(riichiDiscardState(12, hand([12, 12, 12, 0, 1, 2, 3, 4, 5, 18, 19, 20, 21], 100)));
     const nonWinningKanState = {
       ...afterDiscard,

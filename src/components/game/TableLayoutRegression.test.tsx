@@ -40,8 +40,8 @@ describe('牌桌布局回归', () => {
     expect(css).toContain('--river-tile-width: clamp(28px, 2.65vw, 48px)');
     expect(css).toContain('--river-area-width');
     expect(css).toContain('--river-area-height');
-    expect(css).toContain('grid-template-columns: repeat(13, var(--river-half-width))');
-    expect(css).toContain('grid-auto-rows: var(--river-tile-height)');
+    expect(css).toMatch(/\.discard-river-grid\s*\{[^}]*display: flex[^}]*flex-direction: column/s);
+    expect(css).toMatch(/\.discard-river-row\s*\{[^}]*flex: 0 0 var\(--river-tile-height\)/s);
     expect(css).toContain('height: var(--river-area-height)');
   });
 

@@ -36,6 +36,7 @@ interface BoardProps {
   showTenpaiWaitsEnabled?: boolean;
   tsumoGiriDisplayEnabled?: boolean;
   controlledPlayerId?: PlayerId;
+  tableBottomPlayerId?: PlayerId;
   revealAllHands?: boolean;
 }
 
@@ -63,11 +64,13 @@ export function Board({
   showTenpaiWaitsEnabled = true,
   tsumoGiriDisplayEnabled = true,
   controlledPlayerId = 0,
+  tableBottomPlayerId = controlledPlayerId,
   revealAllHands = false,
 }: BoardProps) {
   const [dismissedPromptKey, setDismissedPromptKey] = useState<string | null>(null);
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [hoveredTileType, setHoveredTileType] = useState<TileId | null>(null);
+  const [riichiPreviewDiscardInstanceId, setRiichiPreviewDiscardInstanceId] = useState<string | null>(null);
   const promptKey = `${gameState.phase}-${gameState.currentPlayer}-${gameState.turn}-${controlledPlayerId}-${gameState.players[controlledPlayerId].drawnTile?.instanceId ?? 'none'}-${gameState.lastDiscard?.tile.instanceId ?? 'none'}`;
 
   useEffect(() => {
@@ -76,6 +79,7 @@ export function Board({
 
   useEffect(() => {
     setHoveredTileType(null);
+    setRiichiPreviewDiscardInstanceId(null);
   }, [gameState]);
 
   const drawActions = useMemo(() => getDrawActionState(gameState, controlledPlayerId), [gameState, controlledPlayerId]);
@@ -106,6 +110,7 @@ export function Board({
   const canDiscard = gameState.phase === 'discard' && gameState.currentPlayer === controlledPlayerId && !promptOpen;
 
   const skipDrawActions = () => {
+    setRiichiPreviewDiscardInstanceId(null);
     setDismissedPromptKey(promptKey);
     onSkipDrawActions();
   };
@@ -113,6 +118,7 @@ export function Board({
   const clearHoveredTileType = () => setHoveredTileType(null);
 
   const handleDiscard = (playerId: PlayerId, tileInstanceId: string) => {
+    setRiichiPreviewDiscardInstanceId(null);
     clearHoveredTileType();
     onDiscard(playerId, tileInstanceId);
     clearHoveredTileType();
@@ -140,7 +146,11 @@ export function Board({
                   hoveredTileType={hoveredTileType}
                   sameTileHoverEnabled={sameTileHoverEnabled}
                   onHoveredTileTypeChange={setHoveredTileType}
-                  onClick={() => onDeclareRiichi(controlledPlayerId, tile.instanceId)}
+                  onPreviewChange={(active) => setRiichiPreviewDiscardInstanceId(active ? tile.instanceId : null)}
+                  onClick={() => {
+                    setRiichiPreviewDiscardInstanceId(null);
+                    onDeclareRiichi(controlledPlayerId, tile.instanceId);
+                  }}
                 />
               ))}
             </div>
@@ -199,7 +209,7 @@ export function Board({
           {humanMinkanOptions.map((option, index) => (
             <CallOptionButton
               key={`kan-${option.player}-${index}`}
-              label="大明杠"
+              label="明杠"
               tiles={tilesForMinkan(gameState, option)}
               calledInstanceId={gameState.pendingCall?.tile.instanceId}
               doraIndicators={gameState.doraIndicators}
@@ -272,14 +282,16 @@ export function Board({
       sameTileHoverEnabled={sameTileHoverEnabled}
       onHoveredTileTypeChange={setHoveredTileType}
       showTenpaiWaitsEnabled={showTenpaiWaitsEnabled}
+      tenpaiPreviewDiscardInstanceId={promptOpen ? riichiPreviewDiscardInstanceId : null}
       tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled}
       localPlayerId={controlledPlayerId}
+      tableBottomPlayerId={tableBottomPlayerId}
       revealAllHands={revealAllHands}
     />
   );
 }
 
-function TileActionButton({
+export function TileActionButton({
   label,
   ariaLabel,
   showLabel = true,
@@ -289,6 +301,7 @@ function TileActionButton({
   hoveredTileType,
   sameTileHoverEnabled,
   onHoveredTileTypeChange,
+  onPreviewChange,
   onClick,
 }: {
   label: string;
@@ -300,9 +313,11 @@ function TileActionButton({
   hoveredTileType?: TileId | null;
   sameTileHoverEnabled?: boolean;
   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
+  onPreviewChange?: (active: boolean) => void;
   onClick: () => void;
 }) {
   const handleActivate = () => {
+    onPreviewChange?.(false);
     onHoveredTileTypeChange?.(null);
     onClick();
     onHoveredTileTypeChange?.(null);
@@ -312,7 +327,12 @@ function TileActionButton({
     <button
       type="button"
       className="prompt-tile-action"
-      onPointerDown={() => onHoveredTileTypeChange?.(null)}
+      onPointerEnter={() => onPreviewChange?.(true)}
+      onPointerLeave={() => onPreviewChange?.(false)}
+      onPointerDown={() => {
+        onPreviewChange?.(false);
+        onHoveredTileTypeChange?.(null);
+      }}
       onClick={handleActivate}
       aria-label={ariaLabel ?? `${label} ${tileLabel(tile.id)}`}
     >

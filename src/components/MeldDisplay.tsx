@@ -16,7 +16,7 @@ const CALL_LABELS: Record<MeldDisplayModel['callType'], string> = {
   chi: '吃',
   pon: '碰',
   ankan: '暗杠',
-  minkan: '大明杠',
+  minkan: '明杠',
   kakan: '加杠',
 };
 

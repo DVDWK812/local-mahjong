@@ -16,7 +16,8 @@ describe('Game responsive layout CSS', () => {
   it('牌河固定为6.5张宽和4行高，不因弃牌数量缩成细条', () => {
     expect(css).toContain('--river-area-width');
     expect(css).toContain('--river-area-height');
-    expect(css).toContain('grid-template-columns: repeat(13, var(--river-half-width))');
+    expect(css).toMatch(/\.discard-river-grid\s*\{[^}]*display: flex[^}]*flex-direction: column/s);
+    expect(css).toMatch(/\.discard-river-row\s*\{[^}]*min-width: max-content/s);
     expect(css).toContain('max-height: var(--river-area-height)');
     expect(css).toContain('overflow: visible');
   });

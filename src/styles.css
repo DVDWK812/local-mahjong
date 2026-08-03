@@ -131,6 +131,46 @@ body {
   margin: 4px 0;
 }
 
+.test-mode-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.test-mode-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-left: 4px solid #8ba099;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.test-mode-stat strong { font-size: 24px; }
+.test-mode-stat--passed { border-color: #62c786; }
+.test-mode-stat--failed { border-color: #ff7368; }
+.test-mode-stat--blocked { border-color: #e8a94a; }
+
+.test-mode-filters {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.test-mode-filters label,
+.test-mode-import-guide label {
+  display: grid;
+  gap: 4px;
+}
+
+.test-mode-filters input { min-width: 240px; }
+
 .test-mode-scenario-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -150,6 +190,49 @@ body {
   gap: 10px;
 }
 
+.test-mode-scenario-card > header,
+.test-case-meta,
+.test-mode-import-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.test-mode-scenario-card > header { justify-content: space-between; }
+
+.test-case-meta { flex-wrap: wrap; color: #bfd0c5; font-size: 12px; }
+
+.test-case-status {
+  padding: 3px 8px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.test-case-status--passed { color: #83e4a5; }
+.test-case-status--failed { color: #ff9187; }
+.test-case-status--blocked { color: #f4bd66; }
+.test-case-status--needs-retest { color: #8fc8ff; }
+.test-case-status--pending { color: #c6d0cb; }
+
+.test-case-tested-at { color: #bfd0c5; font-size: 12px; }
+
+.test-case-manual-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.test-case-manual-details section {
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.test-case-manual-details h3 { margin: 0 0 6px; font-size: 13px; }
+.test-case-manual-details ol,
+.test-case-manual-details ul { min-height: 0; margin: 0; padding-left: 20px; font-size: 12px; }
+
 .test-mode-scenario-card ol {
   min-height: 116px;
   margin: 0;
@@ -168,12 +251,10 @@ body {
   box-sizing: border-box;
 }
 
-.test-mode-import > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 10px;
-}
+.test-mode-import > summary { cursor: pointer; font-weight: 800; }
+.test-mode-import-guide { margin: 12px 0; }
+.test-mode-import-guide h2 { margin: 0; font-size: 16px; }
+.test-mode-import-actions { justify-content: space-between; margin-top: 10px; flex-wrap: wrap; }
 
 .test-mode-errors,
 .test-mode-warning {
@@ -182,9 +263,18 @@ body {
   color: #ffe9e6;
 }
 
+.test-mode-session {
+  --test-mode-toolbar-height: 54px;
+}
+
 .test-mode-session .game-screen {
-  padding-top: 54px;
+  padding-top: var(--test-mode-toolbar-height);
   box-sizing: border-box;
+}
+
+.test-mode-session .analysis-drawer {
+  top: var(--test-mode-toolbar-height);
+  height: calc(100% - var(--test-mode-toolbar-height));
 }
 
 .test-mode-toolbar {
@@ -194,7 +284,7 @@ body {
   display: flex;
   align-items: center;
   gap: 7px;
-  height: 54px;
+  height: var(--test-mode-toolbar-height);
   padding: 7px 10px;
   box-sizing: border-box;
   overflow-x: auto;
@@ -237,6 +327,8 @@ body {
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.42);
 }
 
+.test-mode-debug--open { width: min(680px, 52vw); }
+
 .test-mode-debug header,
 .test-mode-debug__summary,
 .test-mode-dead-wall-table [role="row"] {
@@ -247,6 +339,17 @@ body {
 .test-mode-debug header {
   justify-content: space-between;
 }
+
+.test-mode-debug__compact-summary { margin: 8px 0 0; color: #cbdad0; }
+
+.test-mode-debug__details > details {
+  margin-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.test-mode-debug__details summary { padding: 9px 0; cursor: pointer; font-weight: 800; }
+.test-mode-debug__details h4 { margin: 8px 0 4px; }
+.test-mode-debug__details pre { max-height: 320px; overflow: auto; font-size: 11px; }
 
 .test-mode-debug__summary {
   flex-wrap: wrap;
@@ -294,10 +397,15 @@ body {
 }
 
 @media (max-width: 900px) {
-  .test-mode-debug {
+  .test-mode-debug--open {
     width: calc(100vw - 20px);
     top: 116px;
   }
+
+  .test-mode-stats { grid-template-columns: repeat(2, 1fr); }
+  .test-mode-filters { align-items: stretch; flex-direction: column; }
+  .test-mode-filters input { min-width: 0; }
+  .test-case-manual-details { grid-template-columns: 1fr; }
 }
 
 .replay-library {
@@ -2891,10 +2999,9 @@ button {
 }
 
 .discard-river-grid {
-  display: grid;
-  grid-template-columns: repeat(13, var(--river-half-width));
-  grid-auto-rows: var(--river-tile-height);
-  grid-auto-flow: row;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: var(--river-gap);
   width: var(--river-area-width);
   height: var(--river-area-height);
@@ -2907,28 +3014,28 @@ button {
 
 .discard-river--south .discard-river-grid,
 .discard-river--north .discard-river-grid {
-  grid-template-columns: repeat(6, var(--river-tile-width));
-  grid-template-rows: repeat(3, var(--river-tile-height));
-  grid-auto-flow: row;
   width: calc(var(--river-tile-width) * 6 + var(--river-gap) * 5);
   height: calc(var(--river-tile-height) * 3 + var(--river-gap) * 2);
   max-height: calc(var(--river-tile-height) * 3 + var(--river-gap) * 2);
 }
 
+.discard-river-row {
+  display: flex;
+  flex: 0 0 var(--river-tile-height);
+  align-items: center;
+  gap: var(--river-gap);
+  min-width: max-content;
+  height: var(--river-tile-height);
+}
+
 .discard-river-tile {
   display: grid;
-  grid-column: span 2;
+  flex: 0 0 var(--river-tile-width);
   place-items: center;
   width: var(--river-tile-width);
   height: var(--river-tile-height);
   min-width: var(--river-tile-width);
   min-height: var(--river-tile-height);
-}
-
-.discard-river--south .discard-river-tile,
-.discard-river--north .discard-river-tile {
-  grid-row: var(--river-row);
-  grid-column: var(--river-column);
 }
 
 .discard-river-tile--claimed {
@@ -2944,13 +3051,21 @@ button {
 
 .discard-river-tile--riichi,
 .riichi-discard-slot {
-  grid-column: span 3;
-  width: calc(var(--river-tile-width) * 1.5);
-  min-width: calc(var(--river-tile-width) * 1.5);
+  width: var(--river-tile-height);
+  min-width: var(--river-tile-height);
+  height: var(--river-tile-height);
 }
 
-.riichi-discard-slot .tile,
-.discard-river-tile--riichi .tile {
+.discard-river-tile--riichi {
+  flex-basis: var(--river-tile-height);
+}
+
+.riichi-discard-slot {
+  display: grid;
+  place-items: center;
+}
+
+.riichi-discard-slot .tile {
   transform: rotate(90deg);
   transform-origin: center;
 }
@@ -3063,12 +3178,12 @@ button {
 }
 /* 左侧牌河继续向左移动 */
 .table-river-anchor--west {
-  translate: calc(-1 * var(--river-hand-shift) - 30px) 0;
+  translate: calc(-1 * var(--river-hand-shift) - 15px) 0;
 }
 
 /* 右侧牌河继续向右移动 */
 .table-river-anchor--east {
-  translate: calc(var(--river-hand-shift) + 30px) 0;
+  translate: calc(var(--river-hand-shift) + 15px) 0;
 }
 .riichi-stick-slot {
   display: grid;
@@ -3750,4 +3865,13 @@ button {
   .center-score-grid {
     grid-template-columns: minmax(42px, 0.8fr) minmax(58px, 1fr) minmax(42px, 0.8fr);
   }
+}
+
+.game-screen .table-river-anchor--north {
+  translate: 0 30px;
+}
+
+/* 下家的牌河向上，靠近中央 */
+.game-screen .table-river-anchor--south {
+  translate: 0 -30px;
 }

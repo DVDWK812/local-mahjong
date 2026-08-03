@@ -224,7 +224,7 @@ export function legalActionSummary(state: GameState): string[] {
   if (state.phase === 'call-window') {
     const labels = ['跳过鸣牌'];
     for (const player of state.players) {
-      if (canMinkan(state, player.id)) labels.push(`玩家${player.id + 1}大明杠`);
+      if (canMinkan(state, player.id)) labels.push(`玩家${player.id + 1}明杠`);
       if (canPon(state, player.id)) labels.push(`玩家${player.id + 1}碰`);
       if (canChi(state, player.id)) labels.push(`玩家${player.id + 1}吃`);
     }

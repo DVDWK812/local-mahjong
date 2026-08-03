@@ -4,6 +4,8 @@ import { Tile } from '../Tile';
 
 interface LocalHandAreaProps {
   player: PlayerState;
+  identityPlayer?: PlayerState;
+  meldPlayer?: PlayerState;
   isCurrent: boolean;
   canDiscard: boolean;
   allowedDiscardInstanceIds?: string[];
@@ -26,7 +28,7 @@ const windNames: Record<Wind, string> = {
   north: '北',
 };
 
-export function LocalHandArea({ player, isCurrent, canDiscard, allowedDiscardInstanceIds, kuikaeForbiddenTileIds = [], doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, concealHand = false, onDiscardPreviewChange, onDiscard }: LocalHandAreaProps) {
+export function LocalHandArea({ player, identityPlayer = player, meldPlayer = player, isCurrent, canDiscard, allowedDiscardInstanceIds, kuikaeForbiddenTileIds = [], doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, concealHand = false, onDiscardPreviewChange, onDiscard }: LocalHandAreaProps) {
   const drawnTileId = player.drawnTile?.instanceId;
   const baseTiles = drawnTileId ? player.hand.filter((tile) => tile.instanceId !== drawnTileId) : player.hand;
   const drawnTile = drawnTileId ? player.hand.find((tile) => tile.instanceId === drawnTileId) : null;
@@ -43,12 +45,12 @@ export function LocalHandArea({ player, isCurrent, canDiscard, allowedDiscardIns
   return (
     <section className={`local-hand-area ${isCurrent ? 'local-hand-area--active' : ''}`} aria-label="本家手牌" data-local-player={player.id}>
       <div className="local-hand-info">
-        <span className="player-avatar" aria-hidden="true">{player.name.trim().slice(0, 1) || windNames[player.seatWind]}</span>
-        {tsumoGiriDisplayEnabled ? <TsumogiriMarker player={player} /> : null}
-        <strong title={player.name}>{player.name}</strong>
+        <span className="player-avatar" aria-hidden="true">{identityPlayer.name.trim().slice(0, 1) || windNames[identityPlayer.seatWind]}</span>
+        {tsumoGiriDisplayEnabled ? <TsumogiriMarker player={identityPlayer} /> : null}
+        <strong title={identityPlayer.name}>{identityPlayer.name}</strong>
         <span className="player-badges">
-          {player.seatWind === 'east' ? <em className="dealer-marker">庄</em> : null}
-          {player.riichi ? <em>立直</em> : null}
+          {identityPlayer.seatWind === 'east' ? <em className="dealer-marker">庄</em> : null}
+          {identityPlayer.riichi ? <em>立直</em> : null}
           {kuikaeForbiddenTileIds.length > 0 ? <em className="kuikae-warning">食替禁止</em> : null}
         </span>
       </div>
@@ -99,7 +101,7 @@ export function LocalHandArea({ player, isCurrent, canDiscard, allowedDiscardIns
         </div>
       </div>
       <div className="local-meld-track">
-        <PlayerMelds player={player} seatClass="seat-bottom local-melds" doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
+        <PlayerMelds player={meldPlayer} seatClass="seat-bottom local-melds" doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
       </div>
     </section>
   );

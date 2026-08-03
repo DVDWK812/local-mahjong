@@ -10,14 +10,39 @@ export const BUILT_IN_TEST_SCENARIO_IDS = [
   'STAB-001-MINKAN',
   'STAB-001-KAKAN',
   'STAB-001-FOUR-KANS',
+  'UI-RIICHI-WAIT-PREVIEW',
 ] as const;
 
 export function getBuiltInTestScenarios(): TestScenarioV1[] {
-  return [buildAnkanScenario(), buildMinkanScenario(), buildKakanScenario(), buildFourKansScenario()].map(cloneTestScenario);
+  return [buildAnkanScenario(), buildMinkanScenario(), buildKakanScenario(), buildFourKansScenario(), buildRiichiWaitPreviewScenario()].map(cloneTestScenario);
 }
 
 export function getBuiltInTestScenario(id: string): TestScenarioV1 | undefined {
   return getBuiltInTestScenarios().find((scenario) => scenario.id === id);
+}
+
+export function getChiihouExampleScenario(): TestScenarioV1 {
+  const id = 'EXAMPLE-CHIIHOU';
+  const builder = new StableTileBuilder(id);
+  const hand1 = ([1, 2, 3, 10, 11, 12, 19, 20, 21, 4, 5, 6, 14] as TileId[])
+    .map((tileId) => builder.take(tileId, 'player-1-hand'))
+    .sort(sortTiles);
+  const hand0 = fillHand(builder, 14, 'player-0-hand', 20).sort(sortTiles);
+  const players = buildPlayers(builder, hand0, { hand1 });
+  const state = baseState(builder, players, buildDeadWall(builder), { currentPlayer: 0, phase: 'discard' });
+  state.players[0].drawnTile = hand0[hand0.length - 1];
+  const winningTileIndex = state.wall.findIndex((tile) => tile.id === 14);
+  const [winningTile] = state.wall.splice(winningTileIndex, 1);
+  state.wall.unshift(winningTile);
+  const scenario = createScenario(id, '地和 JSON 示例', '从庄家第一次弃牌前开始；无人鸣牌后，闲家第一次正常摸牌即可自摸。', state, [
+    '庄家打出最右侧摸切牌。',
+    '确认没有发生鸣牌，当前轮到玩家2摸牌。',
+    '点击测试工具栏“摸牌”。',
+    '确认玩家2的“自摸”按钮可用并点击。',
+    '确认结果包含役满“地和”。',
+  ]);
+  scenario.relatedAuditId = 'YAKUMAN-CHIIHOU';
+  return cloneTestScenario(scenario);
 }
 
 function buildAnkanScenario(): TestScenarioV1 {
@@ -59,13 +84,13 @@ function buildMinkanScenario(): TestScenarioV1 {
     options: [{ type: 'kan', kanType: 'minkan', player: 0 }],
   };
   state.playerDiscardCounts = [0, 1, 0, 0];
-  const scenario = createScenario(id, 'STAB-001 大明杠', '玩家2已弃出目标牌，玩家1处于可直接大明杠的正式鸣牌窗口。', state, [
-    '确认鸣牌窗口显示“大明杠”。',
-    '由玩家1执行大明杠。',
+  const scenario = createScenario(id, 'STAB-001 明杠', '玩家2已弃出目标牌，玩家1处于可直接明杠的正式鸣牌窗口。', state, [
+    '确认鸣牌窗口显示“明杠”。',
+    '由玩家1执行明杠。',
     '核对被鸣弃牌保留claimed历史、第一张岭上牌和原始王牌槽6。',
     '核对活牌墙减少1并导出牌谱复查。',
   ]);
-  scenario.expectedCheckpoints = [kanCheckpoint('kan-1', state, deadWall, 0, '玩家1对玩家2弃牌执行大明杠')];
+  scenario.expectedCheckpoints = [kanCheckpoint('kan-1', state, deadWall, 0, '玩家1对玩家2弃牌执行明杠')];
   return scenario;
 }
 
@@ -131,6 +156,30 @@ function buildFourKansScenario(): TestScenarioV1 {
   ]);
   const kanNames = ['东', '南', '西', '北'];
   scenario.expectedCheckpoints = [0, 1, 2, 3].map((index) => kanCheckpoint(`kan-${index + 1}`, state, deadWall, index, `玩家1暗杠${kanNames[index]}`));
+  return scenario;
+}
+
+function buildRiichiWaitPreviewScenario(): TestScenarioV1 {
+  const id = 'UI-RIICHI-WAIT-PREVIEW';
+  const builder = new StableTileBuilder(id);
+  const hand0 = ([0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23, 27, 31] as TileId[])
+    .map((tileId) => builder.take(tileId, 'player-0-hand'))
+    .sort(sortTiles);
+  const players = buildPlayers(builder, hand0);
+  const state = baseState(builder, players, buildDeadWall(builder), { currentPlayer: 0, phase: 'discard' });
+  state.players[0].drawnTile = hand0.find((tile) => tile.id === 31) ?? hand0[hand0.length - 1];
+  const scenario = createScenario(
+    id,
+    '立直候选听牌预览',
+    '玩家1处于可立直的弃牌阶段，用于检查每个立直候选的正式听牌与剩余枚数提示。',
+    state,
+    [
+      '确认操作框显示多个立直弃牌候选。',
+      '依次悬停不同候选，确认听牌与剩余枚数立即更新。',
+      '移出候选后确认听牌提示清除。',
+      '重新加载场景并点击候选，确认立直与弃牌流程保持不变。',
+    ],
+  );
   return scenario;
 }
 
@@ -200,14 +249,18 @@ function baseState(
   };
 }
 
-function buildPlayers(builder: StableTileBuilder, hand0: Tile[], options: { player1Count?: number } = {}): PlayerState[] {
+function buildPlayers(builder: StableTileBuilder, hand0: Tile[], options: { player1Count?: number; hand1?: Tile[] } = {}): PlayerState[] {
   const winds = ['east', 'south', 'west', 'north'] as const;
   return ([0, 1, 2, 3] as PlayerId[]).map((id) => ({
     id,
     name: `测试玩家${id + 1}`,
     seatWind: winds[id],
     score: 25000,
-    hand: id === 0 ? hand0 : fillHand(builder, id === 1 ? options.player1Count ?? 13 : 13, `player-${id}-hand`, id * 7).sort(sortTiles),
+    hand: id === 0
+      ? hand0
+      : id === 1 && options.hand1
+        ? options.hand1
+        : fillHand(builder, id === 1 ? options.player1Count ?? 13 : 13, `player-${id}-hand`, id * 7).sort(sortTiles),
     river: [],
     calls: [],
     drawnTile: null,

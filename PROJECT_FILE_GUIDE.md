@@ -221,7 +221,7 @@
 | `src/game/exhaustiveDraw.ts` | 导出荒牌流局听牌判断、罚符分配和结算。 | 修改流局听牌或 3000 点罚符。 | 高 |
 | `src/game/furiten.ts` | 导出舍牌振听、临时振听、立直后振听和荣和许可计算。 | 修改振听显示或规则时。 | 高（振听核心） |
 | `src/game/interaction.ts` | 导出摸牌后可用动作、立直暗杠等待保持等交互派生状态。 | 修改动作按钮出现条件。 | 高 |
-| `src/game/kanChecker.ts` | 导出暗杠、大明杠、加杠候选与执行，以及抢杠窗口。 | 修改杠、岭上牌、开宝牌流程。 | 高 |
+| `src/game/kanChecker.ts` | 导出暗杠、明杠、加杠候选与执行，以及抢杠窗口。 | 修改杠、岭上牌、开宝牌流程。 | 高 |
 | `src/game/meldDisplayAdapter.ts` | 导出 `CallSet` 到展示模型的转换，计算来源方向和横置位置。 | 修改副露展示顺序，不改规则判定。 | 中 |
 | `src/game/shanten.ts` | 导出标准形、七对子、国士向听数，以及有效牌和弃牌推荐。 | 修改牌理算法、听牌或推荐。 | 高（向听数/有效牌核心） |
 | `src/game/tileAssets.ts` | 导出牌图键、图片、替代文本、赤五和牌背/占位映射。 | 增换牌图资源或命名映射。 | 中 |
@@ -369,12 +369,12 @@
 | `src/game/exhaustiveDrawIntegration.test.ts` | 最后一张自摸/荣和优先于荒牌流局及海底河底。 |
 | `src/game/furiten.test.ts` | 舍牌振听、临时振听、立直后振听及自摸不受限。 |
 | `src/game/interactionFlow.test.ts` | 摸打、摸切记录、鸣牌、立直和玩家/AI 回合推进。 |
-| `src/game/kanChecker.test.ts` | 暗杠、大明杠、加杠、岭上牌、宝牌和抢杠。 |
+| `src/game/kanChecker.test.ts` | 暗杠、明杠、加杠、岭上牌、宝牌和抢杠。 |
 | `src/game/meldDisplayAdapter.test.ts` | 副露来源方向、横置索引、杠牌顺序和暗杠。 |
 | `src/game/nextRoundReset.test.ts` | 下一局清理临时状态并保留整场分数。 |
 | `src/game/northPlayerRiichi.test.ts` | 北家立直弃牌、鸣牌窗口与轮转回东家。 |
 | `src/game/riichi.test.ts` | 立直条件、供托、听牌限制与状态更新。 |
-| `src/game/riichiCallRestrictions.test.ts` | 立直后禁止吃碰大明杠及引擎防御。 |
+| `src/game/riichiCallRestrictions.test.ts` | 立直后禁止吃碰明杠及引擎防御。 |
 | `src/game/riichiClaimedDiscard.test.ts` | 立直宣言牌被鸣后的横置状态和一次性转移。 |
 | `src/game/riichiFlowRegression.test.tsx` | 四家与双立直弃牌横置的交互回归。 |
 | `src/game/riichiVisualState.test.ts` | 立直正式成立前后立直棒视觉状态。 |

@@ -100,7 +100,7 @@ function RulesHomeTab() {
             <ul>
               <li>吃只能取上家的弃牌组成顺子；碰可取任意一家弃牌组成刻子。</li>
               <li>杠由4张相同牌组成，宣言后摸岭上牌；暗杠仍保留门前清状态。</li>
-              <li>吃、碰、大明杠和加杠会开门，可能导致部分役不成立或副露减番。</li>
+              <li>吃、碰、明杠和加杠会开门，可能导致部分役不成立或副露减番。</li>
             </ul>
           </article>
           <article className="rules-flow-card">

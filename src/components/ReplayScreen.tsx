@@ -330,7 +330,7 @@ function actionLabel(type: string): string {
     'tile-discarded': '弃牌',
     'chi-declared': '吃',
     'pon-declared': '碰',
-    'minkan-declared': '大明杠',
+    'minkan-declared': '明杠',
     'ankan-declared': '暗杠',
     'kakan-declared': '加杠',
     'riichi-declared': '立直',

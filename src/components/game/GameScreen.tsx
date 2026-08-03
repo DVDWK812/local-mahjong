@@ -28,8 +28,10 @@ interface GameScreenProps {
   sameTileHoverEnabled?: boolean;
   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
   showTenpaiWaitsEnabled?: boolean;
+  tenpaiPreviewDiscardInstanceId?: string | null;
   tsumoGiriDisplayEnabled?: boolean;
   localPlayerId?: PlayerId;
+  tableBottomPlayerId?: PlayerId;
   revealAllHands?: boolean;
 }
 
@@ -52,18 +54,21 @@ export function GameScreen({
   sameTileHoverEnabled = true,
   onHoveredTileTypeChange,
   showTenpaiWaitsEnabled = true,
+  tenpaiPreviewDiscardInstanceId = null,
   tsumoGiriDisplayEnabled = true,
   localPlayerId = 0,
+  tableBottomPlayerId = localPlayerId,
   revealAllHands = false,
 }: GameScreenProps) {
-  const [previewDiscardInstanceId, setPreviewDiscardInstanceId] = useState<string | null>(null);
+  const [handPreviewDiscardInstanceId, setHandPreviewDiscardInstanceId] = useState<string | null>(null);
   const localPlayer = gameState.players[localPlayerId];
+  const fixedBottomPlayer = gameState.players[tableBottomPlayerId];
   const tenpaiDisplay = showTenpaiWaitsEnabled
-    ? buildTenpaiDisplay(gameState, localPlayerId, previewDiscardInstanceId ?? undefined)
+    ? buildTenpaiDisplay(gameState, localPlayerId, tenpaiPreviewDiscardInstanceId ?? handPreviewDiscardInstanceId ?? undefined)
     : null;
 
   useEffect(() => {
-    setPreviewDiscardInstanceId(null);
+    setHandPreviewDiscardInstanceId(null);
   }, [gameState]);
 
   return (
@@ -76,9 +81,11 @@ export function GameScreen({
         onToggleAnalysis={onToggleAnalysis}
         onReturnMenu={onReturnMenu}
       />
-      <MahjongTable gameState={gameState} matchState={matchState} bottomPlayerId={localPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} />
+      <MahjongTable gameState={gameState} matchState={matchState} bottomPlayerId={tableBottomPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} />
       <LocalHandArea
         player={localPlayer}
+        identityPlayer={fixedBottomPlayer}
+        meldPlayer={fixedBottomPlayer}
         isCurrent={gameState.currentPlayer === localPlayerId}
         canDiscard={canDiscard}
         allowedDiscardInstanceIds={allowedDiscardInstanceIds}
@@ -90,7 +97,7 @@ export function GameScreen({
         sameTileHoverEnabled={sameTileHoverEnabled}
         onHoveredTileTypeChange={onHoveredTileTypeChange}
         tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled}
-        onDiscardPreviewChange={setPreviewDiscardInstanceId}
+        onDiscardPreviewChange={setHandPreviewDiscardInstanceId}
       />
       {actionPrompt ? <div className="game-prompt-layer">{actionPrompt}</div> : null}
       {tenpaiDisplay ? <div className="game-tenpai-layer"><TenpaiWaitPanel display={tenpaiDisplay} /></div> : null}
