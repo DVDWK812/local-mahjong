@@ -9,6 +9,8 @@ export type RulePresetInput = RulePresetId | LegacyRulePresetId;
 export const defaultMatchRuleConfig: MatchRuleConfig = {
   matchLength: 'east-only',
   matchCount: 1,
+  minimumHan: 0,
+  doraCountsTowardMinimumHan: false,
   startingPoints: 25000,
   targetPoints: 30000,
   returnPoints: 25000,
@@ -40,10 +42,13 @@ export type MatchRuleConfigInput = Partial<MatchRuleConfig> & { roundCount?: num
 
 export function normalizeMatchRuleConfig(overrides: MatchRuleConfigInput = {}): MatchRuleConfig {
   const { roundCount: legacyRoundCount, ...current } = overrides;
+  const minimumHan = normalizeMinimumHan(current.minimumHan ?? defaultMatchRuleConfig.minimumHan);
   const config = {
     ...defaultMatchRuleConfig,
     ...current,
     matchCount: normalizeMatchCount(current.matchCount ?? legacyRoundCount ?? defaultMatchRuleConfig.matchCount),
+    minimumHan,
+    doraCountsTowardMinimumHan: minimumHan !== 0 && current.doraCountsTowardMinimumHan === true,
   };
   if (config.matchLength === 'hanchan' && config.maxExtraRoundWind === 'south') {
     config.maxExtraRoundWind = 'west';
@@ -132,6 +137,7 @@ export function validateRuleConfig(config: FullRuleConfig): RuleConfigValidation
   if (!match.allowWestRound && match.maxExtraRoundWind !== 'none') errors.push('关闭延长局时，最大延长场风必须为无');
   if (!Number.isFinite(match.suddenDeathTarget) || match.suddenDeathTarget <= 0) errors.push('突然死亡目标必须大于零');
   if (![1, 2, 3, 4].includes(match.matchCount)) errors.push('比赛场数必须为一到四之间的整数');
+  if (![0, 2, 3, 4, 5].includes(match.minimumHan)) errors.push('番缚规则设置无效');
   if (!['disabled', 'sanbaiman', 'yakuman'].includes(round.kazoeYakumanMode)) errors.push('累计役满设置无效');
   return { valid: errors.length === 0, errors };
 }
@@ -169,6 +175,10 @@ export function scheduledFinalWind(config: Pick<MatchRuleConfig, 'matchLength'> 
 function normalizeMatchCount(value: number): 1 | 2 | 3 | 4 {
   const rounded = Math.round(Number(value) || 1);
   return Math.min(4, Math.max(1, rounded)) as 1 | 2 | 3 | 4;
+}
+
+function normalizeMinimumHan(value: number): MatchRuleConfig['minimumHan'] {
+  return [0, 2, 3, 4, 5].includes(value) ? value as MatchRuleConfig['minimumHan'] : 0;
 }
 
 export function maxExtraWindIndex(config: MatchRuleConfig): number {

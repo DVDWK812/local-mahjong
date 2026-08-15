@@ -1,11 +1,12 @@
 import { callToMeldDisplayModel } from './meldDisplayAdapter';
 import { evaluateWin } from './scoreCalculator';
 import { createScoringWinContext } from './score/scoringAdapter';
-import type { GameState, PlayerId, Tile, TileId } from './types';
+import type { GameState, PlayerId, RiichiState, Tile, TileId } from './types';
 import { ALL_TILE_IDS, getTileRank, getTileSuit, tileLabel } from './tileUtils';
 import { getFuritenState } from './furiten';
+import { meetsMinimumHanRequirement } from './winChecker';
 
-export type TenpaiWaitStatus = 'winnable' | 'no-yaku' | 'furiten' | 'permanent-furiten';
+export type TenpaiWaitStatus = 'winnable' | 'no-yaku' | 'insufficient-han' | 'furiten' | 'permanent-furiten';
 
 export interface TenpaiWaitDisplayTile {
   id: TileId;
@@ -35,9 +36,14 @@ export function countVisibleRemainingTiles(state: GameState, tileId: TileId, pla
   return Math.max(0, 4 - visible.filter((tile) => tile.id === tileId).length);
 }
 
-export function buildTenpaiDisplay(state: GameState, playerId: PlayerId = 0, discardTileInstanceId?: string): TenpaiDisplay | null {
+export function buildTenpaiDisplay(
+  state: GameState,
+  playerId: PlayerId = 0,
+  discardTileInstanceId?: string,
+  riichiPreviewKind?: RiichiState['kind'],
+): TenpaiDisplay | null {
   const displayState = discardTileInstanceId
-    ? simulateDiscardForDisplay(state, playerId, discardTileInstanceId)
+    ? simulateDiscardForDisplay(state, playerId, discardTileInstanceId, riichiPreviewKind)
     : state;
   if (!displayState || shouldHideTenpaiDisplay(displayState, playerId, !!discardTileInstanceId)) return null;
   const waitScores = getWaitScores(displayState, playerId);
@@ -47,8 +53,8 @@ export function buildTenpaiDisplay(state: GameState, playerId: PlayerId = 0, dis
     ? state.players[playerId]?.hand.find((tile) => tile.instanceId === discardTileInstanceId)
     : undefined;
   return {
-    waits: waitScores.map(({ id, hasYaku }) => {
-      const status = getWaitStatus(hasYaku, furiten, displayState.players[playerId].riichi);
+    waits: waitScores.map(({ id, hasYaku, meetsMinimumHan }) => {
+      const status = getWaitStatus(hasYaku, meetsMinimumHan, furiten, displayState.players[playerId].riichi);
       return {
       id,
       label: tileLabel(id),
@@ -75,7 +81,7 @@ function shouldHideTenpaiDisplay(state: GameState, playerId: PlayerId, isDiscard
   return player.hand.length % 3 !== 1;
 }
 
-function getWaitScores(state: GameState, playerId: PlayerId): Array<{ id: TileId; hasYaku: boolean }> {
+function getWaitScores(state: GameState, playerId: PlayerId): Array<{ id: TileId; hasYaku: boolean; meetsMinimumHan: boolean }> {
   const player = state.players[playerId];
   if (!player) return [];
   return ALL_TILE_IDS.flatMap((id) => {
@@ -89,22 +95,37 @@ function getWaitScores(state: GameState, playerId: PlayerId): Array<{ id: TileId
       winningTileSource: 'discard',
     }));
     if (!score.isWinning) return [];
-    return [{ id, hasYaku: score.yaku.some((yaku) => yaku.han > 0 || yaku.yakuman) }];
+    return [{
+      id,
+      hasYaku: score.yaku.some((yaku) => yaku.han > 0 || yaku.yakuman),
+      meetsMinimumHan: meetsMinimumHanRequirement(
+        score.yaku,
+        state.matchRuleConfig?.minimumHan,
+        state.matchRuleConfig?.doraCountsTowardMinimumHan ? score.dora + score.redDora : 0,
+      ),
+    }];
   });
 }
 
 function getWaitStatus(
   hasYaku: boolean,
+  meetsMinimumHan: boolean,
   furiten: ReturnType<typeof getFuritenState>,
   isRiichi: boolean,
 ): TenpaiWaitStatus {
   if (!hasYaku) return 'no-yaku';
+  if (!meetsMinimumHan) return 'insufficient-han';
   if (furiten.riichiPermanentFuriten || (isRiichi && furiten.discardFuriten)) return 'permanent-furiten';
   if (furiten.discardFuriten || furiten.temporaryFuriten) return 'furiten';
   return 'winnable';
 }
 
-function simulateDiscardForDisplay(state: GameState, playerId: PlayerId, tileInstanceId: string): GameState | null {
+function simulateDiscardForDisplay(
+  state: GameState,
+  playerId: PlayerId,
+  tileInstanceId: string,
+  riichiPreviewKind?: RiichiState['kind'],
+): GameState | null {
   const player = state.players[playerId];
   const discarded = player?.hand.find((tile) => tile.instanceId === tileInstanceId);
   if (!player || !discarded) return null;
@@ -116,6 +137,15 @@ function simulateDiscardForDisplay(state: GameState, playerId: PlayerId, tileIns
           hand: item.hand.filter((tile) => tile.instanceId !== tileInstanceId),
           river: [...item.river, discarded],
           drawnTile: null,
+          ...(riichiPreviewKind ? {
+            riichi: true,
+            riichiState: {
+              declaredAtTurn: state.turn,
+              ippatsuAvailable: false,
+              kind: riichiPreviewKind,
+              riichiDiscardInstanceId: discarded.instanceId,
+            },
+          } : {}),
         }
       : item),
   };

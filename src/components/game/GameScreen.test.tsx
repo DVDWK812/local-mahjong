@@ -31,6 +31,29 @@ function riichiPreviewState(): GameState {
   };
 }
 
+function minimumHanRiichiPreviewState(): { state: GameState; discardInstanceId: string } {
+  const base = createInitialGameState();
+  const hand = [1, 1, 1, 3, 4, 5, 11, 12, 13, 14, 14, 20, 20, 8].map((id, index) => createTile(id as TileId, index));
+  return {
+    state: {
+      ...base,
+      phase: 'discard',
+      currentPlayer: 0,
+      firstTurnInterrupted: true,
+      matchRuleConfig: { minimumHan: 2 },
+      players: base.players.map((player) => player.id === 0 ? {
+        ...player,
+        hand,
+        drawnTile: hand[hand.length - 1],
+        calls: [],
+        riichi: false,
+        riichiState: null,
+      } : player),
+    },
+    discardInstanceId: hand[hand.length - 1].instanceId,
+  };
+}
+
 describe('GameScreen', () => {
   it('渲染顶部状态栏、中央牌桌和底部本家手牌三区', () => {
     const html = renderToStaticMarkup(
@@ -116,5 +139,25 @@ describe('GameScreen', () => {
     expect(preview).toContain('听牌与剩余量');
     expect(preview).toContain('打出');
     expect(cleared).not.toContain('听牌与剩余量');
+  });
+
+  it('二番缚立直候选预览计入立直番，不显示番数不足', () => {
+    const { state, discardInstanceId } = minimumHanRiichiPreviewState();
+    const props = {
+      gameState: state,
+      analysisOpen: false,
+      canDiscard: false,
+      onToggleAnalysis: noop,
+      onCloseAnalysis: noop,
+      onReturnMenu: noop,
+      onDiscard: noop,
+      onReset: noop,
+      tenpaiPreviewDiscardInstanceId: discardInstanceId,
+    };
+    const ordinaryPreview = renderToStaticMarkup(<GameScreen {...props} />);
+    const riichiPreview = renderToStaticMarkup(<GameScreen {...props} tenpaiPreviewRiichiKind="riichi" />);
+    expect(ordinaryPreview).toContain('番数不足');
+    expect(riichiPreview).toContain('听牌与剩余量');
+    expect(riichiPreview).not.toContain('番数不足');
   });
 });

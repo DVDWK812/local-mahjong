@@ -176,6 +176,42 @@ describe('比赛设置界面', () => {
     expect(normalizeMatchSettingsConfig(config, { matchCount: 0 as any }).match.matchCount).toBe(1);
   });
 
+  it('点数与比赛场数区域显示番缚与宝牌计入番缚规则', () => {
+    const config = getRulePreset('east-round');
+    const html = renderToStaticMarkup(<MatchSettings config={config} onConfigChange={() => undefined} />);
+    expect(html.indexOf('点数与比赛场数')).toBeLessThan(html.indexOf('番缚规则'));
+    expect(html).toContain('aria-label="番缚规则"');
+    expect(html).toContain('<option value="0" selected="">无</option>');
+    expect(html).toContain('<option value="2">二番缚</option>');
+    expect(html).toContain('<option value="3">三番缚</option>');
+    expect(html).toContain('<option value="4">四番缚</option>');
+    expect(html).toContain('<option value="5">满贯缚</option>');
+    expect(html).toContain(ruleDescriptions.minimumHan);
+    expect(html).toContain('aria-label="宝牌计入番缚"');
+    expect(html).toContain('aria-label="宝牌计入番缚" disabled=""');
+    expect(html).toContain('<option value="false" selected="">关闭</option>');
+    expect(html).toContain('<option value="true">开启</option>');
+    expect(html).toContain(ruleDescriptions.doraCountsTowardMinimumHan);
+    const enabled = renderToStaticMarkup(<MatchSettings config={{ ...config, match: { ...config.match, minimumHan: 2 } }} onConfigChange={() => undefined} />);
+    expect(enabled).toContain('aria-label="宝牌计入番缚"');
+    expect(enabled).not.toContain('aria-label="宝牌计入番缚" disabled=""');
+  });
+
+  it('番缚配置支持五个合法值，旧配置缺失或非法值时兼容为无', () => {
+    const config = getRulePreset('east-round');
+    ([0, 2, 3, 4, 5] as const).forEach((minimumHan) => {
+      expect(normalizeMatchSettingsConfig(config, { minimumHan }).match.minimumHan).toBe(minimumHan);
+    });
+    const legacy = {
+      ...config,
+      match: Object.fromEntries(Object.entries(config.match).filter(([key]) => key !== 'minimumHan')) as typeof config.match,
+    };
+    expect(normalizeMatchSettingsConfig(legacy).match.minimumHan).toBe(0);
+    expect(normalizeMatchSettingsConfig(legacy).match.doraCountsTowardMinimumHan).toBe(false);
+    expect(normalizeMatchSettingsConfig(config, { minimumHan: 2, doraCountsTowardMinimumHan: true }).match.doraCountsTowardMinimumHan).toBe(true);
+    expect(normalizeMatchSettingsConfig(config, { minimumHan: 0, doraCountsTowardMinimumHan: true }).match.doraCountsTowardMinimumHan).toBe(false);
+  });
+
   it('关闭延长局后不显示最大延长场风', () => {
     const config = getRulePreset('east-round');
     const html = renderToStaticMarkup(

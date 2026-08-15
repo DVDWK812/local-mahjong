@@ -10,6 +10,7 @@ interface DiscardRiverProps {
   hoveredTileType?: TileId | null;
   sameTileHoverEnabled?: boolean;
   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
+  columns?: number;
 }
 
 function isClaimedDiscard(tile: PlayerState['river'][number]): boolean {
@@ -17,13 +18,13 @@ function isClaimedDiscard(tile: PlayerState['river'][number]): boolean {
   return marker.claimed === true || marker.claimedBy !== undefined;
 }
 
-export function DiscardRiver({ player, position, preserveClaimedDiscardGap = false, doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange }: DiscardRiverProps) {
+export function DiscardRiver({ player, position, preserveClaimedDiscardGap = false, doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, columns = 6 }: DiscardRiverProps) {
   const riichiDiscardInstanceId = player.riichiState?.riichiDiscardInstanceId;
   const visibleRiver = preserveClaimedDiscardGap
     ? player.river
     : player.river.filter((tile) => !isClaimedDiscard(tile));
   const isHorizontalRiver = position === 'south' || position === 'north';
-  const riverRows = [visibleRiver.slice(0, 6), visibleRiver.slice(6, 12), visibleRiver.slice(12)]
+  const riverRows = [visibleRiver.slice(0, columns), visibleRiver.slice(columns, columns * 2), visibleRiver.slice(columns * 2)]
     .filter((row) => row.length > 0);
 
   return (

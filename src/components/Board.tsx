@@ -8,6 +8,7 @@ import type { MatchState } from '../game/match/types';
 import { getTileAlt } from '../game/tileAssets';
 import type { GameState, PendingCallOption, PlayerId, Tile as TileModel, TileId } from '../game/types';
 import { sortTiles, tileLabel } from '../game/tileUtils';
+import { useGamePresentationEvents } from '../presentation/gamePresentationEvents';
 import { ActionPrompt } from './ActionPrompt';
 import { GameScreen } from './game/GameScreen';
 import { Tile } from './Tile';
@@ -67,6 +68,7 @@ export function Board({
   tableBottomPlayerId = controlledPlayerId,
   revealAllHands = false,
 }: BoardProps) {
+  useGamePresentationEvents(gameState);
   const [dismissedPromptKey, setDismissedPromptKey] = useState<string | null>(null);
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [hoveredTileType, setHoveredTileType] = useState<TileId | null>(null);
@@ -283,6 +285,9 @@ export function Board({
       onHoveredTileTypeChange={setHoveredTileType}
       showTenpaiWaitsEnabled={showTenpaiWaitsEnabled}
       tenpaiPreviewDiscardInstanceId={promptOpen ? riichiPreviewDiscardInstanceId : null}
+      tenpaiPreviewRiichiKind={riichiPreviewDiscardInstanceId
+        ? (drawActions.canDoubleRiichi ? 'double-riichi' : 'riichi')
+        : null}
       tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled}
       localPlayerId={controlledPlayerId}
       tableBottomPlayerId={tableBottomPlayerId}

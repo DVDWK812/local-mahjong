@@ -16,7 +16,7 @@ export function canTsumo(state: GameState, playerId: PlayerId): WinResultEntry |
 
   const preWinHand = removeWinningTile(player.hand, winTile);
   const score = evaluateWin(player.hand, createWinContext(state, playerId, winTile, true, state.riichiSticks, preWinHand));
-  if (!hasRealYaku(score.yaku)) return null;
+  if (!meetsMinimumHanForScore(score, state)) return null;
 
   return {
     winner: playerId,
@@ -48,7 +48,7 @@ export function canRon(state: GameState, discarder: PlayerId, discardedTile: Til
     const player = state.players[playerId];
     const handWithDiscard = [...player.hand, discardedTile];
     const score = evaluateWin(handWithDiscard, createWinContext(state, playerId, discardedTile, false, options.riichiSticks ?? 0, player.hand, options.winningTileSource));
-    if (!hasRealYaku(score.yaku) || !score.points.ron) return [];
+    if (!meetsMinimumHanForScore(score, state) || !score.points.ron) return [];
     if (!canRonWithFuritenCheck(state, playerId)) return [];
 
     return [{
@@ -120,8 +120,19 @@ function createWinContext(state: GameState, playerId: PlayerId, winTile: Tile, i
   });
 }
 
-function hasRealYaku(yaku: { han: number; yakuman?: boolean }[]): boolean {
-  return yaku.some((item) => item.han > 0 || item.yakuman);
+export function meetsMinimumHanRequirement(
+  yaku: { han: number; yakuman?: boolean }[],
+  minimumHan = defaultMatchRuleConfig.minimumHan,
+  doraHan = 0,
+): boolean {
+  if (yaku.some((item) => item.yakuman)) return true;
+  const yakuHan = yaku.reduce((total, item) => total + item.han, 0) + doraHan;
+  return yakuHan > 0 && yakuHan >= minimumHan;
+}
+
+function meetsMinimumHanForScore(score: ReturnType<typeof evaluateWin>, state: GameState): boolean {
+  const doraHan = state.matchRuleConfig?.doraCountsTowardMinimumHan ? score.dora + score.redDora : 0;
+  return meetsMinimumHanRequirement(score.yaku, state.matchRuleConfig?.minimumHan, doraHan);
 }
 
 function playersAfter(discarder: PlayerId): PlayerId[] {

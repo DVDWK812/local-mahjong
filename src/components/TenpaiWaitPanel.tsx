@@ -20,7 +20,13 @@ export function TenpaiWaitPanel({ display }: TenpaiWaitPanelProps) {
             <span className="tenpai-wait-count">×{wait.remaining}</span>
             {wait.status !== 'winnable' ? (
               <span className={`tenpai-wait-status tenpai-wait-status--${wait.status}`}>
-                {wait.status === 'no-yaku' ? '无役' : wait.status === 'permanent-furiten' ? '永久振听' : '振听'}
+                {wait.status === 'no-yaku'
+                  ? '无役'
+                  : wait.status === 'insufficient-han'
+                    ? '番数不足'
+                    : wait.status === 'permanent-furiten'
+                      ? '永久振听'
+                      : '振听'}
               </span>
             ) : null}
           </div>

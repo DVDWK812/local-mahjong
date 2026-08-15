@@ -12,6 +12,9 @@ interface ResultDialogProps {
   continueLabel?: string;
   displayPointDeltas?: number[];
   resultRiichiSticks?: number;
+  visiblePlayerIds?: PlayerId[];
+  scoreBefore?: number[];
+  scoreAfter?: number[];
 }
 
 interface ResultShellProps {
@@ -65,6 +68,12 @@ function WinHandPreview({ gameState, winner, win, doraGlowEnabled = true }: { ga
   const uraIndicators = winner.riichi ? activeUraDoraIndicators(gameState.deadWall, gameState.doraIndicators.length) : [];
   return (
     <div className="result-tile-sections" aria-label="和牌牌组">
+      <section className="result-tile-section result-dora-indicators" aria-label="宝牌指示牌">
+        <span>宝牌指示牌</span>
+        <div className="result-hand-row">
+          {gameState.doraIndicators.map((tile) => <TileView key={tile.instanceId} tile={tile} compact doraGlowEnabled={false} />)}
+        </div>
+      </section>
       <section className="result-tile-section result-concealed-hand">
         <span>手牌</span>
         <div className="result-hand-row" aria-label="手牌">
@@ -177,11 +186,13 @@ function winScoreBreakdown(gameState: GameState, result: WinRoundResult, win: Wi
   return { handPoints, honbaBonus, stickBonus, total, paymentNote };
 }
 
-function ResultDeltas({ gameState, pointDeltas }: { gameState: GameState; pointDeltas: number[] }) {
+function ResultDeltas({ gameState, pointDeltas, visiblePlayerIds, scoreBefore, scoreAfter }: { gameState: GameState; pointDeltas: number[]; visiblePlayerIds?: PlayerId[]; scoreBefore?: number[]; scoreAfter?: number[] }) {
   return (
     <section className="result-deltas">
       <h3>点数变化</h3>
-      {gameState.players.map((player, index) => {
+      {(visiblePlayerIds ?? gameState.players.map((player) => player.id)).map((playerId) => {
+        const player = gameState.players[playerId];
+        const index = playerId;
         const delta = pointDeltas[index] ?? 0;
         return (
           <div key={player.id} className="result-delta-row">
@@ -189,6 +200,7 @@ function ResultDeltas({ gameState, pointDeltas }: { gameState: GameState; pointD
             <strong className={delta >= 0 ? 'delta-positive' : 'delta-negative'}>
               {delta >= 0 ? '+' : ''}{formatPoints(delta)}
             </strong>
+            {scoreBefore && scoreAfter ? <span className="result-score-after">{formatPoints(scoreBefore[index] ?? 0)} → {formatPoints(scoreAfter[index] ?? 0)}</span> : null}
           </div>
         );
       })}
@@ -202,7 +214,7 @@ function winDisplayDeltas(gameState: GameState, result: WinRoundResult): number[
   ));
 }
 
-export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, continueLabel = '继续', displayPointDeltas, resultRiichiSticks = gameState.riichiSticks }: ResultDialogProps) {
+export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, continueLabel = '继续', displayPointDeltas, resultRiichiSticks = gameState.riichiSticks, visiblePlayerIds, scoreBefore, scoreAfter }: ResultDialogProps) {
   const result = gameState.result;
   if (!result) return null;
 
@@ -219,7 +231,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, conti
             <HandPreview key={playerId} title={`${gameState.players[playerId].name} 手牌`} tiles={gameState.players[playerId].hand} />
           ))}
         </div>
-        <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? result.pointDeltas} />
+        <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? result.pointDeltas} visiblePlayerIds={visiblePlayerIds} scoreBefore={scoreBefore} scoreAfter={scoreAfter} />
       </ResultShell>
     );
   }
@@ -239,7 +251,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, conti
           <p>本场增加：{result.honbaIncrement}</p>
           <p>庄家连庄：{result.dealerContinues ? '是' : '否'}</p>
         </div>
-        <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? result.pointDeltas} />
+        <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? result.pointDeltas} visiblePlayerIds={visiblePlayerIds} scoreBefore={scoreBefore} scoreAfter={scoreAfter} />
       </ResultShell>
     );
   }
@@ -262,7 +274,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, conti
           return (
             <article key={`${win.winner}-${win.winType}`} className="result-card">
               <div className="result-card-title">
-                <strong>{windLabel(winner.seatWind)}家 {winner.name}</strong>
+                <strong>{winner.name} · {windLabel(winner.seatWind)} · {gameState.dealer === winner.id ? '庄' : '闲'}</strong>
                 <span>{win.winType === 'tsumo' ? '自摸' : `荣和${from ? ` ${windLabel(from.seatWind)}家` : ''}`}</span>
               </div>
               <WinHandPreview gameState={gameState} winner={winner} win={win} doraGlowEnabled={doraGlowEnabled} />
@@ -288,7 +300,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, conti
           );
         })}
       </div>
-      <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? winDisplayDeltas(gameState, result)} />
+      <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? winDisplayDeltas(gameState, result)} visiblePlayerIds={visiblePlayerIds} scoreBefore={scoreBefore} scoreAfter={scoreAfter} />
     </ResultShell>
   );
 }

@@ -72,7 +72,22 @@ const CASE_METADATA: Record<string, Omit<TestCaseDefinition, 'id' | 'scenario' |
     expectedResults: ['悬停不同立直候选时，听牌与剩余枚数立即更新；移出后提示消失。'],
     manualChecks: ['候选切换无残留或闪烁。', '提示框不遮挡立直候选。', '点击候选后仍按原流程立直并弃牌。'],
   },
+  'RULE-MINIMUM-HAN-2': minimumHanMetadata(2),
+  'RULE-MINIMUM-HAN-3': minimumHanMetadata(3),
+  'RULE-MINIMUM-HAN-4': minimumHanMetadata(4),
+  'RULE-MINIMUM-HAN-5': minimumHanMetadata(5),
 };
+
+function minimumHanMetadata(minimumHan: 2 | 3 | 4 | 5): Omit<TestCaseDefinition, 'id' | 'scenario' | 'steps'> {
+  const label = minimumHan === 5 ? '满贯缚' : `${minimumHan}番缚`;
+  return {
+    version: 1,
+    type: 'hybrid',
+    keywords: [label, '听牌', '番数不足', '和牌限制'],
+    expectedResults: [`低于${label}仍显示听牌并标记“番数不足”；等于及高于门槛的牌型显示为可和。`],
+    manualChecks: ['三家听牌及剩余枚数均可见。', '切换视角后提示立即对应当前玩家。', '宝牌、里宝牌和赤宝牌不改变门槛判定。'],
+  };
+}
 
 export function getTestCaseCatalog(): TestCaseDefinition[] {
   return getBuiltInTestScenarios().map((scenario) => {

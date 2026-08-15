@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { discardTile, drawTile, createInitialGameState } from './engine';
-import { buildRonResult, canRon, canTsumo } from './winChecker';
+import { buildRonResult, canRon, canTsumo, meetsMinimumHanRequirement } from './winChecker';
 import { createTile } from './tileUtils';
 import type { GameState, PlayerId, Tile, TileId } from './types';
 
@@ -30,6 +30,60 @@ function setPlayerHand(state: GameState, playerId: PlayerId, ids: TileId[], draw
 }
 
 describe('winChecker', () => {
+  it('番缚默认只累计役种番数，开启后计入宝牌', () => {
+    let state = setPlayerHand(
+      createInitialGameState(),
+      0,
+      [1, 2, 3, 2, 3, 4, 10, 11, 12, 20, 21, 22, 14, 14],
+      13,
+    );
+    state = {
+      ...state,
+      doraIndicators: [createTile(0, 1), createTile(0, 2), createTile(0, 3)],
+      matchRuleConfig: { minimumHan: 0 },
+    };
+    const unrestricted = canTsumo(state, 0)!;
+    const yakuHan = unrestricted.yaku.reduce((total, yaku) => total + yaku.han, 0);
+    const blockingThreshold = ([2, 3, 4, 5] as const).find((minimumHan) => minimumHan > yakuHan)!;
+    expect(unrestricted.dora).toBeGreaterThan(0);
+    expect(unrestricted.redDora).toBeGreaterThan(0);
+    expect(unrestricted.han).toBeGreaterThan(yakuHan);
+    expect(canTsumo({ ...state, matchRuleConfig: { minimumHan: yakuHan as 2 | 3 | 4 | 5 } }, 0)).not.toBeNull();
+    expect(canTsumo({ ...state, matchRuleConfig: { minimumHan: blockingThreshold } }, 0)).toBeNull();
+    expect(canTsumo({
+      ...state,
+      matchRuleConfig: { minimumHan: blockingThreshold, doraCountsTowardMinimumHan: true },
+    }, 0)).not.toBeNull();
+
+    const redOnlyDoraState = { ...state, doraIndicators: [] };
+    expect(canTsumo({ ...redOnlyDoraState, matchRuleConfig: { minimumHan: blockingThreshold } }, 0)).toBeNull();
+    expect(canTsumo({
+      ...redOnlyDoraState,
+      matchRuleConfig: { minimumHan: blockingThreshold, doraCountsTowardMinimumHan: true },
+    }, 0)).not.toBeNull();
+
+    const discarded = createTile(14, 3);
+    let ronState = setPlayerHand(createInitialGameState(), 1, [1, 2, 3, 2, 3, 4, 10, 11, 12, 20, 21, 22, 14]);
+    ronState = { ...ronState, doraIndicators: state.doraIndicators, matchRuleConfig: { minimumHan: 0 } };
+    const unrestrictedRon = canRon(ronState, 0, discarded).find((result) => result.winner === 1)!;
+    const ronYakuHan = unrestrictedRon.yaku.reduce((total, yaku) => total + yaku.han, 0);
+    const ronBlockingThreshold = ([2, 3, 4, 5] as const).find((minimumHan) => minimumHan > ronYakuHan)!;
+    expect(unrestrictedRon.han).toBeGreaterThan(ronYakuHan);
+    expect(canRon({ ...ronState, matchRuleConfig: { minimumHan: ronBlockingThreshold } }, 0, discarded)).toEqual([]);
+    expect(canRon({
+      ...ronState,
+      matchRuleConfig: { minimumHan: ronBlockingThreshold, doraCountsTowardMinimumHan: true },
+    }, 0, discarded)).not.toEqual([]);
+  });
+
+  it('无番缚仍要求至少一个役，役满不受满贯缚限制', () => {
+    expect(meetsMinimumHanRequirement([{ han: 0 }], 0)).toBe(false);
+    expect(meetsMinimumHanRequirement([{ han: 1 }], 2)).toBe(false);
+    expect(meetsMinimumHanRequirement([{ han: 2 }], 2)).toBe(true);
+    expect(meetsMinimumHanRequirement([{ han: 1 }], 2, 1)).toBe(true);
+    expect(meetsMinimumHanRequirement([{ han: 0, yakuman: true }], 5)).toBe(true);
+  });
+
   it('canTsumo returns a winning result for a closed tsumo hand', () => {
     const state = setPlayerHand(
       createInitialGameState(),

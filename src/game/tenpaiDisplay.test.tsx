@@ -106,13 +106,13 @@ describe('听牌及可见剩余量提示数据', () => {
   it('已鸣弃牌不会重复扣减', () => {
     const called = tile(4, { claimed: true, claimedBy: 0 });
     const call: CallSet = { type: 'pon', tiles: [called, tile(4), tile(4)], from: 1, opened: true, calledTile: called };
-    const state = withPlayer({ hand: [], calls: [call] });
+    const state = withPlayer({ hand: [], calls: [call] }, { doraIndicators: [] });
     state.players[1] = { ...state.players[1], river: [called] };
     expect(countVisibleRemainingTiles(state, 4, 0)).toBe(1);
   });
 
   it('对手暗牌不会影响剩余量', () => {
-    const state = withPlayer({ hand: [] });
+    const state = withPlayer({ hand: [] }, { doraIndicators: [] });
     state.players[1] = { ...state.players[1], hand: tiles([4, 4, 4, 4]) };
     expect(countVisibleRemainingTiles(state, 4, 0)).toBe(4);
   });
@@ -139,6 +139,52 @@ describe('听牌及可见剩余量提示数据', () => {
     expect(display?.waits.find((wait) => wait.id === 23)?.status).toBe('no-yaku');
     expect(display?.waits.find((wait) => wait.id === 27)?.status).toBe('winnable');
     expect(renderToStaticMarkup(<TenpaiWaitPanel display={display} />)).toContain('无役');
+  });
+
+  it('低于番缚的有效听牌保持显示并明确标记番数不足', () => {
+    const state = withPlayer({
+      hand: tiles([1, 1, 1, 3, 4, 5, 11, 12, 13, 14, 14, 20, 20]),
+    }, { matchRuleConfig: { minimumHan: 2 }, firstTurnInterrupted: true });
+    const display = buildTenpaiDisplay(state, 0);
+    expect(display?.waits.find((wait) => wait.id === 20)?.status).toBe('insufficient-han');
+    const html = renderToStaticMarkup(<TenpaiWaitPanel display={display} />);
+    expect(html).toContain('听牌');
+    expect(html).toContain('番数不足');
+  });
+
+  it('开启宝牌计入番缚后，宝牌或赤宝牌足额的听牌显示为可和', () => {
+    const state = withPlayer({
+      hand: tiles([1, 1, 1, 3, 4, 5, 11, 12, 13, 14, 14, 20, 20]),
+    }, {
+      doraIndicators: [tile(0)],
+      matchRuleConfig: { minimumHan: 2, doraCountsTowardMinimumHan: true },
+      firstTurnInterrupted: true,
+    });
+    expect(buildTenpaiDisplay(state, 0)?.waits.find((wait) => wait.id === 20)?.status).toBe('winnable');
+
+    const redDoraHand = tiles([1, 1, 1, 3, 4, 5, 11, 12, 13, 14, 14, 20, 20]);
+    redDoraHand.find((tile) => tile.id === 4)!.red = true;
+    const redDoraState = withPlayer({ hand: redDoraHand }, {
+      doraIndicators: [],
+      matchRuleConfig: { minimumHan: 2, doraCountsTowardMinimumHan: true },
+      firstTurnInterrupted: true,
+    });
+    expect(buildTenpaiDisplay(redDoraState, 0)?.waits.find((wait) => wait.id === 20)?.status).toBe('winnable');
+  });
+
+  it('立直候选预览按宣言后的立直番计算番缚', () => {
+    const extra = tile(8);
+    const state = withPlayer({
+      hand: [...tiles([1, 1, 1, 3, 4, 5, 11, 12, 13, 14, 14, 20, 20]), extra],
+      drawnTile: extra,
+    }, {
+      currentPlayer: 0,
+      phase: 'discard',
+      matchRuleConfig: { minimumHan: 2 },
+      firstTurnInterrupted: true,
+    });
+    expect(buildTenpaiDisplay(state, 0, extra.instanceId)?.waits.find((wait) => wait.id === 20)?.status).toBe('insufficient-han');
+    expect(buildTenpaiDisplay(state, 0, extra.instanceId, 'riichi')?.waits.find((wait) => wait.id === 20)?.status).toBe('winnable');
   });
 
   it('舍牌或同巡振听覆盖全部可和等待，立直后显示永久振听', () => {

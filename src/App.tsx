@@ -13,6 +13,9 @@ import { ReplayLibrary } from './components/ReplayLibrary';
 import { ReplayDetail } from './components/ReplayDetail';
 import { TestModeScreen } from './components/TestModeScreen';
 import { RiichiModeMenu } from './components/RiichiModeMenu';
+import { RiichiVariantPlaceholder } from './components/RiichiVariantPlaceholder';
+import { SeventeenStepsScreen } from './components/SeventeenStepsScreen';
+import { SeventeenStepsMatchSettings } from './components/SeventeenStepsMatchSettings';
 import { RulesGuideScreen } from './components/rulesGuide/RulesGuideScreen';
 import { advanceAIAction, isAIPlayer } from './game/ai';
 import { declareKyuushuKyuuhai } from './game/abortiveDraw';
@@ -32,6 +35,8 @@ import { createInitialMatchLog, finishMatchLog, recordGameStateTransition, start
 import type { MatchLog } from './game/replay/types';
 import type { GameState, PlayerId, TileId } from './game/types';
 import { currentTestModeAvailability } from './game/testMode/availability';
+import { loadStoredSeventeenStepsMatchConfig, saveStoredSeventeenStepsMatchConfig } from './game/seventeenStepsMatch';
+import type { SeventeenStepsMatchConfig } from './game/seventeenSteps';
 import type { TestScenarioV1 } from './game/testMode/types';
 
 interface ActiveGame {
@@ -59,6 +64,7 @@ interface AppState {
   showTenpaiWaitsEnabled: boolean;
   tsumoGiriDisplayEnabled: boolean;
   aiPlayerSettings: AIPlayerSetting[];
+  seventeenStepsConfig: SeventeenStepsMatchConfig;
   testScenario: TestScenarioV1 | null;
 }
 
@@ -153,6 +159,7 @@ export default function App() {
     showTenpaiWaitsEnabled: true,
     tsumoGiriDisplayEnabled: true,
     aiPlayerSettings: DEFAULT_AI_PLAYER_SETTINGS.map((setting) => ({ ...setting })),
+    seventeenStepsConfig: loadStoredSeventeenStepsMatchConfig(typeof window === 'undefined' ? undefined : window.localStorage),
     testScenario: null,
   }));
 
@@ -515,9 +522,38 @@ export default function App() {
         onBack={() => setScreen('local-mode-menu')}
         onFourPlayer={() => setScreen('riichi-four-player-length', { selection: { playerCount: 4 } })}
         onThreePlayer={() => setState((current) => ({ ...current, menuNotice: '三人间敬请期待。' }))}
+        on17Steps={() => setScreen('riichi-17-steps-settings')}
+        onWashizu={() => setScreen('riichi-washizu')}
+        onSuperpower={() => setScreen('riichi-superpower')}
         onRulesGuide={() => setScreen('rules-guide')}
       />
     );
+  }
+
+  if (state.screen === 'riichi-17-steps-settings') {
+    return (
+      <SeventeenStepsMatchSettings
+        config={state.seventeenStepsConfig}
+        onBack={() => setScreen('riichi-player-count')}
+        onConfigChange={(config) => {
+          setState((current) => ({ ...current, seventeenStepsConfig: config }));
+          if (typeof window !== 'undefined') saveStoredSeventeenStepsMatchConfig(config, window.localStorage);
+        }}
+        onStart={() => setScreen('riichi-17-steps')}
+      />
+    );
+  }
+
+  if (state.screen === 'riichi-17-steps') {
+    return <SeventeenStepsScreen matchConfig={state.seventeenStepsConfig} ruleConfig={state.ruleConfig} onBack={() => setScreen('riichi-17-steps-settings')} />;
+  }
+
+  if (state.screen === 'riichi-washizu') {
+    return <RiichiVariantPlaceholder variant="washizu" onBack={() => setScreen('riichi-player-count')} />;
+  }
+
+  if (state.screen === 'riichi-superpower') {
+    return <RiichiVariantPlaceholder variant="superpower" onBack={() => setScreen('riichi-player-count')} />;
   }
 
   if (state.screen === 'rules-guide') {

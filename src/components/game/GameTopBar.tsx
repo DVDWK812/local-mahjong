@@ -8,6 +8,8 @@ interface GameTopBarProps {
   onOpenRulesGuide: () => void;
   onToggleAnalysis: () => void;
   onReturnMenu: () => void;
+  modeLabel?: string;
+  phaseLabelOverride?: string;
 }
 
 const phaseLabels: Record<GameState['phase'], string> = {
@@ -29,14 +31,14 @@ const windNames: Record<Wind, string> = {
   north: '北',
 };
 
-export function GameTopBar({ gameState, analysisOpen, onOpenRulesGuide, onToggleAnalysis, onReturnMenu }: GameTopBarProps) {
+export function GameTopBar({ gameState, analysisOpen, onOpenRulesGuide, onToggleAnalysis, onReturnMenu, modeLabel, phaseLabelOverride }: GameTopBarProps) {
   const current = gameState.players[gameState.currentPlayer];
 
   return (
     <header className="game-top-bar" aria-label="对局状态栏">
       <div className="game-top-bar-section game-top-bar-section--turn">
-        <span>轮到：{windNames[current.seatWind]}家 {current.name}</span>
-        <span>{phaseLabels[gameState.phase]}</span>
+        <span>{modeLabel ? `模式：${modeLabel}　` : ''}轮到：{windNames[current.seatWind]}家 {current.name}</span>
+        <span>{phaseLabelOverride ?? phaseLabels[gameState.phase]}</span>
       </div>
       <div className="game-top-bar-actions">
         <button type="button" onClick={onOpenRulesGuide}>规则说明</button>

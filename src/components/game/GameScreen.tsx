@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import type { MatchState } from '../../game/match/types';
 import { buildTenpaiDisplay } from '../../game/tenpaiDisplay';
-import type { GameState, PlayerId, TileId } from '../../game/types';
+import type { GameState, PlayerId, RiichiState, TileId } from '../../game/types';
 import { ResultDialog } from '../ResultDialog';
 import { TenpaiWaitPanel } from '../TenpaiWaitPanel';
 import { AnalysisDrawer } from './AnalysisDrawer';
@@ -29,6 +29,7 @@ interface GameScreenProps {
   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
   showTenpaiWaitsEnabled?: boolean;
   tenpaiPreviewDiscardInstanceId?: string | null;
+  tenpaiPreviewRiichiKind?: RiichiState['kind'] | null;
   tsumoGiriDisplayEnabled?: boolean;
   localPlayerId?: PlayerId;
   tableBottomPlayerId?: PlayerId;
@@ -55,6 +56,7 @@ export function GameScreen({
   onHoveredTileTypeChange,
   showTenpaiWaitsEnabled = true,
   tenpaiPreviewDiscardInstanceId = null,
+  tenpaiPreviewRiichiKind = null,
   tsumoGiriDisplayEnabled = true,
   localPlayerId = 0,
   tableBottomPlayerId = localPlayerId,
@@ -64,7 +66,12 @@ export function GameScreen({
   const localPlayer = gameState.players[localPlayerId];
   const fixedBottomPlayer = gameState.players[tableBottomPlayerId];
   const tenpaiDisplay = showTenpaiWaitsEnabled
-    ? buildTenpaiDisplay(gameState, localPlayerId, tenpaiPreviewDiscardInstanceId ?? handPreviewDiscardInstanceId ?? undefined)
+    ? buildTenpaiDisplay(
+        gameState,
+        localPlayerId,
+        tenpaiPreviewDiscardInstanceId ?? handPreviewDiscardInstanceId ?? undefined,
+        tenpaiPreviewDiscardInstanceId ? tenpaiPreviewRiichiKind ?? undefined : undefined,
+      )
     : null;
 
   useEffect(() => {

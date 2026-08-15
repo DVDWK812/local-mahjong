@@ -19,6 +19,14 @@ interface MahjongTableProps {
   seatMapping?: TableSeatMapping;
   revealOpponentHands?: boolean;
   revealedPlayerId?: PlayerId;
+  activeSeats?: PlayerPosition[];
+  centerRoundLabel?: string;
+  centerRemainingLabel?: string | null;
+  centerCornerLabels?: {
+    topLeft?: string;
+    bottomRight?: string;
+  };
+  riverColumns?: number;
 }
 
 export interface TableSeatMapping {
@@ -28,7 +36,7 @@ export interface TableSeatMapping {
   leftPlayerId: PlayerId;
 }
 
-export function MahjongTable({ gameState, matchState, doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, bottomPlayerId = 0, seatMapping, revealOpponentHands = false, revealedPlayerId }: MahjongTableProps) {
+export function MahjongTable({ gameState, matchState, doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, bottomPlayerId = 0, seatMapping, revealOpponentHands = false, revealedPlayerId, activeSeats, centerRoundLabel, centerRemainingLabel, centerCornerLabels, riverColumns }: MahjongTableProps) {
   const preserveClaimedDiscardGap = gameState.ruleConfig?.preserveClaimedDiscardGap ?? false;
   const mapping = seatMapping ?? getTableSeatMapping(bottomPlayerId);
   const seats = {
@@ -38,17 +46,17 @@ export function MahjongTable({ gameState, matchState, doraGlowEnabled = true, ho
     west: mapping.leftPlayerId,
   } as const;
   const positions: Array<{ playerId: PlayerId; position: PlayerPosition; showHand?: boolean }> = [
-    { playerId: seats.north, position: 'north' },
-    { playerId: seats.east, position: 'east' },
-    { playerId: seats.south, position: 'south', showHand: false },
-    { playerId: seats.west, position: 'west' },
-  ];
+    { playerId: seats.north, position: 'north' as const },
+    { playerId: seats.east, position: 'east' as const },
+    { playerId: seats.south, position: 'south' as const, showHand: false },
+    { playerId: seats.west, position: 'west' as const },
+  ].filter(({ position }) => !activeSeats || activeSeats.includes(position));
   const riverPositions: Array<{ playerId: PlayerId; position: PlayerPosition; area: string; stickArea: string; stickOrientation: 'horizontal' | 'vertical' }> = [
-    { playerId: seats.north, position: 'north', area: 'north-river', stickArea: 'north-stick', stickOrientation: 'horizontal' },
-    { playerId: seats.east, position: 'east', area: 'east-river', stickArea: 'east-stick', stickOrientation: 'vertical' },
-    { playerId: seats.south, position: 'south', area: 'south-river', stickArea: 'south-stick', stickOrientation: 'horizontal' },
-    { playerId: seats.west, position: 'west', area: 'west-river', stickArea: 'west-stick', stickOrientation: 'vertical' },
-  ];
+    { playerId: seats.north, position: 'north' as const, area: 'north-river', stickArea: 'north-stick', stickOrientation: 'horizontal' as const },
+    { playerId: seats.east, position: 'east' as const, area: 'east-river', stickArea: 'east-stick', stickOrientation: 'vertical' as const },
+    { playerId: seats.south, position: 'south' as const, area: 'south-river', stickArea: 'south-stick', stickOrientation: 'horizontal' as const },
+    { playerId: seats.west, position: 'west' as const, area: 'west-river', stickArea: 'west-stick', stickOrientation: 'vertical' as const },
+  ].filter(({ position }) => !activeSeats || activeSeats.includes(position));
   const slotNames: Record<PlayerPosition, 'top' | 'right' | 'bottom' | 'left'> = {
     north: 'top',
     east: 'right',
@@ -56,10 +64,10 @@ export function MahjongTable({ gameState, matchState, doraGlowEnabled = true, ho
     west: 'left',
   };
   const meldPositions: Array<{ playerId: PlayerId; position: Exclude<PlayerPosition, 'south'> }> = [
-    { playerId: seats.north, position: 'north' },
-    { playerId: seats.east, position: 'east' },
-    { playerId: seats.west, position: 'west' },
-  ];
+    { playerId: seats.north, position: 'north' as const },
+    { playerId: seats.east, position: 'east' as const },
+    { playerId: seats.west, position: 'west' as const },
+  ].filter(({ position }) => !activeSeats || activeSeats.includes(position));
 
   return (
     <section className="mahjong-table" aria-label="麻将牌桌">
@@ -105,7 +113,7 @@ export function MahjongTable({ gameState, matchState, doraGlowEnabled = true, ho
       <div className="table-center-cluster" aria-label="中央牌河区">
         {riverPositions.map(({ playerId, position, area }) => (
           <div key={`${position}-river`} className={`river-slot river-slot--${slotNames[position]} table-river-anchor table-river-anchor--${position}`} data-river-player={playerId} style={{ gridArea: area }}>
-            <DiscardRiver player={gameState.players[playerId]} position={position} preserveClaimedDiscardGap={preserveClaimedDiscardGap} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
+            <DiscardRiver player={gameState.players[playerId]} position={position} preserveClaimedDiscardGap={preserveClaimedDiscardGap} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} columns={riverColumns} />
           </div>
         ))}
         {riverPositions.map(({ playerId, position, stickArea, stickOrientation }) => (
@@ -113,7 +121,7 @@ export function MahjongTable({ gameState, matchState, doraGlowEnabled = true, ho
             <RiichiStick orientation={stickOrientation} active={gameState.players[playerId].riichi} />
           </div>
         ))}
-        <TableCenter gameState={gameState} matchState={matchState} seatMapping={mapping} />
+        <TableCenter gameState={gameState} matchState={matchState} seatMapping={mapping} activePlayerIds={activeSeats ? activeSeats.map((position) => seats[position]) : undefined} roundLabel={centerRoundLabel} remainingLabel={centerRemainingLabel} centerCornerLabels={centerCornerLabels} />
       </div>
     </section>
   );

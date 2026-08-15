@@ -45,12 +45,26 @@ describe('测试模式界面', () => {
     expect(html).toContain('STAB-001-KAKAN');
     expect(html).toContain('STAB-001-FOUR-KANS');
     expect(html).toContain('UI-RIICHI-WAIT-PREVIEW');
+    expect(html).toContain('RULE-MINIMUM-HAN-2');
+    expect(html).toContain('RULE-MINIMUM-HAN-3');
+    expect(html).toContain('RULE-MINIMUM-HAN-4');
+    expect(html).toContain('RULE-MINIMUM-HAN-5');
     expect(html).toContain('依次悬停不同候选');
     expect(html).toContain('最后测试');
     expect(html).toContain('开始测试');
     expect(html).toContain('自动');
     expect(html).toContain('视觉');
     expect(html).toContain('混合');
+  });
+
+  it('二番缚场景在正式牌桌显示听牌与番数不足', () => {
+    const scenario = getBuiltInTestScenario('RULE-MINIMUM-HAN-2')!;
+    const html = renderToStaticMarkup(<TestModeScreen initialScenario={scenario} onExit={() => undefined} />);
+    expect(html).toContain('听牌');
+    expect(html).toContain('番数不足');
+    expect(html).toContain('低于：断幺九（1番）');
+    expect(html).toContain('等于：断幺九＋一杯口（2番）');
+    expect(html).toContain('高于：门清混一色（3番）');
   });
 
   it('视觉和混合用例写明步骤、预期结果和人工检查项', () => {

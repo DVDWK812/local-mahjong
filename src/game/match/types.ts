@@ -7,10 +7,13 @@ export type MatchPhase = 'not-started' | 'round-active' | 'round-result' | 'matc
 export type LeftoverRiichiStickMode = 'first-place' | 'initial-dealer' | 'discard';
 export type MaxExtraRoundWind = 'south' | 'west' | 'north' | 'none';
 export type EndChoiceMode = 'automatic' | 'player-choice';
+export type MinimumHan = 0 | 2 | 3 | 4 | 5;
 
 export interface MatchRuleConfig {
   matchLength: MatchLength;
   matchCount: 1 | 2 | 3 | 4;
+  minimumHan: MinimumHan;
+  doraCountsTowardMinimumHan: boolean;
   startingPoints: number;
   targetPoints: number;
   returnPoints: number;

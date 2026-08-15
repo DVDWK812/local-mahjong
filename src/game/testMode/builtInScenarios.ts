@@ -11,10 +11,24 @@ export const BUILT_IN_TEST_SCENARIO_IDS = [
   'STAB-001-KAKAN',
   'STAB-001-FOUR-KANS',
   'UI-RIICHI-WAIT-PREVIEW',
+  'RULE-MINIMUM-HAN-2',
+  'RULE-MINIMUM-HAN-3',
+  'RULE-MINIMUM-HAN-4',
+  'RULE-MINIMUM-HAN-5',
 ] as const;
 
 export function getBuiltInTestScenarios(): TestScenarioV1[] {
-  return [buildAnkanScenario(), buildMinkanScenario(), buildKakanScenario(), buildFourKansScenario(), buildRiichiWaitPreviewScenario()].map(cloneTestScenario);
+  return [
+    buildAnkanScenario(),
+    buildMinkanScenario(),
+    buildKakanScenario(),
+    buildFourKansScenario(),
+    buildRiichiWaitPreviewScenario(),
+    buildMinimumHanScenario(2),
+    buildMinimumHanScenario(3),
+    buildMinimumHanScenario(4),
+    buildMinimumHanScenario(5),
+  ].map(cloneTestScenario);
 }
 
 export function getBuiltInTestScenario(id: string): TestScenarioV1 | undefined {
@@ -183,13 +197,86 @@ function buildRiichiWaitPreviewScenario(): TestScenarioV1 {
   return scenario;
 }
 
+function buildMinimumHanScenario(minimumHan: 2 | 3 | 4 | 5): TestScenarioV1 {
+  const id = `RULE-MINIMUM-HAN-${minimumHan}`;
+  const builder = new StableTileBuilder(id);
+  const levels = [minimumHan - 1, minimumHan, minimumHan + 1] as const;
+  const suitOffsets = minimumHan === 2
+    ? [0, 18, 9]
+    : minimumHan === 3
+      ? [0, 9, 18]
+      : [0, 9, 18];
+  const hands = levels.map((han, playerId) => buildExactHanTenpaiHand(builder, han, suitOffsets[playerId], `player-${playerId}-hand`));
+  const players = buildPlayers(builder, hands[0], { hands: { 1: hands[1], 2: hands[2] } });
+  players[0].name = `低于：${exactHanLabel(minimumHan - 1)}`;
+  players[1].name = `等于：${exactHanLabel(minimumHan)}`;
+  players[2].name = `高于：${exactHanLabel(minimumHan + 1)}`;
+  levels.forEach((han, playerId) => {
+    if (han !== 5) return;
+    players[playerId].riichi = true;
+    players[playerId].riichiState = { declaredAtTurn: 1, ippatsuAvailable: false, kind: 'riichi' };
+  });
+  const state = baseState(builder, players, buildDeadWall(builder), { currentPlayer: 0, phase: 'draw' });
+  state.firstTurnInterrupted = true;
+  state.playerDrawCounts = [1, 1, 1, 1];
+  state.playerDiscardCounts = [1, 1, 1, 1];
+  state.matchRuleConfig = { ...state.matchRuleConfig, minimumHan };
+  return createScenario(
+    id,
+    `${minimumHan === 5 ? '满贯' : `${minimumHan}番`}缚听牌提示`,
+    `玩家1、2、3分别以${minimumHan - 1}番、${minimumHan}番、${minimumHan + 1}番牌型听牌，验证番缚只限制和牌、不隐藏结构听牌。`,
+    state,
+    [
+      '依次切换观察视角至玩家1、玩家2和玩家3，确认三家均显示“听牌”。',
+      `玩家1为${minimumHan - 1}番，确认等待牌显示“番数不足”，且听牌与剩余枚数仍然可见。`,
+      `玩家2为${minimumHan}番，确认等待牌可和且不显示“番数不足”。`,
+      `玩家3为${minimumHan + 1}番，确认等待牌可和且不显示“番数不足”。`,
+      ...(minimumHan === 2 ? ['玩家1仅断幺九时为番数不足；河底捞鱼等额外正式役使役种番达到2番后即可和牌。'] : []),
+      '确认宝牌、里宝牌与赤宝牌没有被计入番缚门槛。',
+    ],
+  );
+}
+
+function exactHanLabel(han: number): string {
+  return ({
+    1: '断幺九（1番）',
+    2: '断幺九＋一杯口（2番）',
+    3: '门清混一色（3番）',
+    4: '门清混一色＋一杯口（4番）',
+    5: '立直＋门清混一色＋一杯口（5番）',
+    6: '门清清一色（6番）',
+  } as Record<number, string>)[han] ?? `${han}番`;
+}
+
+function buildExactHanTenpaiHand(builder: StableTileBuilder, han: number, suitOffset: number, zone: string): Tile[] {
+  let ids: TileId[];
+  if (han === 1) {
+    ids = [1, 1, 1, 3, 4, 5, 11, 12, 13, 14, 14, 20, 20];
+  } else if (han === 2) {
+    ids = suitOffset === 18
+      ? [19, 20, 21, 19, 20, 21, 3, 4, 5, 12, 13, 14, 16]
+      : [1, 2, 3, 1, 2, 3, 11, 12, 13, 20, 21, 22, 14];
+  } else if (han === 3) {
+    ids = [0, 1, 2, 1, 2, 3, 4, 5, 6, 6, 7, 8, 31].map((id) => id === 31 ? id : id + suitOffset) as TileId[];
+  } else if (han === 4 || han === 5) {
+    ids = [0, 1, 2, 0, 1, 2, 2, 3, 4, 5, 6, 7, 31].map((id) => id === 31 ? id : id + suitOffset) as TileId[];
+  } else {
+    ids = [0, 1, 2, 1, 2, 3, 4, 5, 6, 6, 7, 8, 4].map((id) => id + suitOffset) as TileId[];
+  }
+  return ids.map((tileId) => builder.take(tileId, zone)).sort(sortTiles);
+}
+
 function createScenario(id: string, name: string, description: string, state: GameState, instructions: string[]): TestScenarioV1 {
+  const preset = getRulePreset('east-round');
   return scenarioFromGameState({
     id,
     name,
     description,
     relatedAuditId: 'STAB-001',
-    ruleConfig: getRulePreset('east-round'),
+    ruleConfig: {
+      round: { ...preset.round, ...state.ruleConfig },
+      match: { ...preset.match, ...state.matchRuleConfig },
+    },
     handNumber: 1,
     gameState: state,
     instructions,
@@ -249,7 +336,7 @@ function baseState(
   };
 }
 
-function buildPlayers(builder: StableTileBuilder, hand0: Tile[], options: { player1Count?: number; hand1?: Tile[] } = {}): PlayerState[] {
+function buildPlayers(builder: StableTileBuilder, hand0: Tile[], options: { player1Count?: number; hand1?: Tile[]; hands?: Partial<Record<PlayerId, Tile[]>> } = {}): PlayerState[] {
   const winds = ['east', 'south', 'west', 'north'] as const;
   return ([0, 1, 2, 3] as PlayerId[]).map((id) => ({
     id,
@@ -258,9 +345,10 @@ function buildPlayers(builder: StableTileBuilder, hand0: Tile[], options: { play
     score: 25000,
     hand: id === 0
       ? hand0
-      : id === 1 && options.hand1
-        ? options.hand1
-        : fillHand(builder, id === 1 ? options.player1Count ?? 13 : 13, `player-${id}-hand`, id * 7).sort(sortTiles),
+      : options.hands?.[id]
+        ?? (id === 1 && options.hand1
+          ? options.hand1
+          : fillHand(builder, id === 1 ? options.player1Count ?? 13 : 13, `player-${id}-hand`, id * 7).sort(sortTiles)),
     river: [],
     calls: [],
     drawnTile: null,

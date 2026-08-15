@@ -1,6 +1,8 @@
 export type RuleDescriptionKey =
   | 'matchLength'
   | 'matchCount'
+  | 'minimumHan'
+  | 'doraCountsTowardMinimumHan'
   | 'startingPoints'
   | 'targetPoints'
   | 'returnPoints'
@@ -32,6 +34,8 @@ export type RuleDescriptionKey =
 export const ruleDescriptions: Record<RuleDescriptionKey, string> = {
   matchLength: '东风场默认到东四局，南风场默认到南四局',
   matchCount: '使用当前四人东风或四人南风预设连续进行的完整对局场数；每场均从起始点数重新开始并独立结算',
+  minimumHan: '番数累计到达目标及以上方可和牌',
+  doraCountsTowardMinimumHan: '开启后番缚判定计入普通宝牌和赤宝牌，不计入里宝牌；关闭后宝牌不计入番缚',
   startingPoints: '每名玩家开局持有的点数',
   targetPoints: '预定结束时用于判断延长局或突然死亡的目标点数',
   returnPoints: '最终排名结算时的返还基准点',

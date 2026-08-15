@@ -19,14 +19,14 @@ export const DEFAULT_AI_PLAYER_SETTINGS: AIPlayerSetting[] = ([1, 2, 3] as const
   personality: 'balanced',
 }));
 
-const AI_DIFFICULTY_OPTIONS: Array<{ value: AIDifficulty; label: string }> = [
+export const AI_DIFFICULTY_OPTIONS: Array<{ value: AIDifficulty; label: string }> = [
   { value: 'chikukon', label: '筑根（简单）' },
   { value: 'shintentai', label: '心转手（中等）' },
   { value: 'upper', label: '上层（难）' },
   { value: 'kishin', label: '鬼神（地狱）' },
 ];
 
-const AI_PERSONALITY_OPTIONS: Array<{ value: AIPersonality; label: string }> = [
+export const AI_PERSONALITY_OPTIONS: Array<{ value: AIPersonality; label: string }> = [
   { value: 'defensive', label: '沉稳老练（防守向）' },
   { value: 'aggressive', label: '锋芒毕露（进攻向）' },
   { value: 'balanced', label: '稳步进取（平衡向）' },
@@ -56,11 +56,14 @@ export function normalizeMatchSettingsConfig(
   matchPatch: Partial<FullRuleConfig['match']> = {},
   roundPatch: Partial<FullRuleConfig['round']> = {},
 ): FullRuleConfig {
+  const minimumHan = matchPatch.minimumHan ?? config.match.minimumHan ?? 0;
   const rawMatch = {
     ...config.match,
     ...matchPatch,
     matchLength: config.match.matchLength,
     matchCount: normalizeMatchCount(matchPatch.matchCount ?? config.match.matchCount),
+    minimumHan,
+    doraCountsTowardMinimumHan: minimumHan !== 0 && (matchPatch.doraCountsTowardMinimumHan ?? config.match.doraCountsTowardMinimumHan ?? false),
     bankruptcyThreshold: 0,
     agariYameMode: 'automatic' as const,
     tenpaiYameMode: 'automatic' as const,
@@ -182,6 +185,26 @@ export function MatchSettings({
           <NumberField label="目标点数" rule="targetPoints" value={match.targetPoints} onChange={(value) => setMatch({ targetPoints: value })} />
           <NumberField label="返还点" rule="returnPoints" value={match.returnPoints} onChange={(value) => setMatch({ returnPoints: value })} />
           <NumberField label="比赛场数" rule="matchCount" value={match.matchCount} min={1} max={4} onChange={(value) => setMatch({ matchCount: normalizeMatchCount(value) })} />
+          <label className="settings-field">
+            <FieldTitle label="番缚规则" rule="minimumHan" />
+            <select aria-label="番缚规则" value={match.minimumHan ?? 0} onChange={(event) => {
+              const minimumHan = Number(event.target.value) as typeof match.minimumHan;
+              setMatch({ minimumHan, ...(minimumHan === 0 ? { doraCountsTowardMinimumHan: false } : {}) });
+            }}>
+              <option value={0}>无</option>
+              <option value={2}>二番缚</option>
+              <option value={3}>三番缚</option>
+              <option value={4}>四番缚</option>
+              <option value={5}>满贯缚</option>
+            </select>
+          </label>
+          <label className="settings-field">
+            <FieldTitle label="宝牌计入番缚" rule="doraCountsTowardMinimumHan" />
+            <select aria-label="宝牌计入番缚" disabled={match.minimumHan === 0} value={match.doraCountsTowardMinimumHan ? 'true' : 'false'} onChange={(event) => setMatch({ doraCountsTowardMinimumHan: event.target.value === 'true' })}>
+              <option value="false">关闭</option>
+              <option value="true">开启</option>
+            </select>
+          </label>
         </div>
       </section>
 

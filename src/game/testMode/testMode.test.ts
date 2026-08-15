@@ -8,6 +8,11 @@ import { getBuiltInTestScenario, getBuiltInTestScenarios, getChiihouExampleScena
 import { isTestModeEnabled, isTestModeRequested } from './availability';
 import { cloneTestScenario, convertReplayStepToTestScenario, loadTestScenarioState, parseTestScenarioJson, runtimeInvariantChecks, serializeTestScenario, validateTestScenario } from './scenario';
 import { buildReplayState } from '../replay/roundReplay';
+import { buildTenpaiDisplay } from '../tenpaiDisplay';
+import { evaluateWin } from '../scoreCalculator';
+import { createScoringWinContext } from '../score/scoringAdapter';
+import { getTileRank, getTileSuit } from '../tileUtils';
+import type { Tile, TileId } from '../types';
 
 describe('开发者测试模式', () => {
   it('普通生产环境不启用，开发环境或显式环境变量启用，URL参数只在启用后直达', () => {
@@ -19,11 +24,21 @@ describe('开发者测试模式', () => {
     expect(isTestModeRequested({ DEV: true }, '?testMode=0')).toBe(false);
   });
 
-  it('五个内置场景重复构建与重复加载都深度等价且使用稳定可读instanceId', () => {
+  it('九个内置场景重复构建与重复加载都深度等价且使用稳定可读instanceId', () => {
     const first = getBuiltInTestScenarios();
     const second = getBuiltInTestScenarios();
     expect(first).toEqual(second);
-    expect(first.map((scenario) => scenario.id)).toEqual(['STAB-001-ANKAN', 'STAB-001-MINKAN', 'STAB-001-KAKAN', 'STAB-001-FOUR-KANS', 'UI-RIICHI-WAIT-PREVIEW']);
+    expect(first.map((scenario) => scenario.id)).toEqual([
+      'STAB-001-ANKAN',
+      'STAB-001-MINKAN',
+      'STAB-001-KAKAN',
+      'STAB-001-FOUR-KANS',
+      'UI-RIICHI-WAIT-PREVIEW',
+      'RULE-MINIMUM-HAN-2',
+      'RULE-MINIMUM-HAN-3',
+      'RULE-MINIMUM-HAN-4',
+      'RULE-MINIMUM-HAN-5',
+    ]);
     first.forEach((scenario) => {
       expect(validateTestScenario(scenario)).toEqual({ valid: true, issues: [] });
       expect(scenario.declaredTileCount).toBe(136);
@@ -65,6 +80,62 @@ describe('开发者测试模式', () => {
   it('JSON导出再导入保持场景等价', () => {
     const scenario = getBuiltInTestScenario('STAB-001-KAKAN')!;
     expect(parseTestScenarioJson(serializeTestScenario(scenario))).toEqual(scenario);
+  });
+
+  it('2至5番缚场景分别提供低于、等于和高于门槛的真实听牌牌型', () => {
+    const waitIdsByMinimumHan: Record<2 | 3 | 4 | 5, TileId[]> = {
+      2: [20, 16, 31],
+      3: [14, 31, 31],
+      4: [31, 31, 31],
+      5: [31, 31, 22],
+    };
+    ([2, 3, 4, 5] as const).forEach((minimumHan) => {
+      const scenario = getBuiltInTestScenario(`RULE-MINIMUM-HAN-${minimumHan}`)!;
+      expect(scenario.ruleConfig.match.minimumHan).toBe(minimumHan);
+      expect(scenario.gameState.matchRuleConfig?.minimumHan).toBe(minimumHan);
+      [0, 1, 2].forEach((playerId) => {
+        const state = loadTestScenarioState(scenario);
+        const waitId = waitIdsByMinimumHan[minimumHan][playerId];
+        const winningTile = virtualTile(waitId);
+        const player = state.players[playerId];
+        const score = evaluateWin([...player.hand, winningTile], createScoringWinContext({
+          state,
+          playerId: player.id,
+          winningTile,
+          winType: 'ron',
+          preWinHand: player.hand,
+          winningTileSource: 'discard',
+        }));
+        const yakuHan = score.yaku.reduce((sum, yaku) => sum + (yaku.yakuman ? 0 : yaku.han), 0);
+        expect(score.isWinning, `${scenario.id} 玩家${playerId + 1}`).toBe(true);
+        expect(yakuHan, `${scenario.id} 玩家${playerId + 1}`).toBe(minimumHan + playerId - 1);
+        const display = buildTenpaiDisplay(state, player.id);
+        expect(display, `${scenario.id} 玩家${playerId + 1}应显示听牌`).not.toBeNull();
+        expect(display?.waits.find((wait) => wait.id === waitId)?.status).toBe(playerId === 0 ? 'insufficient-han' : 'winnable');
+      });
+    });
+  });
+
+  it('二番缚下仅断幺九标记番数不足，叠加河底捞鱼后达到门槛', () => {
+    const scenario = getBuiltInTestScenario('RULE-MINIMUM-HAN-2')!;
+    const state = loadTestScenarioState(scenario);
+    const winningTile = virtualTile(20);
+    const lowDisplay = buildTenpaiDisplay(state, 0);
+    expect(lowDisplay?.waits.find((wait) => wait.id === 20)?.status).toBe('insufficient-han');
+
+    state.wall = [];
+    state.lastDiscard = { player: 3, tile: winningTile };
+    state.lastLiveWallDiscarder = 3;
+    const score = evaluateWin([...state.players[0].hand, winningTile], createScoringWinContext({
+      state,
+      playerId: 0,
+      winningTile,
+      winType: 'ron',
+      preWinHand: state.players[0].hand,
+      winningTileSource: 'discard',
+    }));
+    expect(score.yaku.map((yaku) => yaku.name)).toEqual(expect.arrayContaining(['断幺九', '河底捞鱼']));
+    expect(buildTenpaiDisplay(state, 0)?.waits.find((wait) => wait.id === 20)?.status).toBe('winnable');
   });
 
   it('地和示例从庄家首弃开始，经无人鸣牌和闲家首摸后由正式逻辑判定为地和', () => {
@@ -199,4 +270,14 @@ function physicalInstanceIds(scenario: ReturnType<typeof getBuiltInTestScenarios
 
 function cloneReplay<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function virtualTile(id: TileId): Tile {
+  return {
+    id,
+    suit: getTileSuit(id),
+    rank: getTileRank(id),
+    red: false,
+    instanceId: `minimum-han-test-${id}`,
+  };
 }
