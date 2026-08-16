@@ -85,7 +85,8 @@ function RulesHomeTab() {
             <h3>配牌与目标</h3>
             <ul>
               <li>每位玩家起手13张，庄家起手14张并先打第一张牌。</li>
-              <li>普通和牌目标是14张组成4个面子加1个雀头；七对子、国士无双等按特殊结构成立。</li>
+              <li>普通和牌目标是14张组成4个面子加1个雀头或者七对子、国士无双等按特殊结构。</li>
+              <li>面子分为刻子和顺子，刻子为三张一样的牌，顺子为连续的三张牌</li>
             </ul>
           </article>
           <article className="rules-flow-card">
@@ -115,6 +116,7 @@ function RulesHomeTab() {
             <ul>
               <li>门前清、听牌且至少有1000点时可以立直。</li>
               <li>立直支付1000点供托，成立后获得立直役，并可触发一发、里宝牌等相关结算。</li>
+              <li>立直后只能摸什么打什么，不可以改听，可以开暗杠。</li>
             </ul>
           </article>
           <article className="rules-flow-card">
@@ -127,8 +129,10 @@ function RulesHomeTab() {
           <article className="rules-flow-card">
             <h3>振听</h3>
             <ul>
-              <li>若自己的弃牌或错过的可和牌导致振听，通常不能荣和他家弃牌。</li>
-              <li>振听状态下仍可自摸；具体解除方式按项目当前实现处理。</li>
+              <li>振听状态下可自摸，不可荣和</li>
+              <li>同巡振听：听牌之后，别人打出你要胡的牌，但你没胡，则你这一巡只能自摸</li>
+              <li>舍牌振听：打出过自己能胡的牌中的其中一张</li>
+              <li>立直振听：立直之后，没有荣和别家打出的你可以胡的牌，那你这一整局都只能自摸</li>
             </ul>
           </article>
           <article className="rules-flow-card">
@@ -139,7 +143,6 @@ function RulesHomeTab() {
             </ul>
           </article>
         </div>
-        <p className="rules-footnote">本说明以当前游戏规则配置与计分引擎为准。</p>
       </section>
     </div>
   );

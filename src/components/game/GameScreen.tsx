@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import type { MatchState } from '../../game/match/types';
 import { buildTenpaiDisplay } from '../../game/tenpaiDisplay';
 import type { GameState, PlayerId, RiichiState, TileId } from '../../game/types';
+import type { PlayerProfile } from '../../profile/playerProfile';
 import { ResultDialog } from '../ResultDialog';
 import { TenpaiWaitPanel } from '../TenpaiWaitPanel';
 import { AnalysisDrawer } from './AnalysisDrawer';
@@ -34,6 +35,7 @@ interface GameScreenProps {
   localPlayerId?: PlayerId;
   tableBottomPlayerId?: PlayerId;
   revealAllHands?: boolean;
+  playerProfile?: PlayerProfile;
 }
 
 export function GameScreen({
@@ -61,6 +63,7 @@ export function GameScreen({
   localPlayerId = 0,
   tableBottomPlayerId = localPlayerId,
   revealAllHands = false,
+  playerProfile,
 }: GameScreenProps) {
   const [handPreviewDiscardInstanceId, setHandPreviewDiscardInstanceId] = useState<string | null>(null);
   const localPlayer = gameState.players[localPlayerId];
@@ -92,6 +95,7 @@ export function GameScreen({
       <LocalHandArea
         player={localPlayer}
         identityPlayer={fixedBottomPlayer}
+        playerProfile={playerProfile}
         meldPlayer={fixedBottomPlayer}
         isCurrent={gameState.currentPlayer === localPlayerId}
         canDiscard={canDiscard}

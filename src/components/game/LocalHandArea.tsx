@@ -1,5 +1,7 @@
 import type { PlayerId, PlayerState, Tile as TileModel, TileId, Wind } from '../../game/types';
+import type { PlayerProfile } from '../../profile/playerProfile';
 import { PlayerMelds } from '../PlayerMelds';
+import { PlayerAvatar } from '../PlayerAvatar';
 import { Tile } from '../Tile';
 
 interface LocalHandAreaProps {
@@ -19,6 +21,7 @@ interface LocalHandAreaProps {
   concealHand?: boolean;
   onDiscardPreviewChange?: (tileInstanceId: string | null) => void;
   onDiscard: (playerId: PlayerId, tileInstanceId: string) => void;
+  playerProfile?: PlayerProfile;
 }
 
 const windNames: Record<Wind, string> = {
@@ -28,13 +31,14 @@ const windNames: Record<Wind, string> = {
   north: '北',
 };
 
-export function LocalHandArea({ player, identityPlayer = player, meldPlayer = player, isCurrent, canDiscard, allowedDiscardInstanceIds, kuikaeForbiddenTileIds = [], doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, concealHand = false, onDiscardPreviewChange, onDiscard }: LocalHandAreaProps) {
+export function LocalHandArea({ player, identityPlayer = player, meldPlayer = player, isCurrent, canDiscard, allowedDiscardInstanceIds, kuikaeForbiddenTileIds = [], doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, concealHand = false, onDiscardPreviewChange, onDiscard, playerProfile }: LocalHandAreaProps) {
   const drawnTileId = player.drawnTile?.instanceId;
   const baseTiles = drawnTileId ? player.hand.filter((tile) => tile.instanceId !== drawnTileId) : player.hand;
   const drawnTile = drawnTileId ? player.hand.find((tile) => tile.instanceId === drawnTileId) : null;
   const canClick = (tileInstanceId: string) =>
     !concealHand && canDiscard && (!allowedDiscardInstanceIds || allowedDiscardInstanceIds.includes(tileInstanceId));
   const isKuikaeForbidden = (tileId: TileId) => kuikaeForbiddenTileIds.includes(tileId);
+  const displayName = playerProfile?.nickname ?? identityPlayer.name;
   const handleDiscard = (tileInstanceId: string) => {
     onDiscardPreviewChange?.(null);
     onHoveredTileTypeChange?.(null);
@@ -45,9 +49,11 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
   return (
     <section className={`local-hand-area ${isCurrent ? 'local-hand-area--active' : ''}`} aria-label="本家手牌" data-local-player={player.id}>
       <div className="local-hand-info">
-        <span className="player-avatar" aria-hidden="true">{identityPlayer.name.trim().slice(0, 1) || windNames[identityPlayer.seatWind]}</span>
+        {playerProfile
+          ? <PlayerAvatar avatarId={playerProfile.avatarId} />
+          : <span className="player-avatar" aria-hidden="true">{identityPlayer.name.trim().slice(0, 1) || windNames[identityPlayer.seatWind]}</span>}
         {tsumoGiriDisplayEnabled ? <TsumogiriMarker player={identityPlayer} /> : null}
-        <strong title={identityPlayer.name}>{identityPlayer.name}</strong>
+        <strong title={displayName}>{displayName}</strong>
         <span className="player-badges">
           {identityPlayer.seatWind === 'east' ? <em className="dealer-marker">庄</em> : null}
           {identityPlayer.riichi ? <em>立直</em> : null}

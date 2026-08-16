@@ -7,6 +7,7 @@ import { canChankan, canMinkan, type KanType } from '../game/kanChecker';
 import type { MatchState } from '../game/match/types';
 import { getTileAlt } from '../game/tileAssets';
 import type { GameState, PendingCallOption, PlayerId, Tile as TileModel, TileId } from '../game/types';
+import type { PlayerProfile } from '../profile/playerProfile';
 import { sortTiles, tileLabel } from '../game/tileUtils';
 import { useGamePresentationEvents } from '../presentation/gamePresentationEvents';
 import { ActionPrompt } from './ActionPrompt';
@@ -39,6 +40,7 @@ interface BoardProps {
   controlledPlayerId?: PlayerId;
   tableBottomPlayerId?: PlayerId;
   revealAllHands?: boolean;
+  playerProfile?: PlayerProfile;
 }
 
 export function Board({
@@ -67,6 +69,7 @@ export function Board({
   controlledPlayerId = 0,
   tableBottomPlayerId = controlledPlayerId,
   revealAllHands = false,
+  playerProfile,
 }: BoardProps) {
   useGamePresentationEvents(gameState);
   const [dismissedPromptKey, setDismissedPromptKey] = useState<string | null>(null);
@@ -292,6 +295,7 @@ export function Board({
       localPlayerId={controlledPlayerId}
       tableBottomPlayerId={tableBottomPlayerId}
       revealAllHands={revealAllHands}
+      playerProfile={playerProfile}
     />
   );
 }

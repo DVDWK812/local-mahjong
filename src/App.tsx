@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { AppScreen, RiichiLengthChoice, SetupSelection } from './app/navigation';
 import { matchLengthForChoice, pathLabel, presetForChoice } from './app/navigation';
+import { AudioManager } from './audio/AudioManager';
+import { AudioPresentationConsumer } from './audio/AudioPresentationConsumer';
+import { normalizeAudioSettings, type AudioSettings } from './audio/audioSettings';
+import { loadAudioSettings, saveAudioSettings } from './audio/audioSettingsStorage';
+import { AudioSettingsDialog } from './components/AudioSettingsDialog';
 import { BackButton } from './components/BackButton';
 import { Board } from './components/Board';
 import { ExitGameDialog } from './components/ExitGameDialog';
 import { GameTypeMenu } from './components/GameTypeMenu';
 import { LocalModeMenu } from './components/LocalModeMenu';
 import { MainMenu } from './components/MainMenu';
+import { PlayerProfileDialog } from './components/PlayerProfileDialog';
 import { MatchResultDialog } from './components/MatchResultDialog';
 import { DEFAULT_AI_PLAYER_SETTINGS, MatchSettings, type AIPlayerSetting } from './components/MatchSettings';
 import { ReplayLibrary } from './components/ReplayLibrary';
@@ -38,6 +44,8 @@ import { currentTestModeAvailability } from './game/testMode/availability';
 import { loadStoredSeventeenStepsMatchConfig, saveStoredSeventeenStepsMatchConfig } from './game/seventeenStepsMatch';
 import type { SeventeenStepsMatchConfig } from './game/seventeenSteps';
 import type { TestScenarioV1 } from './game/testMode/types';
+import { normalizePlayerProfile, type PlayerProfile } from './profile/playerProfile';
+import { loadPlayerProfile, savePlayerProfile } from './profile/playerProfileStorage';
 
 interface ActiveGame {
   matchState: MatchState;
@@ -66,12 +74,23 @@ interface AppState {
   aiPlayerSettings: AIPlayerSetting[];
   seventeenStepsConfig: SeventeenStepsMatchConfig;
   testScenario: TestScenarioV1 | null;
+  playerProfile: PlayerProfile;
 }
 
 const storage = typeof window === 'undefined' ? null : new LocalStorageAdapter(window.localStorage);
 const EXIT_SAVE_TIMEOUT_MS = 3000;
 const EXIT_SAVE_TIMEOUT_MESSAGE = '牌谱保存超时，可直接退出或重试保存。';
 const EXIT_SAVE_ERROR_MESSAGE = '牌谱保存失败，可直接退出或重试保存。';
+
+function isRealtimeAudioScreen(screen: AppScreen): boolean {
+  return screen === 'game' || screen === 'riichi-17-steps';
+}
+
+function bgmForScreen(screen: AppScreen): 'home' | 'game' | null {
+  if (isRealtimeAudioScreen(screen)) return 'game';
+  if (screen === 'replay-library' || screen === 'replay-detail' || screen === 'test-mode') return null;
+  return 'home';
+}
 
 function withRules(gameState: GameState, config: FullRuleConfig): GameState {
   return { ...gameState, ruleConfig: config.round, matchRuleConfig: config.match };
@@ -140,6 +159,11 @@ function createSavedMatch(activeGame: ActiveGame, ruleConfig: FullRuleConfig): S
 
 export default function App() {
   const testModeAvailability = currentTestModeAvailability();
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [audioDialogOpen, setAudioDialogOpen] = useState(false);
+  const [audioSettings, setAudioSettings] = useState<AudioSettings>(() => (
+    loadAudioSettings(typeof window === 'undefined' ? undefined : window.localStorage)
+  ));
   const [state, setState] = useState<AppState>(() => ({
     screen: testModeAvailability.requested ? 'test-mode' : 'main-menu',
     activeGame: null,
@@ -161,6 +185,7 @@ export default function App() {
     aiPlayerSettings: DEFAULT_AI_PLAYER_SETTINGS.map((setting) => ({ ...setting })),
     seventeenStepsConfig: loadStoredSeventeenStepsMatchConfig(typeof window === 'undefined' ? undefined : window.localStorage),
     testScenario: null,
+    playerProfile: loadPlayerProfile(typeof window === 'undefined' ? undefined : window.localStorage),
   }));
 
   const mountedRef = useRef(false);
@@ -172,6 +197,11 @@ export default function App() {
   const gameState = activeGame?.gameState;
   const matchState = activeGame?.matchState;
   const settingsPath = useMemo(() => pathLabel(state.selection), [state.selection]);
+  const audioManagerRef = useRef<AudioManager | null>(null);
+  if (!audioManagerRef.current) audioManagerRef.current = new AudioManager(audioSettings);
+  const audioManager = audioManagerRef.current;
+  const audioScreenRef = useRef(state.screen);
+  audioScreenRef.current = state.screen;
 
   useEffect(() => {
     mountedRef.current = true;
@@ -179,6 +209,37 @@ export default function App() {
       mountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    audioManager.activate();
+    return () => audioManager.dispose();
+  }, [audioManager]);
+
+  useEffect(() => {
+    const consumer = new AudioPresentationConsumer(
+      audioManager,
+      undefined,
+      () => isRealtimeAudioScreen(audioScreenRef.current),
+    );
+    return () => consumer.dispose();
+  }, [audioManager]);
+
+  useEffect(() => {
+    const track = bgmForScreen(state.screen);
+    if (track) audioManager.playBgm(track);
+    else audioManager.stopBgm();
+  }, [audioManager, state.screen]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const resumeAudio = () => audioManager.resume();
+    window.addEventListener('pointerdown', resumeAudio, { once: true });
+    window.addEventListener('keydown', resumeAudio, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', resumeAudio);
+      window.removeEventListener('keydown', resumeAudio);
+    };
+  }, [audioManager]);
 
   useEffect(() => {
     if (!storage || !activeGame || matchState?.phase !== 'match-ended' || !matchState.finalResult) return;
@@ -292,6 +353,19 @@ export default function App() {
   function handleRuleConfigChange(config: FullRuleConfig) {
     setState((current) => ({ ...current, ruleConfig: config, presetId: 'custom' }));
     if (typeof window !== 'undefined') saveStoredRuleConfig(config, window.localStorage);
+  }
+
+  function handlePlayerProfileChange(profile: PlayerProfile) {
+    const normalized = normalizePlayerProfile(profile);
+    setState((current) => ({ ...current, playerProfile: normalized }));
+    if (typeof window !== 'undefined') savePlayerProfile(normalized, window.localStorage);
+  }
+
+  function handleAudioSettingsChange(settings: AudioSettings) {
+    const normalized = normalizeAudioSettings(settings);
+    audioManager.setSettings(normalized);
+    setAudioSettings(normalized);
+    if (typeof window !== 'undefined') saveAudioSettings(normalized, window.localStorage);
   }
 
   function chooseLength(choice: RiichiLengthChoice) {
@@ -491,16 +565,41 @@ export default function App() {
 
   if (state.screen === 'main-menu') {
     return (
-      <MainMenu
-        hasSave={!!state.savedMatch}
-        notice={state.menuNotice}
-        onContinue={continueSavedMatch}
-        onLocalMode={() => setScreen('local-mode-menu')}
-        onOnlineMode={() => setState((current) => ({ ...current, menuNotice: '联机模式敬请期待。' }))}
-        onReplayStudy={() => void openReplayLibrary()}
-        testModeEnabled={testModeAvailability.enabled}
-        onTestMode={() => setScreen('test-mode', { testScenario: null })}
-      />
+      <>
+        <MainMenu
+          hasSave={!!state.savedMatch}
+          playerProfile={state.playerProfile}
+          notice={state.menuNotice}
+          onContinue={continueSavedMatch}
+          onLocalMode={() => setScreen('local-mode-menu')}
+          onOnlineMode={() => setState((current) => ({ ...current, menuNotice: '联机模式敬请期待。' }))}
+          onReplayStudy={() => void openReplayLibrary()}
+          onOpenPlayerSettings={() => {
+            setAudioDialogOpen(false);
+            setProfileDialogOpen(true);
+          }}
+          onOpenAudioSettings={() => {
+            setProfileDialogOpen(false);
+            setAudioDialogOpen(true);
+          }}
+          testModeEnabled={testModeAvailability.enabled}
+          onTestMode={() => setScreen('test-mode', { testScenario: null })}
+        />
+        {profileDialogOpen ? (
+          <PlayerProfileDialog
+            profile={state.playerProfile}
+            onChange={handlePlayerProfileChange}
+            onClose={() => setProfileDialogOpen(false)}
+          />
+        ) : null}
+        {audioDialogOpen ? (
+          <AudioSettingsDialog
+            settings={audioSettings}
+            onChange={handleAudioSettingsChange}
+            onClose={() => setAudioDialogOpen(false)}
+          />
+        ) : null}
+      </>
     );
   }
 
@@ -545,7 +644,7 @@ export default function App() {
   }
 
   if (state.screen === 'riichi-17-steps') {
-    return <SeventeenStepsScreen matchConfig={state.seventeenStepsConfig} ruleConfig={state.ruleConfig} onBack={() => setScreen('riichi-17-steps-settings')} />;
+    return <SeventeenStepsScreen matchConfig={state.seventeenStepsConfig} ruleConfig={state.ruleConfig} playerProfile={state.playerProfile} onBack={() => setScreen('riichi-17-steps-settings')} />;
   }
 
   if (state.screen === 'riichi-washizu') {
@@ -662,6 +761,7 @@ export default function App() {
       ) : null}
       <Board
         gameState={gameState}
+        playerProfile={state.playerProfile}
         matchState={matchState}
         onTsumo={(playerId) => updateGame((current) => declareTsumo(current, playerId))}
         onRon={(playerId) => updateGame((current) => declareRon(current, playerId))}

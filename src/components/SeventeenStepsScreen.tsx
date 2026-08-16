@@ -27,14 +27,17 @@ import { MahjongTable } from './game/MahjongTable';
 import { RulesGuideScreen } from './rulesGuide/RulesGuideScreen';
 import type { FullRuleConfig } from '../game/match/types';
 import { useGamePresentationEvents } from '../presentation/gamePresentationEvents';
+import { DEFAULT_PLAYER_PROFILE, type PlayerProfile } from '../profile/playerProfile';
+import { PlayerAvatar } from './PlayerAvatar';
 
 interface SeventeenStepsScreenProps {
   onBack: () => void;
   ruleConfig: FullRuleConfig;
   matchConfig?: SeventeenStepsMatchConfig;
+  playerProfile?: PlayerProfile;
 }
 
-export function SeventeenStepsScreen({ onBack, ruleConfig, matchConfig = DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG }: SeventeenStepsScreenProps) {
+export function SeventeenStepsScreen({ onBack, ruleConfig, matchConfig = DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG, playerProfile = DEFAULT_PLAYER_PROFILE }: SeventeenStepsScreenProps) {
   const [state, setState] = useState<SeventeenStepsState>(() => createSeventeenStepsAIGame(createSeventeenStepsGame(matchConfig), {
     difficulty: matchConfig.aiDifficulty,
     personality: matchConfig.aiPersonality,
@@ -85,11 +88,13 @@ export function SeventeenStepsScreen({ onBack, ruleConfig, matchConfig = DEFAULT
         <SeventeenStepsBuildSummary
           state={state}
           gameState={tableState}
+          playerProfile={playerProfile}
           hoveredTileType={hoveredTileType}
           onHoveredTileTypeChange={setHoveredTileType}
         />
       ) : null}
       {!isBuildPhase ? <div className="seventeen-steps-board-area">
+        <PlayerProfileBadge profile={playerProfile} className="seventeen-steps-table-profile" />
         <MahjongTable
           gameState={tableState}
           activeSeats={['north', 'south']}
@@ -168,7 +173,7 @@ export function SeventeenStepsScreen({ onBack, ruleConfig, matchConfig = DEFAULT
           scoreAfter={state.result.scoresAfter}
         />
       ) : null}
-      {state.phase === 'match-ended' ? <SeventeenStepsMatchResult state={state} onNewMatch={() => setState(createSeventeenStepsAIGame(createSeventeenStepsGame(state.matchConfig), {
+      {state.phase === 'match-ended' ? <SeventeenStepsMatchResult state={state} playerProfile={playerProfile} onNewMatch={() => setState(createSeventeenStepsAIGame(createSeventeenStepsGame(state.matchConfig), {
         difficulty: state.matchConfig.aiDifficulty,
         personality: state.matchConfig.aiPersonality,
         seed: 0,
@@ -179,7 +184,7 @@ export function SeventeenStepsScreen({ onBack, ruleConfig, matchConfig = DEFAULT
   );
 }
 
-function SeventeenStepsBuildSummary({ state, gameState, hoveredTileType, onHoveredTileTypeChange }: { state: SeventeenStepsState; gameState: GameState; hoveredTileType: TileId | null; onHoveredTileTypeChange: (tileType: TileId | null) => void }) {
+function SeventeenStepsBuildSummary({ state, gameState, playerProfile, hoveredTileType, onHoveredTileTypeChange }: { state: SeventeenStepsState; gameState: GameState; playerProfile: PlayerProfile; hoveredTileType: TileId | null; onHoveredTileTypeChange: (tileType: TileId | null) => void }) {
   const self = gameState.players[0];
   const opponent = gameState.players[1];
   const selfBuild = state.players[0];
@@ -196,7 +201,8 @@ function SeventeenStepsBuildSummary({ state, gameState, hoveredTileType, onHover
       <div className="seventeen-steps-build-summary-info">
         <div className="seventeen-steps-build-summary-players">
           <div className="seventeen-steps-build-summary-player">
-            <span>自己</span>
+            <PlayerAvatar avatarId={playerProfile.avatarId} className="player-avatar--compact" />
+            <span title={playerProfile.nickname}>{playerProfile.nickname}</span>
             <strong>{windLabel(self.seatWind)}{state.dealerId === 0 ? ' · 庄家' : ''}</strong>
             <b>{self.score.toLocaleString()}</b>
             <em>{selfBuild.buildConfirmed ? '已确认' : '构筑中'}</em>
@@ -374,7 +380,7 @@ function ResultPanel({ state, onReset }: { state: SeventeenStepsState; onReset: 
   );
 }
 
-function SeventeenStepsMatchResult({ state, onNewMatch, onBack }: { state: SeventeenStepsState; onNewMatch: () => void; onBack: () => void }) {
+function SeventeenStepsMatchResult({ state, playerProfile, onNewMatch, onBack }: { state: SeventeenStepsState; playerProfile: PlayerProfile; onNewMatch: () => void; onBack: () => void }) {
   const [first, second] = state.scores;
   const firstWins = first >= second;
   return (
@@ -387,7 +393,7 @@ function SeventeenStepsMatchResult({ state, onNewMatch, onBack }: { state: Seven
           </div>
         </header>
         <div className="result-body">
-          <div className="seventeen-steps-match-score-row"><strong>玩家</strong><span>{first.toLocaleString()}</span><b>{firstWins ? '第1名' : '第2名'}</b></div>
+          <div className="seventeen-steps-match-score-row"><strong>{playerProfile.nickname}</strong><span>{first.toLocaleString()}</span><b>{firstWins ? '第1名' : '第2名'}</b></div>
           <div className="seventeen-steps-match-score-row"><strong>对手</strong><span>{second.toLocaleString()}</span><b>{firstWins ? '第2名' : '第1名'}</b></div>
         </div>
         <footer className="result-actions">
@@ -395,6 +401,16 @@ function SeventeenStepsMatchResult({ state, onNewMatch, onBack }: { state: Seven
           <button type="button" className="secondary" onClick={onBack}>返回菜单</button>
         </footer>
       </section>
+    </div>
+  );
+}
+
+function PlayerProfileBadge({ profile, className = '' }: { profile: PlayerProfile; className?: string }) {
+  return (
+    <div className={`player-profile-badge ${className}`.trim()} aria-label={`本地玩家：${profile.nickname}`}>
+      <PlayerAvatar avatarId={profile.avatarId} />
+      <span>本地玩家</span>
+      <strong title={profile.nickname}>{profile.nickname}</strong>
     </div>
   );
 }

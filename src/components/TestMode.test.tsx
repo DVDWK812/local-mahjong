@@ -8,12 +8,15 @@ import { ReplayScreen } from './ReplayScreen';
 import { getBuiltInTestScenario } from '../game/testMode/builtInScenarios';
 import { createTestModeMatchLog } from '../game/testMode/actions';
 import { createReplayRecord } from '../game/persistence/replayRecord';
+import { DEFAULT_PLAYER_PROFILE } from '../profile/playerProfile';
 import { TestCaseResultsStorage } from '../game/testMode/resultsStorage';
 import { loadTestScenarioState, runtimeInvariantChecks } from '../game/testMode/scenario';
 
 describe('测试模式界面', () => {
   const menuProps = {
     hasSave: false,
+    playerProfile: DEFAULT_PLAYER_PROFILE,
+    onOpenPlayerSettings: () => undefined,
     onContinue: () => undefined,
     onLocalMode: () => undefined,
     onOnlineMode: () => undefined,

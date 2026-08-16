@@ -1,20 +1,31 @@
+import type { PlayerProfile } from '../profile/playerProfile';
+import { PlayerProfileSummary } from './PlayerProfileSummary';
+
 interface MainMenuProps {
   hasSave: boolean;
+  playerProfile: PlayerProfile;
   notice?: string | null;
   onContinue: () => void;
   onLocalMode: () => void;
   onOnlineMode: () => void;
   onReplayStudy: () => void;
+  onOpenPlayerSettings: () => void;
+  onOpenAudioSettings?: () => void;
   testModeEnabled?: boolean;
   onTestMode?: () => void;
 }
 
-export function MainMenu({ hasSave, notice, onContinue, onLocalMode, onOnlineMode, onReplayStudy, testModeEnabled = false, onTestMode = () => undefined }: MainMenuProps) {
+export function MainMenu({ hasSave, playerProfile, notice, onContinue, onLocalMode, onOnlineMode, onReplayStudy, onOpenPlayerSettings, onOpenAudioSettings = () => undefined, testModeEnabled = false, onTestMode = () => undefined }: MainMenuProps) {
   return (
     <main className="menu-page">
       <section className="menu-panel">
         <p className="menu-path">主菜单</p>
         <h1>麻将训练器</h1>
+        <PlayerProfileSummary
+          profile={playerProfile}
+          onOpenSettings={onOpenPlayerSettings}
+          onOpenAudioSettings={onOpenAudioSettings}
+        />
         {notice ? <p className="menu-notice">{notice}</p> : null}
         <div className="menu-actions">
           {hasSave ? <button type="button" onClick={onContinue}>继续对局</button> : null}
