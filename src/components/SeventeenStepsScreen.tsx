@@ -14,6 +14,7 @@ import {
   type SeventeenStepsMatchConfig,
   DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG,
 } from '../game/seventeenSteps';
+import { createSeventeenStepsAI, createSeventeenStepsAIGame } from '../game/seventeenStepsAI';
 import { tileLabel, windLabel } from '../game/tileUtils';
 import type { Tile as TileModel, TileId, GameState } from '../game/types';
 import { ActionPrompt } from './ActionPrompt';
@@ -34,19 +35,30 @@ interface SeventeenStepsScreenProps {
 }
 
 export function SeventeenStepsScreen({ onBack, ruleConfig, matchConfig = DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG }: SeventeenStepsScreenProps) {
-  const [state, setState] = useState<SeventeenStepsState>(() => createSeventeenStepsGame(matchConfig));
+  const [state, setState] = useState<SeventeenStepsState>(() => createSeventeenStepsAIGame(createSeventeenStepsGame(matchConfig), {
+    difficulty: matchConfig.aiDifficulty,
+    personality: matchConfig.aiPersonality,
+    seed: 0,
+  }));
   const [rulesOpen, setRulesOpen] = useState(false);
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [hoveredTileType, setHoveredTileType] = useState<TileId | null>(null);
   const isBuildPhase = state.phase === 'build';
   const isLocalTurn = state.phase === 'active' && state.currentPlayerId === 0;
   const tableState = useMemo(() => toSeventeenStepsGameState(state), [state]);
+  const opponentDrawAnalysis = state.phase === 'round-ended' && state.result?.type === 'draw'
+    ? analyzeSeventeenStepsTenpai(state, 1)
+    : undefined;
   useGamePresentationEvents(tableState);
 
   useEffect(() => {
     if (state.phase === 'active' && state.currentPlayerId === 1) {
       const timer = window.setTimeout(() => {
-        const candidate = state.players[1].discardCandidates[0];
+        const candidate = createSeventeenStepsAI({
+          difficulty: state.matchConfig.aiDifficulty,
+          personality: state.matchConfig.aiPersonality,
+          seed: 0,
+        }).discard(state, 1);
         if (candidate) setState((current) => discardCandidate(current, 1, candidate.instanceId));
       }, 350);
       return () => window.clearTimeout(timer);
@@ -139,15 +151,28 @@ export function SeventeenStepsScreen({ onBack, ruleConfig, matchConfig = DEFAULT
       {state.phase === 'round-ended' && state.result ? (
         <ResultDialog
           gameState={tableState}
-          onReset={() => setState((current) => advanceSeventeenStepsMatch(current))}
+          onReset={() => setState((current) => createSeventeenStepsAIGame(advanceSeventeenStepsMatch(current), {
+            difficulty: current.matchConfig.aiDifficulty,
+            personality: current.matchConfig.aiPersonality,
+            seed: 0,
+          }))}
           continueLabel={state.completedHands + 1 >= state.totalHands || (matchConfig.bankruptcyEndsMatch && state.scores.some((score) => score < 0)) ? '查看比赛结果' : '下一局'}
           doraGlowEnabled={matchConfig.displayOptions.doraGlowEnabled}
+          displayPointDeltas={state.result.pointDeltas}
+          showDoraIndicators={false}
+          revealExhaustiveDrawPlayerIds={[1]}
+          seventeenStepsDrawAnalysis={opponentDrawAnalysis}
+          seventeenStepsKazoeYakumanMode={state.matchConfig.roundRuleConfig.kazoeYakumanMode}
           visiblePlayerIds={[0, 1]}
           scoreBefore={state.result.scoresBefore}
           scoreAfter={state.result.scoresAfter}
         />
       ) : null}
-      {state.phase === 'match-ended' ? <SeventeenStepsMatchResult state={state} onNewMatch={() => setState(createSeventeenStepsGame(state.matchConfig))} onBack={onBack} /> : null}
+      {state.phase === 'match-ended' ? <SeventeenStepsMatchResult state={state} onNewMatch={() => setState(createSeventeenStepsAIGame(createSeventeenStepsGame(state.matchConfig), {
+        difficulty: state.matchConfig.aiDifficulty,
+        personality: state.matchConfig.aiPersonality,
+        seed: 0,
+      }))} onBack={onBack} /> : null}
       {rulesOpen ? <RulesGuideScreen embedded ruleConfig={ruleConfig} onBack={() => setRulesOpen(false)} /> : null}
       <AnalysisDrawer open={analysisOpen} gameState={tableState} onClose={() => setAnalysisOpen(false)} />
     </main>
@@ -260,13 +285,22 @@ function SeventeenStepsAnalysisCard({ state, onConfirm }: { state: SeventeenStep
         <div className="seventeen-steps-analysis-list">
           {waits.map((wait) => (
             <div className="seventeen-steps-analysis-item" key={wait.id}>
+              {(() => {
+                const winValueLabel = wait.score.yakumanValue > 0
+                  ? wait.score.yakumanValue === 1 ? '役满' : `${wait.score.yakumanValue}倍役满`
+                  : wait.restrictionHan >= 13 && state.matchConfig.roundRuleConfig.kazoeYakumanMode === 'yakuman' ? '累计役满' : `${wait.restrictionHan}番`;
+                return (
+                  <>
               <div className="seventeen-steps-analysis-wait">
                 <Tile id={wait.id} compact interactive={false} />
                 <span>{tileLabel(wait.id)} · 剩余 {wait.remaining}</span>
               </div>
-              <span>{wait.score.han} 番 · 番缚计入宝牌 ×{wait.doraCount}</span>
+              <span>{winValueLabel} · 番缚计入宝牌 ×{wait.doraCount}{wait.redDoraOnly ? '（仅赤宝可满足）' : ''}</span>
               <span>{wait.score.yaku.map((yaku) => yaku.name).join('、') || '无役'}</span>
               <strong className={wait.meetsHanRestriction ? 'seventeen-steps-analysis-pass' : 'seventeen-steps-analysis-fail'}>{wait.meetsHanRestriction ? '番缚满足' : '番缚不足'}</strong>
+                  </>
+                );
+              })()}
             </div>
           ))}
         </div>

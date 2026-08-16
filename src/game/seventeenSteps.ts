@@ -37,9 +37,9 @@ export interface SeventeenStepsMatchProgress {
 }
 
 export const DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG: SeventeenStepsMatchConfig = {
-  startingPoints: 25000,
+  startingPoints: 50000,
   cycleCount: 1,
-  aiDifficulty: 'chikukon',
+  aiDifficulty: 'shintentai',
   aiPersonality: 'balanced',
   hanRestriction: 0,
   countDoraForHanRestriction: true,
@@ -53,6 +53,8 @@ export const DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG: SeventeenStepsMatchConfig = {
     abortOnFourRiichi: false,
     abortOnFourKans: false,
     allowKokushiChankanAnkan: false,
+    allowDoubleYakuman: false,
+    multipleYakuman: false,
   },
   displayOptions: {
     doraGlowEnabled: true,
@@ -97,9 +99,13 @@ export interface SeventeenStepsWaitAnalysis {
   id: TileId;
   remaining: number;
   score: ScoreResult;
+  /** Construction-stage equivalent han: 13 per counted yakuman. */
+  effectiveHan: number;
   doraCount: number;
   restrictionHan: number;
   meetsHanRestriction: boolean;
+  /** Only a red winning tile can make this wait satisfy the han restriction. */
+  redDoraOnly: boolean;
 }
 
 export type SeventeenStepsResult = SeventeenStepsWinResult | SeventeenStepsDrawResult;
@@ -167,7 +173,7 @@ export function normalizeSeventeenStepsMatchConfig(config: Partial<SeventeenStep
   };
   return {
     ...merged,
-    startingPoints: Number.isFinite(merged.startingPoints) && merged.startingPoints > 0 ? Math.round(merged.startingPoints) : 25000,
+    startingPoints: Number.isFinite(merged.startingPoints) && merged.startingPoints > 0 ? Math.round(merged.startingPoints) : 50000,
     cycleCount: Math.min(4, Math.max(1, Math.round(merged.cycleCount))) as SeventeenStepsCycleCount,
     hanRestriction: [0, 2, 3, 4, 5].includes(merged.hanRestriction) ? merged.hanRestriction : 0,
   };
@@ -317,20 +323,38 @@ export function analyzeSeventeenStepsTenpai(state: SeventeenStepsState, playerId
   const player = state.players[playerId];
   if (player.fixedHand.length !== 13) return [];
   return ALL_TILE_IDS.flatMap((tileId) => {
-    const winningTile = createTile(tileId, 0);
-    const score = evaluateWin(
+    const winningTile = createTile(tileId, 1);
+    const ordinaryScore = evaluateWin(
       [...player.fixedHand, winningTile],
       createSeventeenStepsWinContext(state, playerId, winningTile, player.fixedHand),
     );
-    if (!score.isWinning) return [];
-    const restrictionHan = getSeventeenStepsHanRestriction(state, score);
+    if (!ordinaryScore.isWinning) return [];
+    const ordinaryRestrictionHan = getSeventeenStepsHanRestriction(state, ordinaryScore);
+    const ordinaryMeetsHanRestriction = ordinaryScore.yakumanValue > 0 || state.matchConfig.hanRestriction === 0 || ordinaryRestrictionHan >= state.matchConfig.hanRestriction;
+    const canUseRedWinningTile = state.matchConfig.roundRuleConfig.akaDora !== false
+      && (tileId === 4 || tileId === 13 || tileId === 22);
+    const redWinningTile = canUseRedWinningTile ? createTile(tileId, 0) : null;
+    const redScore = !ordinaryMeetsHanRestriction && redWinningTile
+      ? evaluateWin(
+        [...player.fixedHand, redWinningTile],
+        createSeventeenStepsWinContext(state, playerId, redWinningTile, player.fixedHand),
+      )
+      : null;
+    const redRestrictionHan = redScore?.isWinning ? getSeventeenStepsHanRestriction(state, redScore) : ordinaryRestrictionHan;
+    const redMeetsHanRestriction = Boolean(redScore?.isWinning) && (redScore?.yakumanValue ?? 0) > 0
+      || Boolean(redScore?.isWinning) && (state.matchConfig.hanRestriction === 0 || redRestrictionHan >= state.matchConfig.hanRestriction);
+    const redDoraOnly = !ordinaryMeetsHanRestriction && redMeetsHanRestriction;
+    const score = redDoraOnly && redScore ? redScore : ordinaryScore;
+    const restrictionHan = redDoraOnly ? redRestrictionHan : ordinaryRestrictionHan;
     return [{
       id: tileId,
       remaining: countSeventeenStepsVisibleRemainingTiles(state, playerId, tileId),
       score,
+      effectiveHan: restrictionHan,
       doraCount: getSeventeenStepsRestrictionDora(state, score),
       restrictionHan,
-      meetsHanRestriction: score.yakumanValue > 0 || state.matchConfig.hanRestriction === 0 || restrictionHan >= state.matchConfig.hanRestriction,
+      meetsHanRestriction: ordinaryMeetsHanRestriction || redDoraOnly,
+      redDoraOnly,
     }];
   });
 }
@@ -341,8 +365,13 @@ export function getSeventeenStepsRestrictionDora(state: SeventeenStepsState, sco
 }
 
 export function getSeventeenStepsHanRestriction(state: SeventeenStepsState, score: ScoreResult): number {
+  if (score.yakumanValue > 0) return score.yakumanValue * 13;
   const yakuHan = score.yaku.reduce((sum, item) => sum + (item.han ?? 0), 0);
   return yakuHan + (state.matchConfig.countDoraForHanRestriction ? getSeventeenStepsRestrictionDora(state, score) : 0);
+}
+
+export function getSeventeenStepsEffectiveHan(score: ScoreResult): number {
+  return score.yakumanValue > 0 ? score.yakumanValue * 13 : score.han;
 }
 
 export function discardCandidate(state: SeventeenStepsState, playerId: SeventeenStepsPlayerId, instanceId: string): SeventeenStepsState {
@@ -359,7 +388,7 @@ export function discardCandidate(state: SeventeenStepsState, playerId: Seventeen
     next.discardCandidates.splice(candidateIndex, 1);
     next.discardedTiles.push(discarded);
     next.discardCount += 1;
-    if (waitsForTile(state, playerId, discarded.id)) next.permanentFuriten = true;
+    if (waitsForTile(state, playerId, discarded)) next.permanentFuriten = true;
     return next;
   }) as [SeventeenStepsPlayerState, SeventeenStepsPlayerState];
   const nextState: SeventeenStepsState = {
@@ -408,7 +437,10 @@ export function passSeventeenStepsRon(state: SeventeenStepsState, playerId: Seve
 export function isEffectiveTenpai(state: SeventeenStepsState, playerId: SeventeenStepsPlayerId): boolean {
   const player = state.players[playerId];
   if (player.permanentFuriten) return false;
-  return ALL_TILE_IDS.some((tileId) => canSeventeenStepsRon(state, playerId, createTile(tileId, 0)) !== null);
+  return ALL_TILE_IDS.some((tileId) => {
+    if (canSeventeenStepsRon(state, playerId, createTile(tileId, 1))) return true;
+    return (tileId === 4 || tileId === 13 || tileId === 22) && canSeventeenStepsRon(state, playerId, createTile(tileId, 0)) !== null;
+  });
 }
 
 function projectRoundResult(state: SeventeenStepsState): RoundResult | null {
@@ -453,7 +485,7 @@ function continueAfterNoRon(state: SeventeenStepsState, discarderId: SeventeenSt
   return { ...state, phase: 'active', currentPlayerId: otherPlayer(discarderId) };
 }
 
-function settleDraw(state: SeventeenStepsState): SeventeenStepsState {
+export function settleDraw(state: SeventeenStepsState): SeventeenStepsState {
   const validTenpai: [boolean, boolean] = [isEffectiveTenpai(state, 0), isEffectiveTenpai(state, 1)];
   const pointDeltas: [number, number] = [0, 0];
   if (validTenpai[0] !== validTenpai[1]) {
@@ -494,8 +526,8 @@ function manganPenalty(state: SeventeenStepsState, playerId: SeventeenStepsPlaye
   return calculatePoints(5, 30, context).ron ?? 0;
 }
 
-function waitsForTile(state: SeventeenStepsState, playerId: SeventeenStepsPlayerId, tileId: TileId): boolean {
-  return canSeventeenStepsRon(state, playerId, createTile(tileId, 0)) !== null;
+function waitsForTile(state: SeventeenStepsState, playerId: SeventeenStepsPlayerId, tile: Tile): boolean {
+  return canSeventeenStepsRon(state, playerId, tile) !== null;
 }
 
 function countSeventeenStepsVisibleRemainingTiles(state: SeventeenStepsState, playerId: SeventeenStepsPlayerId, tileId: TileId): number {

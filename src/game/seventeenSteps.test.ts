@@ -8,14 +8,71 @@ import {
   DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG,
   discardCandidate,
   getSeventeenStepsHanRestriction,
+  getSeventeenStepsEffectiveHan,
   getSeventeenStepsRestrictionDora,
   moveFixedTile,
   selectFixedTile,
+  settleDraw,
 } from './seventeenSteps';
 import type { ScoreResult } from './scoreCalculator';
 import { createTile } from './tileUtils';
 
+function fixedHandForEffectiveTenpai(): ReturnType<typeof createTile>[] {
+  return [
+    createTile(4, 1), createTile(4, 2), createTile(5, 1), createTile(6, 1), createTile(7, 1),
+    createTile(10, 1), createTile(11, 1), createTile(12, 1),
+    createTile(19, 1), createTile(20, 1), createTile(21, 1),
+    createTile(22, 1), createTile(22, 2),
+  ];
+}
+
+function fixedHandForStructuralOnlyTenpai(): ReturnType<typeof createTile>[] {
+  return [
+    createTile(4, 1), createTile(4, 2), createTile(5, 1), createTile(6, 1), createTile(7, 1),
+    createTile(9, 1), createTile(10, 1), createTile(11, 1),
+    createTile(18, 1), createTile(19, 1), createTile(20, 1),
+    createTile(8, 1), createTile(8, 2),
+  ];
+}
+
+function fixedHandForNoten(): ReturnType<typeof createTile>[] {
+  return [
+    createTile(27, 1), createTile(27, 2),
+    createTile(28, 1), createTile(28, 2),
+    createTile(29, 1), createTile(29, 2),
+    createTile(30, 1), createTile(30, 2),
+    createTile(31, 1), createTile(31, 2),
+    createTile(32, 1), createTile(33, 1), createTile(26, 1),
+  ];
+}
+
+function settleDrawForTest(player0Hand: ReturnType<typeof createTile>[], player1Hand: ReturnType<typeof createTile>[]) {
+  const state = createSeventeenStepsGame({
+    ...DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG,
+    hanRestriction: 2,
+    countDoraForHanRestriction: true,
+    roundRuleConfig: { ...DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG.roundRuleConfig, akaDora: false },
+  });
+  state.phase = 'active';
+  state.currentPlayerId = 0;
+  state.doraIndicators = [];
+  state.players = [
+    { ...state.players[0], fixedHand: player0Hand, buildConfirmed: true, discardCount: 17, discardCandidates: [], discardedTiles: [] },
+    { ...state.players[1], fixedHand: player1Hand, buildConfirmed: true, discardCount: 17, discardCandidates: [], discardedTiles: [] },
+  ];
+  return settleDraw(state);
+}
+
 describe('17步麻将模式', () => {
+  it('默认使用心转手、50000起始点数，并关闭双倍和多倍役满', () => {
+    const state = createSeventeenStepsGame();
+    expect(state.matchConfig.aiDifficulty).toBe('shintentai');
+    expect(state.matchConfig.startingPoints).toBe(50000);
+    expect(state.scores).toEqual([50000, 50000]);
+    expect(state.matchConfig.roundRuleConfig.allowDoubleYakuman).toBe(false);
+    expect(state.matchConfig.roundRuleConfig.multipleYakuman).toBe(false);
+  });
+
   it('双方各获得34张私有牌，构筑阶段只允许选择自己的牌', () => {
     const state = createSeventeenStepsGame();
     expect(state.phase).toBe('build');
@@ -102,6 +159,126 @@ describe('17步麻将模式', () => {
 
     expect(getSeventeenStepsRestrictionDora(state, score)).toBe(3);
     expect(getSeventeenStepsHanRestriction(state, score)).toBe(5);
+  });
+
+  it('分析5m待牌时不会把假想的赤5m作为赤宝牌计入', () => {
+    const state = createSeventeenStepsGame({
+      ...DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG,
+      countDoraForHanRestriction: true,
+    });
+    state.doraIndicators = [createTile(11, 1)];
+    state.players[0].fixedHand = [
+      createTile(4, 1), createTile(4, 2), createTile(5, 1), createTile(6, 1), createTile(7, 1),
+      createTile(10, 1), createTile(11, 1), createTile(12, 1),
+      createTile(19, 1), createTile(20, 1), createTile(21, 1),
+      createTile(22, 0), createTile(22, 1),
+    ];
+    const wait = analyzeSeventeenStepsTenpai(state, 0).find((item) => item.id === 4);
+    expect(wait?.score.redDora).toBe(1);
+    expect(wait?.score.dora).toBe(1);
+    expect(wait?.doraCount).toBe(2);
+  });
+
+  it('5m普通牌不足番缚时，只有和到赤5m才能满足并明确标记', () => {
+    const state = createSeventeenStepsGame({
+      ...DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG,
+      hanRestriction: 5,
+      countDoraForHanRestriction: true,
+    });
+    state.doraIndicators = [createTile(11, 1)];
+    state.players[0].fixedHand = [
+      createTile(4, 1), createTile(4, 2), createTile(5, 1), createTile(6, 1), createTile(7, 1),
+      createTile(10, 1), createTile(11, 1), createTile(12, 1),
+      createTile(19, 1), createTile(20, 1), createTile(21, 1),
+      createTile(22, 0), createTile(22, 1),
+    ];
+    const wait = analyzeSeventeenStepsTenpai(state, 0).find((item) => item.id === 4);
+    expect(wait?.redDoraOnly).toBe(true);
+    expect(wait?.meetsHanRestriction).toBe(true);
+    expect(wait?.restrictionHan).toBe(5);
+    expect(wait?.doraCount).toBe(3);
+  });
+
+  it('关闭赤宝牌后，赤5m不能作为满足番缚的条件', () => {
+    const state = createSeventeenStepsGame({
+      ...DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG,
+      hanRestriction: 5,
+      countDoraForHanRestriction: true,
+      roundRuleConfig: { ...DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG.roundRuleConfig, akaDora: false },
+    });
+    state.doraIndicators = [createTile(11, 1)];
+    state.players[0].fixedHand = [
+      createTile(4, 1), createTile(4, 2), createTile(5, 1), createTile(6, 1), createTile(7, 1),
+      createTile(10, 1), createTile(11, 1), createTile(12, 1),
+      createTile(19, 1), createTile(20, 1), createTile(21, 1),
+      createTile(22, 0), createTile(22, 1),
+    ];
+    const wait = analyzeSeventeenStepsTenpai(state, 0).find((item) => item.id === 4);
+    expect(wait?.redDoraOnly).toBe(false);
+    expect(wait?.meetsHanRestriction).toBe(false);
+    expect(wait?.restrictionHan).toBe(3);
+    expect(wait?.doraCount).toBe(1);
+  });
+
+  it('流局时普通5m不足番缚但赤5m可满足的玩家视为有效听牌', () => {
+    const state = createSeventeenStepsGame({
+      ...DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG,
+      hanRestriction: 5,
+      countDoraForHanRestriction: true,
+    });
+    state.phase = 'active';
+    state.doraIndicators = [createTile(11, 1)];
+    state.players = [
+      { ...state.players[0], fixedHand: [
+        createTile(4, 1), createTile(4, 2), createTile(5, 1), createTile(6, 1), createTile(7, 1),
+        createTile(10, 1), createTile(11, 1), createTile(12, 1),
+        createTile(19, 1), createTile(20, 1), createTile(21, 1),
+        createTile(22, 0), createTile(22, 1),
+      ], discardCount: 17 },
+      { ...state.players[1], fixedHand: fixedHandForNoten(), discardCount: 17 },
+    ];
+    const settled = settleDraw(state);
+    expect(settled.result?.type).toBe('draw');
+    if (settled.result?.type === 'draw') {
+      expect(settled.result.validTenpai).toEqual([true, false]);
+      expect(settled.result.pointDeltas).toEqual([12000, -12000]);
+    }
+  });
+
+  it.each([
+    ['有效听牌 vs 有效听牌', fixedHandForEffectiveTenpai(), fixedHandForEffectiveTenpai(), [true, true], [0, 0]],
+    ['有效听牌 vs 结构听牌但未达到番缚', fixedHandForEffectiveTenpai(), fixedHandForStructuralOnlyTenpai(), [true, false], [12000, -12000]],
+    ['有效听牌 vs 未听牌', fixedHandForEffectiveTenpai(), fixedHandForNoten(), [true, false], [12000, -12000]],
+    ['未达到番缚 vs 未达到番缚', fixedHandForStructuralOnlyTenpai(), fixedHandForStructuralOnlyTenpai(), [false, false], [-12000, -8000]],
+    ['未听牌 vs 未听牌', fixedHandForNoten(), fixedHandForNoten(), [false, false], [-12000, -8000]],
+    ['未听牌 vs 听牌但未达到番缚', fixedHandForNoten(), fixedHandForStructuralOnlyTenpai(), [false, false], [-12000, -8000]],
+  ])('%s时按有效听牌结算罚点', (_label, player0Hand, player1Hand, validTenpai, pointDeltas) => {
+    const state = settleDrawForTest(player0Hand, player1Hand);
+    expect(state.result?.type).toBe('draw');
+    if (state.result?.type === 'draw') {
+      expect(state.result.validTenpai).toEqual(validTenpai);
+      expect(state.result.pointDeltas).toEqual(pointDeltas);
+    }
+  });
+
+  it('构筑阶段将四暗刻单骑记录为双倍役满，并正确处理累计和多倍役满', () => {
+    const state = createSeventeenStepsGame({
+      ...DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG,
+      roundRuleConfig: { ...DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG.roundRuleConfig, allowDoubleYakuman: true, multipleYakuman: true },
+    });
+    state.players[0].fixedHand = [0, 0, 0, 9, 9, 9, 18, 18, 18, 27, 27, 27, 5].map((id, index) => createTile(id as never, index % 4));
+    const wait = analyzeSeventeenStepsTenpai(state, 0).find((item) => item.id === 5);
+    expect(wait?.score.yaku.some((item) => item.yakumanValue === 2)).toBe(true);
+    expect(wait?.score.han).toBe(0);
+    expect(wait?.effectiveHan).toBe(26);
+    expect(wait?.restrictionHan).toBe(26);
+
+    const score = (yakumanValue: number, han = 0) => ({ yakumanValue, han } as ScoreResult);
+    expect(getSeventeenStepsEffectiveHan(score(1))).toBe(13);
+    expect(getSeventeenStepsEffectiveHan(score(2))).toBe(26);
+    expect(getSeventeenStepsEffectiveHan(score(3))).toBe(39);
+    expect(getSeventeenStepsEffectiveHan(score(0, 13))).toBe(13);
+    expect(getSeventeenStepsHanRestriction(state, score(3))).toBe(39);
   });
   it('比赛场数按来回换算为2、4、6、8局', () => {
     expect([1, 2, 3, 4].map((cycleCount) => createSeventeenStepsGame({ ...DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG, cycleCount: cycleCount as 1 | 2 | 3 | 4 }).totalHands)).toEqual([2, 4, 6, 8]);

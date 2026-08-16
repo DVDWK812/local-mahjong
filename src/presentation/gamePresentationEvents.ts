@@ -1,20 +1,26 @@
 import { useEffect, useRef } from 'react';
+import { getPresentationFeatures, type PresentationFeatureFlagsSource } from '../config/presentationFeatures';
 import type { GameState } from '../game/types';
 import { PresentationEventBus, presentationEventBus } from './PresentationEventBus';
 
 export class GamePresentationEventObserver {
   private riverLengths: number[];
 
-  constructor(initialState: GameState, private readonly eventBus: PresentationEventBus = presentationEventBus) {
+  constructor(
+    initialState: GameState,
+    private readonly eventBus: PresentationEventBus = presentationEventBus,
+    private readonly featureFlagsSource: PresentationFeatureFlagsSource = getPresentationFeatures,
+  ) {
     this.riverLengths = initialState.players.map((player) => player.river.length);
   }
 
   observe(state: GameState): void {
     const nextRiverLengths = state.players.map((player) => player.river.length);
+    const presentationEventsEnabled = this.featureFlagsSource().presentationEvents;
 
     state.players.forEach((player) => {
       const previousLength = this.riverLengths[player.id] ?? player.river.length;
-      if (player.river.length <= previousLength) return;
+      if (player.river.length <= previousLength || !presentationEventsEnabled) return;
 
       player.river.slice(previousLength).forEach((tile, offset) => {
         this.eventBus.publish({

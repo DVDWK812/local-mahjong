@@ -1,0 +1,39 @@
+:root {
+  /* Motion: visual defaults only; playback speed remains Scheduler-owned. */
+  --motion-fast: 120ms;
+  --motion-normal: 160ms;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+
+  /* Table and overlay layers */
+  --z-table: 0;
+  --z-tile: 1;
+  --z-tile-accent: 2;
+  --z-river: 10;
+  --z-hand: 20;
+  --z-table-ui: 30;
+  --z-action: 50;
+  --z-drawer: 80;
+  --z-modal: 100;
+
+  /* Shadows */
+  --shadow-tile: 0 2px 5px rgba(25, 34, 30, 0.16);
+  --shadow-action: 0 14px 38px rgba(0, 0, 0, 0.28);
+  --shadow-modal: 0 24px 70px rgba(17, 29, 24, 0.32);
+
+  /* Mahjong-specific presentation */
+  --tile-radius: 7px;
+  --tile-compact-radius: 5px;
+  --tile-hover-offset: -2px;
+  --tile-select-offset: -3px;
+  --tile-selected-hover-offset: -4px;
+  --tile-gap: var(--space-1);
+  --drawn-tile-gap: clamp(8px, 1.4vw, 18px);
+}

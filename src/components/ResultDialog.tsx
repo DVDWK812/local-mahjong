@@ -1,5 +1,6 @@
 import type React from 'react';
 import type { AbortiveDrawReason, GameState, PlayerId, ResultYaku, Tile as TileModel, WinResultEntry, WinRoundResult } from '../game/types';
+import type { SeventeenStepsWaitAnalysis } from '../game/seventeenSteps';
 import { tileLabel, windLabel } from '../game/tileUtils';
 import { PlayerMelds } from './PlayerMelds';
 import { Tile as TileView } from './Tile';
@@ -9,6 +10,10 @@ interface ResultDialogProps {
   gameState: GameState;
   onReset: () => void;
   doraGlowEnabled?: boolean;
+  showDoraIndicators?: boolean;
+  revealExhaustiveDrawPlayerIds?: PlayerId[];
+  seventeenStepsDrawAnalysis?: SeventeenStepsWaitAnalysis[];
+  seventeenStepsKazoeYakumanMode?: 'disabled' | 'sanbaiman' | 'yakuman';
   continueLabel?: string;
   displayPointDeltas?: number[];
   resultRiichiSticks?: number;
@@ -63,17 +68,49 @@ function HandPreview({ title, tiles, doraIndicators = [], doraGlowEnabled = true
   );
 }
 
-function WinHandPreview({ gameState, winner, win, doraGlowEnabled = true }: { gameState: GameState; winner: GameState['players'][number]; win: WinResultEntry; doraGlowEnabled?: boolean }) {
+function SeventeenStepsDrawAnalysis({ waits, kazoeYakumanMode }: { waits: SeventeenStepsWaitAnalysis[]; kazoeYakumanMode?: 'disabled' | 'sanbaiman' | 'yakuman' }) {
+  return (
+    <section className="seventeen-steps-analysis-card result-seventeen-steps-analysis" aria-label="听牌分析">
+      <div className="seventeen-steps-analysis-header">
+        <strong>听牌分析</strong>
+      </div>
+      {waits.length === 0 ? <p>当前未形成听牌。</p> : (
+        <div className="seventeen-steps-analysis-list">
+          {waits.map((wait) => {
+            const winValueLabel = wait.score.yakumanValue > 0
+              ? wait.score.yakumanValue === 1 ? '役满' : `${wait.score.yakumanValue}倍役满`
+              : wait.restrictionHan >= 13 && kazoeYakumanMode === 'yakuman' ? '累计役满' : `${wait.restrictionHan}番`;
+            return (
+              <div className="seventeen-steps-analysis-item" key={wait.id}>
+                <div className="seventeen-steps-analysis-wait">
+                  <TileView id={wait.id} compact interactive={false} />
+                  <span>{tileLabel(wait.id)} · 剩余 {wait.remaining}</span>
+                </div>
+                <span>{winValueLabel} · 番缚计入宝牌 ×{wait.doraCount}{wait.redDoraOnly ? '（仅赤宝可满足）' : ''}</span>
+                <span>{wait.score.yaku.map((yaku) => yaku.name).join('、') || '无役'}</span>
+                <strong className={wait.meetsHanRestriction ? 'seventeen-steps-analysis-pass' : 'seventeen-steps-analysis-fail'}>{wait.meetsHanRestriction ? '番缚满足' : '番缚不足'}</strong>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function WinHandPreview({ gameState, winner, win, doraGlowEnabled = true, showDoraIndicators = true }: { gameState: GameState; winner: GameState['players'][number]; win: WinResultEntry; doraGlowEnabled?: boolean; showDoraIndicators?: boolean }) {
   const concealedTiles = removeWinTileForDisplay(winner.hand, win.winTile, win.winType);
   const uraIndicators = winner.riichi ? activeUraDoraIndicators(gameState.deadWall, gameState.doraIndicators.length) : [];
   return (
     <div className="result-tile-sections" aria-label="和牌牌组">
-      <section className="result-tile-section result-dora-indicators" aria-label="宝牌指示牌">
-        <span>宝牌指示牌</span>
-        <div className="result-hand-row">
-          {gameState.doraIndicators.map((tile) => <TileView key={tile.instanceId} tile={tile} compact doraGlowEnabled={false} />)}
-        </div>
-      </section>
+      {showDoraIndicators ? (
+        <section className="result-tile-section result-dora-indicators" aria-label="宝牌指示牌">
+          <span>宝牌指示牌</span>
+          <div className="result-hand-row">
+            {gameState.doraIndicators.map((tile) => <TileView key={tile.instanceId} tile={tile} compact doraGlowEnabled={false} />)}
+          </div>
+        </section>
+      ) : null}
       <section className="result-tile-section result-concealed-hand">
         <span>手牌</span>
         <div className="result-hand-row" aria-label="手牌">
@@ -214,11 +251,12 @@ function winDisplayDeltas(gameState: GameState, result: WinRoundResult): number[
   ));
 }
 
-export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, continueLabel = '继续', displayPointDeltas, resultRiichiSticks = gameState.riichiSticks, visiblePlayerIds, scoreBefore, scoreAfter }: ResultDialogProps) {
+export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showDoraIndicators = true, revealExhaustiveDrawPlayerIds = [], seventeenStepsDrawAnalysis, seventeenStepsKazoeYakumanMode, continueLabel = '继续', displayPointDeltas, resultRiichiSticks = gameState.riichiSticks, visiblePlayerIds, scoreBefore, scoreAfter }: ResultDialogProps) {
   const result = gameState.result;
   if (!result) return null;
 
   if (result.type === 'exhaustive-draw') {
+    const revealedPlayerIds = [...new Set([...result.tenpaiPlayers, ...revealExhaustiveDrawPlayerIds])];
     return (
       <ResultShell title="荒牌流局" subtitle="听牌罚符结算" onReset={onReset} continueLabel={continueLabel}>
         <div className="result-card">
@@ -227,9 +265,10 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, conti
           <p>本场增加：{result.honbaIncrement}</p>
           <p>供托保留：{result.riichiSticksCarryOver ? '是' : '否'}</p>
           <p>庄家连庄：{result.dealerContinues ? '是' : '否'}</p>
-          {result.tenpaiPlayers.map((playerId) => (
+          {revealedPlayerIds.map((playerId) => (
             <HandPreview key={playerId} title={`${gameState.players[playerId].name} 手牌`} tiles={gameState.players[playerId].hand} />
           ))}
+          {seventeenStepsDrawAnalysis ? <SeventeenStepsDrawAnalysis waits={seventeenStepsDrawAnalysis} kazoeYakumanMode={seventeenStepsKazoeYakumanMode} /> : null}
         </div>
         <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? result.pointDeltas} visiblePlayerIds={visiblePlayerIds} scoreBefore={scoreBefore} scoreAfter={scoreAfter} />
       </ResultShell>
@@ -277,7 +316,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, conti
                 <strong>{winner.name} · {windLabel(winner.seatWind)} · {gameState.dealer === winner.id ? '庄' : '闲'}</strong>
                 <span>{win.winType === 'tsumo' ? '自摸' : `荣和${from ? ` ${windLabel(from.seatWind)}家` : ''}`}</span>
               </div>
-              <WinHandPreview gameState={gameState} winner={winner} win={win} doraGlowEnabled={doraGlowEnabled} />
+              <WinHandPreview gameState={gameState} winner={winner} win={win} doraGlowEnabled={doraGlowEnabled} showDoraIndicators={showDoraIndicators} />
               <p>和牌：{tileLabel(win.winTile)}</p>
               <div className="result-yaku-list" aria-label="役种明细">
                 {yakuRows.length ? yakuRows.map((yaku, index) => (

@@ -29,4 +29,23 @@ describe('ResultDialog exhaustive draw branch', () => {
     expect(html).toContain('供托保留');
     expect(html).toContain('庄家连庄');
   });
+
+  it('can reveal an additional player hand on draw without changing the default tenpai display', () => {
+    const state: GameState = {
+      ...createInitialGameState(),
+      result: {
+        type: 'exhaustive-draw',
+        tenpaiPlayers: [0] as PlayerId[],
+        notenPlayers: [1, 2, 3] as PlayerId[],
+        scoreDeltas: [1500, -500, -500, -500],
+        pointDeltas: [1500, -500, -500, -500],
+        dealerContinues: true,
+        honbaIncrement: 1,
+        riichiSticksCarryOver: true,
+      },
+    };
+    const html = renderToStaticMarkup(<ResultDialog gameState={state} onReset={() => undefined} revealExhaustiveDrawPlayerIds={[1]} />);
+    expect(html).toContain('Player 1 手牌');
+    expect(html).toContain('Player 2 手牌');
+  });
 });

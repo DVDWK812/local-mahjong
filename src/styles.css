@@ -684,7 +684,7 @@ body {
   background: #eef2eb;
   box-shadow: -16px 0 36px rgba(0, 0, 0, 0.28);
   transform: translateX(105%);
-  transition: transform 160ms ease;
+  transition: transform var(--motion-normal) ease;
   visibility: hidden;
 }
 
@@ -721,7 +721,7 @@ body {
   background: rgba(5, 16, 12, 0.26);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 160ms ease;
+  transition: opacity var(--motion-normal) ease;
 }
 
 .replay-wall-backdrop.is-open {
@@ -1200,7 +1200,7 @@ body {
   opacity: 0;
   pointer-events: none;
   transform: translateX(-50%) translateY(4px);
-  transition: opacity 120ms ease, transform 120ms ease;
+  transition: opacity var(--motion-fast) ease, transform var(--motion-fast) ease;
 }
 
 .rule-help-tooltip[data-open="true"] {
@@ -1710,9 +1710,9 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 8px;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
   background: #f7f2df;
   border: 1px solid rgba(150, 111, 35, 0.28);
 }
@@ -1722,7 +1722,7 @@ button {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .prompt-group {
@@ -1742,7 +1742,7 @@ button {
 .action-prompt button {
   min-height: 34px;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: #f2d99a;
   color: #000000;
   cursor: pointer;
@@ -1911,7 +1911,7 @@ button {
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
-  gap: 4px;
+  gap: var(--tile-gap);
 }
 
 .dora-panel {
@@ -1928,13 +1928,13 @@ button {
   width: 38px;
   height: 52px;
   border: 0;
-  border-radius: 7px;
+  border-radius: var(--tile-radius);
   background: transparent;
   cursor: default;
   padding: 0;
   line-height: 0;
-  box-shadow: 0 2px 5px rgba(25, 34, 30, 0.16);
-  transition: opacity 0.12s ease, transform 0.12s ease, filter 0.12s ease;
+  box-shadow: var(--shadow-tile);
+  transition: opacity var(--motion-fast) ease, transform var(--motion-fast) ease, filter var(--motion-fast) ease;
 }
 
 .tile--clickable:not(:disabled),
@@ -1943,7 +1943,7 @@ button {
 }
 
 .tile:not(:disabled):hover {
-  transform: translateY(-2px);
+  transform: translateY(var(--tile-hover-offset));
   filter: brightness(1.03);
 }
 
@@ -1961,7 +1961,7 @@ button {
 .tile--dora,
 .tile--red-dora,
 .tile--double-dora {
-  z-index: 1;
+  z-index: var(--z-tile);
 }
 
 .tile--dora .tile-image,
@@ -1976,7 +1976,7 @@ button {
 .tile-dora-frame {
   position: absolute;
   inset: var(--dora-frame-inset);
-  z-index: 2;
+  z-index: var(--z-tile-accent);
   box-sizing: border-box;
   border-radius: inherit;
   pointer-events: none;
@@ -2130,7 +2130,7 @@ button {
 .tile--compact {
   width: 30px;
   height: 40px;
-  border-radius: 5px;
+  border-radius: var(--tile-compact-radius);
 }
 
 .tile--compact .tile-red-badge {
@@ -2147,11 +2147,11 @@ button {
 .tile--selected {
   outline: 2px solid #d6a645;
   outline-offset: 2px;
-  transform: translateY(-3px);
+  transform: translateY(var(--tile-select-offset));
 }
 
 .tile--selected:not(:disabled):hover {
-  transform: translateY(-4px);
+  transform: translateY(var(--tile-selected-hover-offset));
 }
 
 .tile--sideways {
@@ -2159,11 +2159,11 @@ button {
 }
 
 .tile--sideways:not(:disabled):hover {
-  transform: rotate(90deg) translateX(-2px);
+  transform: rotate(90deg) translateX(var(--tile-hover-offset));
 }
 
 .tile--sideways.tile--selected {
-  transform: rotate(90deg) translateX(-3px);
+  transform: rotate(90deg) translateX(var(--tile-select-offset));
 }
 
 .counter-panel {
@@ -2272,7 +2272,7 @@ button {
   place-items: center;
   padding: 18px;
   background: rgba(8, 16, 13, 0.68);
-  z-index: 100;
+  z-index: var(--z-modal);
 }
 
 .result-dialog {
@@ -2284,7 +2284,7 @@ button {
   border: 1px solid rgba(45, 64, 55, 0.2);
   border-radius: 8px;
   background: #fbfcf8;
-  box-shadow: 0 24px 70px rgba(17, 29, 24, 0.32);
+  box-shadow: var(--shadow-modal);
 }
 
 .result-header,
@@ -2666,14 +2666,14 @@ button {
     radial-gradient(circle at center, rgba(23, 91, 68, 0.8), rgba(12, 52, 40, 0.96));
   background-size: 28px 28px, 28px 28px, auto;
   overflow: hidden;
-  z-index: 0;
+  z-index: var(--z-table);
 }
 
 .dora-indicator-stack {
   position: absolute;
   left: clamp(8px, 1vw, 14px);
   top: clamp(8px, 1vw, 14px);
-  z-index: 30;
+  z-index: var(--z-table-ui);
   display: grid;
   gap: 7px;
   color: #edf7ef;
@@ -2723,7 +2723,7 @@ button {
   justify-items: stretch;
   overflow: visible;
   color: #edf7ef;
-  z-index: 20;
+  z-index: var(--z-hand);
 }
 
 .player-slot--top { grid-area: north; }
@@ -2796,7 +2796,7 @@ button {
 
 .player-zone-hand-wrap {
   grid-area: hand;
-  z-index: 20;
+  z-index: var(--z-hand);
   display: grid;
   place-items: center;
   min-width: 0;
@@ -2812,7 +2812,7 @@ button {
 
 .player-zone-river-wrap {
   grid-area: river;
-  z-index: 10;
+  z-index: var(--z-river);
   display: grid;
   place-items: center;
   min-width: 0;
@@ -2821,7 +2821,7 @@ button {
 
 .player-zone-meld-wrap {
   grid-area: melds;
-  z-index: 20;
+  z-index: var(--z-hand);
   min-width: 0;
   min-height: 0;
   display: grid;
@@ -2847,7 +2847,7 @@ button {
 
 .player-zone-label {
   grid-area: info;
-  z-index: 30;
+  z-index: var(--z-table-ui);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
@@ -3081,7 +3081,7 @@ button {
 
 .table-meld-anchor {
   position: absolute;
-  z-index: 20;
+  z-index: var(--z-hand);
   display: grid;
   place-items: center;
   min-width: 0;
@@ -3155,7 +3155,7 @@ button {
   min-height: 0;
   overflow: visible;
   transform-origin: center;
-  z-index: 10;
+  z-index: var(--z-river);
 }
 
 .discard-river-grid {
@@ -3270,7 +3270,7 @@ button {
   background: rgba(8, 24, 20, 0.72);
   border: 1px solid rgba(230, 241, 232, 0.14);
   box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.28), 0 10px 26px rgba(0, 0, 0, 0.22);
-  z-index: 20;
+  z-index: var(--z-hand);
 }
 
 .table-center-cluster {
@@ -3439,7 +3439,7 @@ button {
 }
 
 .local-hand-area {
-  z-index: 20;
+  z-index: var(--z-hand);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas:
@@ -3487,7 +3487,7 @@ button {
 
 .local-hand-row .drawn-tile-gap {
   display: inline-flex;
-  margin-left: clamp(8px, 1.4vw, 18px);
+  margin-left: var(--drawn-tile-gap);
 }
 
 .local-meld-track {
@@ -3513,7 +3513,7 @@ button {
 
 .game-prompt-layer {
   position: absolute;
-  z-index: 50;
+  z-index: var(--z-action);
   left: 50%;
   bottom: calc(var(--hand-tile-height) + 24px);
   display: flex;
@@ -3528,7 +3528,7 @@ button {
 .game-prompt-layer .action-prompt {
   flex: 0 1 720px;
   pointer-events: auto;
-  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--shadow-action);
 }
 
 .game-tenpai-layer {
@@ -3630,7 +3630,7 @@ button {
   top: 62px;
   width: min(560px, calc(100vw - 24px));
   transform: translateX(-50%);
-  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--shadow-action);
 }
 
 .call-panel,
@@ -3640,7 +3640,7 @@ button {
 
 .analysis-drawer {
   position: absolute;
-  z-index: 80;
+  z-index: var(--z-drawer);
   top: 0;
   right: 0;
   display: grid;
@@ -3651,7 +3651,7 @@ button {
   border-left: 1px solid rgba(45, 64, 55, 0.2);
   box-shadow: -18px 0 42px rgba(0, 0, 0, 0.22);
   transform: translateX(102%);
-  transition: transform 0.16s ease;
+  transition: transform var(--motion-normal) ease;
 }
 
 .rules-guide {
@@ -4362,7 +4362,7 @@ button {
   border: 1px solid var(--seventeen-panel-border);
   border-radius: 8px;
   background: var(--seventeen-panel-bg-secondary);
-  transition: border-color 120ms ease, background 120ms ease;
+  transition: border-color var(--motion-fast) ease, background var(--motion-fast) ease;
 }
 
 .seventeen-steps-game--build .seventeen-steps-build-zone--hand {

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { defaultPresentationFeatures } from '../config/presentationFeatures';
 import { createInitialGameState, discardTile } from '../game/engine';
 import {
   confirmBuild,
@@ -55,6 +56,10 @@ describe('PresentationEventBus', () => {
 });
 
 describe('tile_discarded presentation event', () => {
+  it('默认只启用 presentationEvents', () => {
+    expect(defaultPresentationFeatures).toEqual({ presentationEvents: true });
+  });
+
   it('四人模式合法弃牌只发布一次，并只包含最小公开牌信息', () => {
     const before = createInitialGameState();
     const discarded = before.players[0].hand[0];
@@ -77,6 +82,61 @@ describe('tile_discarded presentation event', () => {
     });
     expect(Object.keys(events[0].tile).sort()).toEqual(['id', 'red']);
     expect(after.players[0].river).toHaveLength(before.players[0].river.length + 1);
+  });
+
+  it('presentationEvents 关闭时不发布，但弃牌状态正常推进', () => {
+    const before = createInitialGameState();
+    const discarded = before.players[0].hand[0];
+    const bus = new PresentationEventBus();
+    const received = vi.fn();
+    bus.subscribe(received);
+    const observer = new GamePresentationEventObserver(before, bus, () => ({ presentationEvents: false }));
+
+    const after = discardTile(before, 0, discarded.instanceId);
+    observer.observe(after);
+
+    expect(received).not.toHaveBeenCalled();
+    expect(after.players[0].hand).toHaveLength(before.players[0].hand.length - 1);
+    expect(after.players[0].river[0]?.instanceId).toBe(discarded.instanceId);
+    expect(after.currentPlayer).toBe(1);
+    expect(after.turn).toBe(before.turn + 1);
+  });
+
+  it('开关 presentationEvents 不改变确定性 GameState', () => {
+    const before = createInitialGameState();
+    const discarded = before.players[0].hand[0];
+    const enabledAfter = discardTile(before, 0, discarded.instanceId);
+    const disabledAfter = discardTile(before, 0, discarded.instanceId);
+
+    new GamePresentationEventObserver(before, new PresentationEventBus(), () => ({ presentationEvents: true })).observe(enabledAfter);
+    new GamePresentationEventObserver(before, new PresentationEventBus(), () => ({ presentationEvents: false })).observe(disabledAfter);
+
+    expect(disabledAfter).toEqual(enabledAfter);
+  });
+
+  it('关闭期间推进水位，重新开启后不补发历史事件且 sequence 从实际发布开始', () => {
+    let presentationEvents = false;
+    const before = createInitialGameState();
+    const bus = new PresentationEventBus();
+    const events: PresentationEvent[] = [];
+    bus.subscribe((event) => events.push(event));
+    const observer = new GamePresentationEventObserver(before, bus, () => ({ presentationEvents }));
+    const disabledAfter = discardTile(before, 0, before.players[0].hand[0].instanceId);
+
+    observer.observe(disabledAfter);
+    presentationEvents = true;
+    observer.observe(disabledAfter);
+    observer.observe(disabledAfter);
+    expect(events).toHaveLength(0);
+
+    const nextRound = createInitialGameState();
+    observer.observe(nextRound);
+    const enabledAfter = discardTile(nextRound, 0, nextRound.players[0].hand[0].instanceId);
+    observer.observe(enabledAfter);
+    observer.observe(enabledAfter);
+
+    expect(events).toHaveLength(1);
+    expect(events[0].sequence).toBe(1);
   });
 
   it('非法弃牌不改变 GameState，也不发布事件', () => {
