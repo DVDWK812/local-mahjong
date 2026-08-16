@@ -26,14 +26,12 @@ describe('牌桌布局回归', () => {
     expect(css).toContain('.player-slot--bottom { grid-area: south; }');
   });
 
-  it('牌谱回放按固定视觉槽位复用正常四人局的头像与手牌位移', () => {
-    expect(css).toMatch(/\.replay-screen \.player-slot--top \.player-zone-hand-wrap\s*\{[^}]*transform: translateX\(-250px\) translateY\(-30px\)/s);
-    expect(css).toMatch(/\.replay-screen \.player-slot--top \.player-zone-label\s*\{[^}]*transform: translateX\(-330px\) translateY\(5px\)/s);
-    expect(css).toMatch(/\.replay-screen \.player-slot--left \.player-zone-hand-wrap\s*\{[^}]*transform: translateX\(-120px\)/s);
-    expect(css).toMatch(/\.replay-screen \.player-slot--left \.player-zone-label\s*\{[^}]*transform: translateX\(-200px\)/s);
-    expect(css).toMatch(/\.replay-screen \.player-slot--right \.player-zone-hand-wrap\s*\{[^}]*transform: translateX\(80px\)/s);
-    expect(css).toMatch(/\.replay-screen \.player-slot--right \.player-zone-label\s*\{[^}]*transform: translateX\(220px\) translateY\(250px\)/s);
+  it('牌谱回放按座位视觉槽位复用正常四人局布局，不按玩家 ID 写死位移', () => {
+    expect(css).toContain('.player-zone--north .player-zone-layout');
+    expect(css).toContain('.player-zone--west .player-zone-layout');
+    expect(css).toContain('.player-zone--east .player-zone-layout');
     expect(css).not.toMatch(/\.replay-screen [^{]*\[data-player-index=/);
+    expect(css).not.toMatch(/^\.game-screen \.player-zone\[data-player-index=/m);
   });
 
   it('四家牌河放大后仍固定在中央周围并使用 6.5 张占位尺寸', () => {
@@ -61,9 +59,9 @@ describe('牌桌布局回归', () => {
     expect(css).toContain('--side-player-outset: clamp(24px, 3vw, 56px)');
     expect(css).toContain('--opponent-edge-gap: clamp(8px, 1vw, 18px)');
     expect(css).toContain('--side-player-edge-shift: calc(var(--side-player-outset) + var(--opponent-edge-gap))');
-    expect(css).toContain('translate: 0 calc(-1 * var(--opponent-edge-gap))');
-    expect(css).toContain('translate: calc(-1 * var(--side-player-edge-shift)) 0');
-    expect(css).toContain('translate: var(--side-player-edge-shift) 0');
+    expect(css).toContain('.player-zone--north');
+    expect(css).toContain('.player-zone--west');
+    expect(css).toContain('.player-zone--east');
     expect(css).toContain('.table-meld-anchor--north');
     expect(css).toContain('.table-meld-anchor--east');
     expect(css).toContain('.table-meld-anchor--west');

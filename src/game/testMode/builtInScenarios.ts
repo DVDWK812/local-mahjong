@@ -10,7 +10,8 @@ export const BUILT_IN_TEST_SCENARIO_IDS = [
   'STAB-001-MINKAN',
   'STAB-001-KAKAN',
   'STAB-001-FOUR-KANS',
-  'UI-RIICHI-WAIT-PREVIEW',
+  'RIICHI-DISCARD-MUST-TENPAI',
+  'UI-RIICHI-DISCARD-WAIT-PREVIEW',
   'RULE-MINIMUM-HAN-2',
   'RULE-MINIMUM-HAN-3',
   'RULE-MINIMUM-HAN-4',
@@ -23,6 +24,7 @@ export function getBuiltInTestScenarios(): TestScenarioV1[] {
     buildMinkanScenario(),
     buildKakanScenario(),
     buildFourKansScenario(),
+    buildRiichiDiscardMustTenpaiScenario(),
     buildRiichiWaitPreviewScenario(),
     buildMinimumHanScenario(2),
     buildMinimumHanScenario(3),
@@ -173,8 +175,7 @@ function buildFourKansScenario(): TestScenarioV1 {
   return scenario;
 }
 
-function buildRiichiWaitPreviewScenario(): TestScenarioV1 {
-  const id = 'UI-RIICHI-WAIT-PREVIEW';
+function buildRiichiScenario(id: string, name: string, description: string, instructions: string[]): TestScenarioV1 {
   const builder = new StableTileBuilder(id);
   const hand0 = ([0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23, 27, 31] as TileId[])
     .map((tileId) => builder.take(tileId, 'player-0-hand'))
@@ -182,19 +183,35 @@ function buildRiichiWaitPreviewScenario(): TestScenarioV1 {
   const players = buildPlayers(builder, hand0);
   const state = baseState(builder, players, buildDeadWall(builder), { currentPlayer: 0, phase: 'discard' });
   state.players[0].drawnTile = hand0.find((tile) => tile.id === 31) ?? hand0[hand0.length - 1];
-  const scenario = createScenario(
-    id,
+  return createScenario(id, name, description, state, instructions);
+}
+
+function buildRiichiDiscardMustTenpaiScenario(): TestScenarioV1 {
+  return buildRiichiScenario(
+    'RIICHI-DISCARD-MUST-TENPAI',
+    '立直弃牌必须听牌',
+    '玩家1有两个产生不同等待的合法立直弃牌，用于逐个验证正式弃牌后必定听牌。',
+    [
+      '确认操作框只显示正式合法的立直弃牌候选。',
+      '依次重置场景并点击每一个候选。',
+      '确认每次都按具体instanceId弃牌并进入听牌。',
+      '确认立直状态、宣言牌与正式等待一致。',
+    ],
+  );
+}
+
+function buildRiichiWaitPreviewScenario(): TestScenarioV1 {
+  return buildRiichiScenario(
+    'UI-RIICHI-DISCARD-WAIT-PREVIEW',
     '立直候选听牌预览',
     '玩家1处于可立直的弃牌阶段，用于检查每个立直候选的正式听牌与剩余枚数提示。',
-    state,
     [
       '确认操作框显示多个立直弃牌候选。',
-      '依次悬停不同候选，确认听牌与剩余枚数立即更新。',
-      '移出候选后确认听牌提示清除。',
+      '依次悬停或聚焦不同候选，确认听牌、每种剩余枚数和总有效枚数立即更新。',
+      '移出或失焦候选后确认听牌提示清除。',
       '重新加载场景并点击候选，确认立直与弃牌流程保持不变。',
     ],
   );
-  return scenario;
 }
 
 function buildMinimumHanScenario(minimumHan: 2 | 3 | 4 | 5): TestScenarioV1 {

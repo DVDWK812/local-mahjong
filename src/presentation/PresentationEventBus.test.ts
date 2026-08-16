@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { defaultPresentationFeatures } from '../config/presentationFeatures';
-import { createInitialGameState, discardTile } from '../game/engine';
+import { createInitialGameState, discardTile, drawTile } from '../game/engine';
 import {
   confirmBuild,
   createSeventeenStepsGame,
@@ -56,8 +56,8 @@ describe('PresentationEventBus', () => {
 });
 
 describe('tile_discarded presentation event', () => {
-  it('默认只启用 presentationEvents', () => {
-    expect(defaultPresentationFeatures).toEqual({ presentationEvents: true });
+  it('默认启用 presentationEvents 与 handAnimations', () => {
+    expect(defaultPresentationFeatures).toEqual({ presentationEvents: true, handAnimations: true });
   });
 
   it('四人模式合法弃牌只发布一次，并只包含最小公开牌信息', () => {
@@ -80,7 +80,10 @@ describe('tile_discarded presentation event', () => {
       riverIndex: 0,
       isRiichiDiscard: false,
     });
-    expect(Object.keys(events[0].tile).sort()).toEqual(['id', 'red']);
+    const publishedEvent = events[0];
+    expect(publishedEvent.type).toBe('tile_discarded');
+    if (publishedEvent.type !== 'tile_discarded') throw new Error('Expected a tile_discarded event');
+    expect(Object.keys(publishedEvent.tile).sort()).toEqual(['id', 'red']);
     expect(after.players[0].river).toHaveLength(before.players[0].river.length + 1);
   });
 
@@ -90,7 +93,7 @@ describe('tile_discarded presentation event', () => {
     const bus = new PresentationEventBus();
     const received = vi.fn();
     bus.subscribe(received);
-    const observer = new GamePresentationEventObserver(before, bus, () => ({ presentationEvents: false }));
+    const observer = new GamePresentationEventObserver(before, bus, () => ({ presentationEvents: false, handAnimations: true }));
 
     const after = discardTile(before, 0, discarded.instanceId);
     observer.observe(after);
@@ -108,8 +111,8 @@ describe('tile_discarded presentation event', () => {
     const enabledAfter = discardTile(before, 0, discarded.instanceId);
     const disabledAfter = discardTile(before, 0, discarded.instanceId);
 
-    new GamePresentationEventObserver(before, new PresentationEventBus(), () => ({ presentationEvents: true })).observe(enabledAfter);
-    new GamePresentationEventObserver(before, new PresentationEventBus(), () => ({ presentationEvents: false })).observe(disabledAfter);
+    new GamePresentationEventObserver(before, new PresentationEventBus(), () => ({ presentationEvents: true, handAnimations: true })).observe(enabledAfter);
+    new GamePresentationEventObserver(before, new PresentationEventBus(), () => ({ presentationEvents: false, handAnimations: true })).observe(disabledAfter);
 
     expect(disabledAfter).toEqual(enabledAfter);
   });
@@ -120,7 +123,7 @@ describe('tile_discarded presentation event', () => {
     const bus = new PresentationEventBus();
     const events: PresentationEvent[] = [];
     bus.subscribe((event) => events.push(event));
-    const observer = new GamePresentationEventObserver(before, bus, () => ({ presentationEvents }));
+    const observer = new GamePresentationEventObserver(before, bus, () => ({ presentationEvents, handAnimations: true }));
     const disabledAfter = discardTile(before, 0, before.players[0].hand[0].instanceId);
 
     observer.observe(disabledAfter);
@@ -174,7 +177,7 @@ describe('tile_discarded presentation event', () => {
     const onListenerError = vi.fn();
     const bus = new PresentationEventBus(onListenerError);
     bus.subscribe((event) => {
-      (event.tile as { id: number }).id = 33;
+      if (event.type === 'tile_discarded') (event.tile as { id: number }).id = 33;
     });
 
     new GamePresentationEventObserver(before, bus).observe(actual);
@@ -207,5 +210,53 @@ describe('tile_discarded presentation event', () => {
       isRiichiDiscard: true,
     });
     expect(after.players[0].discardCount).toBe(1);
+  });
+});
+
+describe('tile_drawn presentation event', () => {
+  function stateBeforeConfirmedDraw() {
+    const initial = createInitialGameState();
+    return {
+      ...initial,
+      phase: 'draw' as const,
+      currentPlayer: 1 as const,
+      players: initial.players.map((player) => player.id === 1 ? { ...player, drawnTile: null } : player),
+    };
+  }
+
+  it('confirmed draw 只发布一次且不包含隐藏牌身份', () => {
+    const before = stateBeforeConfirmedDraw();
+    const after = drawTile(before, { settleTsumo: false });
+    const bus = new PresentationEventBus();
+    const events: PresentationEvent[] = [];
+    bus.subscribe((event) => events.push(event));
+    const observer = new GamePresentationEventObserver(before, bus);
+
+    observer.observe(after);
+    observer.observe(after);
+
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ type: 'tile_drawn', playerId: 1 });
+    expect(Object.keys(events[0]).sort()).toEqual(['eventId', 'playerId', 'sequence', 'type']);
+    expect(JSON.stringify(events[0])).not.toContain(after.players[1].drawnTile?.instanceId);
+    expect(JSON.stringify(events[0])).not.toContain(`\"id\":${after.players[1].drawnTile?.id}`);
+  });
+
+  it('没有 confirmed draw 时不发布，关闭期间也不会补发', () => {
+    let presentationEvents = false;
+    const before = stateBeforeConfirmedDraw();
+    const after = drawTile(before, { settleTsumo: false });
+    const bus = new PresentationEventBus();
+    const received = vi.fn();
+    bus.subscribe(received);
+    const observer = new GamePresentationEventObserver(before, bus, () => ({ presentationEvents, handAnimations: true }));
+
+    observer.observe(before);
+    observer.observe(after);
+    presentationEvents = true;
+    observer.observe(after);
+
+    expect(received).not.toHaveBeenCalled();
+    expect(after.players[1].drawnTile).not.toBeNull();
   });
 });

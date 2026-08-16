@@ -253,6 +253,7 @@ export function TestModeScreen({ initialScenario = null, onExit, testResultStora
         controlledPlayerId={session.controlPlayerId}
         tableBottomPlayerId={0}
         revealAllHands={allOpen}
+        handAnimationsEnabled={false}
         onDiscard={(playerId, tileInstanceId) => applyAction('弃牌', { type: 'discard', playerId, tileInstanceId })}
         onTsumo={(playerId) => applyAction('自摸', { type: 'tsumo', playerId })}
         onRon={(playerId) => applyAction('荣和', { type: 'ron', playerId })}

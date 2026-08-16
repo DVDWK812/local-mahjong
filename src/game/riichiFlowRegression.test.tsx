@@ -32,7 +32,7 @@ function setRiichiReadyHand(state: GameState, playerId: PlayerId): GameState {
 
 function declareAndDiscard(state: GameState, playerId: PlayerId): GameState {
   const [candidate] = getRiichiDiscardCandidates(state, playerId);
-  return discardTile(declareRiichi(state, playerId), playerId, candidate.instanceId);
+  return declareRiichi(state, playerId, candidate.instanceId);
 }
 
 describe('立直流程回归', () => {

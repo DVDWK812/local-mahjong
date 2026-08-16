@@ -1,9 +1,8 @@
 import { getPonOptions } from './callChecker';
 import { buildAbortiveDrawResult, checkAbortiveDrawAfterDiscard } from './abortiveDraw';
 import { getChiOptions } from './chiChecker';
-import { settleExhaustiveDraw } from './exhaustiveDraw';
+import { isPlayerTenpaiAtDraw, settleExhaustiveDraw } from './exhaustiveDraw';
 import { getMinkanOptions } from './kanChecker';
-import { shanten } from './shanten';
 import type { GameState, PlayerId, PlayerState, RoundResult, Tile } from './types';
 import { sortTiles, WIND_ORDER } from './tileUtils';
 import { createShuffledWall, splitDeadWall } from './wall';
@@ -144,16 +143,23 @@ export function discardTile(state: GameState, playerId: PlayerId, tileInstanceId
   if (state.phase !== 'discard' || state.currentPlayer !== playerId) return state;
   if (!canDiscardTileByRules(state, playerId, tileInstanceId)) return state;
 
+  const currentPlayer = state.players[playerId];
+  const isRiichiDeclarationDiscard = currentPlayer.riichi
+    && currentPlayer.riichiState
+    && !currentPlayer.riichiState.riichiDiscardInstanceId
+    && currentPlayer.riichiState.declaredAtTurn === state.turn;
+  if (currentPlayer.riichi
+    && !isRiichiDeclarationDiscard
+    && currentPlayer.drawnTile?.instanceId !== tileInstanceId) {
+    return state;
+  }
+
   const players = clonePlayers(state.players);
   const player = players[playerId];
   const tileIndex = player.hand.findIndex((tile) => tile.instanceId === tileInstanceId);
   if (tileIndex === -1) return state;
 
   const [discarded] = player.hand.splice(tileIndex, 1);
-  const isRiichiDeclarationDiscard = player.riichi
-    && player.riichiState
-    && !player.riichiState.riichiDiscardInstanceId
-    && player.riichiState.declaredAtTurn === state.turn;
   const shouldSidewaysDiscard = isRiichiDeclarationDiscard || (player.pendingRiichiSidewaysDiscard ?? false);
   const isTsumogiri = player.drawnTile?.instanceId === discarded.instanceId;
   const riverDiscard = { ...discarded, isRiichiDiscard: shouldSidewaysDiscard || undefined, isTsumogiri };
@@ -325,37 +331,57 @@ export function canCall(): false {
 
 export function canDeclareRiichi(state: GameState, playerId: PlayerId): boolean {
   const player = state.players[playerId];
+  return isRiichiDeclarationAvailable(state, playerId)
+    && player.hand.some((tile) => evaluateRiichiDiscard(state, playerId, tile.instanceId) !== null);
+}
+
+export interface RiichiDiscardEvaluation {
+  tile: Tile;
+  handAfterDiscard: Tile[];
+}
+
+function isRiichiDeclarationAvailable(state: GameState, playerId: PlayerId): boolean {
+  const player = state.players[playerId];
   if (!player) return false;
   if (state.phase !== 'discard' || state.currentPlayer !== playerId) return false;
   if (player.riichi || player.riichiState) return false;
   if (player.score < 1000) return false;
   if (player.calls.some((call) => call.opened)) return false;
+  return true;
+}
 
-  return player.hand.some((tile) => {
-    const afterDiscard = player.hand.filter((candidate) => candidate.instanceId !== tile.instanceId);
-    return shanten(afterDiscard).best === 0;
-  });
+export function evaluateRiichiDiscard(
+  state: GameState,
+  playerId: PlayerId,
+  tileInstanceId: string,
+): RiichiDiscardEvaluation | null {
+  if (!isRiichiDeclarationAvailable(state, playerId)) return null;
+  if (!canDiscardTileByRules(state, playerId, tileInstanceId)) return null;
+  const player = state.players[playerId];
+  const tile = player.hand.find((candidate) => candidate.instanceId === tileInstanceId);
+  if (!tile) return null;
+  const handAfterDiscard = player.hand.filter((candidate) => candidate.instanceId !== tileInstanceId);
+  if (handAfterDiscard.length !== player.hand.length - 1) return null;
+  const afterDiscardState: GameState = {
+    ...state,
+    players: state.players.map((candidate) => candidate.id === playerId
+      ? { ...candidate, hand: handAfterDiscard, drawnTile: null }
+      : candidate),
+  };
+  return isPlayerTenpaiAtDraw(afterDiscardState, playerId) ? { tile, handAfterDiscard } : null;
 }
 
 export function getRiichiDiscardCandidates(state: GameState, playerId: PlayerId): Tile[] {
   const player = state.players[playerId];
-  if (!canDeclareRiichi(state, playerId)) return [];
-  const seen = new Set<string>();
-  return player.hand.filter((tile) => {
-    const afterDiscard = player.hand.filter((candidate) => candidate.instanceId !== tile.instanceId);
-    const key = String(tile.id);
-    if (seen.has(key)) return false;
-    if (shanten(afterDiscard).best !== 0) return false;
-    seen.add(key);
-    return true;
-  });
+  if (!player || !isRiichiDeclarationAvailable(state, playerId)) return [];
+  return player.hand.filter((tile) => evaluateRiichiDiscard(state, playerId, tile.instanceId) !== null);
 }
 
-export function declareRiichi(state: GameState, playerId: PlayerId): GameState {
-  if (!canDeclareRiichi(state, playerId)) return state;
+export function declareRiichi(state: GameState, playerId: PlayerId, tileInstanceId: string): GameState {
+  const evaluation = evaluateRiichiDiscard(state, playerId, tileInstanceId);
+  if (!evaluation) return state;
   const kind = canDeclareDoubleRiichi(state, playerId) ? 'double-riichi' : 'riichi';
-
-  return {
+  const declaredState: GameState = {
     ...state,
     riichiSticks: state.riichiSticks + 1,
     players: state.players.map((player) =>
@@ -373,6 +399,15 @@ export function declareRiichi(state: GameState, playerId: PlayerId): GameState {
         : player,
     ),
   };
+  const discardedState = discardTile(declaredState, playerId, evaluation.tile.instanceId);
+  const discardedPlayer = discardedState.players[playerId];
+  if (discardedState === declaredState
+    || discardedPlayer.hand.some((tile) => tile.instanceId === evaluation.tile.instanceId)
+    || discardedPlayer.riichiState?.riichiDiscardInstanceId !== evaluation.tile.instanceId
+    || !isPlayerTenpaiAtDraw(discardedState, playerId)) {
+    return state;
+  }
+  return discardedState;
 }
 
 export function canDeclareDoubleRiichi(state: GameState, playerId: PlayerId): boolean {

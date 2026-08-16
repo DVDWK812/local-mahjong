@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import type { ReplayMetadata } from '../game/persistence/storageTypes';
 
 interface ReplayLibraryProps {
   replays: ReplayMetadata[];
   onOpen: (id: string) => void;
-  onRename: (id: string) => void;
+  onRename: (id: string, title: string) => void;
   onDelete: (id: string) => void;
   onExport: (id: string) => void;
   onStartLocalMatch: () => void;
@@ -23,6 +24,26 @@ export function ReplayLibrary({
   onExport,
   onStartLocalMatch,
 }: ReplayLibraryProps) {
+  const [editingReplayId, setEditingReplayId] = useState<string | null>(null);
+  const [draftTitle, setDraftTitle] = useState('');
+
+  const startRename = (replay: ReplayMetadata) => {
+    setEditingReplayId(replay.id);
+    setDraftTitle(replay.title);
+  };
+
+  const cancelRename = () => {
+    setEditingReplayId(null);
+    setDraftTitle('');
+  };
+
+  const saveRename = (replay: ReplayMetadata) => {
+    const title = draftTitle.trim();
+    if (!title) return;
+    onRename(replay.id, title);
+    cancelRename();
+  };
+
   return (
     <section className="replay-library">
       <h2>牌谱列表</h2>
@@ -39,7 +60,20 @@ export function ReplayLibrary({
           <article key={replay.id} className={`replay-card${corrupted ? ' replay-card--error' : ''}`}>
             <div className="replay-card__header">
               <div>
-                <h3>{replay.title}</h3>
+                {editingReplayId === replay.id ? (
+                  <input
+                    className="replay-card__title-input"
+                    aria-label="编辑牌谱标题"
+                    value={draftTitle}
+                    autoFocus
+                    onChange={(event) => setDraftTitle(event.target.value)}
+                    onBlur={() => saveRename(replay)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') saveRename(replay);
+                      if (event.key === 'Escape') cancelRename();
+                    }}
+                  />
+                ) : <h3>{replay.title}</h3>}
                 <p>{formatSavedAt(replay.updatedAt)}</p>
               </div>
               <span>{corrupted ? '错误' : replay.status === 'completed' ? '完成' : '未完成'}</span>
@@ -57,7 +91,14 @@ export function ReplayLibrary({
             )}
             <div className="call-actions">
               <button type="button" onClick={() => onOpen(replay.id)} disabled={corrupted}>打开</button>
-              <button type="button" onClick={() => onRename(replay.id)} disabled={corrupted}>重命名</button>
+              {editingReplayId === replay.id ? (
+                <>
+                  <button type="button" onClick={() => saveRename(replay)} disabled={corrupted || !draftTitle.trim()}>保存</button>
+                  <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={cancelRename}>取消</button>
+                </>
+              ) : (
+                <button type="button" onClick={() => startRename(replay)} disabled={corrupted}>重命名</button>
+              )}
               <button type="button" onClick={() => onDelete(replay.id)}>删除</button>
               <button type="button" onClick={() => onExport(replay.id)} disabled={corrupted}>导出JSON</button>
             </div>

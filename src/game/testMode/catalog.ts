@@ -65,12 +65,19 @@ const CASE_METADATA: Record<string, Omit<TestCaseDefinition, 'id' | 'scenario' |
     expectedResults: ['四次杠依次使用固定岭上槽和表宝槽，每次活牌墙减少一张。'],
     manualChecks: ['逐次确认公开宝牌数量与牌面。', '确认第四次杠后的提示和终止状态可读。'],
   },
-  'UI-RIICHI-WAIT-PREVIEW': {
+  'RIICHI-DISCARD-MUST-TENPAI': {
+    version: 1,
+    type: 'automatic',
+    keywords: ['立直', '弃牌', '听牌', 'instanceId'],
+    expectedResults: ['每个候选按具体instanceId正式弃牌后都保持听牌，非法弃牌不会扣点或进入候选。'],
+    manualChecks: [],
+  },
+  'UI-RIICHI-DISCARD-WAIT-PREVIEW': {
     version: 1,
     type: 'visual',
-    keywords: ['立直', '听牌', '剩余枚数', '悬停'],
-    expectedResults: ['悬停不同立直候选时，听牌与剩余枚数立即更新；移出后提示消失。'],
-    manualChecks: ['候选切换无残留或闪烁。', '提示框不遮挡立直候选。', '点击候选后仍按原流程立直并弃牌。'],
+    keywords: ['立直', '听牌', '剩余枚数', '悬停', '焦点'],
+    expectedResults: ['悬停或聚焦不同立直候选时，听牌、每种剩余枚数和总有效枚数立即更新；离开后提示消失。'],
+    manualChecks: ['候选切换无残留或闪烁。', '提示框在操作框旁边且不遮挡候选。', '点击候选后仍按原流程立直并弃牌。'],
   },
   'RULE-MINIMUM-HAN-2': minimumHanMetadata(2),
   'RULE-MINIMUM-HAN-3': minimumHanMetadata(3),

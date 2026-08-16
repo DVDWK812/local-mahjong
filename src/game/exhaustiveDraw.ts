@@ -1,4 +1,3 @@
-import { shanten } from './shanten';
 import { defaultRuleConfig } from './score/rules/RuleConfig';
 import { findWinningShapes } from './score/yakuChecker';
 import { ALL_TILE_IDS } from './tileUtils';
@@ -15,7 +14,9 @@ export function isPlayerTenpaiAtDraw(state: GameState, playerId: PlayerId): bool
   const player = state.players[playerId];
   if (!player) return false;
   const openMeldCount = player.calls.length;
-  if (openMeldCount === 0) return shanten(player.hand).best === 0;
+  if (openMeldCount === 0) {
+    return ALL_TILE_IDS.some((tileId) => findWinningShapes([...player.hand, createTile(tileId, 99)]).length > 0);
+  }
 
   const neededConcealedMelds = 4 - openMeldCount;
   return ALL_TILE_IDS.some((tileId) => {

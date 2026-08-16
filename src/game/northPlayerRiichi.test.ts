@@ -36,8 +36,7 @@ describe('北家立直流程回归', () => {
   it('北家声明立直后弃牌并进入下一家东家的摸牌流程', () => {
     const state = northRiichiState();
     const [candidate] = getRiichiDiscardCandidates(state, 3);
-    const riichi = declareRiichi(state, 3);
-    const after = discardTile(riichi, 3, candidate.instanceId);
+    const after = declareRiichi(state, 3, candidate.instanceId);
     expect(after.currentPlayer).toBe(0);
     expect(after.currentPlayer).not.toBe(4);
     expect(after.phase).toBe('draw');
@@ -57,7 +56,7 @@ describe('北家立直流程回归', () => {
           : player,
       ),
     };
-    const afterDiscard = discardTile(declareRiichi(withHumanPon, 3), 3, candidate.instanceId);
+    const afterDiscard = declareRiichi(withHumanPon, 3, candidate.instanceId);
     expect(afterDiscard.phase).toBe('call-window');
     const afterPass = passCall(afterDiscard);
     expect(afterPass.currentPlayer).toBe(0);

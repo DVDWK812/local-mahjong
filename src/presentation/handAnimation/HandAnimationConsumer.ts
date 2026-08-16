@@ -1,0 +1,26 @@
+import { getPresentationFeatures, type PresentationFeatureFlagsSource } from '../../config/presentationFeatures';
+import { PresentationEventBus, presentationEventBus, type PresentationEvent } from '../PresentationEventBus';
+import type { HandAnimationAction, HandAnimationController } from './HandAnimationController';
+
+export class HandAnimationConsumer {
+  private readonly unsubscribe: () => void;
+
+  constructor(
+    private readonly controller: Pick<HandAnimationController, 'enqueue'>,
+    eventBus: PresentationEventBus = presentationEventBus,
+    private readonly shouldHandleEvent: () => boolean = () => true,
+    private readonly featureFlagsSource: PresentationFeatureFlagsSource = getPresentationFeatures,
+    private readonly mapEvent: (event: PresentationEvent) => HandAnimationAction = (event) => event,
+  ) {
+    this.unsubscribe = eventBus.subscribe(this.handleEvent);
+  }
+
+  dispose(): void {
+    this.unsubscribe();
+  }
+
+  private readonly handleEvent = (event: PresentationEvent) => {
+    if (!this.shouldHandleEvent() || !this.featureFlagsSource().handAnimations) return;
+    this.controller.enqueue(this.mapEvent(event));
+  };
+}

@@ -134,6 +134,69 @@ describe('AI auto play', () => {
     expect(before.players[1].hand.length).toBe(previousHandLength);
   });
 
+  it('立直后的 AI 只能摸切当前摸入牌', () => {
+    const draw = createTile(31, 3);
+    const base = setHand(withAIToDiscard(createInitialGameState(), 3), 3, [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]);
+    const state: GameState = {
+      ...base,
+      players: base.players.map((player) => player.id === 3
+        ? {
+            ...player,
+            hand: [...player.hand, draw],
+            drawnTile: draw,
+            riichi: true,
+            riichiState: {
+              declaredAtTurn: 1,
+              ippatsuAvailable: false,
+              kind: 'riichi' as const,
+              riichiDiscardInstanceId: 'player4-riichi-discard',
+            },
+          }
+        : player),
+    };
+    const concealedInstances = state.players[3].hand
+      .filter((tile) => tile.instanceId !== draw.instanceId)
+      .map((tile) => tile.instanceId);
+
+    const after = advanceAIAction(state, () => 0);
+
+    expect(after.players[3].river[after.players[3].river.length - 1]).toMatchObject({ instanceId: draw.instanceId, isTsumogiri: true });
+    expect(after.players[3].hand.map((tile) => tile.instanceId)).toEqual(concealedInstances);
+  });
+
+  it('立直后的 AI 可以执行不改变等待的暗杠', () => {
+    const base = setHand(
+      withAIToDiscard(createInitialGameState(), 3),
+      3,
+      [0, 0, 0, 0, 1, 2, 3, 9, 10, 11, 18, 19, 20, 31],
+    );
+    const hand = base.players[3].hand;
+    const quadTiles = hand.filter((tile) => tile.id === 0);
+    const drawnTile = quadTiles[quadTiles.length - 1];
+    const state: GameState = {
+      ...base,
+      players: base.players.map((player) => player.id === 3
+        ? {
+            ...player,
+            drawnTile,
+            riichi: true,
+            riichiState: {
+              declaredAtTurn: 1,
+              ippatsuAvailable: false,
+              kind: 'riichi' as const,
+              riichiDiscardInstanceId: 'player4-riichi-discard',
+            },
+          }
+        : player),
+    };
+
+    const after = advanceAIAction(state, () => 0);
+
+    expect(after.players[3].calls[after.players[3].calls.length - 1]).toMatchObject({ type: 'kan', kanType: 'ankan', opened: false });
+    expect(after.players[3].river).toHaveLength(0);
+    expect(after.players[3].riichi).toBe(true);
+  });
+
   it('discards one tile for AI and advances to the next player', () => {
     const base = withAIToDiscard(createInitialGameState(), 1);
     const before = [
@@ -278,7 +341,7 @@ describe('AI auto play', () => {
     };
     const [candidate] = getRiichiDiscardCandidates(state, 0);
     expect(advanceAIAction(state)).toBe(state);
-    const after = discardTile(declareRiichi(state, 0), 0, candidate.instanceId);
+    const after = declareRiichi(state, 0, candidate.instanceId);
     expect(after.players[0].riichi).toBe(true);
     expect(after.players[0].riichiState?.riichiDiscardInstanceId).toBe(candidate.instanceId);
   });

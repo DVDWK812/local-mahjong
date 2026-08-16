@@ -33,10 +33,11 @@ describe('MahjongTable', () => {
     expect((html.match(/data-active="false"/g) ?? [])).toHaveLength(4);
   });
 
-  it('玩家信息不显示点数，点数只在中央计分区显示', () => {
+  it('对手信息显示风位与点数，中央计分区继续保留四家点数', () => {
     const html = renderToStaticMarkup(<MahjongTable gameState={createInitialGameState()} matchState={createMatch()} />);
     expect((html.match(/25,000 点/g) ?? [])).toHaveLength(0);
-    expect((html.match(/25,000/g) ?? [])).toHaveLength(4);
+    expect((html.match(/class="player-identity-meta"/g) ?? [])).toHaveLength(3);
+    expect((html.match(/25,000/g) ?? [])).toHaveLength(7);
   });
 
   it('AI 玩家头像框正常显示摸切效果', () => {

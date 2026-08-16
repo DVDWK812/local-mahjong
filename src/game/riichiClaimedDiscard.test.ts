@@ -72,7 +72,15 @@ function discardDeclaration(state: GameState): GameState {
 function discardNextForRiichiPlayer(state: GameState): GameState {
   const player = state.players[0];
   const nextTile = player.hand[0];
-  return discardTile({ ...state, currentPlayer: 0, phase: 'discard' }, 0, nextTile.instanceId);
+  const readyState: GameState = {
+    ...state,
+    currentPlayer: 0,
+    phase: 'discard',
+    players: state.players.map((candidate) => candidate.id === 0
+      ? { ...candidate, drawnTile: nextTile }
+      : candidate),
+  };
+  return discardTile(readyState, 0, nextTile.instanceId);
 }
 
 describe('立直宣言牌被鸣后的横牌显示状态', () => {

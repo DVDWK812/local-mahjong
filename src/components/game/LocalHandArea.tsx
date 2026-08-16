@@ -1,4 +1,5 @@
 import type { PlayerId, PlayerState, Tile as TileModel, TileId, Wind } from '../../game/types';
+import type { DiscardSourceCapture } from '../../presentation/handAnimation/DiscardSourceSnapshot';
 import type { PlayerProfile } from '../../profile/playerProfile';
 import { PlayerMelds } from '../PlayerMelds';
 import { PlayerAvatar } from '../PlayerAvatar';
@@ -20,6 +21,7 @@ interface LocalHandAreaProps {
   tsumoGiriDisplayEnabled?: boolean;
   concealHand?: boolean;
   onDiscardPreviewChange?: (tileInstanceId: string | null) => void;
+  onDiscardSourceCapture?: (capture: DiscardSourceCapture) => (() => void) | void;
   onDiscard: (playerId: PlayerId, tileInstanceId: string) => void;
   playerProfile?: PlayerProfile;
 }
@@ -31,7 +33,7 @@ const windNames: Record<Wind, string> = {
   north: '北',
 };
 
-export function LocalHandArea({ player, identityPlayer = player, meldPlayer = player, isCurrent, canDiscard, allowedDiscardInstanceIds, kuikaeForbiddenTileIds = [], doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, concealHand = false, onDiscardPreviewChange, onDiscard, playerProfile }: LocalHandAreaProps) {
+export function LocalHandArea({ player, identityPlayer = player, meldPlayer = player, isCurrent, canDiscard, allowedDiscardInstanceIds, kuikaeForbiddenTileIds = [], doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, concealHand = false, onDiscardPreviewChange, onDiscardSourceCapture, onDiscard, playerProfile }: LocalHandAreaProps) {
   const drawnTileId = player.drawnTile?.instanceId;
   const baseTiles = drawnTileId ? player.hand.filter((tile) => tile.instanceId !== drawnTileId) : player.hand;
   const drawnTile = drawnTileId ? player.hand.find((tile) => tile.instanceId === drawnTileId) : null;
@@ -39,10 +41,23 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
     !concealHand && canDiscard && (!allowedDiscardInstanceIds || allowedDiscardInstanceIds.includes(tileInstanceId));
   const isKuikaeForbidden = (tileId: TileId) => kuikaeForbiddenTileIds.includes(tileId);
   const displayName = playerProfile?.nickname ?? identityPlayer.name;
-  const handleDiscard = (tileInstanceId: string) => {
+  const handleDiscard = (tile: TileModel, sourceElement: HTMLButtonElement) => {
+    const tileInstanceId = tile.instanceId;
+    const clearSourceSnapshot = onDiscardSourceCapture?.({
+      playerId: player.id,
+      tileInstanceId,
+      tile: { id: tile.id, red: tile.red },
+      sourceTileRect: copyRect(sourceElement.getBoundingClientRect()),
+    });
     onDiscardPreviewChange?.(null);
     onHoveredTileTypeChange?.(null);
-    onDiscard(player.id, tileInstanceId);
+    try {
+      onDiscard(player.id, tileInstanceId);
+    } catch (error) {
+      clearSourceSnapshot?.();
+      throw error;
+    }
+    scheduleSnapshotExpiry(clearSourceSnapshot);
     onHoveredTileTypeChange?.(null);
   };
 
@@ -52,12 +67,17 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
         {playerProfile
           ? <PlayerAvatar avatarId={playerProfile.avatarId} />
           : <span className="player-avatar" aria-hidden="true">{identityPlayer.name.trim().slice(0, 1) || windNames[identityPlayer.seatWind]}</span>}
-        {tsumoGiriDisplayEnabled ? <TsumogiriMarker player={identityPlayer} /> : null}
-        <strong title={displayName}>{displayName}</strong>
-        <span className="player-badges">
-          {identityPlayer.seatWind === 'east' ? <em className="dealer-marker">庄</em> : null}
-          {identityPlayer.riichi ? <em>立直</em> : null}
-          {kuikaeForbiddenTileIds.length > 0 ? <em className="kuikae-warning">食替禁止</em> : null}
+        <span className="local-hand-info-copy">
+          <strong title={displayName}>{displayName}</strong>
+          <span className="local-hand-meta"><b>{windNames[identityPlayer.seatWind]}</b><span>{identityPlayer.score.toLocaleString()}</span></span>
+          <span className="local-hand-status">
+            {tsumoGiriDisplayEnabled ? <TsumogiriMarker player={identityPlayer} /> : null}
+            <span className="player-badges">
+              {identityPlayer.seatWind === 'east' ? <em className="dealer-marker">庄</em> : null}
+              {identityPlayer.riichi ? <em>立直</em> : null}
+              {kuikaeForbiddenTileIds.length > 0 ? <em className="kuikae-warning">食替禁止</em> : null}
+            </span>
+          </span>
         </span>
       </div>
       <div className="local-hand-track hand-slot hand-slot--bottom" data-hand-slot="bottom">
@@ -79,7 +99,7 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
               onPointerEnter={canClick(tile.instanceId) ? () => onDiscardPreviewChange?.(tile.instanceId) : undefined}
               onPointerLeave={canClick(tile.instanceId) ? () => onDiscardPreviewChange?.(null) : undefined}
               onPointerDown={canClick(tile.instanceId) ? () => onHoveredTileTypeChange?.(null) : undefined}
-              onClick={canClick(tile.instanceId) ? () => handleDiscard(tile.instanceId) : undefined}
+              onClick={canClick(tile.instanceId) ? (event) => handleDiscard(tile, event.currentTarget) : undefined}
             />
           ))}
           {drawnTile ? (
@@ -100,7 +120,7 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
                 onPointerEnter={canClick(drawnTile.instanceId) ? () => onDiscardPreviewChange?.(drawnTile.instanceId) : undefined}
                 onPointerLeave={canClick(drawnTile.instanceId) ? () => onDiscardPreviewChange?.(null) : undefined}
                 onPointerDown={canClick(drawnTile.instanceId) ? () => onHoveredTileTypeChange?.(null) : undefined}
-                onClick={canClick(drawnTile.instanceId) ? () => handleDiscard(drawnTile.instanceId) : undefined}
+                onClick={canClick(drawnTile.instanceId) ? (event) => handleDiscard(drawnTile, event.currentTarget) : undefined}
               />
             </span>
           ) : null}
@@ -111,6 +131,19 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
       </div>
     </section>
   );
+}
+
+function copyRect(rect: DOMRect): DiscardSourceCapture['sourceTileRect'] {
+  return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+}
+
+function scheduleSnapshotExpiry(clearSnapshot: (() => void) | void): void {
+  if (!clearSnapshot) return;
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(() => clearSnapshot());
+    return;
+  }
+  setTimeout(clearSnapshot, 0);
 }
 
 function TsumogiriMarker({ player }: { player: PlayerState }) {

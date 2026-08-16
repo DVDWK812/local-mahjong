@@ -335,10 +335,13 @@ function countHandTiles(hand: Tile[]): Map<TileId, number> {
   return counts;
 }
 
-function isRiichiAnkanWaitPreserving(state: GameState, playerId: PlayerId, tileId: TileId): boolean {
+export function isRiichiAnkanWaitPreserving(state: GameState, playerId: PlayerId, tileId: TileId): boolean {
   const player = state.players[playerId];
   if (!player?.riichi) return true;
-  const beforeHand = player.drawnTile?.id === tileId ? removeTilesForWaitCheck(player.hand, tileId, 1) : player.hand;
+  const beforeHand = player.drawnTile
+    ? player.hand.filter((tile) => tile.instanceId !== player.drawnTile?.instanceId)
+    : player.hand;
+  if (player.drawnTile && beforeHand.length !== player.hand.length - 1) return false;
   const before = waitsForHandWithFixedMelds(beforeHand, 0);
   const afterHand = removeTilesForWaitCheck(player.hand, tileId, 4);
   if (afterHand.length !== player.hand.length - 4) return false;

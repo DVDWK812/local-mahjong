@@ -11,6 +11,7 @@ export function TenpaiWaitPanel({ display }: TenpaiWaitPanelProps) {
     <section className="tenpai-wait-panel" aria-label="听牌与剩余量">
       <div className="tenpai-wait-header">
         <strong>{display.previewDiscardLabel ? `打出${display.previewDiscardLabel}后听牌` : '听牌'}</strong>
+        <span className="tenpai-wait-total">总有效枚数 {display.totalRemaining}</span>
         {display.currentFuritenLabel ? <span className="tenpai-furiten-badge">{display.currentFuritenLabel}</span> : null}
       </div>
       <div className="tenpai-wait-list">

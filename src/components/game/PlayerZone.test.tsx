@@ -55,7 +55,7 @@ describe('PlayerZone', () => {
     expect(css).toContain('linear-gradient');
   });
 
-  it('玩家ID、手牌、牌河和副露使用不同安全容器', () => {
+  it('玩家信息、手牌、牌河和副露使用不同安全容器', () => {
     const state = createInitialGameState();
     const player = state.players[1];
     const html = renderToStaticMarkup(
@@ -73,7 +73,8 @@ describe('PlayerZone', () => {
     expect(html).toContain('player-zone-hand-wrap');
     expect(html).toContain('player-zone-river-wrap');
     expect(html).toContain('player-zone-meld-wrap');
-    expect(html).not.toContain('25,000 点');
+    expect(html).toContain('player-identity-meta');
+    expect(html).toContain('25,000');
   });
 
   it('左右家手牌完整显示13张牌背，并预留第14张空间', () => {

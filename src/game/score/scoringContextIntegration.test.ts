@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createInitialGameState, declareRiichi } from '../engine';
+import { createInitialGameState, declareRiichi, getRiichiDiscardCandidates } from '../engine';
 import { createScoringWinContext } from './scoringAdapter';
 import { createTile } from '../tileUtils';
 import type { TileId } from '../types';
@@ -106,7 +106,8 @@ describe('scoring context integration', () => {
         drawnTile: createTile(14, 1),
       } : player),
     };
-    const after = declareRiichi(state, 0);
+    const candidate = getRiichiDiscardCandidates(state, 0)[0];
+    const after = declareRiichi(state, 0, candidate.instanceId);
     const context = createScoringWinContext({
       state: after,
       playerId: 0,

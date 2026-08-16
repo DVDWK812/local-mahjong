@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createInitialGameState, declareRiichi, discardTile, drawTile } from './engine';
+import { createInitialGameState, declareRiichi, discardTile, drawTile, getRiichiDiscardCandidates } from './engine';
 import { getDrawActionState, hasDrawAction, isRiichiAnkanWaitPreserving } from './interaction';
-import { executeKan } from './kanChecker';
+import { canAnkan, executeKan } from './kanChecker';
 import { createTile } from './tileUtils';
 import type { GameState, PlayerId, Tile, TileId } from './types';
 
@@ -122,9 +122,10 @@ describe('实战交互流程', () => {
   });
 
   it('立直后无特殊动作时只能自动摸切摸入牌', () => {
-    const riichi = declareRiichi(setHand(createInitialGameState(), 0, [0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23, 27, 31]), 0);
+    const ready = setHand(createInitialGameState(), 0, [0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23, 27, 31]);
+    const riichi = declareRiichi(ready, 0, getRiichiDiscardCandidates(ready, 0)[0].instanceId);
     const draw = createTile(5, 3);
-    const drawn = drawTile({ ...riichi, phase: 'draw', wall: [draw, createTile(6, 0)] }, { settleTsumo: false });
+    const drawn = drawTile({ ...riichi, currentPlayer: 0, phase: 'draw', wall: [draw, createTile(6, 0)] }, { settleTsumo: false });
     expect(drawn.players[0].riichi).toBe(true);
     expect(drawn.players[0].drawnTile?.instanceId).toBe(draw.instanceId);
     if (!hasDrawAction(drawn, 0)) {
@@ -145,25 +146,39 @@ describe('实战交互流程', () => {
   });
 
   it('立直后合法暗杠可选择，改变等待的暗杠不显示', () => {
+    const hand = tiles([0, 0, 0, 0, 1, 2, 3, 9, 10, 11, 18, 19, 20, 31]);
     const state = {
       ...setHand(createInitialGameState(), 0, [0, 0, 0, 0, 1, 2, 3, 9, 10, 11, 18, 19, 20, 31]),
       players: createInitialGameState().players.map((player) =>
         player.id === 0
-          ? { ...player, hand: tiles([0, 0, 0, 0, 1, 2, 3, 9, 10, 11, 18, 19, 20, 31]), drawnTile: createTile(0, 3), riichi: true, riichiState: { declaredAtTurn: 1, ippatsuAvailable: true, kind: 'riichi' as const } }
+          ? { ...player, hand, drawnTile: hand[3], riichi: true, riichiState: { declaredAtTurn: 1, ippatsuAvailable: true, kind: 'riichi' as const } }
           : player,
       ),
     };
     const candidates = getDrawActionState(state, 0).ankanCandidates;
+    expect(candidates.map((candidate) => candidate.tileId)).toContain(0);
+    expect(canAnkan(state, 0, 0)).toBe(true);
     expect(candidates.every((candidate) => isRiichiAnkanWaitPreserving(state, 0, candidate.tileId))).toBe(true);
+
+    const changingWaitHand = tiles([0, 0, 0, 1, 1, 2, 2, 3, 14, 15, 24, 25, 26, 0]);
+    const changingWaitState: GameState = {
+      ...state,
+      players: state.players.map((player) => player.id === 0
+        ? { ...player, hand: changingWaitHand, drawnTile: changingWaitHand[changingWaitHand.length - 1] }
+        : player),
+    };
+    expect(canAnkan(changingWaitState, 0, 0)).toBe(false);
+    expect(getDrawActionState(changingWaitState, 0).ankanCandidates.map((candidate) => candidate.tileId)).not.toContain(0);
   });
 
   it('暗杠后自动岭上摸牌并保持立直和门清状态', () => {
+    const hand = tiles([0, 0, 0, 0, 3, 4, 5, 9, 10, 11, 18, 19, 20, 31]);
     const state = {
       ...setHand(createInitialGameState(), 0, [0, 0, 0, 0, 3, 4, 5, 9, 10, 11, 18, 19, 20, 31]),
       deadWall: [createTile(32, 0), ...createInitialGameState().deadWall.slice(1)],
       players: createInitialGameState().players.map((player) =>
         player.id === 0
-          ? { ...player, hand: tiles([0, 0, 0, 0, 3, 4, 5, 9, 10, 11, 18, 19, 20, 31]), drawnTile: createTile(0, 3), riichi: true, riichiState: { declaredAtTurn: 1, ippatsuAvailable: true, kind: 'riichi' as const } }
+          ? { ...player, hand, drawnTile: hand[3], riichi: true, riichiState: { declaredAtTurn: 1, ippatsuAvailable: true, kind: 'riichi' as const } }
           : player,
       ),
     };

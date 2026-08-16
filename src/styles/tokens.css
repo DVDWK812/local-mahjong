@@ -28,12 +28,29 @@
   --shadow-action: 0 14px 38px rgba(0, 0, 0, 0.28);
   --shadow-modal: 0 24px 70px rgba(17, 29, 24, 0.32);
 
+  /* Fixed-view table depth. These values describe presentation only. */
+  --mahjong-table-perspective: 1500px;
+  --mahjong-table-tilt: 2.8deg;
+  --mahjong-table-edge-depth: 10px;
+  --mahjong-table-surface-shadow: 0 18px 34px rgba(3, 17, 13, 0.34);
+  --mahjong-tile-depth: 3px;
+  --mahjong-tile-compact-depth: 2px;
+  --mahjong-tile-local-depth: 4px;
+  --mahjong-tile-river-depth: 2px;
+  --mahjong-tile-meld-depth: 3px;
+  --mahjong-tile-opponent-depth: 3px;
+  --mahjong-tile-wall-depth: 5px;
+  --mahjong-tile-contact-shadow: 1px 3px 3px rgba(4, 17, 20, 0.42);
+  --mahjong-tile-edge-highlight: rgba(255, 255, 255, 0.78);
+  --mahjong-tile-side: #425f66;
+  --mahjong-tile-bottom: #263f46;
+
   /* Mahjong-specific presentation */
   --tile-radius: 7px;
   --tile-compact-radius: 5px;
-  --tile-hover-offset: -2px;
-  --tile-select-offset: -3px;
-  --tile-selected-hover-offset: -4px;
+  --tile-hover-offset: -3px;
+  --tile-select-offset: -5px;
+  --tile-selected-hover-offset: -6px;
   --tile-gap: var(--space-1);
   --drawn-tile-gap: clamp(8px, 1.4vw, 18px);
 }

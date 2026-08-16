@@ -21,7 +21,7 @@ interface BoardProps {
   onTsumo: (playerId: PlayerId) => void;
   onRon: (playerId: PlayerId) => void;
   onPassRon: (playerId: PlayerId) => void;
-  onDeclareRiichi: (playerId: PlayerId, discardTileInstanceId?: string) => void;
+  onDeclareRiichi: (playerId: PlayerId, discardTileInstanceId: string) => void;
   onDeclareKyuushuKyuuhai: (playerId: PlayerId) => void;
   onPon: (playerId: PlayerId) => void;
   onChi: (playerId: PlayerId, optionIndex: number) => void;
@@ -37,6 +37,7 @@ interface BoardProps {
   sameTileHoverEnabled?: boolean;
   showTenpaiWaitsEnabled?: boolean;
   tsumoGiriDisplayEnabled?: boolean;
+  handAnimationsEnabled?: boolean;
   controlledPlayerId?: PlayerId;
   tableBottomPlayerId?: PlayerId;
   revealAllHands?: boolean;
@@ -66,6 +67,7 @@ export function Board({
   sameTileHoverEnabled = true,
   showTenpaiWaitsEnabled = true,
   tsumoGiriDisplayEnabled = true,
+  handAnimationsEnabled = true,
   controlledPlayerId = 0,
   tableBottomPlayerId = controlledPlayerId,
   revealAllHands = false,
@@ -86,6 +88,11 @@ export function Board({
     setHoveredTileType(null);
     setRiichiPreviewDiscardInstanceId(null);
   }, [gameState]);
+
+  useEffect(() => {
+    setHoveredTileType(null);
+    setRiichiPreviewDiscardInstanceId(null);
+  }, [controlledPlayerId]);
 
   const drawActions = useMemo(() => getDrawActionState(gameState, controlledPlayerId), [gameState, controlledPlayerId]);
   const canHumanPon = canPon(gameState, controlledPlayerId);
@@ -292,6 +299,7 @@ export function Board({
         ? (drawActions.canDoubleRiichi ? 'double-riichi' : 'riichi')
         : null}
       tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled}
+      handAnimationsEnabled={handAnimationsEnabled}
       localPlayerId={controlledPlayerId}
       tableBottomPlayerId={tableBottomPlayerId}
       revealAllHands={revealAllHands}
@@ -338,6 +346,8 @@ export function TileActionButton({
       className="prompt-tile-action"
       onPointerEnter={() => onPreviewChange?.(true)}
       onPointerLeave={() => onPreviewChange?.(false)}
+      onFocus={() => onPreviewChange?.(true)}
+      onBlur={() => onPreviewChange?.(false)}
       onPointerDown={() => {
         onPreviewChange?.(false);
         onHoveredTileTypeChange?.(null);

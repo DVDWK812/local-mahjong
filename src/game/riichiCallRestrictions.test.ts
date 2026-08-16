@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { canPon, executePon, getPonOptions } from './callChecker';
 import { canChi, executeChi, getChiOptions } from './chiChecker';
-import { createInitialGameState } from './engine';
+import { createInitialGameState, discardTile } from './engine';
 import { canKakan, canMinkan, executeKan, getKakanCandidates, getMinkanOptions } from './kanChecker';
 import { createTile } from './tileUtils';
 import type { GameState, PlayerId, Tile, TileId } from './types';
@@ -72,5 +72,36 @@ describe('riichi call restrictions', () => {
     expect(getKakanCandidates(ready, 1)).toHaveLength(0);
     expect(canKakan(ready, 1, 27)).toBe(false);
     expect(executeKan(ready, 1, 'kakan', 27)).toBe(ready);
+  });
+
+  it('底层弃牌规则拒绝立直后的非摸切，只接受摸入牌实例', () => {
+    const hand = tiles([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 31]);
+    const drawnTile = hand[hand.length - 1];
+    const concealedTile = hand[0];
+    const base = createInitialGameState();
+    const state: GameState = {
+      ...base,
+      currentPlayer: 1,
+      phase: 'discard',
+      players: base.players.map((player) => player.id === 1
+        ? {
+            ...player,
+            hand,
+            drawnTile,
+            riichi: true,
+            riichiState: {
+              declaredAtTurn: 1,
+              ippatsuAvailable: false,
+              kind: 'riichi',
+              riichiDiscardInstanceId: 'previous-riichi-discard',
+            },
+          }
+        : player),
+    };
+
+    expect(discardTile(state, 1, concealedTile.instanceId)).toBe(state);
+    const after = discardTile(state, 1, drawnTile.instanceId);
+    expect(after.players[1].river[after.players[1].river.length - 1]).toMatchObject({ instanceId: drawnTile.instanceId, isTsumogiri: true });
+    expect(after.players[1].hand.some((tile) => tile.instanceId === concealedTile.instanceId)).toBe(true);
   });
 });

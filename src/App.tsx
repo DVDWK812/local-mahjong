@@ -542,11 +542,8 @@ export default function App() {
     if (mountedRef.current) setState((current) => ({ ...current, replayMetas: replays }));
   }
 
-  async function renameReplay(id: string) {
-    if (!storage || typeof window === 'undefined') return;
-    const currentTitle = state.replayMetas.find((replay) => replay.id === id)?.title ?? '';
-    const title = window.prompt('请输入新的牌谱标题', currentTitle);
-    if (title === null || !title.trim()) return;
+  async function renameReplay(id: string, title: string) {
+    if (!storage || !title.trim()) return;
     await storage.renameReplay(id, title);
     const replays = await storage.listReplays();
     if (mountedRef.current) setState((current) => ({ ...current, replayMetas: replays }));
@@ -703,7 +700,7 @@ export default function App() {
           <ReplayLibrary
             replays={state.replayMetas}
             onOpen={(id) => void openReplay(id)}
-            onRename={(id) => void renameReplay(id)}
+            onRename={(id, title) => void renameReplay(id, title)}
             onDelete={(id) => void deleteReplay(id)}
             onExport={(id) => void exportReplay(id)}
             onStartLocalMatch={() => setScreen('local-mode-menu')}
@@ -767,10 +764,7 @@ export default function App() {
         onRon={(playerId) => updateGame((current) => declareRon(current, playerId))}
         onPassRon={(playerId) => updateGame((current) => passRon(current, playerId))}
         onDiscard={(playerId, tileInstanceId) => updateGame((current) => discardTile(current, playerId, tileInstanceId))}
-        onDeclareRiichi={(playerId, tileInstanceId) => updateGame((current) => {
-          const riichiState = declareRiichi(current, playerId);
-          return tileInstanceId ? discardTile(riichiState, playerId, tileInstanceId) : riichiState;
-        })}
+        onDeclareRiichi={(playerId, tileInstanceId) => updateGame((current) => declareRiichi(current, playerId, tileInstanceId))}
         onDeclareKyuushuKyuuhai={(playerId) => updateGame((current) => declareKyuushuKyuuhai(current, playerId))}
         onPon={(playerId) => updateGame((current) => executePon(current, playerId))}
         onChi={(playerId, optionIndex) => updateGame((current) => executeChi(current, playerId, optionIndex))}

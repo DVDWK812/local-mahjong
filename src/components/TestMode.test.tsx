@@ -47,12 +47,13 @@ describe('测试模式界面', () => {
     expect(html).toContain('STAB-001-MINKAN');
     expect(html).toContain('STAB-001-KAKAN');
     expect(html).toContain('STAB-001-FOUR-KANS');
-    expect(html).toContain('UI-RIICHI-WAIT-PREVIEW');
+    expect(html).toContain('RIICHI-DISCARD-MUST-TENPAI');
+    expect(html).toContain('UI-RIICHI-DISCARD-WAIT-PREVIEW');
     expect(html).toContain('RULE-MINIMUM-HAN-2');
     expect(html).toContain('RULE-MINIMUM-HAN-3');
     expect(html).toContain('RULE-MINIMUM-HAN-4');
     expect(html).toContain('RULE-MINIMUM-HAN-5');
-    expect(html).toContain('依次悬停不同候选');
+    expect(html).toContain('依次悬停或聚焦不同候选');
     expect(html).toContain('最后测试');
     expect(html).toContain('开始测试');
     expect(html).toContain('自动');
@@ -89,7 +90,7 @@ describe('测试模式界面', () => {
   });
 
   it('加载立直候选场景后显示正式立直操作框和多个弃牌候选', () => {
-    const scenario = getBuiltInTestScenario('UI-RIICHI-WAIT-PREVIEW')!;
+    const scenario = getBuiltInTestScenario('UI-RIICHI-DISCARD-WAIT-PREVIEW')!;
     const html = renderToStaticMarkup(<TestModeScreen initialScenario={scenario} onExit={() => undefined} />);
     expect(html).toContain('data-testid="game-screen"');
     expect((html.match(/aria-label="(?:双立直|立直)并打出/g) ?? []).length).toBeGreaterThan(1);

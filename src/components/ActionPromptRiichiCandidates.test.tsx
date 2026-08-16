@@ -62,7 +62,7 @@ describe('立直候选提示', () => {
     expect((html.match(/class="tile-image"/g) ?? []).length).toBeGreaterThanOrEqual(riichiCandidateCount);
   });
 
-  it('悬停、切换、移出、按下和点击候选时同步更新并清除听牌预览', () => {
+  it('悬停、焦点、切换、移出、失焦、按下和点击候选时同步更新并清除听牌预览', () => {
     const candidates = getDrawActionState(withRiichiPrompt(), 0).riichiDiscardCandidates;
     expect(candidates.length).toBeGreaterThan(1);
     const previews: Array<string | null> = [];
@@ -82,6 +82,9 @@ describe('立直候选提示', () => {
     expect(previews.slice(-3)).toEqual([candidates[0].instanceId, null, candidates[1].instanceId]);
 
     second.props.onPointerLeave();
+    second.props.onFocus();
+    second.props.onBlur();
+    expect(previews.slice(-2)).toEqual([candidates[1].instanceId, null]);
     second.props.onPointerEnter();
     second.props.onPointerDown();
     expect(previews[previews.length - 1]).toBeNull();

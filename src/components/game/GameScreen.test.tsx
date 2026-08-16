@@ -111,13 +111,38 @@ describe('GameScreen', () => {
     expect(html).toContain('可执行操作');
   });
 
-  it('听牌框使用独立右下固定层，不随鸣牌栏出现而移动', () => {
+  it('2.5D 只作用于牌桌，交互手牌和 overlay 保持外层兄弟节点', () => {
+    const html = renderToStaticMarkup(
+      <GameScreen
+        gameState={createInitialGameState()}
+        analysisOpen={false}
+        actionPrompt={<section className="action-prompt">可执行操作</section>}
+        canDiscard={false}
+        onToggleAnalysis={noop}
+        onCloseAnalysis={noop}
+        onReturnMenu={noop}
+        onDiscard={noop}
+        onReset={noop}
+      />,
+    );
+    const tableIndex = html.indexOf('class="mahjong-table"');
+    const localHandIndex = html.indexOf('class="local-hand-area');
+    const promptIndex = html.indexOf('class="game-prompt-layer"');
+    const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
+    expect(tableIndex).toBeGreaterThan(-1);
+    expect(localHandIndex).toBeGreaterThan(tableIndex);
+    expect(promptIndex).toBeGreaterThan(localHandIndex);
+    expect(css).toContain('.game-screen:not(.seventeen-steps-game) > .mahjong-table');
+    expect(css).toContain('perspective(var(--mahjong-table-perspective))');
+  });
+
+  it('听牌框使用独立右下固定层，不随立直操作栏出现而移动', () => {
     const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
     expect(css).toContain('.game-tenpai-layer');
     expect(css).toMatch(/\.game-tenpai-layer\s*\{[^}]*position:\s*absolute;/s);
-    expect(css).toMatch(/\.game-tenpai-layer\s*\{[^}]*right:/s);
+    expect(css).toMatch(/\.game-tenpai-layer\s*\{[^}]*left:/s);
     expect(css).toMatch(/\.game-tenpai-layer\s*\{[^}]*bottom:/s);
-    expect(css).not.toContain('game-prompt-layer--with-tenpai');
+    expect(css).not.toContain('.game-prompt-layer--with-tenpai');
   });
 
   it('使用立直候选预览 ID 调用正式听牌展示并在清除后隐藏', () => {
@@ -134,11 +159,36 @@ describe('GameScreen', () => {
       onDiscard: noop,
       onReset: noop,
     };
-    const preview = renderToStaticMarkup(<GameScreen {...props} tenpaiPreviewDiscardInstanceId={candidate.instanceId} />);
+    const preview = renderToStaticMarkup(<GameScreen {...props} actionPrompt={<section className="action-prompt">立直候选</section>} tenpaiPreviewDiscardInstanceId={candidate.instanceId} />);
     const cleared = renderToStaticMarkup(<GameScreen {...props} tenpaiPreviewDiscardInstanceId={null} />);
     expect(preview).toContain('听牌与剩余量');
     expect(preview).toContain('打出');
+    expect(preview).toContain('总有效枚数');
+    expect(preview).toContain('game-tenpai-layer');
     expect(cleared).not.toContain('听牌与剩余量');
+  });
+
+  it('关闭常驻听牌提示时，立直候选预览仍显示', () => {
+    const state = riichiPreviewState();
+    const candidate = getDrawActionState(state, 0).riichiDiscardCandidates[0];
+    const html = renderToStaticMarkup(
+      <GameScreen
+        gameState={state}
+        analysisOpen={false}
+        actionPrompt={<section className="action-prompt">立直候选</section>}
+        canDiscard={false}
+        onToggleAnalysis={noop}
+        onCloseAnalysis={noop}
+        onReturnMenu={noop}
+        onDiscard={noop}
+        onReset={noop}
+        showTenpaiWaitsEnabled={false}
+        tenpaiPreviewDiscardInstanceId={candidate.instanceId}
+        tenpaiPreviewRiichiKind="double-riichi"
+      />,
+    );
+    expect(html).toContain('听牌与剩余量');
+    expect(html).toContain('game-tenpai-layer');
   });
 
   it('二番缚立直候选预览计入立直番，不显示番数不足', () => {

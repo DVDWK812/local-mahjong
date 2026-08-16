@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { canAnkan, canKakan, canMinkan, executeKan } from '../kanChecker';
-import { drawTile, discardTile } from '../engine';
+import { declareRiichi, drawTile, discardTile, getRiichiDiscardCandidates } from '../engine';
+import { isPlayerTenpaiAtDraw } from '../exhaustiveDraw';
 import { canTsumo } from '../winChecker';
 import { createReplayRecord } from '../persistence/replayRecord';
 import { applyOfficialTestModeAction, createTestModeMatchLog, recordTestModeAction, shouldAutomaticallyAdvanceTestModeAI } from './actions';
@@ -24,7 +25,7 @@ describe('开发者测试模式', () => {
     expect(isTestModeRequested({ DEV: true }, '?testMode=0')).toBe(false);
   });
 
-  it('九个内置场景重复构建与重复加载都深度等价且使用稳定可读instanceId', () => {
+  it('十个内置场景重复构建与重复加载都深度等价且使用稳定可读instanceId', () => {
     const first = getBuiltInTestScenarios();
     const second = getBuiltInTestScenarios();
     expect(first).toEqual(second);
@@ -33,7 +34,8 @@ describe('开发者测试模式', () => {
       'STAB-001-MINKAN',
       'STAB-001-KAKAN',
       'STAB-001-FOUR-KANS',
-      'UI-RIICHI-WAIT-PREVIEW',
+      'RIICHI-DISCARD-MUST-TENPAI',
+      'UI-RIICHI-DISCARD-WAIT-PREVIEW',
       'RULE-MINIMUM-HAN-2',
       'RULE-MINIMUM-HAN-3',
       'RULE-MINIMUM-HAN-4',
@@ -80,6 +82,21 @@ describe('开发者测试模式', () => {
   it('JSON导出再导入保持场景等价', () => {
     const scenario = getBuiltInTestScenario('STAB-001-KAKAN')!;
     expect(parseTestScenarioJson(serializeTestScenario(scenario))).toEqual(scenario);
+  });
+
+  it('RIICHI-DISCARD-MUST-TENPAI逐候选走正式入口后都听牌且预览一致', () => {
+    const scenario = getBuiltInTestScenario('RIICHI-DISCARD-MUST-TENPAI')!;
+    const initial = loadTestScenarioState(scenario);
+    const candidates = getRiichiDiscardCandidates(initial, 0);
+    expect(candidates).toHaveLength(2);
+    candidates.forEach((candidate) => {
+      const preview = buildTenpaiDisplay(initial, 0, candidate.instanceId, 'double-riichi');
+      const after = declareRiichi(initial, 0, candidate.instanceId);
+      const actual = buildTenpaiDisplay(after, 0);
+      expect(isPlayerTenpaiAtDraw(after, 0)).toBe(true);
+      expect(after.players[0].riichiState?.riichiDiscardInstanceId).toBe(candidate.instanceId);
+      expect(actual?.waits.map((wait) => wait.id)).toEqual(preview?.waits.map((wait) => wait.id));
+    });
   });
 
   it('2至5番缚场景分别提供低于、等于和高于门槛的真实听牌牌型', () => {

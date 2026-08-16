@@ -449,6 +449,18 @@ body {
   margin: 0;
 }
 
+.replay-card__title-input {
+  width: min(100%, 360px);
+  min-width: 220px;
+  padding: 6px 8px;
+  border: 1px solid rgba(45, 64, 55, 0.35);
+  border-radius: 6px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+}
+
 .replay-card__header > span {
   padding: 3px 8px;
   border-radius: 999px;
@@ -1600,7 +1612,7 @@ button {
   border: 1px solid rgba(45, 64, 55, 0.16);
   border-radius: var(--radius-md);
   background: rgba(238, 245, 240, 0.78);
-  box-shadow: var(--shadow-tile);
+  box-shadow: none;
 }
 
 .home-player-profile__actions {
@@ -2309,6 +2321,7 @@ button {
 
 .tile {
   position: relative;
+  --tile-depth: var(--mahjong-tile-depth);
   --dora-frame-inset: 1px;
   --dora-frame-width: 2.5px;
   --dora-frame-radius: 4px;
@@ -2323,7 +2336,23 @@ button {
   padding: 0;
   line-height: 0;
   box-shadow: var(--shadow-tile);
+  isolation: isolate;
   transition: opacity var(--motion-fast) ease, transform var(--motion-fast) ease, filter var(--motion-fast) ease;
+}
+
+.tile::before {
+  position: absolute;
+  top: 1px;
+  right: -2px;
+  bottom: calc(-1 * var(--tile-depth));
+  left: 0;
+  z-index: var(--z-table);
+  border: 1px solid rgba(23, 47, 52, 0.72);
+  border-radius: inherit;
+  background: linear-gradient(135deg, #6d858a 0%, var(--mahjong-tile-side) 54%, var(--mahjong-tile-bottom) 100%);
+  box-shadow: var(--mahjong-tile-contact-shadow);
+  content: "";
+  pointer-events: none;
 }
 
 .tile--clickable:not(:disabled),
@@ -2331,7 +2360,7 @@ button {
   cursor: pointer;
 }
 
-.tile:not(:disabled):hover {
+.tile--clickable:not(:disabled):hover {
   transform: translateY(var(--tile-hover-offset));
   filter: brightness(1.03);
 }
@@ -2488,10 +2517,17 @@ button {
 
 .tile-face {
   position: relative;
+  z-index: var(--z-tile);
   display: block;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
+  border: 1px solid rgba(74, 83, 78, 0.28);
   border-radius: var(--dora-frame-radius);
+  background: linear-gradient(135deg, #fbf9f1 0%, #f4f1e5 58%, #e8e3d5 100%);
+  box-shadow:
+    inset 1px 1px 0 var(--mahjong-tile-edge-highlight),
+    inset -1px -1px 0 rgba(84, 94, 89, 0.18);
 }
 
 .tile-image {
@@ -2517,6 +2553,7 @@ button {
 }
 
 .tile--compact {
+  --tile-depth: var(--mahjong-tile-compact-depth);
   width: 30px;
   height: 40px;
   border-radius: var(--tile-compact-radius);
@@ -2547,12 +2584,35 @@ button {
   transform: rotate(90deg);
 }
 
-.tile--sideways:not(:disabled):hover {
+.tile--sideways.tile--clickable:not(:disabled):hover {
   transform: rotate(90deg) translateX(var(--tile-hover-offset));
 }
 
 .tile--sideways.tile--selected {
   transform: rotate(90deg) translateX(var(--tile-select-offset));
+}
+
+/* Dense table areas share one tile body language while varying only physical depth. */
+.game-screen .local-hand-area .tile {
+  --tile-depth: var(--mahjong-tile-local-depth);
+}
+
+.discard-river .tile {
+  --tile-depth: var(--mahjong-tile-river-depth);
+}
+
+.player-melds .tile,
+.meld-display .tile {
+  --tile-depth: var(--mahjong-tile-meld-depth);
+}
+
+.game-screen .hand-track .tile {
+  --tile-depth: var(--mahjong-tile-opponent-depth);
+}
+
+.dora-indicator-stack .tile,
+.replay-wall__tiles .tile {
+  --tile-depth: var(--mahjong-tile-wall-depth);
 }
 
 .counter-panel {
@@ -3054,8 +3114,51 @@ button {
     linear-gradient(0deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     radial-gradient(circle at center, rgba(23, 91, 68, 0.8), rgba(12, 52, 40, 0.96));
   background-size: 28px 28px, 28px 28px, auto;
-  overflow: hidden;
+  overflow: visible;
+  isolation: isolate;
   z-index: var(--z-table);
+}
+
+/* The playable table is the only transformed layer. Local hand and overlays remain flat siblings. */
+.game-screen:not(.seventeen-steps-game) > .mahjong-table,
+.replay-table-shell > .mahjong-table {
+  transform: perspective(var(--mahjong-table-perspective)) rotateX(var(--mahjong-table-tilt));
+  transform-origin: 50% 100%;
+  box-shadow: var(--mahjong-table-surface-shadow);
+}
+
+.game-screen:not(.seventeen-steps-game) > .mahjong-table::before,
+.replay-table-shell > .mahjong-table::before {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-table);
+  border: 1px solid rgba(226, 241, 230, 0.12);
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(99, 171, 136, 0.12), transparent 56%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(0, 0, 0, 0.1));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -20px 34px rgba(2, 19, 14, 0.18);
+  content: "";
+  pointer-events: none;
+}
+
+.game-screen:not(.seventeen-steps-game) > .mahjong-table::after,
+.replay-table-shell > .mahjong-table::after {
+  position: absolute;
+  right: 7px;
+  bottom: calc(-1 * var(--mahjong-table-edge-depth));
+  left: 7px;
+  z-index: var(--z-table);
+  height: var(--mahjong-table-edge-depth);
+  border: 1px solid rgba(4, 18, 14, 0.82);
+  border-top-color: rgba(111, 158, 136, 0.34);
+  border-radius: 0 0 12px 12px;
+  background: linear-gradient(180deg, #173f32 0%, #0d2b22 55%, #071c16 100%);
+  box-shadow: 0 10px 18px rgba(2, 13, 10, 0.3);
+  content: "";
+  pointer-events: none;
 }
 
 .dora-indicator-stack {
@@ -3121,15 +3224,15 @@ button {
 .player-slot--bottom { grid-area: south; }
 
 .player-zone--north {
-  translate: 0 calc(-1 * var(--opponent-edge-gap));
+  translate: 0;
 }
 
 .player-zone--west {
-  translate: calc(-1 * var(--side-player-edge-shift)) 0;
+  translate: 0;
 }
 
 .player-zone--east {
-  translate: var(--side-player-edge-shift) 0;
+  translate: 0;
 }
 
 .center-score--current {
@@ -3238,48 +3341,53 @@ button {
   grid-area: info;
   z-index: var(--z-table-ui);
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: center;
-  gap: 3px;
-  width: clamp(42px, 3.4vw, 54px);
-  max-width: 54px;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "avatar copy";
+  align-items: center;
+  justify-items: stretch;
+  gap: 7px;
+  width: clamp(120px, 10.5vw, 156px);
+  max-width: 156px;
   min-width: 0;
-  padding: 4px;
+  padding: 6px 8px;
   border: 1px solid rgba(230, 241, 232, 0.16);
-  border-radius: 8px;
-  background: rgba(10, 26, 21, 0.72);
-  font-size: 11px;
+  border-radius: var(--radius-md);
+  background: rgba(8, 29, 23, 0.84);
+  box-shadow: 0 5px 14px rgba(3, 16, 12, 0.2);
+  font-size: 12px;
   white-space: nowrap;
 }
 
-.game-screen .player-zone[data-player-index="2"] .player-zone-label,
-.game-screen .player-zone[data-player-index="3"] .player-zone-label {
-  grid-area: hand;
-  z-index: 10;
-  place-self: center;
+.player-zone-label > .player-avatar {
+  grid-area: avatar;
+  width: clamp(38px, 3.4vw, 46px);
+  height: clamp(38px, 3.4vw, 46px);
+  font-size: clamp(22px, 2vw, 28px);
 }
 
-.game-screen .player-zone[data-player-index="2"] .player-zone-hand-wrap {
-  transform: translateX(-250px) translateY(-30px);
+.player-identity-copy {
+  grid-area: copy;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
-.game-screen .player-zone[data-player-index="2"] .player-zone-label {
-  transform: translateX(-330px) translateY(5px);
+.player-identity-meta,
+.player-identity-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
 }
 
-
-.game-screen .player-zone[data-player-index="3"] .player-zone-label {
-  transform: translateX(-200px);
-}
-.game-screen .player-zone[data-player-index="3"] .player-zone-hand-wrap {
-  transform: translateX(-120px);
-}
-.game-screen .player-zone[data-player-index="1"] .player-zone-hand-wrap {
-  transform: translateX(80px);
+.player-identity-meta {
+  justify-content: space-between;
+  color: #d6e5dc;
+  font-size: 11px;
 }
 
-.game-screen .player-zone[data-player-index="1"] .player-zone-label {
-  transform: translateX(220px) translateY(250px);
+.player-identity-meta b {
+  color: #f1d47c;
 }
 
 .tile--kuikae-forbidden {
@@ -3287,39 +3395,6 @@ button {
   opacity: 0.62;
   cursor: not-allowed;
 }
-
-.replay-screen .player-slot--top .player-zone-label,
-.replay-screen .player-slot--left .player-zone-label {
-  grid-area: hand;
-  z-index: 10;
-  place-self: center;
-}
-
-.replay-screen .player-slot--top .player-zone-hand-wrap {
-  transform: translateX(-250px) translateY(-30px);
-}
-
-.replay-screen .player-slot--top .player-zone-label {
-  transform: translateX(-330px) translateY(5px);
-}
-
-.replay-screen .player-slot--left .player-zone-hand-wrap {
-  transform: translateX(-120px);
-}
-
-.replay-screen .player-slot--left .player-zone-label {
-  transform: translateX(-200px);
-}
-
-.replay-screen .player-slot--right .player-zone-hand-wrap {
-  transform: translateX(80px);
-}
-
-.replay-screen .player-slot--right .player-zone-label {
-  transform: translateX(220px) translateY(250px);
-}
-
-
 
 .player-zone-label strong,
 .player-zone-label span {
@@ -3916,12 +3991,52 @@ button {
 .local-hand-info {
   grid-area: info;
   display: grid;
-  gap: 3px;
-  max-width: 112px;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "avatar copy";
+  align-items: center;
+  gap: 8px;
+  width: clamp(126px, 11vw, 152px);
+  max-width: 152px;
+  min-width: 0;
+  padding: 5px 7px;
+  border: 1px solid rgba(230, 241, 232, 0.14);
+  border-radius: var(--radius-md);
+  background: rgba(14, 39, 31, 0.78);
   color: #edf7ef;
   font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
+}
+
+.local-hand-info > .player-avatar {
+  grid-area: avatar;
+  width: clamp(38px, 3.4vw, 46px);
+  height: clamp(38px, 3.4vw, 46px);
+}
+
+.local-hand-info-copy {
+  grid-area: copy;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.local-hand-meta,
+.local-hand-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.local-hand-meta {
+  justify-content: space-between;
+  color: #d6e5dc;
+  font-size: 11px;
+}
+
+.local-hand-meta b {
+  color: #f1d47c;
 }
 
 .local-hand-info strong,
@@ -3994,9 +4109,10 @@ button {
 .game-tenpai-layer {
   position: absolute;
   z-index: 49;
-  right: clamp(80px, 14vw, 280px);
+  left: calc(50% + clamp(220px, 30vw, 560px));
+  right: 16px;
   bottom: calc(var(--hand-tile-height) + 34px);
-  width: min(360px, calc(100vw - 32px));
+  width: min(360px, calc(100vw - 50% - clamp(220px, 30vw, 560px) - 32px));
   pointer-events: none;
 }
 
@@ -4419,6 +4535,12 @@ button {
     --opponent-tile-width: clamp(17px, 3.4vw, 26px);
   }
 
+  .game-tenpai-layer {
+    left: auto;
+    right: 12px;
+    width: min(320px, calc(100vw - 24px));
+  }
+
   .game-top-bar {
     grid-template-columns: 1fr auto;
     gap: 6px;
@@ -4498,6 +4620,12 @@ button {
 /* 下家的牌河向上，靠近中央 */
 .game-screen .table-river-anchor--south {
   translate: 0 -30px;
+}
+
+.tenpai-wait-total {
+  color: #315447;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 /* 17步专属宽屏1v1布局：牌桌保持正式组件，玩家状态移到左侧，操作区全宽上下排列。 */

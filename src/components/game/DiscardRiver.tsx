@@ -33,6 +33,7 @@ export function DiscardRiver({ player, position, preserveClaimedDiscardGap = fal
         {riverRows.map((tiles, rowIndex) => (
           <div className="discard-river-row" data-river-line={rowIndex + 1} key={rowIndex}>
             {tiles.map((tile, columnIndex) => {
+              const riverIndex = player.river.findIndex((candidate) => candidate.instanceId === tile.instanceId);
               const isRiichiDiscard = tile.isRiichiDiscard === true || riichiDiscardInstanceId === tile.instanceId;
               const isClaimed = isClaimedDiscard(tile);
               const className = [
@@ -47,6 +48,7 @@ export function DiscardRiver({ player, position, preserveClaimedDiscardGap = fal
                   className={className}
                   data-river-row={isHorizontalRiver ? rowIndex + 1 : undefined}
                   data-river-column={isHorizontalRiver ? columnIndex + 1 : undefined}
+                  data-river-index={riverIndex}
                 >
                   {isClaimed ? (
                     isRiichiDiscard ? (

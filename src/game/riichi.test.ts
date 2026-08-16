@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canDeclareRiichi, createInitialGameState, declareRiichi } from './engine';
+import { canDeclareRiichi, createInitialGameState, declareRiichi, getRiichiDiscardCandidates } from './engine';
 import { createTile } from './tileUtils';
 import type { GameState, PlayerId, TileId } from './types';
 
@@ -56,16 +56,19 @@ describe('riichi flow', () => {
   });
 
   it('rejects riichi if already declared', () => {
-    const state = declareRiichi(setHand(createInitialGameState(), 0, [0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23, 27, 31]), 0);
+    const ready = setHand(createInitialGameState(), 0, [0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23, 27, 31]);
+    const state = declareRiichi(ready, 0, getRiichiDiscardCandidates(ready, 0)[0].instanceId);
     expect(canDeclareRiichi(state, 0)).toBe(false);
   });
 
   it('declaring riichi pays 1000 points, adds a stick, and enables ippatsu', () => {
     const state = setHand(createInitialGameState(), 0, [0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23, 27, 31]);
-    const after = declareRiichi(state, 0);
+    const candidate = getRiichiDiscardCandidates(state, 0)[0];
+    const after = declareRiichi(state, 0, candidate.instanceId);
     expect(after.players[0].score).toBe(state.players[0].score - 1000);
     expect(after.riichiSticks).toBe(state.riichiSticks + 1);
     expect(after.players[0].riichi).toBe(true);
     expect(after.players[0].riichiState?.ippatsuAvailable).toBe(true);
+    expect(after.players[0].riichiState?.riichiDiscardInstanceId).toBe(candidate.instanceId);
   });
 });

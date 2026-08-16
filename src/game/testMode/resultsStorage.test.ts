@@ -35,8 +35,11 @@ describe('测试用例目录与结果存储', () => {
   it('按自动、视觉、混合类型，状态和关键词筛选', () => {
     const catalog = getTestCaseCatalog();
     const visual = filterTestCases(catalog, {}, { type: 'visual', status: 'all', keyword: '' });
-    expect(visual.map((entry) => entry.id)).toEqual(['UI-RIICHI-WAIT-PREVIEW']);
-    expect(filterTestCases(catalog, {}, { type: 'all', status: 'pending', keyword: '立直' }).map((entry) => entry.id)).toEqual(['UI-RIICHI-WAIT-PREVIEW']);
+    expect(visual.map((entry) => entry.id)).toEqual(['UI-RIICHI-DISCARD-WAIT-PREVIEW']);
+    expect(filterTestCases(catalog, {}, { type: 'all', status: 'pending', keyword: '立直' }).map((entry) => entry.id)).toEqual([
+      'RIICHI-DISCARD-MUST-TENPAI',
+      'UI-RIICHI-DISCARD-WAIT-PREVIEW',
+    ]);
     expect(new Set(catalog.map((entry) => entry.type))).toEqual(new Set(['automatic', 'visual', 'hybrid']));
   });
 });

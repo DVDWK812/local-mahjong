@@ -1,0 +1,98 @@
+.hand-animation-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: calc(var(--z-hand) + 1);
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.hand-animation-overlay,
+.hand-animation-overlay * {
+  pointer-events: none !important;
+}
+
+.hand-animation-stage {
+  position: absolute;
+  width: 118px;
+  height: 104px;
+  transform: translate(-50%, -50%) rotate(var(--hand-animation-rotation));
+  transform-origin: center;
+  transition-property: left, top;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.22, 0.8, 0.28, 1);
+}
+
+.hand-animation-stage[data-animation-phase="grasp"],
+.hand-animation-stage[data-animation-phase="release"] {
+  transition-duration: 90ms;
+}
+
+.hand-animation-stage[data-animation-phase="travel"] {
+  transition-duration: 240ms;
+}
+
+.hand-animation-stage[data-animation-phase="retreat"] {
+  transition-duration: 170ms;
+}
+
+.hand-animation-hand {
+  position: absolute;
+  inset: 8px 0 0;
+  width: 118px;
+  height: 96px;
+  overflow: visible;
+  fill: #d8aa82;
+  stroke: #76513d;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  filter: drop-shadow(0 5px 4px rgba(3, 15, 12, 0.3));
+  transition: transform 90ms ease;
+}
+
+.hand-animation-hand__highlight {
+  fill: none;
+  stroke: rgba(255, 234, 211, 0.65);
+  stroke-linecap: round;
+  stroke-width: 3;
+}
+
+.hand-animation-stage[data-animation-phase="grasp"] .hand-animation-hand {
+  transform: scale(0.96);
+}
+
+.hand-animation-stage[data-animation-phase="release"] .hand-animation-hand {
+  transform: scale(1.03);
+}
+
+.hand-animation-proxy {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  z-index: 1;
+  display: block;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 60ms linear;
+}
+
+.hand-animation-proxy--sideways {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.hand-animation-stage[data-animation-phase="grasp"] .hand-animation-proxy,
+.hand-animation-stage[data-animation-phase="travel"] .hand-animation-proxy {
+  opacity: 1;
+}
+
+.hand-animation-proxy .tile {
+  box-shadow: 0 3px 5px rgba(3, 15, 12, 0.32);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hand-animation-stage,
+  .hand-animation-hand,
+  .hand-animation-proxy {
+    transition: none;
+  }
+}

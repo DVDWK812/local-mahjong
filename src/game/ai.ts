@@ -2,7 +2,7 @@ import { canPon, executePon, passCall } from './callChecker';
 import { canDeclareKyuushuKyuuhai, declareKyuushuKyuuhai } from './abortiveDraw';
 import { executeChi, findUsefulChiOption } from './chiChecker';
 import { declareRiichi, discardTile, drawTile, getRiichiDiscardCandidates } from './engine';
-import { canAnkan, canChankan, canKakan, canMinkan, declareChankanRon, executeKan, passChankan } from './kanChecker';
+import { canAnkan, canChankan, canKakan, canMinkan, declareChankanRon, executeKan, getAnkanCandidates, passChankan } from './kanChecker';
 import { recommendDiscards, shanten } from './shanten';
 import type { GameState, PlayerId, Tile, TileId } from './types';
 import { ALL_TILE_IDS } from './tileUtils';
@@ -101,12 +101,21 @@ export function advanceAIAction(state: GameState, rng: () => number = Math.rando
       return declareKyuushuKyuuhai(state, state.currentPlayer);
     }
     const playerId = state.currentPlayer;
+    const player = state.players[playerId];
+    if (player.riichi) {
+      const ankanCandidate = getAnkanCandidates(state, playerId)
+        .find((candidate) => canAnkan(state, playerId, candidate.tileId));
+      if (ankanCandidate && shouldKan(state, playerId)) {
+        return executeKan(state, playerId, 'ankan', ankanCandidate.tileId);
+      }
+      const drawnTile = player.drawnTile;
+      return drawnTile ? discardTile(state, playerId, drawnTile.instanceId) : state;
+    }
     const riichiCandidates = getRiichiDiscardCandidates(state, playerId);
     if (riichiCandidates.length > 0) {
       const riichiDiscard = selectAIDiscardTile(state, playerId, rng, riichiCandidates);
       if (riichiDiscard) {
-        const riichiState = declareRiichi(state, playerId);
-        return discardTile(riichiState, playerId, riichiDiscard.instanceId);
+        return declareRiichi(state, playerId, riichiDiscard.instanceId);
       }
     }
     if ((canAnkan(state, playerId) || canKakan(state, playerId)) && shouldKan(state, playerId)) {

@@ -49,6 +49,16 @@ describe('LocalHandArea', () => {
     expect(hidden).not.toContain('tsumogiri-marker');
   });
 
+  it('本家信息区显示固定座位身份的风位和点数', () => {
+    const state = createInitialGameState();
+    const html = renderToStaticMarkup(
+      <LocalHandArea player={state.players[0]} identityPlayer={state.players[2]} isCurrent canDiscard onDiscard={() => undefined} />,
+    );
+    expect(html).toContain('local-hand-meta');
+    expect(html).toContain('西');
+    expect(html).toContain('25,000');
+  });
+
   it('食替禁打时显示提示，并沿用不可点击的手牌状态', () => {
     const state = createInitialGameState();
     const allowed = state.players[0].hand.slice(1).map((tile) => tile.instanceId);

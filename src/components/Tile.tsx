@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEventHandler, type PointerEventHandler } from 'react';
 import { getDoraGlowClass } from '../game/doraVisual';
 import { getTileAlt, getTileAltById, getTileBackImage, getTileImage, getTileImageById, getTilePlaceholderImage, isRedFive } from '../game/tileAssets';
 import type { Tile as TileModel, TileId } from '../game/types';
@@ -23,8 +23,8 @@ interface TileProps {
   className?: string;
   onPointerEnter?: () => void;
   onPointerLeave?: () => void;
-  onPointerDown?: () => void;
-  onClick?: () => void;
+  onPointerDown?: PointerEventHandler<HTMLButtonElement>;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
 }
 
 export function Tile({

@@ -15,7 +15,7 @@ export type OfficialTestModeAction =
   | { type: 'tsumo'; playerId: PlayerId }
   | { type: 'ron'; playerId: PlayerId }
   | { type: 'pass-ron'; playerId: PlayerId }
-  | { type: 'riichi'; playerId: PlayerId; tileInstanceId?: string }
+  | { type: 'riichi'; playerId: PlayerId; tileInstanceId: string }
   | { type: 'kyuushu-kyuuhai'; playerId: PlayerId }
   | { type: 'pon'; playerId: PlayerId }
   | { type: 'chi'; playerId: PlayerId; optionIndex: number }
@@ -32,10 +32,7 @@ export function applyOfficialTestModeAction(state: GameState, action: OfficialTe
   if (action.type === 'tsumo') return declareTsumo(state, action.playerId);
   if (action.type === 'ron') return declareRon(state, action.playerId);
   if (action.type === 'pass-ron') return passRon(state, action.playerId);
-  if (action.type === 'riichi') {
-    const declared = declareRiichi(state, action.playerId);
-    return action.tileInstanceId ? discardTile(declared, action.playerId, action.tileInstanceId) : declared;
-  }
+  if (action.type === 'riichi') return declareRiichi(state, action.playerId, action.tileInstanceId);
   if (action.type === 'kyuushu-kyuuhai') return declareKyuushuKyuuhai(state, action.playerId);
   if (action.type === 'pon') return executePon(state, action.playerId);
   if (action.type === 'chi') return executeChi(state, action.playerId, action.optionIndex);

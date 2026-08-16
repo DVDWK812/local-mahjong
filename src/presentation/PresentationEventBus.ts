@@ -15,8 +15,16 @@ export interface TileDiscardedPresentationEvent {
   readonly isRiichiDiscard: boolean;
 }
 
-export type PresentationEvent = TileDiscardedPresentationEvent;
-export type PresentationEventInput = Omit<PresentationEvent, 'eventId' | 'sequence'>;
+export interface TileDrawnPresentationEvent {
+  readonly eventId: string;
+  readonly sequence: number;
+  readonly type: 'tile_drawn';
+  readonly playerId: PlayerId;
+}
+
+export type PresentationEvent = TileDiscardedPresentationEvent | TileDrawnPresentationEvent;
+type WithoutPresentationMetadata<T> = T extends PresentationEvent ? Omit<T, 'eventId' | 'sequence'> : never;
+export type PresentationEventInput = WithoutPresentationMetadata<PresentationEvent>;
 export type PresentationEventListener = (event: PresentationEvent) => void;
 export type PresentationEventListenerErrorHandler = (error: unknown, event: PresentationEvent) => void;
 
@@ -47,12 +55,18 @@ export class PresentationEventBus {
 
   publish(input: PresentationEventInput): PresentationEvent {
     this.sequence += 1;
-    const event = Object.freeze({
-      ...input,
-      tile: Object.freeze({ ...input.tile }),
-      eventId: createEventId(),
-      sequence: this.sequence,
-    }) as PresentationEvent;
+    const event = Object.freeze(input.type === 'tile_discarded'
+      ? {
+          ...input,
+          tile: Object.freeze({ ...input.tile }),
+          eventId: createEventId(),
+          sequence: this.sequence,
+        }
+      : {
+          ...input,
+          eventId: createEventId(),
+          sequence: this.sequence,
+        }) as PresentationEvent;
 
     [...this.listeners].forEach((listener) => {
       try {

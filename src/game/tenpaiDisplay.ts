@@ -1,4 +1,5 @@
 import { callToMeldDisplayModel } from './meldDisplayAdapter';
+import { evaluateRiichiDiscard, type RiichiDiscardEvaluation } from './engine';
 import { evaluateWin } from './scoreCalculator';
 import { createScoringWinContext } from './score/scoringAdapter';
 import type { GameState, PlayerId, RiichiState, Tile, TileId } from './types';
@@ -18,6 +19,7 @@ export interface TenpaiWaitDisplayTile {
 
 export interface TenpaiDisplay {
   waits: TenpaiWaitDisplayTile[];
+  totalRemaining: number;
   currentFuriten: boolean;
   currentFuritenLabel: '当前振听' | '永久振听' | null;
   previewDiscardLabel?: string;
@@ -42,8 +44,12 @@ export function buildTenpaiDisplay(
   discardTileInstanceId?: string,
   riichiPreviewKind?: RiichiState['kind'],
 ): TenpaiDisplay | null {
+  const riichiEvaluation = discardTileInstanceId && riichiPreviewKind
+    ? evaluateRiichiDiscard(state, playerId, discardTileInstanceId)
+    : null;
+  if (discardTileInstanceId && riichiPreviewKind && !riichiEvaluation) return null;
   const displayState = discardTileInstanceId
-    ? simulateDiscardForDisplay(state, playerId, discardTileInstanceId, riichiPreviewKind)
+    ? simulateDiscardForDisplay(state, playerId, discardTileInstanceId, riichiPreviewKind, riichiEvaluation)
     : state;
   if (!displayState || shouldHideTenpaiDisplay(displayState, playerId, !!discardTileInstanceId)) return null;
   const waitScores = getWaitScores(displayState, playerId);
@@ -52,8 +58,7 @@ export function buildTenpaiDisplay(
   const previewTile = discardTileInstanceId
     ? state.players[playerId]?.hand.find((tile) => tile.instanceId === discardTileInstanceId)
     : undefined;
-  return {
-    waits: waitScores.map(({ id, hasYaku, meetsMinimumHan }) => {
+  const waits = waitScores.map(({ id, hasYaku, meetsMinimumHan }) => {
       const status = getWaitStatus(hasYaku, meetsMinimumHan, furiten, displayState.players[playerId].riichi);
       return {
       id,
@@ -62,7 +67,10 @@ export function buildTenpaiDisplay(
       furiten: status === 'furiten' || status === 'permanent-furiten',
       status,
       };
-    }),
+    });
+  return {
+    waits,
+    totalRemaining: waits.reduce((total, wait) => total + wait.remaining, 0),
     currentFuriten: furiten.discardFuriten || furiten.temporaryFuriten || furiten.riichiPermanentFuriten,
     currentFuritenLabel: furiten.riichiPermanentFuriten || (displayState.players[playerId].riichi && furiten.discardFuriten)
       ? '永久振听'
@@ -125,6 +133,7 @@ function simulateDiscardForDisplay(
   playerId: PlayerId,
   tileInstanceId: string,
   riichiPreviewKind?: RiichiState['kind'],
+  riichiEvaluation?: RiichiDiscardEvaluation | null,
 ): GameState | null {
   const player = state.players[playerId];
   const discarded = player?.hand.find((tile) => tile.instanceId === tileInstanceId);
@@ -134,7 +143,8 @@ function simulateDiscardForDisplay(
     players: state.players.map((item) => item.id === playerId
       ? {
           ...item,
-          hand: item.hand.filter((tile) => tile.instanceId !== tileInstanceId),
+          hand: riichiEvaluation?.handAfterDiscard
+            ?? item.hand.filter((tile) => tile.instanceId !== tileInstanceId),
           river: [...item.river, discarded],
           drawnTile: null,
           ...(riichiPreviewKind ? {

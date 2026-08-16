@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { SeventeenStepsScreen } from './SeventeenStepsScreen';
@@ -30,5 +32,13 @@ describe('17步正式游戏界面接入', () => {
     expect((html.match(/确认固定手牌/g) ?? [])).toHaveLength(1);
     expect(html).not.toContain('固定手牌确认后不可修改');
     expect(html).toContain('宝牌指示牌');
+  });
+
+  it('共享统一牌面厚度，但不复制四人桌固定透视', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
+    expect(css).toContain('--tile-depth: var(--mahjong-tile-depth)');
+    expect(css).toContain('.tile::before');
+    expect(css).toContain('.game-screen:not(.seventeen-steps-game) > .mahjong-table');
+    expect(css).not.toMatch(/\.seventeen-steps-board-area > \.mahjong-table\s*\{[^}]*perspective/s);
   });
 });
