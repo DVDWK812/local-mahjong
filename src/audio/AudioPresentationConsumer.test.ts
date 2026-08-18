@@ -51,7 +51,7 @@ describe('AudioPresentationConsumer', () => {
     consumer.dispose();
   });
 
-  it('meld_declared 不播放未提供的 chi / pon / kan SFX', () => {
+  it('meld_declared chi / pon / kan 各播放一次 meld 组音效', () => {
     const bus = new PresentationEventBus();
     const playSfx = vi.fn();
     const consumer = new AudioPresentationConsumer({ playSfx }, bus);
@@ -60,7 +60,18 @@ describe('AudioPresentationConsumer', () => {
     bus.publish({ type: 'meld_declared', playerId: 2, meldType: 'pon' });
     bus.publish({ type: 'meld_declared', playerId: 3, meldType: 'kan' });
 
-    expect(playSfx).not.toHaveBeenCalled();
+    expect(playSfx).toHaveBeenCalledTimes(3);
+    expect(playSfx.mock.calls.map(([id]) => id)).toEqual(['chi', 'pon', 'kan']);
+    consumer.dispose();
+  });
+
+  it('tile_drawn 播放一次 draw SFX', () => {
+    const bus = new PresentationEventBus();
+    const playSfx = vi.fn();
+    const consumer = new AudioPresentationConsumer({ playSfx }, bus);
+    bus.publish({ type: 'tile_drawn', playerId: 0 });
+    expect(playSfx).toHaveBeenCalledOnce();
+    expect(playSfx).toHaveBeenCalledWith('draw');
     consumer.dispose();
   });
 });

@@ -32,6 +32,7 @@ interface BoardProps {
   onSkipDrawActions: () => void;
   onReset: () => void;
   onOpenRulesGuide?: () => void;
+  onOpenAudioSettings?: () => void;
   onReturnMenu?: () => void;
   doraGlowEnabled?: boolean;
   sameTileHoverEnabled?: boolean;
@@ -62,6 +63,7 @@ export function Board({
   onSkipDrawActions,
   onReset,
   onOpenRulesGuide,
+  onOpenAudioSettings,
   onReturnMenu,
   doraGlowEnabled = true,
   sameTileHoverEnabled = true,
@@ -284,6 +286,7 @@ export function Board({
       allowedDiscardInstanceIds={allowedDiscardInstanceIds}
       kuikaeForbiddenTileIds={kuikaeForbiddenTileIds}
       onOpenRulesGuide={onOpenRulesGuide ?? (() => undefined)}
+      onOpenAudioSettings={onOpenAudioSettings ?? (() => undefined)}
       onToggleAnalysis={() => setAnalysisOpen((open) => !open)}
       onCloseAnalysis={() => setAnalysisOpen(false)}
       onReturnMenu={onReturnMenu ?? (() => undefined)}

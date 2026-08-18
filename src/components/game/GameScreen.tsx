@@ -21,6 +21,7 @@ interface GameScreenProps {
   allowedDiscardInstanceIds?: string[];
   kuikaeForbiddenTileIds?: TileId[];
   onOpenRulesGuide?: () => void;
+  onOpenAudioSettings?: () => void;
   onToggleAnalysis: () => void;
   onCloseAnalysis: () => void;
   onReturnMenu: () => void;
@@ -50,6 +51,7 @@ export function GameScreen({
   allowedDiscardInstanceIds,
   kuikaeForbiddenTileIds = [],
   onOpenRulesGuide,
+  onOpenAudioSettings,
   onToggleAnalysis,
   onCloseAnalysis,
   onReturnMenu,
@@ -104,6 +106,7 @@ export function GameScreen({
         matchState={matchState}
         analysisOpen={analysisOpen}
         onOpenRulesGuide={onOpenRulesGuide ?? (() => undefined)}
+        onOpenAudioSettings={onOpenAudioSettings ?? (() => undefined)}
         onToggleAnalysis={onToggleAnalysis}
         onReturnMenu={onReturnMenu}
       />

@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { GameTopBar } from '../game/GameTopBar';
 import { RiichiModeMenu } from '../RiichiModeMenu';
 import { getRulePreset } from '../../game/match/matchRules';
@@ -48,9 +48,23 @@ describe('RulesGuideScreen', () => {
 
   it('游戏内规则说明位于牌局分析左侧', () => {
     const html = renderToStaticMarkup(
-      <GameTopBar gameState={createInitialGameState()} analysisOpen={false} onOpenRulesGuide={noop} onToggleAnalysis={noop} onReturnMenu={noop} />,
+      <GameTopBar gameState={createInitialGameState()} analysisOpen={false} onOpenRulesGuide={noop} onOpenAudioSettings={noop} onToggleAnalysis={noop} onReturnMenu={noop} />,
     );
     expect(html.indexOf('规则说明')).toBeLessThan(html.indexOf('牌局分析'));
+  });
+
+  it('游戏内音乐按钮位于规则说明左侧，点击打开同一音频设置入口', () => {
+    const onOpenAudioSettings = vi.fn();
+    const html = renderToStaticMarkup(
+      <GameTopBar gameState={createInitialGameState()} analysisOpen={false} onOpenRulesGuide={noop} onOpenAudioSettings={onOpenAudioSettings} onToggleAnalysis={noop} onReturnMenu={noop} />,
+    );
+    const musicIndex = html.indexOf('aria-label="音乐设置"');
+    const rulesIndex = html.indexOf('规则说明');
+    expect(musicIndex).toBeGreaterThanOrEqual(0);
+    expect(musicIndex).toBeLessThan(rulesIndex);
+    expect(html).toContain('♪');
+    onOpenAudioSettings();
+    expect(onOpenAudioSettings).toHaveBeenCalledOnce();
   });
 
   it('主页、各役种和符数点数选项卡均可渲染', () => {

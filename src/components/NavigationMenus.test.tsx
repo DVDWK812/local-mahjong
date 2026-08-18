@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import App from '../App';
+import App, { resolveBgmScene } from '../App';
 import { getRulePreset } from '../game/match/matchRules';
 import { sampleReplayRecord, sampleSavedMatch } from '../game/persistence/saveTestUtils';
 import { DEFAULT_PLAYER_PROFILE } from '../profile/playerProfile';
@@ -14,6 +14,17 @@ import { ReplayLibrary } from './ReplayLibrary';
 import { RiichiModeMenu } from './RiichiModeMenu';
 
 describe('菜单和页面导航', () => {
+  it('场景音频即时切换：主页→背景音乐、对局→游戏音乐、立直→立直音乐、退出/牌谱/测试→按规则', () => {
+    expect(resolveBgmScene('main-menu', false, true)).toBe('home');
+    expect(resolveBgmScene('game', false, true)).toBe('game');
+    expect(resolveBgmScene('game', true, true)).toBe('riichi');
+    expect(resolveBgmScene('game', true, false)).toBe('game');
+    expect(resolveBgmScene('riichi-17-steps', false, true)).toBe('game');
+    expect(resolveBgmScene('replay-library', false, true)).toBeNull();
+    expect(resolveBgmScene('replay-detail', false, true)).toBeNull();
+    expect(resolveBgmScene('test-mode', false, true)).toBeNull();
+  });
+
   it('应用启动显示主菜单且不显示牌桌', () => {
     const html = renderToStaticMarkup(<App />);
     expect(html).toContain('主菜单');

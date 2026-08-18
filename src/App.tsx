@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { AppScreen, RiichiLengthChoice, SetupSelection } from './app/navigation';
 import { matchLengthForChoice, pathLabel, presetForChoice } from './app/navigation';
-import { AudioManager } from './audio/AudioManager';
+import { AudioManager, type PlaybackSnapshot } from './audio/AudioManager';
 import { AudioPresentationConsumer } from './audio/AudioPresentationConsumer';
 import { normalizeAudioSettings, type AudioSettings } from './audio/audioSettings';
 import { loadAudioSettings, saveAudioSettings } from './audio/audioSettingsStorage';
+import { MusicLibrary, type MusicAddResult } from './audio/musicLibrary';
+import type { GameSfxGroup, MusicCategory, MusicTrackDefinition, MusicTrackId, PlaybackMode } from './audio/musicTypes';
 import { AudioSettingsDialog } from './components/AudioSettingsDialog';
 import { BackButton } from './components/BackButton';
 import { Board } from './components/Board';
@@ -92,6 +94,17 @@ function bgmForScreen(screen: AppScreen): 'home' | 'game' | null {
   return 'home';
 }
 
+export function resolveBgmScene(
+  screen: AppScreen,
+  hasRiichi: boolean,
+  riichiEnabled: boolean,
+): 'home' | 'game' | 'riichi' | null {
+  if (isRealtimeAudioScreen(screen)) {
+    return hasRiichi && riichiEnabled ? 'riichi' : 'game';
+  }
+  return bgmForScreen(screen);
+}
+
 function withRules(gameState: GameState, config: FullRuleConfig): GameState {
   return { ...gameState, ruleConfig: config.round, matchRuleConfig: config.match };
 }
@@ -161,6 +174,19 @@ export default function App() {
   const testModeAvailability = currentTestModeAvailability();
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [audioDialogOpen, setAudioDialogOpen] = useState(false);
+  const [musicRevision, setMusicRevision] = useState(0);
+  const [previewTrackId, setPreviewTrackId] = useState<MusicTrackId | null>(null);
+  const [musicNotice, setMusicNotice] = useState<string | null>(null);
+  const [playback, setPlayback] = useState<PlaybackSnapshot>({
+    source: null,
+    trackId: null,
+    trackName: null,
+    category: null,
+    isPlaying: false,
+    currentTime: 0,
+    duration: 0,
+    playbackMode: undefined,
+  });
   const [audioSettings, setAudioSettings] = useState<AudioSettings>(() => (
     loadAudioSettings(typeof window === 'undefined' ? undefined : window.localStorage)
   ));
@@ -200,6 +226,14 @@ export default function App() {
   const audioManagerRef = useRef<AudioManager | null>(null);
   if (!audioManagerRef.current) audioManagerRef.current = new AudioManager(audioSettings);
   const audioManager = audioManagerRef.current;
+  const musicLibraryRef = useRef<MusicLibrary | null>(null);
+  if (!musicLibraryRef.current) {
+    musicLibraryRef.current = new MusicLibrary(
+      undefined,
+      typeof window === 'undefined' ? undefined : window.localStorage,
+    );
+  }
+  const musicLibrary = musicLibraryRef.current;
   const audioScreenRef = useRef(state.screen);
   audioScreenRef.current = state.screen;
 
@@ -216,6 +250,18 @@ export default function App() {
   }, [audioManager]);
 
   useEffect(() => {
+    let cancelled = false;
+    void musicLibrary.initialize().then(() => {
+      if (cancelled) return;
+      audioManager.setMusicLibrary(musicLibrary);
+      setMusicRevision((revision) => revision + 1);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [audioManager, musicLibrary]);
+
+  useEffect(() => {
     const consumer = new AudioPresentationConsumer(
       audioManager,
       undefined,
@@ -225,10 +271,20 @@ export default function App() {
   }, [audioManager]);
 
   useEffect(() => {
-    const track = bgmForScreen(state.screen);
-    if (track) audioManager.playBgm(track);
-    else audioManager.stopBgm();
-  }, [audioManager, state.screen]);
+    const sync = () => setPlayback(audioManager.getPlaybackSnapshot());
+    sync();
+    return audioManager.subscribePlayback(sync);
+  }, [audioManager]);
+
+  useEffect(() => {
+    const hasRiichi = state.activeGame?.gameState.players.some((player) => player.riichi) ?? false;
+    const track = resolveBgmScene(state.screen, hasRiichi, audioSettings.riichiMusicEnabled);
+    if (track) {
+      audioManager.playBgm(track);
+    } else {
+      audioManager.stopBgm();
+    }
+  }, [audioManager, state.screen, musicRevision, audioSettings.riichiMusicEnabled, state.activeGame?.gameState.players]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -366,6 +422,158 @@ export default function App() {
     audioManager.setSettings(normalized);
     setAudioSettings(normalized);
     if (typeof window !== 'undefined') saveAudioSettings(normalized, window.localStorage);
+  }
+
+  function refreshMusicLibrary() {
+    audioManager.setMusicLibrary(musicLibrary);
+    setMusicRevision((revision) => revision + 1);
+  }
+
+  function musicAddNotice(result: MusicAddResult): string {
+    if (result.added.length === 0) {
+      return result.rejected.length > 0
+        ? `没有可导入的音乐（仅支持 MP3 / WAV）。${result.rejected[0]}`
+        : '没有可导入的音乐（仅支持 MP3 / WAV）。';
+    }
+    if (result.rejected.length > 0) {
+      return `已导入 ${result.added.length} 首；跳过 ${result.rejected.length} 个不支持的文件（仅支持 MP3 / WAV）。`;
+    }
+    return `已导入 ${result.added.length} 首音乐。`;
+  }
+
+  function handleAddCopiedMusic(category: MusicCategory, gameSfxGroup: GameSfxGroup | undefined, files: FileList) {
+    void musicLibrary.addCopiedFiles(category, Array.from(files), gameSfxGroup).then((result) => {
+      refreshMusicLibrary();
+      setMusicNotice(musicAddNotice(result));
+    });
+  }
+
+  function handleAddLinkedMusic(category: MusicCategory, gameSfxGroup?: GameSfxGroup) {
+    void musicLibrary.addLinkedViaPicker(category, gameSfxGroup).then((result) => {
+      refreshMusicLibrary();
+      setMusicNotice(musicAddNotice(result));
+    });
+  }
+
+  function handleRemoveMusicTrack(category: MusicCategory, trackId: MusicTrackId) {
+    if (previewTrackId === trackId) {
+      audioManager.stopTemporary();
+      setPreviewTrackId(null);
+    }
+    void musicLibrary.removeTrack(trackId).then(() => {
+      refreshMusicLibrary();
+    });
+  }
+
+  function handleReauthorizeMusic(category: MusicCategory, trackId: MusicTrackId) {
+    void musicLibrary.reauthorizeTrack(trackId).then(() => {
+      refreshMusicLibrary();
+    });
+  }
+
+  function handleRelinkMusic(category: MusicCategory, trackId: MusicTrackId) {
+    void musicLibrary.relinkViaPicker(trackId).then((result) => {
+      refreshMusicLibrary();
+      if (result.rejected.length > 0) setMusicNotice(`重新选择失败（仅支持 MP3 / WAV）。`);
+    });
+  }
+
+  function handleReorderMusic(category: MusicCategory, orderedIds: MusicTrackId[]) {
+    musicLibrary.reorder(category, orderedIds);
+    refreshMusicLibrary();
+  }
+
+  function handleReorderSfxGroup(group: GameSfxGroup, orderedIds: MusicTrackId[]) {
+    musicLibrary.reorderSfxGroup(group, orderedIds);
+    refreshMusicLibrary();
+  }
+
+  function handleSfxPlaybackModeChange(group: GameSfxGroup, mode: PlaybackMode) {
+    musicLibrary.setSfxPlaybackMode(group, mode);
+    refreshMusicLibrary();
+  }
+
+  function handlePlaybackModeChange(category: MusicCategory, mode: PlaybackMode) {
+    musicLibrary.setPlaybackMode(category, mode);
+    refreshMusicLibrary();
+  }
+
+  function handlePreviewMusic(track: MusicTrackDefinition) {
+    audioManager.playTemporary(track);
+    setPreviewTrackId(track.id);
+  }
+
+  function handleStopPreviewMusic() {
+    audioManager.stopTemporary();
+    setPreviewTrackId(null);
+  }
+
+  function handleTogglePlayback() {
+    if (audioManager.getPlaybackSnapshot().isPlaying) {
+      audioManager.pauseCurrentPlayback();
+    } else {
+      audioManager.resumeCurrentPlayback();
+    }
+  }
+
+  function handleSeekPlayback(time: number) {
+    audioManager.seekCurrentPlayback(time);
+  }
+
+  function handlePreviousTrack() {
+    audioManager.previousTrack();
+  }
+
+  function handleNextTrack() {
+    audioManager.nextTrack();
+  }
+
+  function openAudioSettings() {
+    setProfileDialogOpen(false);
+    setMusicNotice(null);
+    void musicLibrary.refresh().then(() => {
+      audioManager.setMusicLibrary(musicLibrary);
+      audioManager.setTemporaryReturnPolicy('resume-suspended-track');
+      const snapshot = audioManager.getPlaybackSnapshot();
+      setPreviewTrackId(snapshot.source === 'temporary' ? snapshot.trackId : null);
+      setMusicRevision((revision) => revision + 1);
+      setAudioDialogOpen(true);
+    });
+  }
+
+  function closeAudioDialog() {
+    audioManager.setTemporaryReturnPolicy('restart-runtime-playlist');
+    setAudioDialogOpen(false);
+  }
+
+  function renderAudioSettingsDialog() {
+    if (!audioDialogOpen) return null;
+    return (
+      <AudioSettingsDialog
+        settings={audioSettings}
+        onChange={handleAudioSettingsChange}
+        onClose={closeAudioDialog}
+        library={musicLibrary}
+        playback={playback}
+        previewTrackId={previewTrackId}
+        notice={musicNotice}
+        onAddLinked={handleAddLinkedMusic}
+        onAddCopied={handleAddCopiedMusic}
+        onRemoveTrack={handleRemoveMusicTrack}
+        onReauthorize={handleReauthorizeMusic}
+        onRelink={handleRelinkMusic}
+        onReorderSfxGroup={handleReorderSfxGroup}
+        onSfxPlaybackModeChange={handleSfxPlaybackModeChange}
+        onReorder={handleReorderMusic}
+        onPlaybackModeChange={handlePlaybackModeChange}
+        onPreview={handlePreviewMusic}
+        onStopPreview={handleStopPreviewMusic}
+        onTogglePlayback={handleTogglePlayback}
+        onSeekPlayback={handleSeekPlayback}
+        onPreviousTrack={handlePreviousTrack}
+        onNextTrack={handleNextTrack}
+      />
+    );
   }
 
   function chooseLength(choice: RiichiLengthChoice) {
@@ -575,10 +783,7 @@ export default function App() {
             setAudioDialogOpen(false);
             setProfileDialogOpen(true);
           }}
-          onOpenAudioSettings={() => {
-            setProfileDialogOpen(false);
-            setAudioDialogOpen(true);
-          }}
+          onOpenAudioSettings={openAudioSettings}
           testModeEnabled={testModeAvailability.enabled}
           onTestMode={() => setScreen('test-mode', { testScenario: null })}
         />
@@ -589,13 +794,7 @@ export default function App() {
             onClose={() => setProfileDialogOpen(false)}
           />
         ) : null}
-        {audioDialogOpen ? (
-          <AudioSettingsDialog
-            settings={audioSettings}
-            onChange={handleAudioSettingsChange}
-            onClose={() => setAudioDialogOpen(false)}
-          />
-        ) : null}
+        {renderAudioSettingsDialog()}
       </>
     );
   }
@@ -641,7 +840,12 @@ export default function App() {
   }
 
   if (state.screen === 'riichi-17-steps') {
-    return <SeventeenStepsScreen matchConfig={state.seventeenStepsConfig} ruleConfig={state.ruleConfig} playerProfile={state.playerProfile} onBack={() => setScreen('riichi-17-steps-settings')} />;
+    return (
+      <>
+        <SeventeenStepsScreen matchConfig={state.seventeenStepsConfig} ruleConfig={state.ruleConfig} playerProfile={state.playerProfile} onBack={() => setScreen('riichi-17-steps-settings')} onOpenAudioSettings={openAudioSettings} />
+        {renderAudioSettingsDialog()}
+      </>
+    );
   }
 
   if (state.screen === 'riichi-washizu') {
@@ -784,6 +988,7 @@ export default function App() {
         showTenpaiWaitsEnabled={state.showTenpaiWaitsEnabled}
         tsumoGiriDisplayEnabled={state.tsumoGiriDisplayEnabled}
         onOpenRulesGuide={() => setState((current) => ({ ...current, rulesGuideOpen: true }))}
+        onOpenAudioSettings={openAudioSettings}
         onReturnMenu={() => matchState.phase === 'match-ended' ? void confirmExitGame() : setState((current) => current.exitDialogOpen
           ? current
           : { ...current, exitDialogOpen: true, exitSaveError: null })}
@@ -807,6 +1012,7 @@ export default function App() {
           onExitWithoutSaving={exitWithoutSaving}
         />
       ) : null}
+      {renderAudioSettingsDialog()}
     </>
   );
 }

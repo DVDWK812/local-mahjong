@@ -23,6 +23,12 @@ export class AudioPresentationConsumer {
 
   private readonly handleEvent = (event: PresentationEvent) => {
     if (!this.shouldHandleEvent()) return;
-    if (event.type === 'tile_discarded') this.audio.playSfx('discard');
+    if (event.type === 'tile_discarded') {
+      this.audio.playSfx('discard');
+    } else if (event.type === 'tile_drawn') {
+      this.audio.playSfx('draw');
+    } else if (event.type === 'meld_declared') {
+      this.audio.playSfx(event.meldType);
+    }
   };
 }

@@ -6,6 +6,7 @@ interface GameTopBarProps {
   matchState?: MatchState;
   analysisOpen: boolean;
   onOpenRulesGuide: () => void;
+  onOpenAudioSettings: () => void;
   onToggleAnalysis: () => void;
   onReturnMenu: () => void;
   modeLabel?: string;
@@ -31,7 +32,7 @@ const windNames: Record<Wind, string> = {
   north: '北',
 };
 
-export function GameTopBar({ gameState, analysisOpen, onOpenRulesGuide, onToggleAnalysis, onReturnMenu, modeLabel, phaseLabelOverride }: GameTopBarProps) {
+export function GameTopBar({ gameState, analysisOpen, onOpenRulesGuide, onOpenAudioSettings, onToggleAnalysis, onReturnMenu, modeLabel, phaseLabelOverride }: GameTopBarProps) {
   const current = gameState.players[gameState.currentPlayer];
 
   return (
@@ -41,6 +42,7 @@ export function GameTopBar({ gameState, analysisOpen, onOpenRulesGuide, onToggle
         <span>{phaseLabelOverride ?? phaseLabels[gameState.phase]}</span>
       </div>
       <div className="game-top-bar-actions">
+        <button type="button" className="game-top-bar-music" aria-label="音乐设置" title="音乐设置" onClick={onOpenAudioSettings}>♪</button>
         <button type="button" onClick={onOpenRulesGuide}>规则说明</button>
         <button type="button" aria-pressed={analysisOpen} onClick={onToggleAnalysis}>牌局分析</button>
         <button type="button" onClick={onReturnMenu}>返回菜单</button>

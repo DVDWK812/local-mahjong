@@ -32,12 +32,13 @@ import { PlayerAvatar } from './PlayerAvatar';
 
 interface SeventeenStepsScreenProps {
   onBack: () => void;
+  onOpenAudioSettings?: () => void;
   ruleConfig: FullRuleConfig;
   matchConfig?: SeventeenStepsMatchConfig;
   playerProfile?: PlayerProfile;
 }
 
-export function SeventeenStepsScreen({ onBack, ruleConfig, matchConfig = DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG, playerProfile = DEFAULT_PLAYER_PROFILE }: SeventeenStepsScreenProps) {
+export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, matchConfig = DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG, playerProfile = DEFAULT_PLAYER_PROFILE }: SeventeenStepsScreenProps) {
   const [state, setState] = useState<SeventeenStepsState>(() => createSeventeenStepsAIGame(createSeventeenStepsGame(matchConfig), {
     difficulty: matchConfig.aiDifficulty,
     personality: matchConfig.aiPersonality,
@@ -81,6 +82,7 @@ export function SeventeenStepsScreen({ onBack, ruleConfig, matchConfig = DEFAULT
         modeLabel="17步麻将"
         phaseLabelOverride={phaseLabel(state)}
         onOpenRulesGuide={() => setRulesOpen(true)}
+        onOpenAudioSettings={onOpenAudioSettings ?? (() => undefined)}
         onToggleAnalysis={() => setAnalysisOpen((open) => !open)}
         onReturnMenu={onBack}
       />
