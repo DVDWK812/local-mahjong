@@ -334,7 +334,6 @@ function SfxCategoryCard({
   onRelink,
   onReorderSfxGroup,
   onSfxPlaybackModeChange,
-  onPlaybackModeChange,
   onPreview,
   onStopPreview,
 }: {
@@ -615,7 +614,7 @@ function PlaybackModeControl({
   value,
   onChange,
 }: {
-  category: MusicCategory;
+  category?: MusicCategory;
   name?: string;
   value: PlaybackMode;
   onChange: (mode: PlaybackMode) => void;

@@ -30,7 +30,7 @@ describe('Music Preferences', () => {
       lastSelectedTrackId: { bgm_richi: 'builtin:bgm_richi:tenpai', bgm_main: null },
       sfxLastSelectedTrackId: { draw: 'builtin:effects:draw-b', discard: null },
       sfxOrder: { meld: ['builtin:effects:meld-a', 'builtin:effects:meld-b'] },
-      sfxPlaybackMode: { draw: 'shuffle', discard: 'repeat-one' },
+      sfxPlaybackMode: { draw: 'shuffle' as const, discard: 'repeat-one' as const },
     };
     saveMusicPreferences(preferences, storage);
     expect(loadMusicPreferences(storage)).toEqual(preferences);
