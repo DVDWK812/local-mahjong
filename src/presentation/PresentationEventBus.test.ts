@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { defaultPresentationFeatures } from '../config/presentationFeatures';
-import { createInitialGameState, discardTile, drawTile } from '../game/engine';
+import { executePon, passCall } from '../game/callChecker';
+import { executeChi } from '../game/chiChecker';
+import { createInitialGameState, declareRiichi, discardTile, drawTile, getRiichiDiscardCandidates } from '../game/engine';
+import { executeKan } from '../game/kanChecker';
 import {
   confirmBuild,
   createSeventeenStepsGame,
@@ -8,9 +11,58 @@ import {
   selectFixedTile,
   toSeventeenStepsGameState,
 } from '../game/seventeenSteps';
+import { createTile } from '../game/tileUtils';
+import type { GameState, TileId } from '../game/types';
 import type { PresentationEvent } from './PresentationEventBus';
 import { PresentationEventBus } from './PresentationEventBus';
 import { GamePresentationEventObserver } from './gamePresentationEvents';
+
+function readyForRiichi(state: GameState): GameState {
+  const ids: TileId[] = [0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23, 27, 31];
+  const hand = ids.map((id, index) => createTile(id, index % 4));
+  return {
+    ...state,
+    currentPlayer: 0,
+    phase: 'discard',
+    players: state.players.map((player) => player.id === 0
+      ? { ...player, hand, drawnTile: hand[hand.length - 1], calls: [], riichi: false, riichiState: null }
+      : player),
+  };
+}
+
+function setPresentationHand(state: GameState, playerId: 0 | 1 | 2 | 3, ids: TileId[]): GameState {
+  const hand = ids.map((id, index) => createTile(id, index % 4));
+  return {
+    ...state,
+    players: state.players.map((player) => player.id === playerId
+      ? { ...player, hand, drawnTile: null, calls: [], riichi: false, riichiState: null }
+      : player),
+  };
+}
+
+function chiCallWindow(): GameState {
+  let state = createInitialGameState();
+  state = setPresentationHand(state, 0, [1, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22, 27, 31, 33]);
+  state = setPresentationHand(state, 1, [0, 2, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]);
+  state = { ...state, currentPlayer: 0, phase: 'discard' };
+  return discardTile(state, 0, state.players[0].hand[0].instanceId);
+}
+
+function ponCallWindow(): GameState {
+  let state = createInitialGameState();
+  state = setPresentationHand(state, 0, [27, 0, 1, 2, 3, 4, 5, 9, 10, 11, 18, 19, 20, 31]);
+  state = setPresentationHand(state, 1, [27, 27, 1, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22]);
+  state = { ...state, currentPlayer: 0, phase: 'discard' };
+  return discardTile(state, 0, state.players[0].hand[0].instanceId);
+}
+
+function minkanCallWindow(): GameState {
+  let state = createInitialGameState();
+  state = setPresentationHand(state, 0, [12, 12, 12, 13, 14, 0, 2, 5, 7, 9, 18, 22, 31]);
+  state = setPresentationHand(state, 3, [12, 0, 1, 2, 3, 4, 5, 9, 10, 11, 18, 19, 20, 33]);
+  state = { ...state, currentPlayer: 3, phase: 'discard' };
+  return discardTile(state, 3, state.players[3].hand[0].instanceId);
+}
 
 describe('PresentationEventBus', () => {
   it('按顺序发布唯一事件，并支持取消订阅', () => {
@@ -258,5 +310,143 @@ describe('tile_drawn presentation event', () => {
 
     expect(received).not.toHaveBeenCalled();
     expect(after.players[1].drawnTile).not.toBeNull();
+  });
+});
+
+describe('riichi_declared presentation event', () => {
+  it('规则确认后严格发布一次 discard + 一次最小 riichi 事件，重复 observe 不补发', () => {
+    const before = readyForRiichi(createInitialGameState());
+    const candidate = getRiichiDiscardCandidates(before, 0)[0];
+    const after = declareRiichi(before, 0, candidate.instanceId);
+    const bus = new PresentationEventBus();
+    const events: PresentationEvent[] = [];
+    bus.subscribe((event) => events.push(event));
+    const observer = new GamePresentationEventObserver(before, bus);
+
+    observer.observe(after);
+    observer.observe(after);
+
+    expect(after).not.toBe(before);
+    expect(events.map((event) => event.type)).toEqual(['tile_discarded', 'riichi_declared']);
+    const discard = events[0];
+    const riichi = events[1];
+    expect(discard).toMatchObject({ type: 'tile_discarded', playerId: 0, isRiichiDiscard: true });
+    expect(riichi).toMatchObject({ type: 'riichi_declared', playerId: 0, riverIndex: 0 });
+    expect(Object.keys(riichi).sort()).toEqual(['eventId', 'playerId', 'riverIndex', 'sequence', 'type']);
+    if (discard.type !== 'tile_discarded' || riichi.type !== 'riichi_declared') throw new Error('Unexpected event order');
+    expect(riichi.riverIndex).toBe(discard.riverIndex);
+  });
+
+  it('非法立直不改变 GameState 且发布 0 个事件', () => {
+    const before = readyForRiichi(createInitialGameState());
+    const bus = new PresentationEventBus();
+    const received = vi.fn();
+    bus.subscribe(received);
+    const observer = new GamePresentationEventObserver(before, bus);
+
+    const after = declareRiichi(before, 1, before.players[1].hand[0].instanceId);
+    observer.observe(after);
+
+    expect(after).toBe(before);
+    expect(received).not.toHaveBeenCalled();
+  });
+});
+
+describe('meld_declared presentation event', () => {
+  it('valid chi 只发布一次最小 confirmed meld event', () => {
+    const before = chiCallWindow();
+    const after = executeChi(before, 1, 0);
+    const bus = new PresentationEventBus();
+    const events: PresentationEvent[] = [];
+    bus.subscribe((event) => events.push(event));
+    const observer = new GamePresentationEventObserver(before, bus);
+
+    observer.observe(after);
+    observer.observe(after);
+
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ type: 'meld_declared', playerId: 1, meldType: 'chi' });
+    expect(Object.keys(events[0]).sort()).toEqual(['eventId', 'meldType', 'playerId', 'sequence', 'type']);
+  });
+
+  it('valid pon 只发布一次且不重播上一张 discard', () => {
+    const before = ponCallWindow();
+    const after = executePon(before, 1);
+    const bus = new PresentationEventBus();
+    const events: PresentationEvent[] = [];
+    bus.subscribe((event) => events.push(event));
+    const observer = new GamePresentationEventObserver(before, bus);
+
+    observer.observe(after);
+    observer.observe(after);
+
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ type: 'meld_declared', playerId: 1, meldType: 'pon' });
+    expect(events.some((event) => event.type === 'tile_discarded')).toBe(false);
+  });
+
+  it('valid minkan 先发布一次 kan event，再发布岭上 draw event', () => {
+    const before = minkanCallWindow();
+    const after = executeKan(before, 0, 'minkan');
+    const bus = new PresentationEventBus();
+    const events: PresentationEvent[] = [];
+    bus.subscribe((event) => events.push(event));
+    const observer = new GamePresentationEventObserver(before, bus);
+
+    observer.observe(after);
+    observer.observe(after);
+
+    expect(events.filter((event) => event.type === 'meld_declared')).toHaveLength(1);
+    expect(events[0]).toMatchObject({ type: 'meld_declared', playerId: 0, meldType: 'kan' });
+    expect(events[1]).toMatchObject({ type: 'tile_drawn', playerId: 0 });
+    expect(events.some((event) => event.type === 'tile_discarded')).toBe(false);
+  });
+
+  it('ankan 与 pon-to-kakan replacement 均统一映射为 kan', () => {
+    let ankanBefore = createInitialGameState();
+    ankanBefore = setPresentationHand(ankanBefore, 0, [0, 0, 0, 0, 3, 4, 5, 9, 10, 11, 18, 19, 20, 31]);
+    ankanBefore = { ...ankanBefore, currentPlayer: 0, phase: 'discard' };
+    const ankanAfter = executeKan(ankanBefore, 0, 'ankan', 0);
+    const bus = new PresentationEventBus();
+    const events: PresentationEvent[] = [];
+    bus.subscribe((event) => events.push(event));
+    new GamePresentationEventObserver(ankanBefore, bus).observe(ankanAfter);
+
+    const ponCall = {
+      type: 'pon' as const,
+      tiles: [createTile(27, 0), createTile(27, 1), createTile(27, 2)],
+      from: 1 as const,
+      opened: true,
+    };
+    const kakanBefore = {
+      ...createInitialGameState(),
+      players: createInitialGameState().players.map((player) => player.id === 0 ? { ...player, calls: [ponCall] } : player),
+    };
+    const kakanAfter = {
+      ...kakanBefore,
+      players: kakanBefore.players.map((player) => player.id === 0
+        ? { ...player, calls: [{ ...ponCall, type: 'kan' as const, kanType: 'kakan' as const, tiles: [...ponCall.tiles, createTile(27, 3)] }] }
+        : player),
+    };
+    new GamePresentationEventObserver(kakanBefore, bus).observe(kakanAfter);
+
+    expect(events.filter((event) => event.type === 'meld_declared')).toEqual([
+      expect.objectContaining({ playerId: 0, meldType: 'kan' }),
+      expect.objectContaining({ playerId: 0, meldType: 'kan' }),
+    ]);
+  });
+
+  it('invalid/cancel call 产生 0 个 meld event', () => {
+    const before = chiCallWindow();
+    const bus = new PresentationEventBus();
+    const events: PresentationEvent[] = [];
+    bus.subscribe((event) => events.push(event));
+    const invalidObserver = new GamePresentationEventObserver(before, bus);
+    invalidObserver.observe(executePon(before, 2));
+
+    const cancelObserver = new GamePresentationEventObserver(before, bus);
+    cancelObserver.observe(passCall(before));
+
+    expect(events.filter((event) => event.type === 'meld_declared')).toHaveLength(0);
   });
 });

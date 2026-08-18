@@ -39,4 +39,28 @@ describe('AudioPresentationConsumer', () => {
     bus.publish({ ...input, riverIndex: 2 });
     expect(playSfx).toHaveBeenCalledTimes(1);
   });
+
+  it('riichi_declared 不播放假音效，也不重复 discard SFX', () => {
+    const bus = new PresentationEventBus();
+    const playSfx = vi.fn();
+    const consumer = new AudioPresentationConsumer({ playSfx }, bus);
+
+    bus.publish({ type: 'riichi_declared', playerId: 0, riverIndex: 2 });
+
+    expect(playSfx).not.toHaveBeenCalled();
+    consumer.dispose();
+  });
+
+  it('meld_declared 不播放未提供的 chi / pon / kan SFX', () => {
+    const bus = new PresentationEventBus();
+    const playSfx = vi.fn();
+    const consumer = new AudioPresentationConsumer({ playSfx }, bus);
+
+    bus.publish({ type: 'meld_declared', playerId: 1, meldType: 'chi' });
+    bus.publish({ type: 'meld_declared', playerId: 2, meldType: 'pon' });
+    bus.publish({ type: 'meld_declared', playerId: 3, meldType: 'kan' });
+
+    expect(playSfx).not.toHaveBeenCalled();
+    consumer.dispose();
+  });
 });

@@ -2,35 +2,36 @@ import { useEffect, useRef, useState, type CSSProperties, type Dispatch, type Re
 import { createTile } from '../../game/tileUtils';
 import type { PlayerId } from '../../game/types';
 import { AnimationScheduler } from '../../presentation/animation/AnimationScheduler';
-import { centerInOverlay, DiscardSourceSnapshotStore, resolveDiscardMotion, type DiscardSourceFreshness } from '../../presentation/handAnimation/DiscardSourceSnapshot';
+import { DiscardSourceSnapshotStore, resolveDiscardMotion, type DiscardSourceFreshness, type PresentationRect } from '../../presentation/handAnimation/DiscardSourceSnapshot';
 import { HandAnimationConsumer } from '../../presentation/handAnimation/HandAnimationConsumer';
 import { HandAnimationController, type HandAnimationAction, type HandAnimationPhase, type HandAnimationTarget } from '../../presentation/handAnimation/HandAnimationController';
 import { RiverTileMask } from '../../presentation/handAnimation/RiverTileMask';
 import { Tile } from '../Tile';
 import { playersByPosition } from './MahjongTable';
+import { RiichiStick } from './RiichiStick';
 import './handAnimationOverlay.css';
 
-type VisualSeat = 'bottom' | 'left' | 'top' | 'right';
+export type VisualSeat = 'bottom' | 'left' | 'top' | 'right';
 type OverlayPhase = 'enter' | HandAnimationPhase;
 
-interface Point {
+export interface HandAnimationPoint {
   readonly x: number;
   readonly y: number;
 }
 
-interface AnimationGeometry {
-  readonly entry: Point;
-  readonly source: Point;
-  readonly destination: Point;
+export interface HandAnimationGeometry {
+  readonly entry: HandAnimationPoint;
+  readonly source: HandAnimationPoint;
+  readonly destination: HandAnimationPoint;
 }
 
 interface HandAnimationVisualState {
   readonly action: HandAnimationAction;
   readonly seat: VisualSeat;
   readonly phase: OverlayPhase;
-  readonly point: Point;
+  readonly point: HandAnimationPoint;
   readonly rotation: number;
-  readonly geometry: AnimationGeometry;
+  readonly geometry: HandAnimationGeometry;
 }
 
 interface HandAnimationOverlayProps {
@@ -51,8 +52,9 @@ export function HandAnimationOverlay({ bottomPlayerId, discardSourceSnapshots, e
   freshnessRef.current = { sessionKey, confirmedTurn: turn };
 
   useEffect(() => {
-    const mask = new RiverTileMask();
-    const target = new DomHandAnimationTarget(overlayRef, setVisual, bottomPlayerId, mask);
+    const riverMask = new RiverTileMask();
+    const riichiStickMask = new RiverTileMask();
+    const target = new DomHandAnimationTarget(overlayRef, setVisual, bottomPlayerId, riverMask, riichiStickMask);
     const scheduler = new AnimationScheduler();
     const controller = new HandAnimationController(target, scheduler, {
       maxQueuedActions: 6,
@@ -88,6 +90,8 @@ export function HandAnimationOverlay({ bottomPlayerId, discardSourceSnapshots, e
   const proxyTile = visual?.action.type === 'tile_discarded'
     ? { ...createTile(visual.action.tile.id, visual.action.sequence), red: visual.action.tile.red }
     : null;
+  const proxyIsSideways = visual?.action.type === 'tile_discarded' && visual.action.isRiichiDiscard;
+  const showRiichiStickProxy = visual?.action.type === 'riichi_declared';
   const style = visual ? {
     left: `${visual.point.x}px`,
     top: `${visual.point.y}px`,
@@ -103,23 +107,32 @@ export function HandAnimationOverlay({ bottomPlayerId, discardSourceSnapshots, e
     >
       {visual ? (
         <div
+          key={visual.action.eventId}
           className="hand-animation-stage"
           data-animation-event={visual.action.eventId}
-          data-animation-kind={visual.action.type === 'tile_drawn' ? 'draw' : 'discard'}
+          data-animation-kind={animationKind(visual.action)}
+          data-animation-meld-type={visual.action.type === 'meld_declared' ? visual.action.meldType : undefined}
           data-animation-phase={visual.phase}
           data-animation-seat={visual.seat}
           data-animation-source-x={visual.geometry.source.x}
           data-animation-source-y={visual.geometry.source.y}
           data-animation-target-x={visual.geometry.destination.x}
           data-animation-target-y={visual.geometry.destination.y}
+          data-animation-spawn-x={visual.geometry.entry.x}
+          data-animation-spawn-y={visual.geometry.entry.y}
           style={style}
         >
           <HandPlaceholder />
-          <span className={`hand-animation-proxy ${visual.action.type === 'tile_discarded' && visual.action.isRiichiDiscard ? 'hand-animation-proxy--sideways' : ''}`}>
-            {proxyTile
-              ? <Tile tile={proxyTile} compact interactive={false} />
-              : <Tile compact faceDown interactive={false} />}
-          </span>
+          {proxyTile ? (
+            <span className={`hand-animation-proxy ${proxyIsSideways ? 'hand-animation-proxy--sideways' : ''}`}>
+              <Tile tile={proxyTile} compact interactive={false} />
+            </span>
+          ) : null}
+          {showRiichiStickProxy ? (
+            <span className="hand-animation-stick-proxy">
+              <RiichiStick orientation="horizontal" active />
+            </span>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -134,54 +147,122 @@ export function visualSeatForPlayer(playerId: PlayerId, bottomPlayerId: PlayerId
   return 'right';
 }
 
+export function createDrawGeometry(
+  handRect: PresentationRect,
+  overlayRect: PresentationRect,
+  seat: VisualSeat,
+): HandAnimationGeometry {
+  const drawTarget = drawAnchorForSeat(handRect, overlayRect, seat);
+  return {
+    entry: spawnPointForSeat(overlayRect, drawTarget, seat),
+    source: drawTarget,
+    destination: drawTarget,
+  };
+}
+
+export function createDiscardGeometry(
+  sourceRect: PresentationRect,
+  riverTargetRect: PresentationRect,
+  overlayRect: PresentationRect,
+  seat: VisualSeat,
+): HandAnimationGeometry {
+  const motion = resolveDiscardMotion(sourceRect, riverTargetRect, overlayRect);
+  return {
+    entry: spawnPointForSeat(overlayRect, motion.source, seat),
+    source: motion.source,
+    destination: motion.destination,
+  };
+}
+
+export function createRiichiGeometry(
+  handRect: PresentationRect,
+  stickTargetRect: PresentationRect,
+  overlayRect: PresentationRect,
+  seat: VisualSeat,
+): HandAnimationGeometry {
+  const motion = resolveDiscardMotion(handRect, stickTargetRect, overlayRect);
+  return {
+    entry: spawnPointForSeat(overlayRect, motion.source, seat),
+    source: motion.source,
+    destination: motion.destination,
+  };
+}
+
+export function createMeldGeometry(
+  meldTargetRect: PresentationRect,
+  overlayRect: PresentationRect,
+  seat: VisualSeat,
+): HandAnimationGeometry {
+  const target = resolveDiscardMotion(meldTargetRect, meldTargetRect, overlayRect).destination;
+  return {
+    entry: spawnPointForSeat(overlayRect, target, seat),
+    source: target,
+    destination: target,
+  };
+}
+
 class DomHandAnimationTarget implements HandAnimationTarget {
   constructor(
     private readonly overlayRef: RefObject<HTMLDivElement | null>,
     private readonly setVisual: Dispatch<SetStateAction<HandAnimationVisualState | null>>,
     private readonly bottomPlayerId: PlayerId,
     private readonly riverMask: RiverTileMask,
+    private readonly riichiStickMask: RiverTileMask,
   ) {}
 
   beforeEnqueue(action: HandAnimationAction): boolean {
-    if (action.type !== 'tile_discarded') return true;
-    const riverTile = this.findRiverTile(action);
-    if (!riverTile) return false;
-    this.riverMask.mask(action.eventId, riverTile);
+    if (action.type === 'tile_discarded') {
+      const riverTile = this.findRiverTile(action);
+      if (!riverTile) return false;
+      this.riverMask.mask(action.eventId, riverTile);
+    }
+    if (action.type === 'riichi_declared') {
+      const riichiStick = this.findRiichiStick(action);
+      if (!riichiStick) return false;
+      this.riichiStickMask.mask(action.eventId, riichiStick);
+    }
     return true;
   }
 
   async prepare(action: HandAnimationAction): Promise<boolean> {
+    this.resetHandVisual();
     const overlay = this.overlayRef.current;
     const scene = overlay?.closest<HTMLElement>('.game-screen');
-    const table = scene?.querySelector<HTMLElement>('.mahjong-table');
-    if (!overlay || !scene || !table) return false;
+    if (!overlay || !scene) return false;
 
     const seat = visualSeatForPlayer(action.playerId, this.bottomPlayerId);
     const overlayRect = overlay.getBoundingClientRect();
-    const tableRect = table.getBoundingClientRect();
-    const handElement = scene.querySelector<HTMLElement>(`[data-local-player="${action.playerId}"] .local-hand-row`)
-      ?? scene.querySelector<HTMLElement>(`[data-player-index="${action.playerId}"] .player-zone-hand-wrap`);
-    if (!handElement) return false;
+    let geometry: HandAnimationGeometry;
+    if (action.type === 'meld_declared') {
+      const meldAnchor = this.findMeldAnchor(action);
+      if (!meldAnchor) return false;
+      geometry = createMeldGeometry(meldAnchor.getBoundingClientRect(), overlayRect, seat);
+    } else {
+      const handElement = scene.querySelector<HTMLElement>(`[data-local-player="${action.playerId}"] .local-hand-row`)
+        ?? scene.querySelector<HTMLElement>(`[data-player-index="${action.playerId}"] .player-zone-hand-wrap`);
+      if (!handElement) return false;
 
-    const handRect = handElement.getBoundingClientRect();
-    const handPoint = centerInOverlay(handRect, overlayRect);
-    const drawPoint = drawAnchorInOverlay(tableRect, overlayRect, seat);
-    let source = action.type === 'tile_drawn' ? drawPoint : handPoint;
-    let destination = handPoint;
-    if (action.type === 'tile_discarded') {
-      const riverTile = this.findRiverTile(action);
-      if (!riverTile) return false;
-      const motion = resolveDiscardMotion(action.discardSourceRect ?? handRect, riverTile.getBoundingClientRect(), overlayRect);
-      source = motion.source;
-      destination = motion.destination;
-      this.riverMask.mask(action.eventId, riverTile);
+      const handRect = handElement.getBoundingClientRect();
+      geometry = createDrawGeometry(handRect, overlayRect, seat);
+      if (action.type === 'tile_discarded') {
+        const riverTile = this.findRiverTile(action);
+        if (!riverTile) return false;
+        this.riverMask.mask(action.eventId, riverTile);
+        geometry = createDiscardGeometry(
+          action.discardSourceRect ?? handRect,
+          riverTile.getBoundingClientRect(),
+          overlayRect,
+          seat,
+        );
+      }
+      if (action.type === 'riichi_declared') {
+        const riichiStick = this.findRiichiStick(action);
+        if (!riichiStick) return false;
+        this.riichiStickMask.mask(action.eventId, riichiStick);
+        geometry = createRiichiGeometry(handRect, riichiStick.getBoundingClientRect(), overlayRect, seat);
+      }
     }
 
-    const geometry: AnimationGeometry = {
-      entry: entryPoint(overlayRect, handPoint, seat),
-      source,
-      destination,
-    };
     this.setVisual({
       action,
       seat,
@@ -196,6 +277,7 @@ class DomHandAnimationTarget implements HandAnimationTarget {
 
   setPhase(action: HandAnimationAction, phase: HandAnimationPhase): void {
     if (phase === 'release' && action.type === 'tile_discarded') this.riverMask.reveal(action.eventId);
+    if (phase === 'release' && action.type === 'riichi_declared') this.riichiStickMask.reveal(action.eventId);
     this.setVisual((current) => {
       if (!current || current.action.eventId !== action.eventId) return current;
       return { ...current, phase, point: pointForPhase(current.geometry, phase) };
@@ -204,17 +286,33 @@ class DomHandAnimationTarget implements HandAnimationTarget {
 
   finish(action: HandAnimationAction): void {
     this.riverMask.reveal(action.eventId);
+    this.riichiStickMask.reveal(action.eventId);
     this.setVisual((current) => current?.action.eventId === action.eventId ? null : current);
   }
 
   clear(): void {
     this.riverMask.revealAll();
-    this.setVisual(null);
+    this.riichiStickMask.revealAll();
+    this.resetHandVisual();
   }
 
   private findRiverTile(action: Extract<HandAnimationAction, { type: 'tile_discarded' }>): HTMLElement | null {
     const scene = this.overlayRef.current?.closest<HTMLElement>('.game-screen');
     return scene?.querySelector<HTMLElement>(`[data-river-player="${action.playerId}"] [data-river-index="${action.riverIndex}"]`) ?? null;
+  }
+
+  private findRiichiStick(action: Extract<HandAnimationAction, { type: 'riichi_declared' }>): HTMLElement | null {
+    const scene = this.overlayRef.current?.closest<HTMLElement>('.game-screen');
+    return scene?.querySelector<HTMLElement>(`[data-riichi-player="${action.playerId}"] .riichi-stick-slot`) ?? null;
+  }
+
+  private findMeldAnchor(action: Extract<HandAnimationAction, { type: 'meld_declared' }>): HTMLElement | null {
+    const scene = this.overlayRef.current?.closest<HTMLElement>('.game-screen');
+    return scene?.querySelector<HTMLElement>(`[data-meld-player="${action.playerId}"]`) ?? null;
+  }
+
+  private resetHandVisual(): void {
+    this.setVisual(null);
   }
 }
 
@@ -227,24 +325,28 @@ function HandPlaceholder() {
   );
 }
 
-function drawAnchorInOverlay(tableRect: DOMRect, overlayRect: DOMRect, seat: VisualSeat): Point {
-  const inset = Math.min(92, Math.max(56, Math.min(tableRect.width, tableRect.height) * 0.1));
-  const centerX = tableRect.left + tableRect.width / 2 - overlayRect.left;
-  const centerY = tableRect.top + tableRect.height / 2 - overlayRect.top;
-  if (seat === 'bottom') return { x: centerX, y: tableRect.bottom - overlayRect.top - inset };
-  if (seat === 'top') return { x: centerX, y: tableRect.top - overlayRect.top + inset };
-  if (seat === 'left') return { x: tableRect.left - overlayRect.left + inset, y: centerY };
-  return { x: tableRect.right - overlayRect.left - inset, y: centerY };
+function drawAnchorForSeat(handRect: PresentationRect, overlayRect: PresentationRect, seat: VisualSeat): HandAnimationPoint {
+  const inset = Math.min(24, Math.max(12, Math.min(handRect.width, handRect.height) * 0.15));
+  const centerX = handRect.left + handRect.width / 2 - overlayRect.left;
+  const centerY = handRect.top + handRect.height / 2 - overlayRect.top;
+  if (seat === 'bottom') return { x: handRect.left + handRect.width - overlayRect.left - inset, y: centerY };
+  if (seat === 'top') return { x: handRect.left - overlayRect.left + inset, y: centerY };
+  if (seat === 'left') return { x: centerX, y: handRect.top + handRect.height - overlayRect.top - inset };
+  return { x: centerX, y: handRect.top - overlayRect.top + inset };
 }
 
-function entryPoint(overlayRect: DOMRect, handPoint: Point, seat: VisualSeat): Point {
-  if (seat === 'bottom') return { x: handPoint.x, y: overlayRect.height + 80 };
-  if (seat === 'top') return { x: handPoint.x, y: -80 };
-  if (seat === 'left') return { x: -100, y: handPoint.y };
-  return { x: overlayRect.width + 100, y: handPoint.y };
+export function spawnPointForSeat(
+  overlayRect: PresentationRect,
+  actionSource: HandAnimationPoint,
+  seat: VisualSeat,
+): HandAnimationPoint {
+  if (seat === 'bottom') return { x: actionSource.x, y: overlayRect.height + 80 };
+  if (seat === 'top') return { x: actionSource.x, y: -80 };
+  if (seat === 'left') return { x: -100, y: actionSource.y };
+  return { x: overlayRect.width + 100, y: actionSource.y };
 }
 
-function pointForPhase(geometry: AnimationGeometry, phase: HandAnimationPhase): Point {
+function pointForPhase(geometry: HandAnimationGeometry, phase: HandAnimationPhase): HandAnimationPoint {
   if (phase === 'approach' || phase === 'grasp') return geometry.source;
   if (phase === 'travel' || phase === 'release') return geometry.destination;
   return geometry.entry;
@@ -260,4 +362,11 @@ function seatRotation(seat: VisualSeat): number {
 function nextPaint(): Promise<void> {
   if (typeof requestAnimationFrame !== 'function') return Promise.resolve();
   return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+}
+
+function animationKind(action: HandAnimationAction): 'draw' | 'discard' | 'riichi' | 'meld' {
+  if (action.type === 'tile_drawn') return 'draw';
+  if (action.type === 'tile_discarded') return 'discard';
+  if (action.type === 'riichi_declared') return 'riichi';
+  return 'meld';
 }

@@ -31,6 +31,11 @@ describe('MahjongTable', () => {
     const html = renderToStaticMarkup(<MahjongTable gameState={createInitialGameState()} />);
     expect((html.match(/riichi-stick-slot/g) ?? [])).toHaveLength(8);
     expect((html.match(/data-active="false"/g) ?? [])).toHaveLength(4);
+    expect((html.match(/data-riichi-player=/g) ?? [])).toHaveLength(4);
+    expect(html).toContain('data-riichi-position="south"');
+    expect(html).toContain('data-riichi-position="east"');
+    expect(html).toContain('data-riichi-position="north"');
+    expect(html).toContain('data-riichi-position="west"');
   });
 
   it('对手信息显示风位与点数，中央计分区继续保留四家点数', () => {

@@ -117,7 +117,13 @@ export function MahjongTable({ gameState, matchState, doraGlowEnabled = true, ho
           </div>
         ))}
         {riverPositions.map(({ playerId, position, stickArea, stickOrientation }) => (
-          <div key={`${position}-stick`} className={`table-riichi-anchor table-riichi-anchor--${position}`} style={{ gridArea: stickArea }}>
+          <div
+            key={`${position}-stick`}
+            className={`table-riichi-anchor table-riichi-anchor--${position}`}
+            data-riichi-player={playerId}
+            data-riichi-position={position}
+            style={{ gridArea: stickArea }}
+          >
             <RiichiStick orientation={stickOrientation} active={gameState.players[playerId].riichi} />
           </div>
         ))}

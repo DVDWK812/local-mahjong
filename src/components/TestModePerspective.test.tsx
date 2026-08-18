@@ -15,7 +15,7 @@ describe('测试模式固定牌桌视角', () => {
     const views = ([0, 1, 2, 3, 0] as PlayerId[]).map((playerId) => renderBoard(gameState, playerId));
     const fixedTables = views.map((html) => sliceBetween(html, '<section class="mahjong-table"', '<section class="local-hand-area'));
     const fixedIdentities = views.map((html) => sliceBetween(html, '<div class="local-hand-info">', '<div class="local-hand-track'));
-    const visibleHands = views.slice(0, 4).map((html) => sliceBetween(html, '<div class="local-hand-row">', '<div class="local-meld-track">'));
+    const visibleHands = views.slice(0, 4).map((html) => sliceBetween(html, '<div class="local-hand-row">', '<div class="local-meld-track"'));
 
     fixedTables.forEach((table) => expect(table).toBe(fixedTables[0]));
     fixedIdentities.forEach((identity) => expect(identity).toBe(fixedIdentities[0]));

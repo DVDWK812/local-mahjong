@@ -89,10 +89,33 @@
   box-shadow: 0 3px 5px rgba(3, 15, 12, 0.32);
 }
 
+.hand-animation-stick-proxy {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  z-index: 1;
+  display: block;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 60ms linear;
+}
+
+.hand-animation-stick-proxy .riichi-stick-slot {
+  width: 96px;
+  height: 6px;
+  opacity: 1;
+}
+
+.hand-animation-stage[data-animation-phase="grasp"] .hand-animation-stick-proxy,
+.hand-animation-stage[data-animation-phase="travel"] .hand-animation-stick-proxy {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hand-animation-stage,
   .hand-animation-hand,
-  .hand-animation-proxy {
+  .hand-animation-proxy,
+  .hand-animation-stick-proxy {
     transition: none;
   }
 }

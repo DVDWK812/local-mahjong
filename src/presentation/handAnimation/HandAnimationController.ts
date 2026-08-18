@@ -3,10 +3,10 @@ import {
   waitForAnimationTime,
   type AnimationTask,
 } from '../animation/AnimationScheduler';
-import type { TileDiscardedPresentationEvent, TileDrawnPresentationEvent } from '../PresentationEventBus';
+import type { MeldDeclaredPresentationEvent, RiichiDeclaredPresentationEvent, TileDiscardedPresentationEvent, TileDrawnPresentationEvent } from '../PresentationEventBus';
 import type { PresentationRect } from './DiscardSourceSnapshot';
 
-export type HandAnimationAction = TileDrawnPresentationEvent | (TileDiscardedPresentationEvent & {
+export type HandAnimationAction = TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | (TileDiscardedPresentationEvent & {
   readonly discardSourceRect?: PresentationRect;
 });
 export type HandAnimationPhase = 'approach' | 'grasp' | 'travel' | 'release' | 'retreat';

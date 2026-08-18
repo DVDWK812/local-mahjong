@@ -22,7 +22,23 @@ export interface TileDrawnPresentationEvent {
   readonly playerId: PlayerId;
 }
 
-export type PresentationEvent = TileDiscardedPresentationEvent | TileDrawnPresentationEvent;
+export interface RiichiDeclaredPresentationEvent {
+  readonly eventId: string;
+  readonly sequence: number;
+  readonly type: 'riichi_declared';
+  readonly playerId: PlayerId;
+  readonly riverIndex: number;
+}
+
+export interface MeldDeclaredPresentationEvent {
+  readonly eventId: string;
+  readonly sequence: number;
+  readonly type: 'meld_declared';
+  readonly playerId: PlayerId;
+  readonly meldType: 'chi' | 'pon' | 'kan';
+}
+
+export type PresentationEvent = TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent;
 type WithoutPresentationMetadata<T> = T extends PresentationEvent ? Omit<T, 'eventId' | 'sequence'> : never;
 export type PresentationEventInput = WithoutPresentationMetadata<PresentationEvent>;
 export type PresentationEventListener = (event: PresentationEvent) => void;

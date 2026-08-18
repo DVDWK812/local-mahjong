@@ -96,6 +96,8 @@ describe('LocalHandArea', () => {
       />,
     );
     expect(html).toContain('local-meld-track');
+    expect(html).toContain('data-meld-player="0"');
+    expect(html).toContain('data-table-meld-zone="south"');
     expect(html).toContain('player-melds');
     expect(css).toContain('justify-content: flex-end');
     expect(css).toContain('.local-meld-track .tile');

@@ -20,6 +20,14 @@ function discarded(sequence: number, playerId: 0 | 1 | 2 | 3 = 0): PresentationE
   };
 }
 
+function riichiDeclared(sequence: number, playerId: 0 | 1 | 2 | 3 = 0): PresentationEvent {
+  return { eventId: `riichi-${sequence}`, sequence, type: 'riichi_declared', playerId, riverIndex: sequence - 1 };
+}
+
+function meldDeclared(sequence: number, playerId: 0 | 1 | 2 | 3 = 0, meldType: 'chi' | 'pon' | 'kan' = 'pon'): PresentationEvent {
+  return { eventId: `meld-${sequence}`, sequence, type: 'meld_declared', playerId, meldType };
+}
+
 class FakeTarget implements HandAnimationTarget {
   readonly log: string[] = [];
   readonly active = new Set<string>();
@@ -52,7 +60,7 @@ class MaskingTarget extends FakeTarget {
   readonly elements = new Map<string, MaskableRiverTile>();
 
   beforeEnqueue(action: HandAnimationAction): void {
-    if (action.type === 'tile_discarded') {
+    if (action.type === 'tile_discarded' || action.type === 'riichi_declared') {
       const element = { style: { visibility: '' } };
       this.elements.set(action.eventId, element);
       this.mask.mask(action.eventId, element);
@@ -95,7 +103,7 @@ describe('HandAnimationController', () => {
     expect(target.mask.maskedCount).toBe(0);
   });
 
-  it('Draw → Discard 严格串行且不并发顶层 scheduler batch', async () => {
+  it('Draw → Discard → Riichi 严格串行且不并发顶层 scheduler batch', async () => {
     const scheduler = new AnimationScheduler();
     scheduler.setSkip(true);
     const target = new FakeTarget();
@@ -109,36 +117,98 @@ describe('HandAnimationController', () => {
 
     controller.enqueue(drawn(1));
     controller.enqueue(discarded(2));
+    controller.enqueue(riichiDeclared(3));
     await controller.whenIdle();
 
     expect(target.log.indexOf('finish:draw-1')).toBeLessThan(target.log.indexOf('prepare:discard-2'));
+    expect(target.log.indexOf('finish:discard-2')).toBeLessThan(target.log.indexOf('prepare:riichi-3'));
     expect(activeRuns.length).toBeGreaterThan(0);
     expect(Math.max(...activeRuns)).toBe(1);
     expect(controller.queuedActionCount).toBe(0);
     expect(controller.runningActionCount).toBe(0);
   });
 
-  it('complete 后恢复 river mask 并移除 hand/proxy 状态', async () => {
+  it('bottom discard → left draw → top discard → right draw 均先完成清理再启动下一事件', async () => {
+    const scheduler = new AnimationScheduler();
+    scheduler.setSkip(true);
+    const target = new FakeTarget();
+    const controller = new HandAnimationController(target, scheduler);
+    const actions = [discarded(1, 0), drawn(2, 1), discarded(3, 2), drawn(4, 3)];
+
+    actions.forEach((action) => controller.enqueue(action));
+    await controller.whenIdle();
+
+    actions.slice(0, -1).forEach((action, index) => {
+      expect(target.log.indexOf(`finish:${action.eventId}`)).toBeLessThan(
+        target.log.indexOf(`prepare:${actions[index + 1].eventId}`),
+      );
+    });
+    expect(target.active.size).toBe(0);
+  });
+
+  it('bottom pon → top chi → right kan 各自完成后才启动下一事件', async () => {
+    const scheduler = new AnimationScheduler();
+    scheduler.setSkip(true);
+    const target = new FakeTarget();
+    const controller = new HandAnimationController(target, scheduler);
+    const actions = [meldDeclared(1, 0, 'pon'), meldDeclared(2, 2, 'chi'), meldDeclared(3, 1, 'kan')];
+
+    actions.forEach((action) => controller.enqueue(action));
+    await controller.whenIdle();
+
+    expect(target.log.indexOf('finish:meld-1')).toBeLessThan(target.log.indexOf('prepare:meld-2'));
+    expect(target.log.indexOf('finish:meld-2')).toBeLessThan(target.log.indexOf('prepare:meld-3'));
+    expect(target.active.size).toBe(0);
+  });
+
+  it('meld complete / skip / cancel / error 后均无 ghost hand 且 queue 可复用', async () => {
+    const scheduler = new AnimationScheduler();
+    scheduler.setSkip(true);
+    const target = new FakeTarget();
+    const onError = vi.fn();
+    const controller = new HandAnimationController(target, scheduler, { onError });
+
+    controller.enqueue(meldDeclared(1, 0, 'chi'));
+    await controller.whenIdle();
+    expect(target.active.size).toBe(0);
+
+    target.failEventId = 'meld-2';
+    controller.enqueue(meldDeclared(2, 1, 'pon'));
+    controller.enqueue(meldDeclared(3, 2, 'kan'));
+    await controller.whenIdle();
+    expect(onError).toHaveBeenCalled();
+    expect(target.log).toContain('finish:meld-3');
+
+    controller.enqueue(meldDeclared(4, 3, 'kan'));
+    await Promise.resolve();
+    controller.cancelAll();
+    await controller.whenIdle();
+    expect(target.active.size).toBe(0);
+    expect(controller.queuedActionCount).toBe(0);
+    expect(controller.runningActionCount).toBe(0);
+  });
+
+  it('riichi complete 后恢复 stick mask 并移除 hand/proxy 状态', async () => {
     vi.useFakeTimers();
     const scheduler = new AnimationScheduler();
     const target = new MaskingTarget();
     const controller = new HandAnimationController(target, scheduler);
-    controller.enqueue(discarded(1));
+    controller.enqueue(riichiDeclared(1));
 
     await vi.runAllTimersAsync();
     await controller.whenIdle();
 
     expect(target.mask.maskedCount).toBe(0);
-    expect(target.elements.get('discard-1')?.style.visibility).toBe('');
+    expect(target.elements.get('riichi-1')?.style.visibility).toBe('');
     expect(target.active.size).toBe(0);
-    expect(target.log.indexOf('mask:discard-1')).toBeLessThan(target.log.indexOf('approach:discard-1'));
+    expect(target.log.indexOf('mask:riichi-1')).toBeLessThan(target.log.indexOf('approach:riichi-1'));
   });
 
   it('cancel 会清空 queue、恢复 river mask，并保持 controller 可复用', async () => {
     const scheduler = new AnimationScheduler();
     const target = new MaskingTarget();
     const controller = new HandAnimationController(target, scheduler);
-    controller.enqueue(discarded(1));
+    controller.enqueue(riichiDeclared(1));
     await Promise.resolve();
     await Promise.resolve();
 
@@ -160,10 +230,10 @@ describe('HandAnimationController', () => {
     const target = new MaskingTarget();
     const controller = new HandAnimationController(target, scheduler);
 
-    controller.enqueue(discarded(1));
+    controller.enqueue(riichiDeclared(1));
     await controller.whenIdle();
 
-    expect(target.log).toContain('retreat:discard-1');
+    expect(target.log).toContain('retreat:riichi-1');
     expect(target.mask.maskedCount).toBe(0);
     expect(target.active.size).toBe(0);
   });
@@ -172,11 +242,11 @@ describe('HandAnimationController', () => {
     const scheduler = new AnimationScheduler();
     scheduler.setSkip(true);
     const target = new MaskingTarget();
-    target.failEventId = 'discard-1';
+    target.failEventId = 'riichi-1';
     const onError = vi.fn();
     const controller = new HandAnimationController(target, scheduler, { onError });
 
-    controller.enqueue(discarded(1));
+    controller.enqueue(riichiDeclared(1));
     controller.enqueue(drawn(2));
     await controller.whenIdle();
 
@@ -194,7 +264,8 @@ describe('HandAnimationController', () => {
     const controller = new HandAnimationController(target, scheduler, { maxQueuedActions: 6 });
 
     for (let index = 1; index <= 100; index += 1) {
-      controller.enqueue(index % 2 === 0 ? discarded(index, (index % 4) as 0 | 1 | 2 | 3) : drawn(index, (index % 4) as 0 | 1 | 2 | 3));
+      const playerId = (index % 4) as 0 | 1 | 2 | 3;
+      controller.enqueue(index % 5 === 0 ? meldDeclared(index, playerId, 'kan') : index % 3 === 0 ? riichiDeclared(index, playerId) : index % 2 === 0 ? discarded(index, playerId) : drawn(index, playerId));
     }
     await controller.whenIdle();
 

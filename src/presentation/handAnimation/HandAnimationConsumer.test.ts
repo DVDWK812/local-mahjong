@@ -78,4 +78,30 @@ describe('HandAnimationConsumer', () => {
     }));
     consumer.dispose();
   });
+
+  it('riichi_declared 只入队一个独立立直动作，不复制 discard 动作', () => {
+    const bus = new PresentationEventBus();
+    const enqueue = vi.fn();
+    const consumer = new HandAnimationConsumer({ enqueue }, bus);
+
+    const riichi = bus.publish({ type: 'riichi_declared', playerId: 2, riverIndex: 4 });
+
+    expect(enqueue).toHaveBeenCalledTimes(1);
+    expect(enqueue).toHaveBeenCalledWith(riichi);
+    expect(enqueue.mock.calls[0][0]).toMatchObject({ type: 'riichi_declared', playerId: 2, riverIndex: 4 });
+    consumer.dispose();
+  });
+
+  it('meld_declared 只入队一个 caller-to-meld 动作', () => {
+    const bus = new PresentationEventBus();
+    const enqueue = vi.fn();
+    const consumer = new HandAnimationConsumer({ enqueue }, bus);
+
+    const meld = bus.publish({ type: 'meld_declared', playerId: 3, meldType: 'kan' });
+
+    expect(enqueue).toHaveBeenCalledTimes(1);
+    expect(enqueue).toHaveBeenCalledWith(meld);
+    expect(enqueue.mock.calls[0][0]).toMatchObject({ type: 'meld_declared', playerId: 3, meldType: 'kan' });
+    consumer.dispose();
+  });
 });

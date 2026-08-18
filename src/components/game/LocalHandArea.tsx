@@ -126,7 +126,7 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
           ) : null}
         </div>
       </div>
-      <div className="local-meld-track">
+      <div className="local-meld-track" data-meld-player={meldPlayer.id} data-table-meld-zone="south">
         <PlayerMelds player={meldPlayer} seatClass="seat-bottom local-melds" doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
       </div>
     </section>
