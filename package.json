@@ -4,7 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "npm run generate:voice-packs",
     "dev": "vite",
+    "generate:voice-packs": "node scripts/generateVoicePackIndex.mjs",
+    "test:voice-pack-index": "node scripts/verifyVoicePackIndex.mjs",
+    "pretest": "npm run generate:voice-packs && npm run test:voice-pack-index",
+    "prebuild": "npm run generate:voice-packs",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run"

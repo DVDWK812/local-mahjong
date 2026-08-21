@@ -2,6 +2,10 @@
 
 `generate_voice.py` 从 UTF-8 CSV 生成 Fish Audio MP3。CSV 是唯一标准输入，未知列会被忽略，因此可以安全扩展标准件。
 
+### Voice Pack 运行时索引
+
+`voice_packs.json` 和每个 Pack 的 `voice_lines.json` 是 **build/dev generated artifacts**，不纳入 Git。`predev`、`pretest` 与 `prebuild` 会自动运行 `generate:voice-packs`，因此 fresh clone 后直接执行 `npm run dev`、`npm test` 或 `npm run build` 都会从 `pack.json`、`manifest.json` 和 `voice_lines.csv` 生成最新索引；不要手动编辑这些 JSON。
+
 语音资产采用 Voice Pack：`src/music/voice_lines/<pack>/` 内有 `pack.json`、`voice_lines.csv`、缓存和日志，音频固定放在 `audio/`。不带参数时会使用 `xiaozhang` Pack；也可用 `--pack src/music/voice_lines/<pack>` 选择其他 Pack。
 
 `action` 使用英文开发标识，`action_cn` 是仅供编辑时查看的中文名称；生成脚本不会读取 `action_cn`。

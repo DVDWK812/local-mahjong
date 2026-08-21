@@ -4,3 +4,5 @@ dist/
 coverage/
 .secrets/
 **/fish_audio_api_keys.txt
+src/music/voice_lines/voice_packs.json
+src/music/voice_lines/*/voice_lines.json

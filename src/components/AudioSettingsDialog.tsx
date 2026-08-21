@@ -28,6 +28,7 @@ interface AudioSettingsDialogProps {
   onSeekPlayback: (time: number) => void;
   onPreviousTrack: () => void;
   onNextTrack: () => void;
+  onManageVoicePack: (packId: string) => void;
 }
 
 export function AudioSettingsDialog({
@@ -53,6 +54,7 @@ export function AudioSettingsDialog({
   onSeekPlayback,
   onPreviousTrack,
   onNextTrack,
+  onManageVoicePack,
 }: AudioSettingsDialogProps) {
   const dialogRef = useRef<HTMLElement>(null);
   const onCloseRef = useRef(onClose);
@@ -114,6 +116,7 @@ export function AudioSettingsDialog({
             onSeekPlayback={onSeekPlayback}
             onPreviousTrack={onPreviousTrack}
             onNextTrack={onNextTrack}
+            onManageVoicePack={onManageVoicePack}
           />
         </div>
         <footer className="result-actions">

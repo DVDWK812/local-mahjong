@@ -3,6 +3,7 @@ import { audioVolumePercent, type AudioSettings } from '../../audio/audioSetting
 import type { PlaybackSnapshot } from '../../audio/AudioManager';
 import { supportsFileSystemAccess, type LinkedTrackStatus, type MusicLibraryUi } from '../../audio/musicLibrary';
 import type { GameSfxGroup, MusicCategory, MusicTrackDefinition, MusicTrackId, PlaybackMode } from '../../audio/musicTypes';
+import { VoicePackSettings } from './VoicePackSettings';
 
 interface AudioSettingsPanelProps {
   settings: AudioSettings;
@@ -26,6 +27,7 @@ interface AudioSettingsPanelProps {
   onSeekPlayback: (time: number) => void;
   onPreviousTrack: () => void;
   onNextTrack: () => void;
+  onManageVoicePack: (packId: string) => void;
 }
 
 interface MusicCategoryCardConfig {
@@ -70,6 +72,7 @@ export function AudioSettingsPanel({
   onSeekPlayback,
   onPreviousTrack,
   onNextTrack,
+  onManageVoicePack,
 }: AudioSettingsPanelProps) {
   return (
     <section className="audio-settings" aria-labelledby="audio-settings-panel-title">
@@ -146,7 +149,11 @@ export function AudioSettingsPanel({
           disabled={!settings.voiceEnabled}
           onChange={(value) => onChange({ ...settings, voiceVolume: Number(value) / 100 })}
         />
-        <p className="music-library__placeholder">语音资源将在后续版本开放</p>
+        <VoicePackSettings
+          selectedVoicePackId={settings.selectedVoicePackId}
+          onSelect={(selectedVoicePackId) => onChange({ ...settings, selectedVoicePackId })}
+          onManage={onManageVoicePack}
+        />
       </fieldset>
     </section>
   );

@@ -5,6 +5,7 @@ export interface AudioSettings {
   readonly bgmRiichiVolume: number;
   readonly sfxVolume: number;
   readonly voiceVolume: number;
+  readonly selectedVoicePackId: string | null;
   readonly bgmEnabled: boolean;
   readonly bgmGameEnabled: boolean;
   readonly riichiMusicEnabled: boolean;
@@ -19,6 +20,7 @@ export const DEFAULT_AUDIO_SETTINGS: Readonly<AudioSettings> = Object.freeze({
   bgmRiichiVolume: 0.6,
   sfxVolume: 0.8,
   voiceVolume: 0.8,
+  selectedVoicePackId: null,
   bgmEnabled: true,
   bgmGameEnabled: true,
   riichiMusicEnabled: true,
@@ -37,6 +39,10 @@ function normalizeBoolean(value: unknown, fallback: boolean): boolean {
   return typeof value === 'boolean' ? value : fallback;
 }
 
+function normalizeVoicePackId(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
 export function normalizeAudioSettings(value: unknown): AudioSettings {
   const input = value && typeof value === 'object' && !Array.isArray(value)
     ? value as Partial<Record<keyof AudioSettings, unknown>>
@@ -48,6 +54,7 @@ export function normalizeAudioSettings(value: unknown): AudioSettings {
     bgmRiichiVolume: normalizeVolume(input.bgmRiichiVolume, DEFAULT_AUDIO_SETTINGS.bgmRiichiVolume),
     sfxVolume: normalizeVolume(input.sfxVolume, DEFAULT_AUDIO_SETTINGS.sfxVolume),
     voiceVolume: normalizeVolume(input.voiceVolume, DEFAULT_AUDIO_SETTINGS.voiceVolume),
+    selectedVoicePackId: normalizeVoicePackId(input.selectedVoicePackId),
     bgmEnabled: normalizeBoolean(input.bgmEnabled, DEFAULT_AUDIO_SETTINGS.bgmEnabled),
     bgmGameEnabled: normalizeBoolean(input.bgmGameEnabled, DEFAULT_AUDIO_SETTINGS.bgmGameEnabled),
     riichiMusicEnabled: normalizeBoolean(input.riichiMusicEnabled, DEFAULT_AUDIO_SETTINGS.riichiMusicEnabled),
@@ -69,6 +76,7 @@ export function migrateLegacyAudioSettings(legacy: unknown): AudioSettings {
     bgmVolume: input.bgmVolume,
     sfxVolume: input.sfxVolume,
     voiceVolume: input.voiceVolume,
+    selectedVoicePackId: input.selectedVoicePackId,
     bgmEnabled: input.bgmEnabled,
     sfxEnabled: input.sfxEnabled,
     voiceEnabled: input.voiceEnabled,

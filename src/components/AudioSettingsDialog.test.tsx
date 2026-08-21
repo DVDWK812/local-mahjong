@@ -96,6 +96,7 @@ function renderDialog(overrides: Partial<Parameters<typeof AudioSettingsDialog>[
       onSeekPlayback={() => undefined}
       onPreviousTrack={() => undefined}
       onNextTrack={() => undefined}
+      onManageVoicePack={() => undefined}
       {...overrides}
     />,
   );
@@ -282,11 +283,12 @@ describe('AudioSettingsDialog', () => {
     expect(renderDialog().match(/music-track--repeat-one/g)).toBeNull();
   });
 
-  it('语音区域保留开关与音量并显示暂未开放', () => {
+  it('语音区域显示自动发现的角色，并提供管理入口', () => {
     const html = renderDialog();
     expect(html).toContain('aria-label="语音开关"');
-    expect(html).toContain('语音资源将在后续版本开放');
-    expect(html).not.toContain('aria-label="添加语音"');
+    expect(html).toContain('角色语音');
+    expect(html).toContain('校长');
+    expect(html).toContain('aria-label="管理 校长 语音"');
   });
 
   it('文件选择器只接受 MP3 / WAV', () => {

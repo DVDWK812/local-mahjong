@@ -6,9 +6,12 @@ import { AudioManager, type PlaybackSnapshot } from './audio/AudioManager';
 import { AudioPresentationConsumer } from './audio/AudioPresentationConsumer';
 import { normalizeAudioSettings, type AudioSettings } from './audio/audioSettings';
 import { loadAudioSettings, saveAudioSettings } from './audio/audioSettingsStorage';
+import { VOICE_PACK_REPOSITORY } from './audio/voice/VoicePackRepository';
+import { resolveSelectedVoicePackId } from './audio/voice/voicePreferences';
 import { MusicLibrary, type MusicAddResult } from './audio/musicLibrary';
 import type { GameSfxGroup, MusicCategory, MusicTrackDefinition, MusicTrackId, PlaybackMode } from './audio/musicTypes';
 import { AudioSettingsDialog } from './components/AudioSettingsDialog';
+import { VoiceManagementScreen } from './components/voice/VoiceManagementScreen';
 import { BackButton } from './components/BackButton';
 import { Board } from './components/Board';
 import { ExitGameDialog } from './components/ExitGameDialog';
@@ -177,6 +180,7 @@ export default function App() {
   const testModeAvailability = currentTestModeAvailability();
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [audioDialogOpen, setAudioDialogOpen] = useState(false);
+  const [voiceManagementPackId, setVoiceManagementPackId] = useState<string | null>(null);
   const [musicRevision, setMusicRevision] = useState(0);
   const [previewTrackId, setPreviewTrackId] = useState<MusicTrackId | null>(null);
   const [musicNotice, setMusicNotice] = useState<string | null>(null);
@@ -190,9 +194,14 @@ export default function App() {
     duration: 0,
     playbackMode: undefined,
   });
-  const [audioSettings, setAudioSettings] = useState<AudioSettings>(() => (
-    loadAudioSettings(typeof window === 'undefined' ? undefined : window.localStorage)
-  ));
+  const [audioSettings, setAudioSettings] = useState<AudioSettings>(() => {
+    const storage = typeof window === 'undefined' ? undefined : window.localStorage;
+    const loaded = loadAudioSettings(storage);
+    const selectedVoicePackId = resolveSelectedVoicePackId(loaded.selectedVoicePackId, VOICE_PACK_REPOSITORY.listPacks());
+    const resolved = { ...loaded, selectedVoicePackId };
+    if (storage && selectedVoicePackId !== loaded.selectedVoicePackId) saveAudioSettings(resolved, storage);
+    return resolved;
+  });
   const [state, setState] = useState<AppState>(() => ({
     screen: testModeAvailability.requested ? 'test-mode' : 'main-menu',
     activeGame: null,
@@ -415,7 +424,11 @@ export default function App() {
   }
 
   function handleAudioSettingsChange(settings: AudioSettings) {
-    const normalized = normalizeAudioSettings(settings);
+    const normalizedSettings = normalizeAudioSettings(settings);
+    const normalized = {
+      ...normalizedSettings,
+      selectedVoicePackId: resolveSelectedVoicePackId(normalizedSettings.selectedVoicePackId, VOICE_PACK_REPOSITORY.listPacks()),
+    };
     audioManager.setSettings(normalized);
     setAudioSettings(normalized);
     if (typeof window !== 'undefined') saveAudioSettings(normalized, window.localStorage);
@@ -540,10 +553,19 @@ export default function App() {
 
   function closeAudioDialog() {
     audioManager.setTemporaryReturnPolicy('restart-runtime-playlist');
+    setVoiceManagementPackId(null);
     setAudioDialogOpen(false);
   }
 
+  function openVoiceManagement(packId: string) {
+    handleAudioSettingsChange({ ...audioSettings, selectedVoicePackId: packId });
+    setVoiceManagementPackId(packId);
+  }
+
   function renderAudioSettingsDialog() {
+    if (voiceManagementPackId) {
+      return <VoiceManagementScreen packId={voiceManagementPackId} voiceVolume={audioSettings.voiceVolume} onBack={() => setVoiceManagementPackId(null)} />;
+    }
     if (!audioDialogOpen) return null;
     return (
       <AudioSettingsDialog
@@ -569,6 +591,7 @@ export default function App() {
         onSeekPlayback={handleSeekPlayback}
         onPreviousTrack={handlePreviousTrack}
         onNextTrack={handleNextTrack}
+        onManageVoicePack={openVoiceManagement}
       />
     );
   }

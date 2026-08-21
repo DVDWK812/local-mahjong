@@ -1,5 +1,9 @@
 import type { GameSfxGroup, GameSfxId, MusicCategory, MusicTrackDefinition, MusicTrackId } from './musicTypes';
 
+// Re-exporting the read-only repository makes its Vite asset URLs part of the
+// production graph without registering any voice track or triggering playback.
+export { VOICE_PACK_REPOSITORY } from './voice/VoicePackRepository';
+
 export type BuiltinMusicModuleMap = Record<string, string>;
 
 const MUSIC_CATEGORY_PATTERN = /\/(bgm_main|bgm_game|bgm_richi|effects|voice_lines)\//;

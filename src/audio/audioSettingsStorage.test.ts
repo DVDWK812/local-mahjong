@@ -31,6 +31,13 @@ describe('AudioSettings storage', () => {
     expect(storage.getItem(AUDIO_SETTINGS_STORAGE_KEY)).toContain(`"version":${AUDIO_SETTINGS_STORAGE_VERSION}`);
   });
 
+  it('保存后可恢复已选择的角色语音 Pack', () => {
+    const storage = memoryStorage();
+    const settings = { ...DEFAULT_AUDIO_SETTINGS, selectedVoicePackId: 'xiaozhang' };
+    saveAudioSettings(settings, storage);
+    expect(loadAudioSettings(storage).selectedVoicePackId).toBe('xiaozhang');
+  });
+
   it('损坏 JSON、空值、数组和未知版本安全回退', () => {
     const storage = memoryStorage();
     for (const value of ['{broken json', 'null', '[]', `{"version":${AUDIO_SETTINGS_STORAGE_VERSION + 1},"settings":{}}`]) {
