@@ -340,6 +340,18 @@ export interface RiichiDiscardEvaluation {
   handAfterDiscard: Tile[];
 }
 
+/**
+ * A UI-level riichi discard option. Physical copies are kept together so the
+ * action prompt can show one tile while still retaining the exact instanceIds
+ * needed by preview, formal discard, and replay events.
+ */
+export interface RiichiDiscardCandidateGroup {
+  key: string;
+  tile: Tile;
+  tiles: Tile[];
+  instanceIds: string[];
+}
+
 function isRiichiDeclarationAvailable(state: GameState, playerId: PlayerId): boolean {
   const player = state.players[playerId];
   if (!player) return false;
@@ -372,9 +384,32 @@ export function evaluateRiichiDiscard(
 }
 
 export function getRiichiDiscardCandidates(state: GameState, playerId: PlayerId): Tile[] {
+  return getRiichiDiscardCandidateGroups(state, playerId).flatMap((candidate) => candidate.tiles);
+}
+
+export function getRiichiDiscardCandidateGroups(state: GameState, playerId: PlayerId): RiichiDiscardCandidateGroup[] {
   const player = state.players[playerId];
   if (!player || !isRiichiDeclarationAvailable(state, playerId)) return [];
-  return player.hand.filter((tile) => evaluateRiichiDiscard(state, playerId, tile.instanceId) !== null);
+  const groups = new Map<string, RiichiDiscardCandidateGroup>();
+  for (const tile of player.hand) {
+    if (!evaluateRiichiDiscard(state, playerId, tile.instanceId)) continue;
+    // Red and ordinary fives are different physical choices and must remain
+    // separate even though they share the same tile id.
+    const key = `${tile.id}-${tile.red ? 'red' : 'ordinary'}`;
+    const group = groups.get(key);
+    if (group) {
+      group.tiles.push(tile);
+      group.instanceIds.push(tile.instanceId);
+      continue;
+    }
+    groups.set(key, {
+      key,
+      tile,
+      tiles: [tile],
+      instanceIds: [tile.instanceId],
+    });
+  }
+  return [...groups.values()];
 }
 
 export function declareRiichi(state: GameState, playerId: PlayerId, tileInstanceId: string): GameState {

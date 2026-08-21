@@ -201,4 +201,20 @@ describe('HandAnimationOverlay', () => {
     expect(overlay).not.toContain('hand-animation-meld-proxy');
     expect(localHand).toContain('data-meld-player={meldPlayer.id}');
   });
+
+  it('pacing identity 在 consumer 接收时注册，并由 controller settle / overlay cleanup 释放', () => {
+    const consumer = readFileSync(resolve(process.cwd(), 'src/presentation/handAnimation/HandAnimationConsumer.ts'), 'utf8');
+    const controller = readFileSync(resolve(process.cwd(), 'src/presentation/handAnimation/HandAnimationController.ts'), 'utf8');
+    const overlay = readFileSync(resolve(process.cwd(), 'src/components/game/HandAnimationOverlay.tsx'), 'utf8');
+    const observer = readFileSync(resolve(process.cwd(), 'src/presentation/gamePresentationEvents.ts'), 'utf8');
+    const app = readFileSync(resolve(process.cwd(), 'src/App.tsx'), 'utf8');
+
+    expect(observer).toContain('useLayoutEffect');
+    expect(consumer.indexOf('this.pacingGate?.begin(event)')).toBeLessThan(consumer.indexOf('this.controller.enqueue(action)'));
+    expect(controller).toContain('this.onSettled(action)');
+    expect(overlay).toContain('presentationPacingGate.complete(action.eventId)');
+    expect(overlay).toContain('presentationPacingGate.clear()');
+    expect(app).toContain('runPacedAutomaticAction');
+    expect(app).not.toContain('AI_ACTION_DELAY_MS');
+  });
 });

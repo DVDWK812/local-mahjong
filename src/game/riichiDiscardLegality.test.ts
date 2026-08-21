@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildTenpaiDisplay } from './tenpaiDisplay';
-import { canDeclareDoubleRiichi, canDeclareRiichi, createInitialGameState, declareRiichi, evaluateRiichiDiscard, getRiichiDiscardCandidates } from './engine';
+import { canDeclareDoubleRiichi, canDeclareRiichi, createInitialGameState, declareRiichi, evaluateRiichiDiscard, getRiichiDiscardCandidateGroups, getRiichiDiscardCandidates } from './engine';
 import { isPlayerTenpaiAtDraw } from './exhaustiveDraw';
 import { createTile } from './tileUtils';
 import type { GameState, PlayerId, Tile, TileId } from './types';
@@ -38,6 +38,23 @@ function preview(state: GameState, candidate: Tile) {
 }
 
 describe('RIICHI-DISCARD-MUST-TENPAI', () => {
+  it('相同普通牌只生成一个UI候选，但保留全部合法instanceId', () => {
+    const state = readyState([0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23, 23, 31]);
+    const groups = getRiichiDiscardCandidateGroups(state, 0);
+    const sixSou = groups.find((candidate) => candidate.tile.id === 23 && !candidate.tile.red);
+
+    expect(sixSou).toBeDefined();
+    expect(sixSou?.tiles).toHaveLength(2);
+    expect(sixSou?.instanceIds).toEqual(sixSou?.tiles.map((tile) => tile.instanceId));
+    expect(groups.filter((candidate) => candidate.tile.id === 23 && !candidate.tile.red)).toHaveLength(1);
+
+    const selectedInstanceId = sixSou!.instanceIds[0];
+    const expected = buildTenpaiDisplay(state, 0, selectedInstanceId, 'double-riichi');
+    const after = declareRiichi(state, 0, selectedInstanceId);
+    expect(after.players[0].river[after.players[0].river.length - 1]?.instanceId).toBe(selectedInstanceId);
+    expect(buildTenpaiDisplay(after, 0)?.waits.map((wait) => wait.id)).toEqual(expected?.waits.map((wait) => wait.id));
+  });
+
   it('多个合法候选逐个正式弃牌后都听牌，且预览等待与正式结果完全一致', () => {
     const state = readyState([0, 1, 2, 9, 10, 11, 18, 19, 20, 21, 22, 23, 27, 31]);
     const candidates = getRiichiDiscardCandidates(state, 0);
@@ -83,8 +100,11 @@ describe('RIICHI-DISCARD-MUST-TENPAI', () => {
   it('赤五与普通五都保留为具体instanceId候选，正式弃牌不会删错物理牌', () => {
     const state = readyState([0, 1, 2, 9, 10, 11, 18, 19, 20, 31, 31, 3, 4, 4]);
     const fiveCandidates = getRiichiDiscardCandidates(state, 0).filter((tile) => tile.id === 4);
+    const fiveGroups = getRiichiDiscardCandidateGroups(state, 0).filter((candidate) => candidate.tile.id === 4);
     expect(fiveCandidates).toHaveLength(2);
     expect(fiveCandidates.map((tile) => tile.red).sort()).toEqual([false, true]);
+    expect(fiveGroups).toHaveLength(2);
+    expect(fiveGroups.every((candidate) => candidate.instanceIds.length === 1)).toBe(true);
 
     fiveCandidates.forEach((discarded, index) => {
       const retained = fiveCandidates[1 - index];

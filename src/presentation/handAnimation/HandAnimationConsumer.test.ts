@@ -4,11 +4,54 @@ import { DiscardSourceSnapshotStore } from './DiscardSourceSnapshot';
 import { HandAnimationConsumer } from './HandAnimationConsumer';
 
 describe('HandAnimationConsumer', () => {
+  it('在 enqueue 前同步注册 event identity，避免自动 effect 抢跑', () => {
+    const bus = new PresentationEventBus();
+    const enqueue = vi.fn(() => true);
+    const begin = vi.fn();
+    const cancel = vi.fn();
+    const consumer = new HandAnimationConsumer(
+      { enqueue },
+      bus,
+      () => true,
+      () => ({ presentationEvents: true, handAnimations: true }),
+      (event) => event,
+      { begin, cancel },
+    );
+
+    const event = bus.publish({ type: 'tile_drawn', playerId: 1 });
+
+    expect(begin).toHaveBeenCalledWith(event);
+    expect(begin.mock.invocationCallOrder[0]).toBeLessThan(enqueue.mock.invocationCallOrder[0]);
+    expect(cancel).not.toHaveBeenCalled();
+    consumer.dispose();
+  });
+
+  it('动画未接收事件时立即取消对应 pacing identity', () => {
+    const bus = new PresentationEventBus();
+    const begin = vi.fn();
+    const cancel = vi.fn();
+    const consumer = new HandAnimationConsumer(
+      { enqueue: () => false },
+      bus,
+      () => true,
+      () => ({ presentationEvents: true, handAnimations: true }),
+      (event) => event,
+      { begin, cancel },
+    );
+
+    const event = bus.publish({ type: 'tile_drawn', playerId: 2 });
+
+    expect(begin).toHaveBeenCalledWith(event);
+    expect(cancel).toHaveBeenCalledWith(event.eventId);
+    consumer.dispose();
+  });
+
   it('handAnimations flag 只控制动画，不阻止 presentation event', () => {
     let handAnimations = false;
     const bus = new PresentationEventBus();
     const enqueue = vi.fn();
-    const consumer = new HandAnimationConsumer({ enqueue }, bus, () => true, () => ({ presentationEvents: true, handAnimations }));
+    const begin = vi.fn();
+    const consumer = new HandAnimationConsumer({ enqueue }, bus, () => true, () => ({ presentationEvents: true, handAnimations }), (event) => event, { begin, cancel: vi.fn() });
 
     bus.publish({ type: 'tile_drawn', playerId: 1 });
     handAnimations = true;
@@ -21,6 +64,7 @@ describe('HandAnimationConsumer', () => {
     });
 
     expect(enqueue).toHaveBeenCalledTimes(1);
+    expect(begin).toHaveBeenCalledTimes(1);
     expect(enqueue).toHaveBeenCalledWith(discarded);
     consumer.dispose();
   });

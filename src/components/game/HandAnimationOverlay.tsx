@@ -6,6 +6,7 @@ import { DiscardSourceSnapshotStore, resolveDiscardMotion, type DiscardSourceFre
 import { HandAnimationConsumer } from '../../presentation/handAnimation/HandAnimationConsumer';
 import { HandAnimationController, type HandAnimationAction, type HandAnimationPhase, type HandAnimationTarget } from '../../presentation/handAnimation/HandAnimationController';
 import { RiverTileMask } from '../../presentation/handAnimation/RiverTileMask';
+import { presentationPacingGate } from '../../presentation/pacing/PresentationPacingGate';
 import { Tile } from '../Tile';
 import { playersByPosition } from './MahjongTable';
 import { RiichiStick } from './RiichiStick';
@@ -59,12 +60,13 @@ export function HandAnimationOverlay({ bottomPlayerId, discardSourceSnapshots, e
     const controller = new HandAnimationController(target, scheduler, {
       maxQueuedActions: 6,
       onError: () => target.clear(),
+      onSettled: (action) => presentationPacingGate.complete(action.eventId),
     });
     const consumer = new HandAnimationConsumer(controller, undefined, () => enabledRef.current, undefined, (event) => {
       if (event.type !== 'tile_discarded') return event;
       const snapshot = discardSourceSnapshots.consume(event, freshnessRef.current);
       return snapshot ? { ...event, discardSourceRect: snapshot.sourceTileRect } : event;
-    });
+    }, presentationPacingGate);
     controllerRef.current = controller;
 
     const reducedMotion = typeof window === 'undefined' ? null : window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -78,6 +80,7 @@ export function HandAnimationOverlay({ bottomPlayerId, discardSourceSnapshots, e
       controller.dispose();
       target.clear();
       discardSourceSnapshots.clear();
+      presentationPacingGate.clear();
       controllerRef.current = null;
     };
   }, [bottomPlayerId, discardSourceSnapshots]);
@@ -85,6 +88,7 @@ export function HandAnimationOverlay({ bottomPlayerId, discardSourceSnapshots, e
   useEffect(() => {
     discardSourceSnapshots.clear();
     controllerRef.current?.cancelAll();
+    presentationPacingGate.clear();
   }, [discardSourceSnapshots, enabled, sessionKey]);
 
   const proxyTile = visual?.action.type === 'tile_discarded'

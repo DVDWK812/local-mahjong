@@ -1,0 +1,9 @@
+{
+  "endpoint": "https://fishaudio.org/api/open/v1/speech/tts",
+  "voiceId": "2721ed7b-1905-4a4c-bd1e-02f847f27161",
+  "modelId": "fishaudio-s21pro-flash",
+  "format": "mp3",
+  "speed": 1.0,
+  "timeoutSeconds": 90,
+  "retries": 2
+}

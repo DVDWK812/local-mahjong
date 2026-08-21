@@ -1,0 +1,7 @@
+{
+  "id": "xiaozhang",
+  "name": "校长",
+  "locale": "zh-CN",
+  "voiceId": "2721ed7b-1905-4a4c-bd1e-02f847f27161",
+  "modelId": "fishaudio-s21pro-flash"
+}

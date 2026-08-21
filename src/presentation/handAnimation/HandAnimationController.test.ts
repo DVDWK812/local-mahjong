@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AnimationScheduler } from '../animation/AnimationScheduler';
 import type { PresentationEvent } from '../PresentationEventBus';
+import { PresentationPacingGate } from '../pacing/PresentationPacingGate';
 import { HandAnimationController, type HandAnimationAction, type HandAnimationPhase, type HandAnimationTarget } from './HandAnimationController';
 import { RiverTileMask, type MaskableRiverTile } from './RiverTileMask';
 
@@ -84,6 +85,39 @@ afterEach(() => {
 });
 
 describe('HandAnimationController', () => {
+  it('complete / skip / cancel / error 均 settle 对应 pacing identity', async () => {
+    const scheduler = new AnimationScheduler();
+    scheduler.setSkip(true);
+    const target = new FakeTarget();
+    const gate = new PresentationPacingGate();
+    const controller = new HandAnimationController(target, scheduler, {
+      onSettled: (action) => gate.complete(action.eventId),
+    });
+
+    const complete = drawn(1);
+    gate.begin(complete);
+    controller.enqueue(complete);
+    await controller.whenIdle();
+    expect(gate.pendingCount).toBe(0);
+
+    const failed = discarded(2);
+    target.failEventId = failed.eventId;
+    gate.begin(failed);
+    controller.enqueue(failed);
+    await controller.whenIdle();
+    expect(gate.pendingCount).toBe(0);
+
+    target.failEventId = null;
+    scheduler.setSkip(false);
+    const cancelled = meldDeclared(3);
+    gate.begin(cancelled);
+    controller.enqueue(cancelled);
+    await Promise.resolve();
+    controller.cancelAll();
+    await controller.whenIdle();
+    expect(gate.pendingCount).toBe(0);
+  });
+
   it('AI discard 入队时立即遮罩河牌，不等待前序动画 prepare', async () => {
     vi.useFakeTimers();
     const scheduler = new AnimationScheduler();

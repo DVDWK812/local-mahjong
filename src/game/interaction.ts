@@ -1,5 +1,5 @@
 import { canDeclareKyuushuKyuuhai } from './abortiveDraw';
-import { canDeclareDoubleRiichi, canDeclareRiichi, getRiichiDiscardCandidates } from './engine';
+import { canDeclareDoubleRiichi, canDeclareRiichi, getRiichiDiscardCandidateGroups } from './engine';
 import {
   getAnkanCandidates,
   getKakanCandidates,
@@ -7,6 +7,7 @@ import {
   type KanCandidate,
 } from './kanChecker';
 import type { GameState, PlayerId, Tile, TileId } from './types';
+import type { RiichiDiscardCandidateGroup } from './engine';
 import { canTsumo } from './winChecker';
 
 export interface DrawActionState {
@@ -15,6 +16,7 @@ export interface DrawActionState {
   canDoubleRiichi: boolean;
   canKyuushuKyuuhai: boolean;
   riichiDiscardCandidates: Tile[];
+  riichiDiscardCandidateGroups: RiichiDiscardCandidateGroup[];
   ankanCandidates: KanCandidate[];
   kakanCandidates: KanCandidate[];
 }
@@ -22,6 +24,7 @@ export interface DrawActionState {
 export function getDrawActionState(state: GameState, playerId: PlayerId): DrawActionState {
   const player = state.players[playerId];
   const allAnkanCandidates = getAnkanCandidates(state, playerId);
+  const riichiDiscardCandidateGroups = getRiichiDiscardCandidateGroups(state, playerId);
   const ankanCandidates = player?.riichi
     ? allAnkanCandidates.filter((candidate) => isRiichiAnkanWaitPreserving(state, playerId, candidate.tileId))
     : allAnkanCandidates;
@@ -30,7 +33,8 @@ export function getDrawActionState(state: GameState, playerId: PlayerId): DrawAc
     canRiichi: canDeclareRiichi(state, playerId),
     canDoubleRiichi: canDeclareRiichi(state, playerId) && canDeclareDoubleRiichi(state, playerId),
     canKyuushuKyuuhai: canDeclareKyuushuKyuuhai(state, playerId),
-    riichiDiscardCandidates: getRiichiDiscardCandidates(state, playerId),
+    riichiDiscardCandidates: riichiDiscardCandidateGroups.map((candidate) => candidate.tile),
+    riichiDiscardCandidateGroups,
     ankanCandidates,
     kakanCandidates: player?.riichi ? [] : getKakanCandidates(state, playerId),
   };

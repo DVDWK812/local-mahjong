@@ -1,5 +1,6 @@
 import { getPresentationFeatures, type PresentationFeatureFlagsSource } from '../../config/presentationFeatures';
 import { PresentationEventBus, presentationEventBus, type PresentationEvent } from '../PresentationEventBus';
+import type { PresentationPacingGate } from '../pacing/PresentationPacingGate';
 import type { HandAnimationAction, HandAnimationController } from './HandAnimationController';
 
 export class HandAnimationConsumer {
@@ -11,6 +12,7 @@ export class HandAnimationConsumer {
     private readonly shouldHandleEvent: () => boolean = () => true,
     private readonly featureFlagsSource: PresentationFeatureFlagsSource = getPresentationFeatures,
     private readonly mapEvent: (event: PresentationEvent) => HandAnimationAction = (event) => event,
+    private readonly pacingGate: Pick<PresentationPacingGate, 'begin' | 'cancel'> | null = null,
   ) {
     this.unsubscribe = eventBus.subscribe(this.handleEvent);
   }
@@ -21,6 +23,8 @@ export class HandAnimationConsumer {
 
   private readonly handleEvent = (event: PresentationEvent) => {
     if (!this.shouldHandleEvent() || !this.featureFlagsSource().handAnimations) return;
-    this.controller.enqueue(this.mapEvent(event));
+    const action = this.mapEvent(event);
+    this.pacingGate?.begin(event);
+    if (!this.controller.enqueue(action)) this.pacingGate?.cancel(event.eventId);
   };
 }

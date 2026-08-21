@@ -148,25 +148,28 @@ export function Board({
           {drawActions.canRiichi ? (
             <div className="prompt-group">
               <span>{drawActions.canDoubleRiichi ? '双立直' : '立直'}</span>
-              {drawActions.riichiDiscardCandidates.map((tile) => (
-                <TileActionButton
-                  key={tile.instanceId}
-                  label={drawActions.canDoubleRiichi ? '双立直' : '立直'}
-                  ariaLabel={`${drawActions.canDoubleRiichi ? '双立直' : '立直'}并打出${tileLabel(tile.id)}`}
-                  showLabel={false}
-                  tile={tile}
-                  doraIndicators={gameState.doraIndicators}
-                  doraGlowEnabled={doraGlowEnabled}
-                  hoveredTileType={hoveredTileType}
-                  sameTileHoverEnabled={sameTileHoverEnabled}
-                  onHoveredTileTypeChange={setHoveredTileType}
-                  onPreviewChange={(active) => setRiichiPreviewDiscardInstanceId(active ? tile.instanceId : null)}
-                  onClick={() => {
-                    setRiichiPreviewDiscardInstanceId(null);
-                    onDeclareRiichi(controlledPlayerId, tile.instanceId);
-                  }}
-                />
-              ))}
+              {drawActions.riichiDiscardCandidateGroups.map((candidate) => {
+                const discardInstanceId = candidate.instanceIds[0];
+                return (
+                  <TileActionButton
+                    key={candidate.key}
+                    label={drawActions.canDoubleRiichi ? '双立直' : '立直'}
+                    ariaLabel={`${drawActions.canDoubleRiichi ? '双立直' : '立直'}并打出${tileLabel(candidate.tile.id)}`}
+                    showLabel={false}
+                    tile={candidate.tile}
+                    doraIndicators={gameState.doraIndicators}
+                    doraGlowEnabled={doraGlowEnabled}
+                    hoveredTileType={hoveredTileType}
+                    sameTileHoverEnabled={sameTileHoverEnabled}
+                    onHoveredTileTypeChange={setHoveredTileType}
+                    onPreviewChange={(active) => setRiichiPreviewDiscardInstanceId(active ? discardInstanceId : null)}
+                    onClick={() => {
+                      setRiichiPreviewDiscardInstanceId(null);
+                      if (discardInstanceId) onDeclareRiichi(controlledPlayerId, discardInstanceId);
+                    }}
+                  />
+                );
+              })}
             </div>
           ) : null}
           {drawActions.canKyuushuKyuuhai ? <button type="button" onClick={() => onDeclareKyuushuKyuuhai(controlledPlayerId)}>九种九牌</button> : null}

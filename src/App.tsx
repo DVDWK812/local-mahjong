@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { AppScreen, RiichiLengthChoice, SetupSelection } from './app/navigation';
+import { advanceAutomaticGameState } from './app/automaticGameProgression';
 import { matchLengthForChoice, pathLabel, presetForChoice } from './app/navigation';
 import { AudioManager, type PlaybackSnapshot } from './audio/AudioManager';
 import { AudioPresentationConsumer } from './audio/AudioPresentationConsumer';
@@ -25,11 +26,11 @@ import { RiichiVariantPlaceholder } from './components/RiichiVariantPlaceholder'
 import { SeventeenStepsScreen } from './components/SeventeenStepsScreen';
 import { SeventeenStepsMatchSettings } from './components/SeventeenStepsMatchSettings';
 import { RulesGuideScreen } from './components/rulesGuide/RulesGuideScreen';
-import { advanceAIAction, isAIPlayer } from './game/ai';
+import { isAIPlayer } from './game/ai';
 import { declareKyuushuKyuuhai } from './game/abortiveDraw';
 import { canPon, executePon, passCall } from './game/callChecker';
 import { canChi, executeChi } from './game/chiChecker';
-import { declareRiichi, declareRon, declareTsumo, discardTile, drawTile, passRon } from './game/engine';
+import { declareRiichi, declareRon, declareTsumo, discardTile, passRon } from './game/engine';
 import { hasDrawAction } from './game/interaction';
 import { canChankan, canMinkan, declareChankanRon, executeKan, passChankan, type KanType } from './game/kanChecker';
 import { applyFinishedGameToMatch, chooseAgariYame, chooseMatchEnd, startMatch } from './game/match/matchEngine';
@@ -48,6 +49,8 @@ import type { SeventeenStepsMatchConfig } from './game/seventeenSteps';
 import type { TestScenarioV1 } from './game/testMode/types';
 import { normalizePlayerProfile, type PlayerProfile } from './profile/playerProfile';
 import { loadPlayerProfile, savePlayerProfile } from './profile/playerProfileStorage';
+import { presentationPacingGate } from './presentation/pacing/PresentationPacingGate';
+import { runPacedAutomaticAction } from './presentation/pacing/automaticActionPacing';
 
 interface ActiveGame {
   matchState: MatchState;
@@ -364,26 +367,20 @@ export default function App() {
     const shouldAutoChankan = gameState.phase === 'chankan-window' && !canChankan(gameState, 0);
     if (!shouldAutoDrawHuman && !shouldAutoRiichiTsumogiri && !shouldAutoAdvanceAI && !shouldAutoPassCall && !shouldAutoChankan) return;
 
-    const timer = window.setTimeout(() => {
+    let cancelled = false;
+    void runPacedAutomaticAction(() => {
       setState((current) => {
         if (!current.activeGame || current.screen !== 'game' || current.exitDialogOpen || current.exiting) return current;
         const currentGame = current.activeGame.gameState;
-        if (currentGame.currentPlayer === 0 && currentGame.phase === 'draw') {
-          return { ...current, activeGame: updateActiveGameState(current.activeGame, drawTile(currentGame, { settleTsumo: false })) };
-        }
-        if (
-          currentGame.currentPlayer === 0
-          && currentGame.phase === 'discard'
-          && currentGame.players[0].riichi
-          && currentGame.players[0].drawnTile
-          && !hasDrawAction(currentGame, 0)
-        ) {
-          return { ...current, activeGame: updateActiveGameState(current.activeGame, discardTile(currentGame, 0, currentGame.players[0].drawnTile.instanceId)) };
-        }
-        return { ...current, activeGame: updateActiveGameState(current.activeGame, advanceAIAction(currentGame)) };
+        return { ...current, activeGame: updateActiveGameState(current.activeGame, advanceAutomaticGameState(currentGame)) };
       });
-    }, 300);
-    return () => window.clearTimeout(timer);
+    }, {
+      gate: presentationPacingGate,
+      isCancelled: () => cancelled,
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [state.screen, state.exitDialogOpen, state.exiting, gameState?.currentPlayer, gameState?.phase, gameState?.turn, gameState?.players[0].drawnTile?.instanceId, matchState?.phase]);
 
   function setScreen(screen: AppScreen, patch: Partial<AppState> = {}) {

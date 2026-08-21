@@ -22,6 +22,7 @@ export interface HandAnimationTarget {
 export interface HandAnimationControllerOptions {
   readonly maxQueuedActions?: number;
   readonly onError?: (error: unknown, action: HandAnimationAction) => void;
+  readonly onSettled?: (action: HandAnimationAction) => void;
 }
 
 const PHASES: ReadonlyArray<{ phase: HandAnimationPhase; durationMs: number }> = [
@@ -37,6 +38,7 @@ export class HandAnimationController {
   private readonly idleResolvers = new Set<() => void>();
   private readonly maxQueuedActions: number;
   private readonly onError: (error: unknown, action: HandAnimationAction) => void;
+  private readonly onSettled: (action: HandAnimationAction) => void;
   private draining = false;
   private disposed = false;
   private currentAction: HandAnimationAction | null = null;
@@ -48,6 +50,7 @@ export class HandAnimationController {
   ) {
     this.maxQueuedActions = Math.max(1, options.maxQueuedActions ?? 6);
     this.onError = options.onError ?? (() => undefined);
+    this.onSettled = options.onSettled ?? (() => undefined);
   }
 
   get queuedActionCount(): number {
@@ -147,6 +150,12 @@ export class HandAnimationController {
       this.target.finish(action);
     } catch (error) {
       this.onError(error, action);
+    } finally {
+      try {
+        this.onSettled(action);
+      } catch (error) {
+        this.onError(error, action);
+      }
     }
   }
 
