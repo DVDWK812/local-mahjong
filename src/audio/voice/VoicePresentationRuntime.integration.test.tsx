@@ -167,7 +167,7 @@ describe('VoicePresentationRuntime app wiring', () => {
     vi.useRealTimers();
   });
 
-  it('starts one reversible runtime subscription and delivers ordinary semantic events to real VoiceDirector playback', () => {
+  it('starts one reversible runtime subscription and delivers ordinary semantic events to real VoiceDirector playback', async () => {
     const bus = new PresentationEventBus();
     const created: ReturnType<typeof playback>[] = [];
     const createdIds: string[] = [];
@@ -205,10 +205,22 @@ describe('VoicePresentationRuntime app wiring', () => {
     created[2].finish();
     bus.publish({ type: 'meld_declared', playerId: 0, meldType: 'kan', kanType: 'ankan' });
     created[3].finish();
-    bus.publish({ type: 'round_settled', settlementType: 'exhaustive-draw' });
+    bus.publish({ type: 'round_settled', settlementType: 'exhaustive-draw', activePlayerIds: [0, 1, 2, 3], tenpaiPlayers: [0, 2], notenPlayers: [1, 3] });
 
-    expect(createdIds.map((id) => id.split(':')[1])).toEqual([
-      'action.chi', 'action.pon', 'action.riichi', 'action.ankan', 'game.draw',
+    // The draw announcement and four player statuses occupy one serial narration channel.
+    created[4].finish(); await flush();
+    created[5].finish(); await flush();
+    created[6].finish(); await flush();
+    created[7].finish(); await flush();
+
+    expect([
+      ...createdIds.slice(0, 4).map((id) => id.split(':')[1]),
+      ...createdIds.slice(4).map((id) => {
+        const parts = id.split(':');
+        return parts[parts.length - 1];
+      }),
+    ]).toEqual([
+      'action.chi', 'action.pon', 'action.riichi', 'action.ankan', 'game.draw', 'yaku.tenpai', 'yaku.noten', 'yaku.tenpai', 'yaku.noten',
     ]);
     expect(created.every((item) => item.played.mock.calls.length === 1)).toBe(true);
 

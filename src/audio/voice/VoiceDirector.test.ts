@@ -2,12 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 import type { ManagedVoicePlayback } from '../AudioManager';
 import type { AudioPlaybackHandle } from '../audioBackend';
 import { VoiceDirector, type VoicePlaybackChannel } from './VoiceDirector';
-import type { VoiceEvent } from './voiceEvents';
-import type { WinScoredPresentationEvent } from '../../presentation/PresentationEventBus';
+import { VOICE_EVENT_PRIORITIES, type VoiceEvent } from './voiceEvents';
+import type { MatchResultPresentationEvent, MatchStartedPresentationEvent, RoundSettledPresentationEvent, WinScoredPresentationEvent } from '../../presentation/PresentationEventBus';
+import { PresentationEventBus } from '../../presentation/PresentationEventBus';
+import { NO_VOICE_PACK_ID } from './voicePreferences';
 
 function event(key: VoiceEvent['key'], eventId = `${key}-1`, actorId?: string): VoiceEvent {
-  const priorities: Record<VoiceEvent['key'], number> = { 'action.ron': 100, 'action.tsumo': 100, 'action.riichi': 80, 'action.double_riichi': 80, 'action.chi': 70, 'action.pon': 70, 'action.kan': 70, 'action.ankan': 70, 'action.kakan': 70, 'game.draw': 85, 'game.four_winds_abortive_draw': 85, 'game.four_kans_abortive_draw': 85, 'game.four_riichi_abortive_draw': 85, 'game.nine_terminals_and_honors_abortive_draw': 85 };
-  return { eventId, key, actorId, priority: priorities[key] };
+  return { eventId, key, actorId, priority: VOICE_EVENT_PRIORITIES[key] };
 }
 
 function playback(reject = false): { managed: ManagedVoicePlayback; handle: AudioPlaybackHandle; stop: ReturnType<typeof vi.fn>; finish(): void } {
@@ -25,7 +26,7 @@ function scored(eventId = 'win-scored', winnerId: 0 | 1 | 2 | 3 = 1, yaku: WinSc
 
 async function flush(): Promise<void> { await Promise.resolve(); await Promise.resolve(); }
 
-function fixture(options: { enabled?: boolean; packId?: string | null; url?: string; assignments?: readonly [string | null, string | null, string | null, string | null]; playerIds?: readonly (string | number)[]; playerCount?: number; packs?: readonly string[] } = {}) {
+function fixture(options: { enabled?: boolean; packId?: string | null; url?: string; assignments?: readonly [string | null, string | null, string | null, string | null]; playerIds?: readonly (string | number)[]; playerCount?: number; packs?: readonly string[]; discardVoiceEnabled?: boolean; discardVoiceScope?: 'all' | 'self' } = {}) {
   const created: Array<{ id: string; url: string; volume: number; playback: ReturnType<typeof playback> }> = [];
   const channel: VoicePlaybackChannel = { createVoicePlayback: (id, url, volume) => { const item = playback(); created.push({ id, url, volume, playback: item }); return item.managed; } };
   const getAudioForKey = vi.fn((packId: string, key: string) => options.url === undefined ? `/assets/${packId}/${key}.mp3` : options.url || undefined);
@@ -33,7 +34,7 @@ function fixture(options: { enabled?: boolean; packId?: string | null; url?: str
   const packs = options.packs
     ? options.packs.map((id) => ({ id, name: id, locale: 'zh-CN', path: id }))
     : packId ? [{ id: packId, name: packId, locale: 'zh-CN', path: packId }] : [];
-  const director = new VoiceDirector({ getAudioForKey, listPacks: () => packs }, channel, { voiceEnabled: options.enabled ?? true, voiceVolume: 0.8, selectedVoicePackId: packId, voicePackBySeat: options.assignments ?? [null, null, null, null] });
+  const director = new VoiceDirector({ getAudioForKey, listPacks: () => packs }, channel, { voiceEnabled: options.enabled ?? true, voiceVolume: 0.8, selectedVoicePackId: packId, voicePackBySeat: options.assignments ?? [null, null, null, null], discardVoiceEnabled: options.discardVoiceEnabled, discardVoiceScope: options.discardVoiceScope });
   director.setActorSeatContext({ playerIds: options.playerIds ?? [0, 1, 2, 3], playerCount: options.playerCount ?? 4 });
   return { director, created, getAudioForKey, channel };
 }
@@ -99,6 +100,30 @@ describe('VoiceDirector', () => {
     ]);
   });
 
+  it('game.start 始终使用 Player 1 的座位语音，而不读取残留的 selectedVoicePackId', () => {
+    const start = new PresentationEventBus().publish({ type: 'match_started', matchId: 'table-voice', activePlayerIds: [0, 1] }) as MatchStartedPresentationEvent;
+
+    const mamboFirst = fixture({
+      packId: 'robot',
+      packs: ['xiaozhang', 'mambo', 'robot'],
+      assignments: ['mambo', 'xiaozhang', null, null],
+      playerIds: [0, 1],
+      playerCount: 2,
+    });
+    mamboFirst.director.playMatchStarted(start);
+    expect(mamboFirst.getAudioForKey).toHaveBeenCalledWith('mambo', 'game.start');
+
+    const xiaozhangFirst = fixture({
+      packId: 'robot',
+      packs: ['xiaozhang', 'mambo', 'robot'],
+      assignments: ['xiaozhang', 'mambo', null, null],
+      playerIds: [0, 1],
+      playerCount: 2,
+    });
+    xiaozhangFirst.director.playMatchStarted({ ...start, eventId: 'match-start-xiaozhang' });
+    expect(xiaozhangFirst.getAudioForKey).toHaveBeenCalledWith('xiaozhang', 'game.start');
+  });
+
   it('相同 eventId 只消费一次，不受重复事件消费影响', () => {
     const { director, created } = fixture();
     expect(director.play(event('action.riichi', 'confirmed-event'))).toBe('played');
@@ -146,6 +171,40 @@ describe('VoiceDirector', () => {
     ]);
   });
 
+  it('座位选择“无”时，该玩家的确认事件不会回退到默认角色', () => {
+    const { director, created, getAudioForKey } = fixture({
+      packs: ['xiaozhang', 'mambo'], assignments: ['xiaozhang', NO_VOICE_PACK_ID, null, null], playerIds: [0, 1], playerCount: 2,
+    });
+    expect(director.play(event('action.riichi', 'muted-seat', '1'))).toBe('missing');
+    expect(getAudioForKey).not.toHaveBeenCalled();
+    expect(created).toHaveLength(0);
+  });
+
+  it('出牌报牌默认关闭，all/self 按权威本地玩家 ID 过滤，且连续牌名只替换当前播放', () => {
+    expect(fixture().director.play(event('tile.p5', 'off', '1'))).toBe('disabled');
+    const all = fixture({ discardVoiceEnabled: true, discardVoiceScope: 'all' });
+    expect(all.director.play(event('tile.p5', 'p2', '1'))).toBe('played');
+    expect(all.director.play(event('tile.s5', 'p3', '2'))).toBe('played');
+    expect(all.created).toHaveLength(2);
+    expect(all.created[0].playback.stop).toHaveBeenCalledOnce();
+    expect(all.director.play(event('action.pon', 'pon-after-tile', '1'))).toBe('played');
+    expect(all.created[1].playback.stop).toHaveBeenCalledOnce();
+
+    const self = fixture({ discardVoiceEnabled: true, discardVoiceScope: 'self', playerIds: [0, 1], playerCount: 2 });
+    expect(self.director.play(event('tile.m5', 'other-tile', '1'))).toBe('disabled');
+    expect(self.director.play(event('tile.m5', 'local-tile', '0'))).toBe('played');
+
+    const perSeat = fixture({
+      discardVoiceEnabled: true,
+      packs: ['xiaozhang', 'mambo'],
+      assignments: ['xiaozhang', 'mambo', null, null],
+      playerIds: [0, 1],
+      playerCount: 2,
+    });
+    expect(perSeat.director.play(event('tile.p5', 'p2-tile', '1'))).toBe('played');
+    expect(perSeat.getAudioForKey).toHaveBeenCalledWith('mambo', 'tile.p5');
+  });
+
   it('和牌 sequence 等待 ended 后才开始下一项，且迟到实时动作不能插入', async () => {
     const { director, created } = fixture();
     director.playWinSequence(scored('ordered-win', 1, [
@@ -154,6 +213,7 @@ describe('VoiceDirector', () => {
     expect(created).toHaveLength(1);
     expect(created[0].playback.handle.play).toHaveBeenCalledOnce();
     expect(director.play(event('action.pon', 'late-pon', '2'))).toBe('ignored');
+    expect(director.play(event('tile.p5', 'late-tile', '2'))).toBe('ignored');
     expect(created).toHaveLength(1);
     created[0].playback.finish(); await flush();
     expect(created).toHaveLength(2);
@@ -207,5 +267,52 @@ describe('VoiceDirector', () => {
     ]);
     created[1].playback.finish(); await flush();
     expect(completed).toContain('winner-b-after-skip:completed');
+  });
+
+  it('荒牌流局依次播报 game.draw 与各 active seat 的权威听牌状态，并逐项解析角色 Pack', async () => {
+    const { director, created, getAudioForKey } = fixture({
+      packs: ['xiaozhang', 'mambo', 'robot'],
+      assignments: ['xiaozhang', 'mambo', 'robot', null],
+      playerIds: [0, 1, 2], playerCount: 3,
+    });
+    const event = new PresentationEventBus().publish({
+      type: 'round_settled', settlementType: 'exhaustive-draw', activePlayerIds: [0, 1, 2], tenpaiPlayers: [0, 2], notenPlayers: [1],
+    }) as Extract<RoundSettledPresentationEvent, { settlementType: 'exhaustive-draw' }>;
+    director.playExhaustiveDrawSequence(event);
+    // One playback exists at any point; later entries wait for `ended`.
+    expect(created).toHaveLength(1);
+    created[0].playback.finish(); await flush();
+    expect(created).toHaveLength(2);
+    created[1].playback.finish(); await flush();
+    created[2].playback.finish(); await flush();
+    expect(getAudioForKey.mock.calls).toEqual([
+      ['xiaozhang', 'game.draw'], ['xiaozhang', 'yaku.tenpai'], ['mambo', 'yaku.noten'], ['robot', 'yaku.tenpai'],
+    ]);
+  });
+
+  it('match-start and final-rank sequences share the serial channel and use every ranked player\'s Pack', async () => {
+    const { director, created, getAudioForKey } = fixture({
+      packs: ['xiaozhang', 'mambo', 'robot', 'master'],
+      assignments: ['xiaozhang', 'mambo', 'robot', 'master'], playerIds: [0, 1, 2, 3], playerCount: 4,
+    });
+    const bus = new PresentationEventBus();
+    const started = bus.publish({ type: 'match_started', matchId: 'match-voice', activePlayerIds: [0, 1, 2, 3] }) as MatchStartedPresentationEvent;
+    const final = bus.publish({
+      type: 'match_result_finalized', matchId: 'match-voice', activePlayerIds: [0, 1, 2, 3],
+      finalResult: {
+        players: [
+          { player: 2, rawScore: 25000, rank: 3, rankTieBreakOrder: 2 }, { player: 1, rawScore: 28000, rank: 2, rankTieBreakOrder: 1 },
+          { player: 3, rawScore: 18000, rank: 4, rankTieBreakOrder: 3 }, { player: 0, rawScore: 31000, rank: 1, rankTieBreakOrder: 0 },
+        ], finalScores: [31000, 28000, 25000, 18000], leftoverRiichiStickPoints: 0, endedBy: 'manual',
+      },
+    }) as MatchResultPresentationEvent;
+    director.playMatchStarted(started);
+    director.playMatchStarted(started);
+    director.playMatchResultSequence(final);
+    expect(created).toHaveLength(1);
+    for (let index = 0; index < 5; index += 1) { created[index].playback.finish(); await flush(); }
+    expect(getAudioForKey.mock.calls).toEqual([
+      ['xiaozhang', 'game.start'], ['xiaozhang', 'game.end'], ['mambo', 'result.second_place'], ['robot', 'result.third_place'], ['master', 'result.fourth_place'],
+    ]);
   });
 });

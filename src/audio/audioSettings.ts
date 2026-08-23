@@ -12,14 +12,17 @@ export interface AudioSettings {
   readonly bgmRiichiVolume: number;
   readonly sfxVolume: number;
   readonly voiceVolume: number;
+  /** Current Voice Management selection; it never determines table playback. */
   readonly selectedVoicePackId: string | null;
-  /** Stable player-slot assignments; null means use selectedVoicePackId as fallback. */
+  /** Stable player-slot assignments; null means use the built-in runtime-safe fallback. */
   readonly voicePackBySeat: VoiceSeatAssignments;
   readonly bgmEnabled: boolean;
   readonly bgmGameEnabled: boolean;
   readonly riichiMusicEnabled: boolean;
   readonly sfxEnabled: boolean;
   readonly voiceEnabled: boolean;
+  readonly discardVoiceEnabled: boolean;
+  readonly discardVoiceScope: 'all' | 'self';
 }
 
 export const DEFAULT_AUDIO_SETTINGS: Readonly<AudioSettings> = Object.freeze({
@@ -37,6 +40,8 @@ export const DEFAULT_AUDIO_SETTINGS: Readonly<AudioSettings> = Object.freeze({
   riichiMusicEnabled: true,
   sfxEnabled: true,
   voiceEnabled: true,
+  discardVoiceEnabled: false,
+  discardVoiceScope: 'all',
 });
 
 export type AudioChannel = 'bgm' | 'sfx' | 'voice';
@@ -53,6 +58,7 @@ function normalizeBoolean(value: unknown, fallback: boolean): boolean {
 function normalizeVoicePackId(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
+function normalizeDiscardVoiceScope(value: unknown): 'all' | 'self' { return value === 'self' ? 'self' : 'all'; }
 
 export function normalizeAudioSettings(value: unknown): AudioSettings {
   const input = value && typeof value === 'object' && !Array.isArray(value)
@@ -73,6 +79,8 @@ export function normalizeAudioSettings(value: unknown): AudioSettings {
     riichiMusicEnabled: normalizeBoolean(input.riichiMusicEnabled, DEFAULT_AUDIO_SETTINGS.riichiMusicEnabled),
     sfxEnabled: normalizeBoolean(input.sfxEnabled, DEFAULT_AUDIO_SETTINGS.sfxEnabled),
     voiceEnabled: normalizeBoolean(input.voiceEnabled, DEFAULT_AUDIO_SETTINGS.voiceEnabled),
+    discardVoiceEnabled: normalizeBoolean(input.discardVoiceEnabled, DEFAULT_AUDIO_SETTINGS.discardVoiceEnabled),
+    discardVoiceScope: normalizeDiscardVoiceScope(input.discardVoiceScope),
   };
 }
 
@@ -95,6 +103,8 @@ export function migrateLegacyAudioSettings(legacy: unknown): AudioSettings {
     bgmEnabled: input.bgmEnabled,
     sfxEnabled: input.sfxEnabled,
     voiceEnabled: input.voiceEnabled,
+    discardVoiceEnabled: input.discardVoiceEnabled,
+    discardVoiceScope: input.discardVoiceScope,
     riichiMusicEnabled: input.riichiMusicEnabled,
   });
 }

@@ -22,7 +22,7 @@ function sources(overrides: Partial<VoicePackRepositorySources> = {}): VoicePack
 describe('VoicePackRepository', () => {
   it('discovers the generated xiaozhang Pack with production-safe audio URLs', () => {
     expect(VOICE_PACK_REPOSITORY.listPacks()).toContainEqual(expect.objectContaining({ id: 'xiaozhang', name: '校长', locale: 'zh-CN' }));
-    expect(VOICE_PACK_REPOSITORY.getPack('xiaozhang')?.voiceLines).toHaveLength(114);
+    expect(VOICE_PACK_REPOSITORY.getPack('xiaozhang')?.voiceLines).toHaveLength(148);
     expect(VOICE_PACK_REPOSITORY.getPack('xiaozhang')?.manifest.voices['action.riichi']?.file).toBe('audio/action_riichi.mp3');
     expect(VOICE_PACK_REPOSITORY.getVoiceLine('xiaozhang', 'action.riichi')).toMatchObject({ line: '立直', tts_text: '立直' });
     expect(VOICE_PACK_REPOSITORY.getAudioForKey('xiaozhang', 'action.riichi')).toMatch(/action_riichi.*\.mp3|\.mp3.*action_riichi/);

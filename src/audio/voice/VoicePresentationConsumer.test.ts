@@ -15,8 +15,8 @@ describe('VoicePresentationConsumer', () => {
     bus.publish({ type: 'meld_declared', playerId: 1, meldType: 'kan', kanType: 'kakan' });
     bus.publish({ type: 'win_declared', playerId: 1, winType: 'ron' });
     bus.publish({ type: 'win_declared', playerId: 0, winType: 'tsumo' });
-    expect(play.mock.calls.map(([voiceEvent]) => voiceEvent.key)).toEqual(['action.riichi', 'action.double_riichi', 'action.chi', 'action.pon', 'action.kan', 'action.ankan', 'action.kakan']);
-    expect(play.mock.calls.map(([voiceEvent]) => voiceEvent.actorId)).toEqual(['0', '1', '1', '2', '3', '0', '1']);
+    expect(play.mock.calls.map(([voiceEvent]) => voiceEvent.key)).toEqual(['tile.m1', 'action.riichi', 'action.double_riichi', 'action.chi', 'action.pon', 'action.kan', 'action.ankan', 'action.kakan']);
+    expect(play.mock.calls.map(([voiceEvent]) => voiceEvent.actorId)).toEqual(['0', '0', '1', '1', '2', '3', '0', '1']);
     consumer.dispose();
   });
 
@@ -34,21 +34,37 @@ describe('VoicePresentationConsumer', () => {
     consumer.dispose();
   });
 
-  it('已结算流局映射为对应游戏语音；荒牌流局不指定 actor', () => {
-    const bus = new PresentationEventBus(); const play = vi.fn(); const consumer = new VoicePresentationConsumer({ play }, bus);
-    bus.publish({ type: 'round_settled', settlementType: 'exhaustive-draw' });
+  it('荒牌流局进入独立的 tenpai/noten Sequence；中止流局仍映射为实时语音', () => {
+    const bus = new PresentationEventBus(); const play = vi.fn(); const playExhaustiveDrawSequence = vi.fn(); const consumer = new VoicePresentationConsumer({ play, playExhaustiveDrawSequence }, bus);
+    bus.publish({ type: 'round_settled', settlementType: 'exhaustive-draw', activePlayerIds: [0, 1, 2, 3], tenpaiPlayers: [0, 2], notenPlayers: [1, 3] });
     bus.publish({ type: 'round_settled', settlementType: 'abortive-draw', reason: 'suufon-renda', triggeringPlayerId: 3 });
     bus.publish({ type: 'round_settled', settlementType: 'abortive-draw', reason: 'suukan-sanra', triggeringPlayerId: 1 });
     bus.publish({ type: 'round_settled', settlementType: 'abortive-draw', reason: 'suucha-riichi', triggeringPlayerId: 2 });
     bus.publish({ type: 'round_settled', settlementType: 'abortive-draw', reason: 'kyuushu-kyuuhai', triggeringPlayerId: 0 });
     expect(play.mock.calls.map(([voiceEvent]) => voiceEvent.key)).toEqual([
-      'game.draw',
       'game.four_winds_abortive_draw',
       'game.four_kans_abortive_draw',
       'game.four_riichi_abortive_draw',
       'game.nine_terminals_and_honors_abortive_draw',
     ]);
-    expect(play.mock.calls.map(([voiceEvent]) => voiceEvent.actorId)).toEqual([undefined, '3', '1', '2', '0']);
+    expect(play.mock.calls.map(([voiceEvent]) => voiceEvent.actorId)).toEqual(['3', '1', '2', '0']);
+    expect(playExhaustiveDrawSequence).toHaveBeenCalledWith(expect.objectContaining({
+      activePlayerIds: [0, 1, 2, 3], tenpaiPlayers: [0, 2], notenPlayers: [1, 3],
+    }));
+    consumer.dispose();
+  });
+
+  it('match lifecycle events use their own serial sequence APIs instead of realtime play', () => {
+    const bus = new PresentationEventBus(); const play = vi.fn(); const playMatchStarted = vi.fn(); const playMatchResultSequence = vi.fn();
+    const consumer = new VoicePresentationConsumer({ play, playMatchStarted, playMatchResultSequence }, bus);
+    bus.publish({ type: 'match_started', matchId: 'match-1', activePlayerIds: [0, 1] });
+    bus.publish({
+      type: 'match_result_finalized', matchId: 'match-1', activePlayerIds: [0, 1],
+      finalResult: { players: [{ player: 1, rawScore: 30000, rank: 1, rankTieBreakOrder: 0 }, { player: 0, rawScore: 25000, rank: 2, rankTieBreakOrder: 1 }], finalScores: [25000, 30000, 0, 0], leftoverRiichiStickPoints: 0, endedBy: 'manual' },
+    });
+    expect(play).not.toHaveBeenCalled();
+    expect(playMatchStarted).toHaveBeenCalledOnce();
+    expect(playMatchResultSequence).toHaveBeenCalledOnce();
     consumer.dispose();
   });
 

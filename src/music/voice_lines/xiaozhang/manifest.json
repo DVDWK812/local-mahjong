@@ -343,6 +343,108 @@
     },
     "yaku.daichisei": {
       "file": "audio/yaku_daichisei.mp3"
+    },
+    "tile.m1": {
+      "file": "audio/tile_m1.mp3"
+    },
+    "tile.m2": {
+      "file": "audio/tile_m2.mp3"
+    },
+    "tile.m3": {
+      "file": "audio/tile_m3.mp3"
+    },
+    "tile.m4": {
+      "file": "audio/tile_m4.mp3"
+    },
+    "tile.m5": {
+      "file": "audio/tile_m5.mp3"
+    },
+    "tile.m6": {
+      "file": "audio/tile_m6.mp3"
+    },
+    "tile.m7": {
+      "file": "audio/tile_m7.mp3"
+    },
+    "tile.m8": {
+      "file": "audio/tile_m8.mp3"
+    },
+    "tile.m9": {
+      "file": "audio/tile_m9.mp3"
+    },
+    "tile.p1": {
+      "file": "audio/tile_p1.mp3"
+    },
+    "tile.p2": {
+      "file": "audio/tile_p2.mp3"
+    },
+    "tile.p3": {
+      "file": "audio/tile_p3.mp3"
+    },
+    "tile.p4": {
+      "file": "audio/tile_p4.mp3"
+    },
+    "tile.p5": {
+      "file": "audio/tile_p5.mp3"
+    },
+    "tile.p6": {
+      "file": "audio/tile_p6.mp3"
+    },
+    "tile.p7": {
+      "file": "audio/tile_p7.mp3"
+    },
+    "tile.p8": {
+      "file": "audio/tile_p8.mp3"
+    },
+    "tile.p9": {
+      "file": "audio/tile_p9.mp3"
+    },
+    "tile.s1": {
+      "file": "audio/tile_s1.mp3"
+    },
+    "tile.s2": {
+      "file": "audio/tile_s2.mp3"
+    },
+    "tile.s3": {
+      "file": "audio/tile_s3.mp3"
+    },
+    "tile.s4": {
+      "file": "audio/tile_s4.mp3"
+    },
+    "tile.s5": {
+      "file": "audio/tile_s5.mp3"
+    },
+    "tile.s6": {
+      "file": "audio/tile_s6.mp3"
+    },
+    "tile.s7": {
+      "file": "audio/tile_s7.mp3"
+    },
+    "tile.s8": {
+      "file": "audio/tile_s8.mp3"
+    },
+    "tile.s9": {
+      "file": "audio/tile_s9.mp3"
+    },
+    "tile.z1": {
+      "file": "audio/tile_z1.mp3"
+    },
+    "tile.z2": {
+      "file": "audio/tile_z2.mp3"
+    },
+    "tile.z3": {
+      "file": "audio/tile_z3.mp3"
+    },
+    "tile.z4": {
+      "file": "audio/tile_z4.mp3"
+    },
+    "tile.z5": {
+      "file": "audio/tile_z5.mp3"
+    },
+    "tile.z6": {
+      "file": "audio/tile_z6.mp3"
+    },
+    "tile.z7": {
+      "file": "audio/tile_z7.mp3"
     }
   }
 }

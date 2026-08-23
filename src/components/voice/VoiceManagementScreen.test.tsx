@@ -1,22 +1,25 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { VOICE_PACK_REPOSITORY, VoicePackRepository } from '../../audio/voice/VoicePackRepository';
-import { VoiceManagementScreen, generationOutcome, ttsOverrideForDraft } from './VoiceManagementScreen';
+import { GenerationPlanDialog, VoiceManagementScreen, generatePlanTargets, generationOutcome, generationTargetCount, generationTargetKeys, ttsOverrideForDraft } from './VoiceManagementScreen';
 
 describe('VoiceManagementScreen', () => {
-  it('作为独立界面显示当前校长的 114 条可编辑语音与生成摘要', () => {
+  it('作为独立界面显示当前校长的 148 条可编辑语音与生成摘要', () => {
     const html = renderToStaticMarkup(<VoiceManagementScreen packId="xiaozhang" voiceVolume={0.8} onBack={() => undefined} />);
     expect(html).toContain('语音管理');
     expect(html).toContain('← 返回');
     expect(html).toContain('校长');
-    expect(html).toContain('中文 · 114 条语音');
+    expect(html).toContain('中文 · 148 条语音');
     expect(html).toContain('立直');
     expect(html).toContain('高级发音');
     expect(html).toContain('placeholder="动作或台词"');
     expect(html).not.toContain('placeholder="动作、台词或 key"');
     expect(html).toContain('试听始终播放已生成的音频版本');
-    expect(html).toContain('已生成 114');
-    expect((html.match(/voice-management-screen__row" role="row"/g) ?? []).length).toBe(114);
+    expect(html).toContain('已生成 148');
+    for (const heading of ['个性化 / 对局', '核心动作', '特殊对局', '结算等级', '役满', '常规役种', '特殊役', '宝牌', '出牌报牌']) {
+      expect(html).toContain(`voice-management-screen__group-title">${heading}`);
+    }
+    expect((html.match(/voice-management-screen__row" role="row"/g) ?? []).length).toBe(148);
   });
 
   it('未知 Pack 显示可恢复错误，不会导致页面崩溃', () => {
@@ -67,5 +70,55 @@ describe('VoiceManagementScreen', () => {
     expect(ttsOverrideForDraft(line, '')).toBe('');
     expect(ttsOverrideForDraft(line, '  自摸！  ')).toBe('');
     expect(ttsOverrideForDraft(line, '<|phoneme_start|>zi4 mo1<|phoneme_end|>')).toBe('<|phoneme_start|>zi4 mo1<|phoneme_end|>');
+  });
+
+  it('生成确认弹窗显示实际目标数量与运行中 key 级进度，0 条时不显示进度', () => {
+    const plan = {
+      packId: 'xiaozhang', total: 148, unchanged: 114, changed: 1, new: 32, missing: 1, apiCalls: 34,
+      items: [
+        { key: 'tile.m1', line: '一万', file: 'audio/tile_m1.mp3', status: 'new' as const, reason: 'new' },
+        { key: 'action.riichi', line: '立直', file: 'audio/action_riichi.mp3', status: 'changed' as const, reason: 'changed' },
+        { key: 'action.ron', line: '荣和', file: 'audio/action_ron.mp3', status: 'missing' as const, reason: 'missing' },
+      ],
+    };
+    expect(generationTargetCount(plan)).toBe(34);
+    expect(generationTargetKeys(plan)).toEqual(['tile.m1', 'action.riichi', 'action.ron']);
+    const running = renderToStaticMarkup(<GenerationPlanDialog plan={plan} lines={[]} selectedKeys={undefined} generating progress={{ completed: 0, total: 34 }} onCancel={() => undefined} onConfirm={() => undefined} />);
+    expect(running).toContain('预计消耗次数：34 次');
+    expect(running).toContain('当前进度：0/34');
+    expect(running).not.toContain('预计 Fish Audio API 请求');
+    const nothingToDo = renderToStaticMarkup(<GenerationPlanDialog plan={{ ...plan, changed: 0, new: 0, missing: 0, apiCalls: 0, items: [] }} lines={[]} selectedKeys={undefined} generating progress={{ completed: 0, total: 0 }} onCancel={() => undefined} onConfirm={() => undefined} />);
+    expect(nothingToDo).not.toContain('当前进度');
+  });
+
+  it('逐 key 调用既有生成接口，成功或最终失败都推进进度', async () => {
+    const plan = {
+      packId: 'xiaozhang', total: 2, unchanged: 0, changed: 1, new: 1, missing: 0, apiCalls: 2,
+      items: [
+        { key: 'action.riichi', line: '立直', file: 'audio/action_riichi.mp3', status: 'changed' as const, reason: 'changed' },
+        { key: 'tile.m1', line: '一万', file: 'audio/tile_m1.mp3', status: 'new' as const, reason: 'new' },
+      ],
+    };
+    const calls: unknown[][] = []; const progress: Array<{ completed: number; total: number; key: string | null }> = [];
+    const service = {
+      previewGeneration: async () => plan,
+      generate: async (packId: string, keys?: readonly string[], overrides?: readonly unknown[]) => {
+        calls.push([packId, keys, overrides]);
+        return keys?.[0] === 'action.riichi'
+          ? { success: true, generated: 1, failed: 0, skipped: 0, items: [{ key: 'action.riichi', file: 'audio/action_riichi.mp3', status: 'generated', error: null }] }
+          : { success: false, generated: 0, failed: 1, skipped: 0, items: [{ key: 'tile.m1', file: 'audio/tile_m1.mp3', status: 'failed', error: 'final failure' }] };
+      },
+    };
+    const result = await generatePlanTargets(service, 'xiaozhang', plan, [{ key: 'tile.m1', ttsText: '一万' }], (next, key) => progress.push({ ...next, key }));
+    expect(calls).toEqual([
+      ['xiaozhang', ['action.riichi'], []],
+      ['xiaozhang', ['tile.m1'], [{ key: 'tile.m1', ttsText: '一万' }]],
+    ]);
+    expect(progress).toEqual([
+      { completed: 0, total: 2, key: null },
+      { completed: 1, total: 2, key: 'action.riichi' },
+      { completed: 2, total: 2, key: 'tile.m1' },
+    ]);
+    expect(result).toMatchObject({ success: false, generated: 1, failed: 1 });
   });
 });

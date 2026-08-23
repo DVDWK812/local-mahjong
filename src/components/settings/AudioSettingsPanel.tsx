@@ -157,6 +157,8 @@ export function AudioSettingsPanel({
           disabled={!settings.voiceEnabled}
           onChange={(value) => onChange({ ...settings, voiceVolume: Number(value) / 100 })}
         />
+        <AudioToggle label="出牌报牌" checked={settings.discardVoiceEnabled} onChange={(discardVoiceEnabled) => onChange({ ...settings, discardVoiceEnabled })} />
+        <label className="audio-settings__field">报牌范围<select aria-label="出牌报牌范围" disabled={!settings.discardVoiceEnabled} value={settings.discardVoiceScope} onChange={(event) => onChange({ ...settings, discardVoiceScope: event.target.value === 'self' ? 'self' : 'all' })}><option value="all">全部玩家</option><option value="self">仅自己</option></select></label>
         <VoicePackSettings
           selectedVoicePackId={settings.selectedVoicePackId}
           onSelect={(selectedVoicePackId) => onChange({ ...settings, selectedVoicePackId })}

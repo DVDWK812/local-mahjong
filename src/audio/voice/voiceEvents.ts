@@ -1,4 +1,5 @@
 import type { PresentationEvent, VoiceAbortiveDrawReason } from '../../presentation/PresentationEventBus';
+import { TILE_VOICE_KEYS, voiceKeyForTile } from './tileVoice';
 
 export const VOICE_EVENT_PRIORITIES = {
   'action.ron': 100,
@@ -15,6 +16,7 @@ export const VOICE_EVENT_PRIORITIES = {
   'game.four_kans_abortive_draw': 85,
   'game.four_riichi_abortive_draw': 85,
   'game.nine_terminals_and_honors_abortive_draw': 85,
+  ...Object.fromEntries(TILE_VOICE_KEYS.map((key) => [key, 20])) as Record<typeof TILE_VOICE_KEYS[number], 20>,
 } as const;
 
 export type VoiceEventKey = keyof typeof VOICE_EVENT_PRIORITIES;
@@ -28,6 +30,7 @@ export interface VoiceEvent {
 
 /** Converts confirmed presentation events to one mutually exclusive semantic VoiceEvent. */
 export function voiceEventFromPresentation(event: PresentationEvent): VoiceEvent | undefined {
+  if (event.type === 'tile_discarded') return createVoiceEvent(event.eventId, voiceKeyForTile(event.tile), event.playerId);
   if (event.type === 'riichi_declared') return createVoiceEvent(event.eventId, event.kind === 'double-riichi' ? 'action.double_riichi' : 'action.riichi', event.playerId);
   if (event.type === 'meld_declared') {
     const key: VoiceEventKey = event.meldType !== 'kan'
@@ -40,7 +43,8 @@ export function voiceEventFromPresentation(event: PresentationEvent): VoiceEvent
   // A winning hand is narrated only by its subsequent win_scored sequence. Keeping
   // win_declared out of the realtime channel prevents a duplicate action call.
   if (event.type === 'win_declared' || event.type === 'win_scored') return undefined;
-  if (event.type === 'round_settled' && event.settlementType === 'exhaustive-draw') return createVoiceEvent(event.eventId, 'game.draw');
+  // Exhaustive draws have a serial, player-specific tenpai/noten sequence.
+  if (event.type === 'round_settled' && event.settlementType === 'exhaustive-draw') return undefined;
   if (event.type === 'round_settled') return createVoiceEvent(event.eventId, abortiveDrawVoiceKey(event.reason), event.triggeringPlayerId);
   return undefined;
 }

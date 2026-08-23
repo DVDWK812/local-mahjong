@@ -1632,6 +1632,8 @@ body {
 .voice-management-screen__error { margin: 0 0 var(--space-2); color: #9e3b32; }
 .voice-management-screen__table { overflow: hidden; border: 1px solid rgba(34, 82, 63, .18); border-radius: var(--radius-md); background: #fff; }
 .voice-management-screen__rows { max-height: calc(100dvh - 255px); overflow-y: auto; }
+.voice-management-screen__group { margin: 0; padding: 0; }
+.voice-management-screen__group-title { margin: 0; padding: 9px 14px; border-bottom: 1px solid rgba(34, 82, 63, .12); background: #f2f7f3; color: #315848; font-size: 13px; font-weight: 800; }
 .voice-management-screen__row { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(220px, 2fr) 110px 64px; align-items: center; min-width: 0; border-bottom: 1px solid rgba(34, 82, 63, .1); }
 .voice-management-screen__row:last-child { border-bottom: 0; }
 .voice-management-screen__row > span, .voice-management-screen__row > [role='cell'] { min-width: 0; overflow: hidden; padding: 10px 14px; text-overflow: ellipsis; white-space: nowrap; }

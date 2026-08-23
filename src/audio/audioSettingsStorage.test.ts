@@ -38,6 +38,12 @@ describe('AudioSettings storage', () => {
     expect(loadAudioSettings(storage)).toMatchObject({ selectedVoicePackId: 'xiaozhang', voicePackBySeat: ['xiaozhang', 'mambo', 'robot', 'master'] });
   });
 
+  it('持久化出牌报牌开关和范围，并为旧设置使用关闭默认值', () => {
+    const storage = memoryStorage();
+    saveAudioSettings({ ...DEFAULT_AUDIO_SETTINGS, discardVoiceEnabled: true, discardVoiceScope: 'self' }, storage);
+    expect(loadAudioSettings(storage)).toMatchObject({ discardVoiceEnabled: true, discardVoiceScope: 'self' });
+  });
+
   it('总音量开关独立保存，关闭或重新开启都不改写滑条位置', () => {
     const storage = memoryStorage();
     const muted = { ...DEFAULT_AUDIO_SETTINGS, masterVolume: 0.23, masterEnabled: false };

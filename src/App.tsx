@@ -60,6 +60,7 @@ import { normalizePlayerProfile, type PlayerProfile } from './profile/playerProf
 import { loadPlayerProfile, savePlayerProfile } from './profile/playerProfileStorage';
 import { presentationPacingGate } from './presentation/pacing/PresentationPacingGate';
 import { runPacedAutomaticAction } from './presentation/pacing/automaticActionPacing';
+import { useMatchPresentationEvents } from './presentation/matchPresentationEvents';
 
 interface ActiveGame {
   matchState: MatchState;
@@ -306,6 +307,13 @@ export default function App() {
     const players = gameState?.players ?? [];
     voiceDirector.setActorSeatContext({ playerIds: players.map((player) => player.id), playerCount: players.length });
   }, [voiceDirector, gameState?.players]);
+
+  // This observes committed MatchState only. Voice playback stays behind the runtime EventBus consumer.
+  useMatchPresentationEvents(activeGame && matchState && gameState ? {
+    matchId: activeGame.matchLog.matchId,
+    matchState,
+    activePlayerIds: gameState.players.map((player) => player.id),
+  } : undefined);
 
   useEffect(() => {
     let cancelled = false;

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { LOCAL_VOICE_PACK_SERVICE, type VoicePackService } from '../../audio/voice/VoicePackService';
 import { VOICE_PACK_REPOSITORY, VoicePackRepository } from '../../audio/voice/VoicePackRepository';
 import type { VoicePackSummary } from '../../audio/voice/types';
-import { resolveSelectedVoicePackId, type VoiceSeatAssignments } from '../../audio/voice/voicePreferences';
+import { NO_VOICE_PACK_ID, resolveRuntimeFallbackVoicePackId, type VoiceSeatAssignments } from '../../audio/voice/voicePreferences';
 
 const BUILTIN_PACK_IDS = new Set(['xiaozhang']);
 
@@ -64,20 +64,23 @@ export function VoicePackSettings({ selectedVoicePackId, onSelect, onManage, onC
     finally { setDeleting(false); }
   };
 
-  return <section className="voice-pack-settings" aria-labelledby="voice-pack-settings-title"><h4 id="voice-pack-settings-title">角色语音</h4><button type="button" className="voice-pack-settings__create" onClick={onCreate}>＋ 创建新角色</button>{packs.length === 0 ? <p className="voice-pack-settings__empty">暂无可用角色语音包。</p> : <><VoiceSeatAssignmentSettings packs={packs} assignments={voicePackBySeat} selectedVoicePackId={selectedVoicePackId} playerCount={playerCount} onChange={onSeatAssignmentChange} /><div className="voice-pack-settings__list">{packs.map((pack) => <VoicePackCard key={pack.id} pack={pack} onManage={() => onManage(pack.id)} onDelete={() => openDeletion(pack)} />)}</div></>}{pendingDeletion ? <VoicePackDeleteDialog pack={pendingDeletion} stage={deleteStage} deleting={deleting} error={deleteError} onCancel={closeDeletion} onContinue={() => setDeleteStage('confirm')} onConfirm={() => void deletePack()} /> : null}</section>;
+  return <section className="voice-pack-settings" aria-labelledby="voice-pack-settings-title"><h4 id="voice-pack-settings-title">角色语音</h4><button type="button" className="voice-pack-settings__create" onClick={onCreate}>＋ 创建新角色</button>{packs.length === 0 ? <p className="voice-pack-settings__empty">暂无可用角色语音包。</p> : <><VoiceSeatAssignmentSettings packs={packs} assignments={voicePackBySeat} playerCount={playerCount} onChange={onSeatAssignmentChange} /><div className="voice-pack-settings__list">{packs.map((pack) => <VoicePackCard key={pack.id} pack={pack} onManage={() => onManage(pack.id)} onDelete={() => openDeletion(pack)} />)}</div></>}{pendingDeletion ? <VoicePackDeleteDialog pack={pendingDeletion} stage={deleteStage} deleting={deleting} error={deleteError} onCancel={closeDeletion} onContinue={() => setDeleteStage('confirm')} onConfirm={() => void deletePack()} /> : null}</section>;
 }
 
-export function VoiceSeatAssignmentSettings({ packs, assignments, selectedVoicePackId, playerCount, onChange }: {
+export function VoiceSeatAssignmentSettings({ packs, assignments, playerCount, onChange }: {
   readonly packs: readonly VoicePackSummary[];
   readonly assignments: VoiceSeatAssignments;
-  readonly selectedVoicePackId: string | null;
   readonly playerCount: 2 | 3 | 4;
   readonly onChange: (seatIndex: number, packId: string | null) => void;
 }) {
-  const fallbackPackId = resolveSelectedVoicePackId(selectedVoicePackId, packs);
-  return <fieldset className="voice-seat-assignments"><legend>牌桌角色语音</legend><p className="voice-seat-assignments__hint">按玩家座位分配角色语音；轮庄不会改变角色。未单独指定时使用默认角色。</p>{Array.from({ length: playerCount }, (_, seatIndex) => {
-    const value = assignments[seatIndex] ?? fallbackPackId ?? '';
-    return <label className="voice-seat-assignments__row" key={seatIndex}>玩家 {seatIndex + 1}<select aria-label={`玩家 ${seatIndex + 1} 语音`} value={value} onChange={(event) => onChange(seatIndex, event.target.value === fallbackPackId ? null : event.target.value || null)}>{packs.map((pack) => <option key={pack.id} value={pack.id}>{pack.name}</option>)}</select></label>;
+  const fallbackPackId = resolveRuntimeFallbackVoicePackId(packs);
+  return <fieldset className="voice-seat-assignments"><legend>牌桌角色语音</legend><p className="voice-seat-assignments__hint">按玩家座位分配角色语音；轮庄不会改变角色。未单独指定时使用内置安全默认角色；选择“无”后该玩家不会播放语音。</p>{Array.from({ length: playerCount }, (_, seatIndex) => {
+    const assigned = assignments[seatIndex];
+    const value = assigned === NO_VOICE_PACK_ID ? NO_VOICE_PACK_ID : assigned ?? fallbackPackId ?? '';
+    return <label className="voice-seat-assignments__row" key={seatIndex}>玩家 {seatIndex + 1}<select aria-label={`玩家 ${seatIndex + 1} 语音`} value={value} onChange={(event) => {
+      const next = event.target.value;
+      onChange(seatIndex, next === NO_VOICE_PACK_ID ? NO_VOICE_PACK_ID : next === fallbackPackId ? null : next || null);
+    }}><option value={NO_VOICE_PACK_ID}>无</option>{packs.map((pack) => <option key={pack.id} value={pack.id}>{pack.name}</option>)}</select></label>;
   })}</fieldset>;
 }
 

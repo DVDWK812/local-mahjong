@@ -13,14 +13,14 @@ describe('Voice generation status', () => {
     expect(getVoiceLineGenerationStatus(detail, line)).toBe('generated');
   });
 
-  it('现有 114 条初始全为已生成；改变十条实际 TTS 输入后只标记十条已修改', () => {
+  it('现有 148 条初始均为已生成；改变十条实际 TTS 输入后只标记十条已修改', () => {
     const detail = VOICE_PACK_REPOSITORY.getPack('xiaozhang');
     if (!detail) throw new Error('Missing xiaozhang fixture');
     const initial = generationStatusSummary(getVoicePackGenerationStatuses(detail, detail.voiceLines));
-    expect(initial).toMatchObject({ generated: 114, changed: 0, 'not-generated': 0, 'missing-audio': 0 });
+    expect(initial).toMatchObject({ generated: 148, changed: 0, 'not-generated': 0, 'missing-audio': 0 });
     const editor = new VoicePackEditingService(VOICE_PACK_REPOSITORY, new MemoryVoiceLineOverrideStorage());
     detail.voiceLines.slice(0, 10).forEach((line) => editor.updateVoiceLine('xiaozhang', line.key, { ttsText: `${line.tts_text}<|phoneme_start|>fa1<|phoneme_end|>` }));
-    expect(generationStatusSummary(getVoicePackGenerationStatuses(detail, editor.getVoiceLines('xiaozhang')))).toMatchObject({ generated: 104, changed: 10, 'not-generated': 0, 'missing-audio': 0 });
+    expect(generationStatusSummary(getVoicePackGenerationStatuses(detail, editor.getVoiceLines('xiaozhang')))).toMatchObject({ generated: 138, changed: 10, 'not-generated': 0, 'missing-audio': 0 });
   });
 
   it('只改 display line 而有效 tts_text 不变时保持已生成；tts_text 改变才需要更新', () => {

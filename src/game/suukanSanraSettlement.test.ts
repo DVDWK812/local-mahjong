@@ -64,7 +64,7 @@ describe('suukan sanra settlement', () => {
     expect(events.filter((event) => event.type === 'round_settled')).toEqual([
       expect.objectContaining({ settlementType: 'abortive-draw', reason: 'suukan-sanra', triggeringPlayerId: 0 }),
     ]);
-    expect(play.mock.calls.map(([event]) => event)).toEqual([
+    expect(play.mock.calls.map(([event]) => event).filter((event) => event.key === 'game.four_kans_abortive_draw')).toEqual([
       expect.objectContaining({ key: 'game.four_kans_abortive_draw', actorId: '0', priority: 85 }),
     ]);
     consumer.dispose();

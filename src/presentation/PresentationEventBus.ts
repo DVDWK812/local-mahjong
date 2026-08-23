@@ -1,6 +1,7 @@
 import type { AbortiveDrawReason, PlayerId, TileId } from '../game/types';
 import type { LimitTier } from '../game/score/pointCalculator';
 import type { YakuhaiSource, YakuId } from '../game/score/yaku/types';
+import type { MatchResult } from '../game/match/types';
 
 export interface PresentationTile {
   readonly id: TileId;
@@ -89,6 +90,11 @@ interface RoundSettledPresentationEventBase {
 export type RoundSettledPresentationEvent =
   | (RoundSettledPresentationEventBase & {
       readonly settlementType: 'exhaustive-draw';
+      /** Stable player-slot order captured from the settled game state. */
+      readonly activePlayerIds: readonly PlayerId[];
+      /** Authoritative exhaustive-draw result lists; never inferred by the UI. */
+      readonly tenpaiPlayers: readonly PlayerId[];
+      readonly notenPlayers: readonly PlayerId[];
     })
   | (RoundSettledPresentationEventBase & {
       readonly settlementType: 'abortive-draw';
@@ -97,7 +103,26 @@ export type RoundSettledPresentationEvent =
       readonly triggeringPlayerId?: PlayerId;
     });
 
-export type PresentationEvent = TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | WinDeclaredPresentationEvent | WinScoredPresentationEvent | RoundSettledPresentationEvent;
+export interface MatchStartedPresentationEvent {
+  readonly eventId: string;
+  readonly sequence: number;
+  readonly type: 'match_started';
+  readonly matchId: string;
+  /** Stable active player-slot order for this match. */
+  readonly activePlayerIds: readonly PlayerId[];
+}
+
+export interface MatchResultPresentationEvent {
+  readonly eventId: string;
+  readonly sequence: number;
+  readonly type: 'match_result_finalized';
+  readonly matchId: string;
+  /** Complete authoritative final result. Consumers must not recalculate ranks from points. */
+  readonly finalResult: MatchResult;
+  readonly activePlayerIds: readonly PlayerId[];
+}
+
+export type PresentationEvent = TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | WinDeclaredPresentationEvent | WinScoredPresentationEvent | RoundSettledPresentationEvent | MatchStartedPresentationEvent | MatchResultPresentationEvent;
 type WithoutPresentationMetadata<T> = T extends PresentationEvent ? Omit<T, 'eventId' | 'sequence'> : never;
 export type PresentationEventInput = WithoutPresentationMetadata<PresentationEvent>;
 export type PresentationEventListener = (event: PresentationEvent) => void;
@@ -137,6 +162,34 @@ export class PresentationEventBus {
           eventId: createEventId(),
           sequence: this.sequence,
         }
+      : input.type === 'round_settled' && input.settlementType === 'exhaustive-draw'
+        ? {
+          ...input,
+          activePlayerIds: Object.freeze([...input.activePlayerIds]),
+          tenpaiPlayers: Object.freeze([...input.tenpaiPlayers]),
+          notenPlayers: Object.freeze([...input.notenPlayers]),
+          eventId: createEventId(),
+          sequence: this.sequence,
+        }
+        : input.type === 'match_started'
+          ? {
+            ...input,
+            activePlayerIds: Object.freeze([...input.activePlayerIds]),
+            eventId: createEventId(),
+            sequence: this.sequence,
+          }
+          : input.type === 'match_result_finalized'
+            ? {
+              ...input,
+              activePlayerIds: Object.freeze([...input.activePlayerIds]),
+              finalResult: Object.freeze({
+                ...input.finalResult,
+                players: Object.freeze(input.finalResult.players.map((player) => Object.freeze({ ...player }))),
+                finalScores: Object.freeze([...input.finalResult.finalScores]) as MatchResult['finalScores'],
+              }),
+              eventId: createEventId(),
+              sequence: this.sequence,
+            }
       : {
           ...input,
           eventId: createEventId(),

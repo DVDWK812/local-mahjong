@@ -12,7 +12,7 @@ describe('VoicePackSettings', () => {
     expect(html).not.toContain('aria-pressed=');
     expect(html).toContain('管理 &gt;');
     expect(html).toContain('＋ 创建新角色');
-    expect(html).toContain('114 条语音');
+    expect(html).toContain('148 条语音');
     expect(html).toContain('aria-label="删除 校长 语音"');
     expect(html).toContain('title="内置角色无法删除"');
     expect(html).toContain('disabled=""');
@@ -29,6 +29,7 @@ describe('VoicePackSettings', () => {
 
     const fourPlayers = renderToStaticMarkup(<VoicePackSettings selectedVoicePackId="xiaozhang" onSelect={() => undefined} onManage={() => undefined} onCreate={() => undefined} voicePackBySeat={['xiaozhang', null, null, null]} playerCount={4} onSeatAssignmentChange={() => undefined} />);
     for (const seat of [1, 2, 3, 4]) expect(fourPlayers).toContain(`aria-label="玩家 ${seat} 语音"`);
+    expect(fourPlayers).toContain('value="__no_voice__">无</option>');
   });
 
   it('用户角色删除确认使用两步 Modal，并明确列出不可恢复的本地资源', () => {

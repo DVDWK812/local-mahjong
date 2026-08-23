@@ -295,6 +295,10 @@ describe('AudioSettingsDialog', () => {
   it('语音区域显示自动发现的角色，并提供管理入口', () => {
     const html = renderDialog();
     expect(html).toContain('aria-label="语音开关"');
+    expect(html).toContain('aria-label="出牌报牌开关"');
+    expect(html).toContain('aria-label="出牌报牌范围"');
+    expect(html).toContain('>全部玩家</option>');
+    expect(html).toContain('>仅自己</option>');
     expect(html).toContain('角色语音');
     expect(html).toContain('校长');
     expect(html).toContain('aria-label="管理 校长 语音"');

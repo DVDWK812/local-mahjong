@@ -1,6 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { syncVoiceLineCatalog } from './syncVoiceLineCatalog.mjs';
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const voiceLinesRoot = process.env.VOICE_PACKS_ROOT
@@ -55,6 +56,7 @@ async function readJson(filePath) {
 }
 
 export async function generateVoicePackIndex(root = voiceLinesRoot) {
+  await syncVoiceLineCatalog(root);
   const entries = await fs.readdir(root, { withFileTypes: true });
   const packs = [];
   const diagnostics = [];

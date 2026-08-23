@@ -156,7 +156,15 @@ type RoundSettledPresentationEventInput = Extract<PresentationEventInput, { type
 
 function roundSettledEvent(state: GameState): RoundSettledPresentationEventInput | undefined {
   const result = state.result;
-  if (isExhaustiveDrawResult(result)) return { type: 'round_settled', settlementType: 'exhaustive-draw' };
+  if (isExhaustiveDrawResult(result)) {
+    return {
+      type: 'round_settled',
+      settlementType: 'exhaustive-draw',
+      activePlayerIds: state.players.map((player) => player.id),
+      tenpaiPlayers: [...result.tenpaiPlayers],
+      notenPlayers: [...result.notenPlayers],
+    };
+  }
   if (!isVoiceAbortiveDrawResult(result)) return undefined;
   return {
     type: 'round_settled',
