@@ -1,9 +1,13 @@
 import voicePackIndex from '../../music/voice_lines/voice_packs.json';
-import type { VoiceAvailability, VoiceLine, VoiceManifest, VoiceManifestEntry, VoicePackDetail, VoicePackDiagnostic, VoicePackIndex, VoicePackMeta, VoicePackSummary } from './types';
+import fishAudioConfig from '../config/fish_audio.example.json';
+import type { VoiceAvailability, VoiceGenerationCacheEntry, VoiceLine, VoiceManifest, VoiceManifestEntry, VoicePackDetail, VoicePackDiagnostic, VoicePackIndex, VoicePackMeta, VoicePackSummary, VoiceSynthesisSettings } from './types';
 
 type JsonModuleMap = Readonly<Record<string, unknown>>;
 type AudioModuleMap = Readonly<Record<string, string>>;
-export interface VoicePackRepositorySources { readonly index: unknown; readonly packMetadata: JsonModuleMap; readonly manifests: JsonModuleMap; readonly voiceLines: JsonModuleMap; readonly audio: AudioModuleMap; }
+export interface VoicePackRepositorySources {
+  readonly index: unknown; readonly packMetadata: JsonModuleMap; readonly manifests: JsonModuleMap; readonly voiceLines: JsonModuleMap; readonly audio: AudioModuleMap;
+  readonly caches?: JsonModuleMap; readonly failures?: JsonModuleMap; readonly generationLogs?: JsonModuleMap; readonly synthesis?: unknown;
+}
 
 const PACK_PATH_PATTERN = /^[a-z0-9][a-z0-9_-]*$/;
 const LOCALE_PATTERN = /^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/;
@@ -12,7 +16,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 const nonEmptyString = (value: unknown): string | undefined => typeof value === 'string' && value.trim() ? value.trim() : undefined;
 const safePackPath = (path: string): boolean => PACK_PATH_PATTERN.test(path);
 const diagnostic = (code: VoicePackDiagnostic['code'], message: string, packId?: string, key?: string): VoicePackDiagnostic => ({ code, message, ...(packId ? { packId } : {}), ...(key ? { key } : {}) });
-const packFilePath = (path: string, file: 'pack.json' | 'manifest.json' | 'voice_lines.json'): string => `${SOURCE_ROOT}/${path}/${file}`;
+const packFilePath = (path: string, file: 'pack.json' | 'manifest.json' | 'voice_lines.json' | '.voice_cache.json' | 'failed.json' | 'generation_log.json'): string => `${SOURCE_ROOT}/${path}/${file}`;
 const audioFilePath = (path: string, file: string): string => `${SOURCE_ROOT}/${path}/${file}`;
 
 function parseIndex(value: unknown): { index?: VoicePackIndex; diagnostics: VoicePackDiagnostic[] } {
@@ -53,11 +57,45 @@ function parseVoiceLines(value: unknown, packId: string): { lines?: VoiceLine[];
   const lines: VoiceLine[] = []; const seenKeys = new Set<string>();
   for (const candidate of value) {
     if (!isRecord(candidate)) return { diagnostic: diagnostic('invalid-voice-lines', 'voice_lines.json contains a non-object row.', packId) };
-    const key = nonEmptyString(candidate.key); const category = nonEmptyString(candidate.category); const action = nonEmptyString(candidate.action); const line = nonEmptyString(candidate.line); const ttsText = nonEmptyString(candidate.tts_text); const locale = nonEmptyString(candidate.locale); const character = nonEmptyString(candidate.character); const emotion = nonEmptyString(candidate.emotion); const actionCn = nonEmptyString(candidate.action_cn);
-    if (!key || !category || !action || !line || !ttsText || !locale || !character || !emotion || !LOCALE_PATTERN.test(locale) || seenKeys.has(key)) return { diagnostic: diagnostic('invalid-voice-lines', 'voice_lines.json has a duplicate key or invalid required field.', packId, key) };
+    const key = nonEmptyString(candidate.key); const category = nonEmptyString(candidate.category); const action = nonEmptyString(candidate.action); const line = nonEmptyString(candidate.line); const ttsText = typeof candidate.tts_text === 'string' ? candidate.tts_text : ''; const locale = nonEmptyString(candidate.locale); const character = nonEmptyString(candidate.character); const emotion = nonEmptyString(candidate.emotion); const actionCn = nonEmptyString(candidate.action_cn);
+    // Empty tts_text is the canonical default-pronunciation representation:
+    // Python then uses line as the actual TTS input.
+    if (!key || !category || !action || !line || !locale || !character || !emotion || !LOCALE_PATTERN.test(locale) || seenKeys.has(key)) return { diagnostic: diagnostic('invalid-voice-lines', 'voice_lines.json has a duplicate key or invalid required field.', packId, key) };
     seenKeys.add(key); lines.push({ key, category, action, line, tts_text: ttsText, locale, character, emotion, ...(actionCn ? { action_cn: actionCn } : {}) });
   }
   return { lines };
+}
+
+function parseSynthesis(value: unknown): VoiceSynthesisSettings {
+  if (!isRecord(value)) return { speed: 1, format: 'mp3' };
+  const speed = typeof value.speed === 'number' && Number.isFinite(value.speed) ? value.speed : 1;
+  return { speed, format: nonEmptyString(value.format) ?? 'mp3' };
+}
+
+function parseCache(value: unknown): Record<string, VoiceGenerationCacheEntry> {
+  if (!isRecord(value)) return {};
+  const cache: Record<string, VoiceGenerationCacheEntry> = {};
+  for (const [index, candidate] of Object.entries(value)) {
+    if (!isRecord(candidate)) continue;
+    const key = nonEmptyString(candidate.key) ?? index;
+    const fingerprint = nonEmptyString(candidate.fingerprint); const line = typeof candidate.line === 'string' ? candidate.line : '';
+    const ttsText = typeof candidate.ttsText === 'string' ? candidate.ttsText : typeof candidate.text === 'string' ? candidate.text : '';
+    const voiceId = nonEmptyString(candidate.voiceId); const modelId = nonEmptyString(candidate.modelId); const format = nonEmptyString(candidate.format); const file = nonEmptyString(candidate.file);
+    const speed = typeof candidate.speed === 'number' && Number.isFinite(candidate.speed) ? candidate.speed : undefined;
+    if (!key || !fingerprint || !voiceId || !modelId || !format || !file || speed === undefined) continue;
+    cache[key] = { key, fingerprint, line, ttsText, voiceId, modelId, speed, format, file };
+  }
+  return cache;
+}
+
+function parseFailedKeys(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.flatMap((candidate) => isRecord(candidate) ? [nonEmptyString(candidate.key)] : []).filter((key): key is string => Boolean(key)))];
+}
+
+function parseFailedLogKeys(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.flatMap((candidate) => isRecord(candidate) && candidate.status === 'failed' ? [nonEmptyString(candidate.key)] : []).filter((key): key is string => Boolean(key)))];
 }
 
 /** Browser-only, read-only repository. It discovers only bundled, validated Voice Packs. */
@@ -79,7 +117,13 @@ export class VoicePackRepository {
   public getVoiceLine(packId: string, key: string): VoiceLine | undefined { return this.getPack(packId)?.voiceLines.find((line) => line.key === key); }
   public getAudioForKey(packId: string, key: string): string | undefined {
     const detail = this.getPack(packId); const availability = detail?.voiceAvailability[key]; const summary = this.summaries.find((candidate) => candidate.id === packId);
-    return detail && availability?.status === 'available' && summary ? this.sources.audio[audioFilePath(summary.path, availability.file)] : undefined;
+    if (!detail || availability?.status !== 'available' || !summary) return undefined;
+    const filename = availability.file.replace(/^audio\//, '');
+    // The dev bridge resolves manifest-authorized files dynamically, so an MP3
+    // produced after Vite starts is immediately previewable. Production stays bundled.
+    return import.meta.env.DEV
+      ? `/api/voice-packs/${encodeURIComponent(packId)}/audio/${encodeURIComponent(filename)}`
+      : this.sources.audio[audioFilePath(summary.path, availability.file)];
   }
   public getDiagnostics(): readonly VoicePackDiagnostic[] { return this.diagnostics; }
   private loadPack(summary: VoicePackSummary): VoicePackDetail | undefined {
@@ -109,7 +153,12 @@ export class VoicePackRepository {
         this.diagnostics.push(diagnostic('orphan-audio', `Bundled MP3 is not referenced by manifest: ${sourcePath}`, summary.id));
       }
     }
-    return { meta: parsedMeta.meta, manifest: parsedManifest.manifest, voiceLines: parsedLines.lines, voiceAvailability };
+    const cache = parseCache(this.sources.caches?.[packFilePath(summary.path, '.voice_cache.json')]);
+    const failedKeys = [...new Set([
+      ...parseFailedKeys(this.sources.failures?.[packFilePath(summary.path, 'failed.json')]),
+      ...parseFailedLogKeys(this.sources.generationLogs?.[packFilePath(summary.path, 'generation_log.json')]),
+    ])];
+    return { meta: parsedMeta.meta, manifest: parsedManifest.manifest, voiceLines: parsedLines.lines, voiceAvailability, generationCache: cache, failedKeys, synthesis: parseSynthesis(this.sources.synthesis) };
   }
 }
 
@@ -119,6 +168,10 @@ const defaultSources: VoicePackRepositorySources = {
   manifests: import.meta.glob('../../music/voice_lines/*/manifest.json', { eager: true, import: 'default' }) as JsonModuleMap,
   voiceLines: import.meta.glob('../../music/voice_lines/*/voice_lines.json', { eager: true, import: 'default' }) as JsonModuleMap,
   audio: import.meta.glob('../../music/voice_lines/*/audio/*.mp3', { eager: true, import: 'default' }) as AudioModuleMap,
+  caches: import.meta.glob('../../music/voice_lines/*/.voice_cache.json', { eager: true, import: 'default' }) as JsonModuleMap,
+  failures: import.meta.glob('../../music/voice_lines/*/failed.json', { eager: true, import: 'default' }) as JsonModuleMap,
+  generationLogs: import.meta.glob('../../music/voice_lines/*/generation_log.json', { eager: true, import: 'default' }) as JsonModuleMap,
+  synthesis: fishAudioConfig,
 };
 
 /** Default source of validated Voice Pack data for later phases; it performs no playback. */

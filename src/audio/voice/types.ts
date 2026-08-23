@@ -12,9 +12,17 @@ export interface VoiceLine {
 }
 export interface VoicePackSummary { readonly id: string; readonly name: string; readonly locale: string; readonly path: string; }
 export interface VoiceAvailability { readonly key: string; readonly file: string; readonly status: VoiceAvailabilityStatus; }
+export interface VoiceGenerationCacheEntry {
+  readonly key: string; readonly fingerprint: string; readonly line: string; readonly ttsText: string;
+  readonly voiceId: string; readonly modelId: string; readonly speed: number; readonly format: string; readonly file: string;
+}
+export interface VoiceSynthesisSettings { readonly speed: number; readonly format: string; }
 export interface VoicePackDetail {
   readonly meta: VoicePackMeta; readonly manifest: VoiceManifest; readonly voiceLines: readonly VoiceLine[];
   readonly voiceAvailability: Readonly<Record<string, VoiceAvailability>>;
+  readonly generationCache: Readonly<Record<string, VoiceGenerationCacheEntry>>;
+  readonly failedKeys: readonly string[];
+  readonly synthesis: VoiceSynthesisSettings;
 }
 export type VoicePackDiagnosticCode =
   | 'invalid-index' | 'duplicate-pack-id' | 'missing-pack-metadata' | 'invalid-pack-metadata'

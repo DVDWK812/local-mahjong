@@ -7,11 +7,17 @@ import { AudioPresentationConsumer } from './audio/AudioPresentationConsumer';
 import { normalizeAudioSettings, type AudioSettings } from './audio/audioSettings';
 import { loadAudioSettings, saveAudioSettings } from './audio/audioSettingsStorage';
 import { VOICE_PACK_REPOSITORY } from './audio/voice/VoicePackRepository';
-import { resolveSelectedVoicePackId } from './audio/voice/voicePreferences';
+import { VoiceDirector } from './audio/voice/VoiceDirector';
+import { SettlementPresentationCoordinator } from './audio/voice/SettlementPresentationCoordinator';
+import { VoicePresentationRuntime } from './audio/voice/VoicePresentationRuntime';
+import { resolveSelectedVoicePackId, resolveVoiceSeatAssignments } from './audio/voice/voicePreferences';
+import type { VoicePackSummary } from './audio/voice/types';
 import { MusicLibrary, type MusicAddResult } from './audio/musicLibrary';
 import type { GameSfxGroup, MusicCategory, MusicTrackDefinition, MusicTrackId, PlaybackMode } from './audio/musicTypes';
 import { AudioSettingsDialog } from './components/AudioSettingsDialog';
 import { VoiceManagementScreen } from './components/voice/VoiceManagementScreen';
+import { CreateVoicePackScreen } from './components/voice/CreateVoicePackScreen';
+import type { CreateVoicePackResult } from './audio/voice/VoicePackService';
 import { BackButton } from './components/BackButton';
 import { Board } from './components/Board';
 import { ExitGameDialog } from './components/ExitGameDialog';
@@ -89,7 +95,6 @@ const storage = typeof window === 'undefined' ? null : new LocalStorageAdapter(w
 const EXIT_SAVE_TIMEOUT_MS = 3000;
 const EXIT_SAVE_TIMEOUT_MESSAGE = '牌谱保存超时，可直接退出或重试保存。';
 const EXIT_SAVE_ERROR_MESSAGE = '牌谱保存失败，可直接退出或重试保存。';
-
 function isRealtimeAudioScreen(screen: AppScreen): boolean {
   return screen === 'game' || screen === 'riichi-17-steps';
 }
@@ -179,8 +184,9 @@ function createSavedMatch(activeGame: ActiveGame, ruleConfig: FullRuleConfig): S
 export default function App() {
   const testModeAvailability = currentTestModeAvailability();
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
-  const [audioDialogOpen, setAudioDialogOpen] = useState(false);
-  const [voiceManagementPackId, setVoiceManagementPackId] = useState<string | null>(null);
+  const [audioDialogOpen, setAudioDialogOpen] = useState(() => typeof window !== 'undefined' && window.sessionStorage.getItem('local-mahjong.pending-voice-pack-manager') !== null);
+  const [voiceManagementPackId, setVoiceManagementPackId] = useState<string | null>(() => typeof window === 'undefined' ? null : window.sessionStorage.getItem('local-mahjong.pending-voice-pack-manager'));
+  const [voicePackCreationOpen, setVoicePackCreationOpen] = useState(false);
   const [musicRevision, setMusicRevision] = useState(0);
   const [previewTrackId, setPreviewTrackId] = useState<MusicTrackId | null>(null);
   const [musicNotice, setMusicNotice] = useState<string | null>(null);
@@ -197,9 +203,11 @@ export default function App() {
   const [audioSettings, setAudioSettings] = useState<AudioSettings>(() => {
     const storage = typeof window === 'undefined' ? undefined : window.localStorage;
     const loaded = loadAudioSettings(storage);
-    const selectedVoicePackId = resolveSelectedVoicePackId(loaded.selectedVoicePackId, VOICE_PACK_REPOSITORY.listPacks());
-    const resolved = { ...loaded, selectedVoicePackId };
-    if (storage && selectedVoicePackId !== loaded.selectedVoicePackId) saveAudioSettings(resolved, storage);
+    const packs = VOICE_PACK_REPOSITORY.listPacks();
+    const selectedVoicePackId = resolveSelectedVoicePackId(loaded.selectedVoicePackId, packs);
+    const voicePackBySeat = resolveVoiceSeatAssignments(loaded.voicePackBySeat, packs);
+    const resolved = { ...loaded, selectedVoicePackId, voicePackBySeat };
+    if (storage && (selectedVoicePackId !== loaded.selectedVoicePackId || voicePackBySeat.some((packId, seat) => packId !== loaded.voicePackBySeat[seat]))) saveAudioSettings(resolved, storage);
     return resolved;
   });
   const [state, setState] = useState<AppState>(() => ({
@@ -234,10 +242,32 @@ export default function App() {
   const activeGame = state.activeGame;
   const gameState = activeGame?.gameState;
   const matchState = activeGame?.matchState;
+  const voicePlayerCount: 2 | 3 | 4 = gameState?.players.length === 2 ? 2
+    : gameState?.players.length === 3 ? 3
+      : state.screen === 'riichi-17-steps' || state.screen === 'riichi-17-steps-settings' ? 2
+        : state.selection.playerCount === 3 ? 3 : 4;
   const settingsPath = useMemo(() => pathLabel(state.selection), [state.selection]);
   const audioManagerRef = useRef<AudioManager | null>(null);
   if (!audioManagerRef.current) audioManagerRef.current = new AudioManager(audioSettings);
   const audioManager = audioManagerRef.current;
+  const voiceDirectorRef = useRef<VoiceDirector | null>(null);
+  if (!voiceDirectorRef.current) voiceDirectorRef.current = new VoiceDirector(VOICE_PACK_REPOSITORY, audioManager, audioSettings);
+  const voiceDirector = voiceDirectorRef.current;
+  const audioScreenRef = useRef(state.screen);
+  audioScreenRef.current = state.screen;
+  const voicePresentationRuntimeRef = useRef<VoicePresentationRuntime | null>(null);
+  if (!voicePresentationRuntimeRef.current) {
+    voicePresentationRuntimeRef.current = new VoicePresentationRuntime(
+      voiceDirector,
+      undefined,
+      () => isRealtimeAudioScreen(audioScreenRef.current),
+    );
+  }
+  const voicePresentationRuntime = voicePresentationRuntimeRef.current;
+  const winPresentationController = voicePresentationRuntime.controller;
+  const settlementPresentationRef = useRef<SettlementPresentationCoordinator | null>(null);
+  if (!settlementPresentationRef.current) settlementPresentationRef.current = new SettlementPresentationCoordinator(winPresentationController);
+  const settlementPresentationCoordinator = settlementPresentationRef.current;
   const musicLibraryRef = useRef<MusicLibrary | null>(null);
   if (!musicLibraryRef.current) {
     musicLibraryRef.current = new MusicLibrary(
@@ -246,8 +276,6 @@ export default function App() {
     );
   }
   const musicLibrary = musicLibraryRef.current;
-  const audioScreenRef = useRef(state.screen);
-  audioScreenRef.current = state.screen;
 
   useEffect(() => {
     mountedRef.current = true;
@@ -257,9 +285,27 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (voiceManagementPackId && VOICE_PACK_REPOSITORY.getPack(voiceManagementPackId) && typeof window !== 'undefined') window.sessionStorage.removeItem('local-mahjong.pending-voice-pack-manager');
+  }, [voiceManagementPackId]);
+
+  useEffect(() => {
     audioManager.activate();
     return () => audioManager.dispose();
   }, [audioManager]);
+
+  useEffect(() => {
+    voicePresentationRuntime.start();
+    return () => {
+      voiceDirector.stop();
+      voicePresentationRuntime.stop();
+    };
+  }, [voiceDirector, voicePresentationRuntime]);
+  useEffect(() => () => settlementPresentationCoordinator.dispose(), [settlementPresentationCoordinator]);
+
+  useEffect(() => {
+    const players = gameState?.players ?? [];
+    voiceDirector.setActorSeatContext({ playerIds: players.map((player) => player.id), playerCount: players.length });
+  }, [voiceDirector, gameState?.players]);
 
   useEffect(() => {
     let cancelled = false;
@@ -425,11 +471,14 @@ export default function App() {
 
   function handleAudioSettingsChange(settings: AudioSettings) {
     const normalizedSettings = normalizeAudioSettings(settings);
+    const packs = VOICE_PACK_REPOSITORY.listPacks();
     const normalized = {
       ...normalizedSettings,
-      selectedVoicePackId: resolveSelectedVoicePackId(normalizedSettings.selectedVoicePackId, VOICE_PACK_REPOSITORY.listPacks()),
+      selectedVoicePackId: resolveSelectedVoicePackId(normalizedSettings.selectedVoicePackId, packs),
+      voicePackBySeat: resolveVoiceSeatAssignments(normalizedSettings.voicePackBySeat, packs),
     };
     audioManager.setSettings(normalized);
+    voiceDirector.setSettings(normalized);
     setAudioSettings(normalized);
     if (typeof window !== 'undefined') saveAudioSettings(normalized, window.localStorage);
   }
@@ -553,6 +602,7 @@ export default function App() {
 
   function closeAudioDialog() {
     audioManager.setTemporaryReturnPolicy('restart-runtime-playlist');
+    setVoicePackCreationOpen(false);
     setVoiceManagementPackId(null);
     setAudioDialogOpen(false);
   }
@@ -562,7 +612,35 @@ export default function App() {
     setVoiceManagementPackId(packId);
   }
 
+  function handleVoicePackCreated(result: CreateVoicePackResult) {
+    // The current bundle cannot discover the newly created Pack until reload, so do not
+    // resolve this ID against its stale repository before persisting it.
+    const settingsForNewPack = { ...normalizeAudioSettings(audioSettings), selectedVoicePackId: result.pack.id };
+    setAudioSettings(settingsForNewPack);
+    if (typeof window !== 'undefined') saveAudioSettings(settingsForNewPack, window.localStorage);
+    setVoicePackCreationOpen(false);
+    setVoiceManagementPackId(result.pack.id);
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('local-mahjong.pending-voice-pack-manager', result.pack.id);
+      window.location.reload();
+    }
+  }
+
+  function handleVoicePackDeleted(_deletedPackId: string, remainingPacks: readonly VoicePackSummary[]) {
+    const normalizedSettings = normalizeAudioSettings(audioSettings);
+    const normalized = {
+      ...normalizedSettings,
+      selectedVoicePackId: resolveSelectedVoicePackId(normalizedSettings.selectedVoicePackId, remainingPacks),
+      voicePackBySeat: resolveVoiceSeatAssignments(normalizedSettings.voicePackBySeat, remainingPacks),
+    };
+    audioManager.setSettings(normalized);
+    voiceDirector.setSettings(normalized);
+    setAudioSettings(normalized);
+    if (typeof window !== 'undefined') saveAudioSettings(normalized, window.localStorage);
+  }
+
   function renderAudioSettingsDialog() {
+    if (voicePackCreationOpen) return <CreateVoicePackScreen onBack={() => setVoicePackCreationOpen(false)} onCreated={handleVoicePackCreated} />;
     if (voiceManagementPackId) {
       return <VoiceManagementScreen packId={voiceManagementPackId} voiceVolume={audioSettings.voiceVolume} onBack={() => setVoiceManagementPackId(null)} />;
     }
@@ -592,6 +670,9 @@ export default function App() {
         onPreviousTrack={handlePreviousTrack}
         onNextTrack={handleNextTrack}
         onManageVoicePack={openVoiceManagement}
+        onCreateVoicePack={() => setVoicePackCreationOpen(true)}
+        voicePlayerCount={voicePlayerCount}
+        onVoicePackDeleted={handleVoicePackDeleted}
       />
     );
   }
@@ -982,6 +1063,8 @@ export default function App() {
       ) : null}
       <Board
         gameState={gameState}
+        winPresentationController={winPresentationController}
+        settlementPresentationCoordinator={settlementPresentationCoordinator}
         playerProfile={state.playerProfile}
         matchState={matchState}
         onTsumo={(playerId) => updateGame((current) => declareTsumo(current, playerId))}

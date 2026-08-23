@@ -13,6 +13,8 @@ import { useGamePresentationEvents } from '../presentation/gamePresentationEvent
 import { ActionPrompt } from './ActionPrompt';
 import { GameScreen } from './game/GameScreen';
 import { Tile } from './Tile';
+import type { WinResultPresentationController } from '../audio/voice/WinResultPresentationController';
+import type { SettlementPresentationCoordinator } from '../audio/voice/SettlementPresentationCoordinator';
 
 interface BoardProps {
   gameState: GameState;
@@ -43,6 +45,8 @@ interface BoardProps {
   tableBottomPlayerId?: PlayerId;
   revealAllHands?: boolean;
   playerProfile?: PlayerProfile;
+  winPresentationController?: WinResultPresentationController;
+  settlementPresentationCoordinator?: SettlementPresentationCoordinator;
 }
 
 export function Board({
@@ -74,6 +78,8 @@ export function Board({
   tableBottomPlayerId = controlledPlayerId,
   revealAllHands = false,
   playerProfile,
+  winPresentationController,
+  settlementPresentationCoordinator,
 }: BoardProps) {
   useGamePresentationEvents(gameState);
   const [dismissedPromptKey, setDismissedPromptKey] = useState<string | null>(null);
@@ -310,6 +316,8 @@ export function Board({
       tableBottomPlayerId={tableBottomPlayerId}
       revealAllHands={revealAllHands}
       playerProfile={playerProfile}
+      winPresentationController={winPresentationController}
+      settlementPresentationCoordinator={settlementPresentationCoordinator}
     />
   );
 }

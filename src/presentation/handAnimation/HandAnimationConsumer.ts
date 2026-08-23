@@ -11,7 +11,7 @@ export class HandAnimationConsumer {
     eventBus: PresentationEventBus = presentationEventBus,
     private readonly shouldHandleEvent: () => boolean = () => true,
     private readonly featureFlagsSource: PresentationFeatureFlagsSource = getPresentationFeatures,
-    private readonly mapEvent: (event: PresentationEvent) => HandAnimationAction = (event) => event,
+    private readonly mapEvent: (event: PresentationEvent) => PresentationEvent | undefined = (event) => event,
     private readonly pacingGate: Pick<PresentationPacingGate, 'begin' | 'cancel'> | null = null,
   ) {
     this.unsubscribe = eventBus.subscribe(this.handleEvent);
@@ -24,7 +24,12 @@ export class HandAnimationConsumer {
   private readonly handleEvent = (event: PresentationEvent) => {
     if (!this.shouldHandleEvent() || !this.featureFlagsSource().handAnimations) return;
     const action = this.mapEvent(event);
+    if (!isHandAnimationAction(action)) return;
     this.pacingGate?.begin(event);
     if (!this.controller.enqueue(action)) this.pacingGate?.cancel(event.eventId);
   };
+}
+
+function isHandAnimationAction(event: PresentationEvent | undefined): event is HandAnimationAction {
+  return event !== undefined && event.type !== 'win_declared';
 }

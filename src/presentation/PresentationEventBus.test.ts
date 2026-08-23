@@ -44,6 +44,9 @@ function chiCallWindow(): GameState {
   let state = createInitialGameState();
   state = setPresentationHand(state, 0, [1, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22, 27, 31, 33]);
   state = setPresentationHand(state, 1, [0, 2, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]);
+  // Player 2 must not randomly receive a pair of the discarded 1m: this
+  // helper underpins the deterministic "invalid pon" presentation fixture.
+  state = setPresentationHand(state, 2, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
   state = { ...state, currentPlayer: 0, phase: 'discard' };
   return discardTile(state, 0, state.players[0].hand[0].instanceId);
 }
@@ -314,7 +317,7 @@ describe('tile_drawn presentation event', () => {
 });
 
 describe('riichi_declared presentation event', () => {
-  it('规则确认后严格发布一次 discard + 一次最小 riichi 事件，重复 observe 不补发', () => {
+  it('双立直规则确认后严格发布一次带 kind 的 riichi 事件，重复 observe 不补发', () => {
     const before = readyForRiichi(createInitialGameState());
     const candidate = getRiichiDiscardCandidates(before, 0)[0];
     const after = declareRiichi(before, 0, candidate.instanceId);
@@ -331,10 +334,26 @@ describe('riichi_declared presentation event', () => {
     const discard = events[0];
     const riichi = events[1];
     expect(discard).toMatchObject({ type: 'tile_discarded', playerId: 0, isRiichiDiscard: true });
-    expect(riichi).toMatchObject({ type: 'riichi_declared', playerId: 0, riverIndex: 0 });
-    expect(Object.keys(riichi).sort()).toEqual(['eventId', 'playerId', 'riverIndex', 'sequence', 'type']);
+    expect(after.players[0].riichiState?.kind).toBe('double-riichi');
+    expect(riichi).toMatchObject({ type: 'riichi_declared', playerId: 0, riverIndex: 0, kind: 'double-riichi' });
+    expect(Object.keys(riichi).sort()).toEqual(['eventId', 'kind', 'playerId', 'riverIndex', 'sequence', 'type']);
     if (discard.type !== 'tile_discarded' || riichi.type !== 'riichi_declared') throw new Error('Unexpected event order');
     expect(riichi.riverIndex).toBe(discard.riverIndex);
+  });
+
+  it('普通立直发布 kind=riichi，且不依赖展示文本', () => {
+    const prepared = readyForRiichi(createInitialGameState());
+    const before = { ...prepared, playerDiscardCounts: [1, 0, 0, 0] };
+    const candidate = getRiichiDiscardCandidates(before, 0)[0];
+    const after = declareRiichi(before, 0, candidate.instanceId);
+    const bus = new PresentationEventBus(); const events: PresentationEvent[] = [];
+    bus.subscribe((event) => events.push(event));
+    new GamePresentationEventObserver(before, bus).observe(after);
+
+    expect(after.players[0].riichiState?.kind).toBe('riichi');
+    expect(events.filter((event) => event.type === 'riichi_declared')).toEqual([
+      expect.objectContaining({ playerId: 0, kind: 'riichi' }),
+    ]);
   });
 
   it('非法立直不改变 GameState 且发布 0 个事件', () => {
@@ -397,12 +416,12 @@ describe('meld_declared presentation event', () => {
     observer.observe(after);
 
     expect(events.filter((event) => event.type === 'meld_declared')).toHaveLength(1);
-    expect(events[0]).toMatchObject({ type: 'meld_declared', playerId: 0, meldType: 'kan' });
+    expect(events[0]).toMatchObject({ type: 'meld_declared', playerId: 0, meldType: 'kan', kanType: 'minkan' });
     expect(events[1]).toMatchObject({ type: 'tile_drawn', playerId: 0 });
     expect(events.some((event) => event.type === 'tile_discarded')).toBe(false);
   });
 
-  it('ankan 与 pon-to-kakan replacement 均统一映射为 kan', () => {
+  it('ankan 与 pon-to-kakan replacement 保留各自权威 kanType', () => {
     let ankanBefore = createInitialGameState();
     ankanBefore = setPresentationHand(ankanBefore, 0, [0, 0, 0, 0, 3, 4, 5, 9, 10, 11, 18, 19, 20, 31]);
     ankanBefore = { ...ankanBefore, currentPlayer: 0, phase: 'discard' };
@@ -431,8 +450,8 @@ describe('meld_declared presentation event', () => {
     new GamePresentationEventObserver(kakanBefore, bus).observe(kakanAfter);
 
     expect(events.filter((event) => event.type === 'meld_declared')).toEqual([
-      expect.objectContaining({ playerId: 0, meldType: 'kan' }),
-      expect.objectContaining({ playerId: 0, meldType: 'kan' }),
+      expect.objectContaining({ playerId: 0, meldType: 'kan', kanType: 'ankan' }),
+      expect.objectContaining({ playerId: 0, meldType: 'kan', kanType: 'kakan' }),
     ]);
   });
 

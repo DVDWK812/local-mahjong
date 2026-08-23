@@ -45,10 +45,15 @@ describe('standard normal yaku', () => {
     const score = evaluateWin(tiles(ids), ctx(22, { isTsumo: true, isRiichi: true, isIppatsu: true }));
     expect(score.yaku.filter((yaku) => yaku.category === 'normal').length).toBeGreaterThanOrEqual(6);
     expect(score.yaku.every((yaku) => yaku.category !== 'yakuman' && yaku.category !== 'double_yakuman')).toBe(true);
+    expect(score.yaku.map((yaku) => yaku.id)).toEqual(expect.arrayContaining(['riichi', 'ippatsu', 'pinfu']));
   });
 
-  it('covers yakuhai', () => {
+  it('covers yakuhai with semantic tile sources', () => {
+    const white = yakuOf([31, 31, 31, 0, 1, 2, 9, 10, 11, 18, 19, 20, 5, 5], { isMenzen: false });
     hasNormal([31, 31, 31, 0, 1, 2, 9, 10, 11, 18, 19, 20, 5, 5], 1, { isMenzen: false });
+    expect(white).toContainEqual(expect.objectContaining({ id: 'yakuhai', sourceTile: 'white' }));
+    const east = yakuOf([27, 27, 27, 0, 1, 2, 9, 10, 11, 18, 19, 20, 5, 5], { isMenzen: false, roundWind: 'east' });
+    expect(east).toContainEqual(expect.objectContaining({ id: 'yakuhai', sourceTile: 'east' }));
   });
 
   it('covers chiitoitsu', () => {
@@ -146,12 +151,14 @@ describe('yakuman and double yakuman', () => {
     expect(score.yaku[0].category).toBe('yakuman');
     expect(score.yaku[0].han).toBe(0);
     expect(score.yaku[0].yakumanValue).toBe(1);
+    expect(score.yakumanMultiplier).toBe(1);
   });
 
   it('covers kokushi thirteen-sided as double yakuman when enabled', () => {
     const score = evaluateWin(tiles([0, 0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33]), ctx(0, { ruleConfig: { allowDoubleYakuman: true } }));
     expect(score.yaku[0].category).toBe('double_yakuman');
     expect(score.yaku[0].yakumanValue).toBe(2);
+    expect(score.yakumanMultiplier).toBe(2);
   });
 
   it('covers suuankou and suuankou tanki', () => {

@@ -1,11 +1,20 @@
+import {
+  DEFAULT_VOICE_SEAT_ASSIGNMENTS,
+  normalizeVoiceSeatAssignments,
+  type VoiceSeatAssignments,
+} from './voice/voicePreferences';
+
 export interface AudioSettings {
   readonly masterVolume: number;
+  readonly masterEnabled: boolean;
   readonly bgmVolume: number;
   readonly bgmGameVolume: number;
   readonly bgmRiichiVolume: number;
   readonly sfxVolume: number;
   readonly voiceVolume: number;
   readonly selectedVoicePackId: string | null;
+  /** Stable player-slot assignments; null means use selectedVoicePackId as fallback. */
+  readonly voicePackBySeat: VoiceSeatAssignments;
   readonly bgmEnabled: boolean;
   readonly bgmGameEnabled: boolean;
   readonly riichiMusicEnabled: boolean;
@@ -15,12 +24,14 @@ export interface AudioSettings {
 
 export const DEFAULT_AUDIO_SETTINGS: Readonly<AudioSettings> = Object.freeze({
   masterVolume: 0.8,
+  masterEnabled: true,
   bgmVolume: 0.6,
   bgmGameVolume: 0.6,
   bgmRiichiVolume: 0.6,
   sfxVolume: 0.8,
   voiceVolume: 0.8,
   selectedVoicePackId: null,
+  voicePackBySeat: DEFAULT_VOICE_SEAT_ASSIGNMENTS,
   bgmEnabled: true,
   bgmGameEnabled: true,
   riichiMusicEnabled: true,
@@ -49,12 +60,14 @@ export function normalizeAudioSettings(value: unknown): AudioSettings {
     : {};
   return {
     masterVolume: normalizeVolume(input.masterVolume, DEFAULT_AUDIO_SETTINGS.masterVolume),
+    masterEnabled: normalizeBoolean(input.masterEnabled, DEFAULT_AUDIO_SETTINGS.masterEnabled),
     bgmVolume: normalizeVolume(input.bgmVolume, DEFAULT_AUDIO_SETTINGS.bgmVolume),
     bgmGameVolume: normalizeVolume(input.bgmGameVolume, DEFAULT_AUDIO_SETTINGS.bgmGameVolume),
     bgmRiichiVolume: normalizeVolume(input.bgmRiichiVolume, DEFAULT_AUDIO_SETTINGS.bgmRiichiVolume),
     sfxVolume: normalizeVolume(input.sfxVolume, DEFAULT_AUDIO_SETTINGS.sfxVolume),
     voiceVolume: normalizeVolume(input.voiceVolume, DEFAULT_AUDIO_SETTINGS.voiceVolume),
     selectedVoicePackId: normalizeVoicePackId(input.selectedVoicePackId),
+    voicePackBySeat: normalizeVoiceSeatAssignments(input.voicePackBySeat),
     bgmEnabled: normalizeBoolean(input.bgmEnabled, DEFAULT_AUDIO_SETTINGS.bgmEnabled),
     bgmGameEnabled: normalizeBoolean(input.bgmGameEnabled, DEFAULT_AUDIO_SETTINGS.bgmGameEnabled),
     riichiMusicEnabled: normalizeBoolean(input.riichiMusicEnabled, DEFAULT_AUDIO_SETTINGS.riichiMusicEnabled),
@@ -73,10 +86,12 @@ export function migrateLegacyAudioSettings(legacy: unknown): AudioSettings {
   const input = legacy as Partial<Record<string, unknown>>;
   return normalizeAudioSettings({
     masterVolume: input.masterVolume,
+    masterEnabled: input.masterEnabled,
     bgmVolume: input.bgmVolume,
     sfxVolume: input.sfxVolume,
     voiceVolume: input.voiceVolume,
     selectedVoicePackId: input.selectedVoicePackId,
+    voicePackBySeat: input.voicePackBySeat,
     bgmEnabled: input.bgmEnabled,
     sfxEnabled: input.sfxEnabled,
     voiceEnabled: input.voiceEnabled,

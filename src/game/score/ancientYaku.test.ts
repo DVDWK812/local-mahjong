@@ -204,6 +204,7 @@ describe('ancient yaku whitelist', () => {
       expect.objectContaining({ name: '字一色', yakumanValue: 1 }),
     ]));
     expect(score.yakumanValue).toBe(3);
+    expect(score.yakumanMultiplier).toBe(3);
     expectNotHas([27, 27, 28, 28, 29, 29, 30, 30, 31, 31, 32, 32, 0, 0], 0, '大七星');
   });
 

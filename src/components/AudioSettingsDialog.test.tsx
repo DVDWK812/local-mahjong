@@ -97,13 +97,14 @@ function renderDialog(overrides: Partial<Parameters<typeof AudioSettingsDialog>[
       onPreviousTrack={() => undefined}
       onNextTrack={() => undefined}
       onManageVoicePack={() => undefined}
+      onCreateVoicePack={() => undefined}
       {...overrides}
     />,
   );
 }
 
 describe('AudioSettingsDialog', () => {
-  it('显示 6 个 slider、5 个独立开关与 5 个区域', () => {
+  it('显示紧凑总音量行、6 个 slider、6 个独立开关与 5 个区域', () => {
     const html = renderDialog();
     expect(html).toContain('role="dialog"');
     expect(html).toContain('音频设置');
@@ -112,13 +113,21 @@ describe('AudioSettingsDialog', () => {
     for (const label of ['总音量', '背景音乐音量', '游戏音乐音量', '立直音乐音量', '游戏音效音量', '语音音量']) {
       expect(html).toContain(`aria-label="${label}"`);
     }
-    for (const label of ['背景音乐开关', '游戏音乐开关', '立直音乐开关', '游戏音效开关', '语音开关']) {
+    for (const label of ['总音量开关', '背景音乐开关', '游戏音乐开关', '立直音乐开关', '游戏音效开关', '语音开关']) {
       expect(html).toContain(`aria-label="${label}"`);
     }
     for (const title of ['背景音乐', '游戏音乐', '立直音乐', '游戏音效', '语音']) {
       expect(html).toContain(`>${title}</legend>`);
     }
     expect(html).toContain('修改即时生效');
+    expect(html).toContain('audio-volume--master');
+  });
+
+  it('关闭总音量时仍保留滑条百分比，不会在重新开启时恢复为默认 80%', () => {
+    const html = renderDialog({ settings: { ...DEFAULT_AUDIO_SETTINGS, masterVolume: 0.23, masterEnabled: false } });
+    expect(html).toContain('aria-label="总音量开关"');
+    expect(html).toContain('value="23"');
+    expect(html).toContain('>23%</output>');
   });
 
   it('曲目列表提供试听、拖动排序与删除按钮，空分类显示暂无音乐', () => {
@@ -289,6 +298,16 @@ describe('AudioSettingsDialog', () => {
     expect(html).toContain('角色语音');
     expect(html).toContain('校长');
     expect(html).toContain('aria-label="管理 校长 语音"');
+    expect(html).toContain('＋ 创建新角色');
+  });
+
+  it('牌桌角色语音根据当前模式显示对应数量的座位选择器', () => {
+    const html = renderDialog({ voicePlayerCount: 3 });
+    expect(html).toContain('牌桌角色语音');
+    expect(html).toContain('aria-label="玩家 1 语音"');
+    expect(html).toContain('aria-label="玩家 2 语音"');
+    expect(html).toContain('aria-label="玩家 3 语音"');
+    expect(html).not.toContain('aria-label="玩家 4 语音"');
   });
 
   it('文件选择器只接受 MP3 / WAV', () => {

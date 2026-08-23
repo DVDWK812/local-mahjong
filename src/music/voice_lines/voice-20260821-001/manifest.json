@@ -1,0 +1,348 @@
+{
+  "character": "voice-20260821-001",
+  "voiceId": "6ea69a95-793f-4c10-811f-f1b9ecb8866d",
+  "voices": {
+    "action.riichi": {
+      "file": "audio/action_riichi.mp3"
+    },
+    "action.double_riichi": {
+      "file": "audio/action_double_riichi.mp3"
+    },
+    "action.ron": {
+      "file": "audio/action_ron.mp3"
+    },
+    "action.tsumo": {
+      "file": "audio/action_tsumo.mp3"
+    },
+    "flavor.win": {
+      "file": "audio/flavor_win.mp3"
+    },
+    "action.chi": {
+      "file": "audio/action_chi.mp3"
+    },
+    "action.pon": {
+      "file": "audio/action_pon.mp3"
+    },
+    "action.kan": {
+      "file": "audio/action_kan.mp3"
+    },
+    "action.ankan": {
+      "file": "audio/action_ankan.mp3"
+    },
+    "action.kakan": {
+      "file": "audio/action_kakan.mp3"
+    },
+    "action.nuki": {
+      "file": "audio/action_nuki.mp3"
+    },
+    "game.start": {
+      "file": "audio/game_start.mp3"
+    },
+    "game.end": {
+      "file": "audio/game_end.mp3"
+    },
+    "result.second_place": {
+      "file": "audio/result_second_place.mp3"
+    },
+    "result.third_place": {
+      "file": "audio/result_third_place.mp3"
+    },
+    "result.fourth_place": {
+      "file": "audio/result_fourth_place.mp3"
+    },
+    "game.draw": {
+      "file": "audio/game_draw.mp3"
+    },
+    "game.four_winds_abortive_draw": {
+      "file": "audio/game_four_winds_abortive_draw.mp3"
+    },
+    "game.four_kans_abortive_draw": {
+      "file": "audio/game_four_kans_abortive_draw.mp3"
+    },
+    "game.four_riichi_abortive_draw": {
+      "file": "audio/game_four_riichi_abortive_draw.mp3"
+    },
+    "game.nine_terminals_and_honors_abortive_draw": {
+      "file": "audio/game_nine_terminals_and_honors_abortive_draw.mp3"
+    },
+    "game.nagashi_mangan": {
+      "file": "audio/game_nagashi_mangan.mp3"
+    },
+    "score.mangan": {
+      "file": "audio/score_mangan.mp3"
+    },
+    "score.haneman": {
+      "file": "audio/score_haneman.mp3"
+    },
+    "score.baiman": {
+      "file": "audio/score_baiman.mp3"
+    },
+    "score.sanbaiman": {
+      "file": "audio/score_sanbaiman.mp3"
+    },
+    "score.counted_yakuman": {
+      "file": "audio/score_counted_yakuman.mp3"
+    },
+    "score.yakuman": {
+      "file": "audio/score_yakuman.mp3"
+    },
+    "score.double_yakuman": {
+      "file": "audio/score_double_yakuman.mp3"
+    },
+    "yaku.triple_yakuman": {
+      "file": "audio/yaku_triple_yakuman.mp3"
+    },
+    "yaku.quadruple_yakuman": {
+      "file": "audio/yaku_quadruple_yakuman.mp3"
+    },
+    "yaku.quintuple_yakuman": {
+      "file": "audio/yaku_quintuple_yakuman.mp3"
+    },
+    "yaku.sextuple_yakuman": {
+      "file": "audio/yaku_sextuple_yakuman.mp3"
+    },
+    "yaku.riichi": {
+      "file": "audio/yaku_riichi.mp3"
+    },
+    "yaku.ippatsu": {
+      "file": "audio/yaku_ippatsu.mp3"
+    },
+    "yaku.chankan": {
+      "file": "audio/yaku_chankan.mp3"
+    },
+    "yaku.rinshan_kaihou": {
+      "file": "audio/yaku_rinshan_kaihou.mp3"
+    },
+    "yaku.haitei": {
+      "file": "audio/yaku_haitei.mp3"
+    },
+    "yaku.houtei": {
+      "file": "audio/yaku_houtei.mp3"
+    },
+    "yaku.ton": {
+      "file": "audio/yaku_ton.mp3"
+    },
+    "yaku.shaa": {
+      "file": "audio/yaku_shaa.mp3"
+    },
+    "yaku.nan": {
+      "file": "audio/yaku_nan.mp3"
+    },
+    "yaku.pei": {
+      "file": "audio/yaku_pei.mp3"
+    },
+    "yaku.haku": {
+      "file": "audio/yaku_haku.mp3"
+    },
+    "yaku.hatsu": {
+      "file": "audio/yaku_hatsu.mp3"
+    },
+    "yaku.chun": {
+      "file": "audio/yaku_chun.mp3"
+    },
+    "yaku.pinfu": {
+      "file": "audio/yaku_pinfu.mp3"
+    },
+    "yaku.tanyao": {
+      "file": "audio/yaku_tanyao.mp3"
+    },
+    "yaku.iipeikou": {
+      "file": "audio/yaku_iipeikou.mp3"
+    },
+    "yaku.chanta": {
+      "file": "audio/yaku_chanta.mp3"
+    },
+    "yaku.honroutou": {
+      "file": "audio/yaku_honroutou.mp3"
+    },
+    "yaku.toitoi": {
+      "file": "audio/yaku_toitoi.mp3"
+    },
+    "yaku.sanankou": {
+      "file": "audio/yaku_sanankou.mp3"
+    },
+    "yaku.sanshoku": {
+      "file": "audio/yaku_sanshoku.mp3"
+    },
+    "yaku.ittsu": {
+      "file": "audio/yaku_ittsu.mp3"
+    },
+    "yaku.sankantsu": {
+      "file": "audio/yaku_sankantsu.mp3"
+    },
+    "yaku.honroutou_variant": {
+      "file": "audio/yaku_honroutou_variant.mp3"
+    },
+    "yaku.sanshoku_doukou": {
+      "file": "audio/yaku_sanshoku_doukou.mp3"
+    },
+    "yaku.junchan": {
+      "file": "audio/yaku_junchan.mp3"
+    },
+    "yaku.chinitsu": {
+      "file": "audio/yaku_chinitsu.mp3"
+    },
+    "yaku.honitsu": {
+      "file": "audio/yaku_honitsu.mp3"
+    },
+    "yaku.chiitoitsu": {
+      "file": "audio/yaku_chiitoitsu.mp3"
+    },
+    "yaku.chinroutou": {
+      "file": "audio/yaku_chinroutou.mp3"
+    },
+    "yaku.shousangen": {
+      "file": "audio/yaku_shousangen.mp3"
+    },
+    "yaku.honroutou_duplicate": {
+      "file": "audio/yaku_honroutou_duplicate.mp3"
+    },
+    "yaku.ryanpeikou": {
+      "file": "audio/yaku_ryanpeikou.mp3"
+    },
+    "yakuman.kokushi": {
+      "file": "audio/yakuman_kokushi.mp3"
+    },
+    "yakuman.suuankou": {
+      "file": "audio/yakuman_suuankou.mp3"
+    },
+    "yakuman.daisangen": {
+      "file": "audio/yakuman_daisangen.mp3"
+    },
+    "yakuman.shousuushi": {
+      "file": "audio/yakuman_shousuushi.mp3"
+    },
+    "yakuman.daisuushi": {
+      "file": "audio/yakuman_daisuushi.mp3"
+    },
+    "yakuman.tsuuiisou": {
+      "file": "audio/yakuman_tsuuiisou.mp3"
+    },
+    "yakuman.chinroutou": {
+      "file": "audio/yakuman_chinroutou.mp3"
+    },
+    "yakuman.ryuuiisou": {
+      "file": "audio/yakuman_ryuuiisou.mp3"
+    },
+    "yakuman.chuuren": {
+      "file": "audio/yakuman_chuuren.mp3"
+    },
+    "yakuman.suuankou_tanki": {
+      "file": "audio/yakuman_suuankou_tanki.mp3"
+    },
+    "yaku.tenhou": {
+      "file": "audio/yaku_tenhou.mp3"
+    },
+    "yaku.chiihou": {
+      "file": "audio/yaku_chiihou.mp3"
+    },
+    "yaku.kokushi_13_wait": {
+      "file": "audio/yaku_kokushi_13_wait.mp3"
+    },
+    "yaku.suukantsu": {
+      "file": "audio/yaku_suukantsu.mp3"
+    },
+    "yaku.junsei_chuuren": {
+      "file": "audio/yaku_junsei_chuuren.mp3"
+    },
+    "yaku.dora": {
+      "file": "audio/yaku_dora.mp3"
+    },
+    "yaku.dora_2": {
+      "file": "audio/yaku_dora_2.mp3"
+    },
+    "yaku.dora_3": {
+      "file": "audio/yaku_dora_3.mp3"
+    },
+    "yaku.dora_4": {
+      "file": "audio/yaku_dora_4.mp3"
+    },
+    "yaku.dora_5": {
+      "file": "audio/yaku_dora_5.mp3"
+    },
+    "yaku.dora_6": {
+      "file": "audio/yaku_dora_6.mp3"
+    },
+    "yaku.dora_7": {
+      "file": "audio/yaku_dora_7.mp3"
+    },
+    "yaku.dora_8": {
+      "file": "audio/yaku_dora_8.mp3"
+    },
+    "yaku.dora_9": {
+      "file": "audio/yaku_dora_9.mp3"
+    },
+    "yaku.dora_10": {
+      "file": "audio/yaku_dora_10.mp3"
+    },
+    "yaku.dora_11": {
+      "file": "audio/yaku_dora_11.mp3"
+    },
+    "yaku.dora_12": {
+      "file": "audio/yaku_dora_12.mp3"
+    },
+    "yaku.dora_13": {
+      "file": "audio/yaku_dora_13.mp3"
+    },
+    "yaku.dora_many": {
+      "file": "audio/yaku_dora_many.mp3"
+    },
+    "flavor.lose": {
+      "file": "audio/flavor_lose.mp3"
+    },
+    "flavor.close_game": {
+      "file": "audio/flavor_close_game.mp3"
+    },
+    "yaku.tenpai": {
+      "file": "audio/yaku_tenpai.mp3"
+    },
+    "yaku.noten": {
+      "file": "audio/yaku_noten.mp3"
+    },
+    "yaku.tsubamegaeshi": {
+      "file": "audio/yaku_tsubamegaeshi.mp3"
+    },
+    "yaku.kanfuri": {
+      "file": "audio/yaku_kanfuri.mp3"
+    },
+    "yaku.shiisanpuutaa": {
+      "file": "audio/yaku_shiisanpuutaa.mp3"
+    },
+    "yaku.go_men_zei": {
+      "file": "audio/yaku_go_men_zei.mp3"
+    },
+    "yaku.sanrenkou": {
+      "file": "audio/yaku_sanrenkou.mp3"
+    },
+    "yaku.isshoku_sanjun": {
+      "file": "audio/yaku_isshoku_sanjun.mp3"
+    },
+    "yaku.one_pin_moon": {
+      "file": "audio/yaku_one_pin_moon.mp3"
+    },
+    "yaku.nine_pin_fish": {
+      "file": "audio/yaku_nine_pin_fish.mp3"
+    },
+    "yaku.renhou": {
+      "file": "audio/yaku_renhou.mp3"
+    },
+    "yaku.daisharin": {
+      "file": "audio/yaku_daisharin.mp3"
+    },
+    "yaku.daichikurin": {
+      "file": "audio/yaku_daichikurin.mp3"
+    },
+    "yaku.daisuulin": {
+      "file": "audio/yaku_daisuulin.mp3"
+    },
+    "yaku.suurenkou": {
+      "file": "audio/yaku_suurenkou.mp3"
+    },
+    "yaku.ishigami_sannen": {
+      "file": "audio/yaku_ishigami_sannen.mp3"
+    },
+    "yaku.daichisei": {
+      "file": "audio/yaku_daichisei.mp3"
+    }
+  }
+}

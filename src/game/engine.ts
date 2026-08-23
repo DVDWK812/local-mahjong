@@ -224,6 +224,8 @@ export function discardTile(state: GameState, playerId: PlayerId, tileInstanceId
 }
 
 function openChiWindowOrContinue(state: GameState, discarder: PlayerId, discarded: Tile): GameState {
+  const immediateAbortive = checkAbortiveDrawAfterDiscard(state, discarder, discarded);
+  if (immediateAbortive?.reason === 'suukan-sanra') return settleRound(state, immediateAbortive);
   const chiOptions = getChiOptions(state, discarder, discarded);
   if (chiOptions.length > 0) {
     return {
@@ -242,6 +244,10 @@ function openChiWindowOrContinue(state: GameState, discarder: PlayerId, discarde
 }
 
 function openCallWindowOrContinue(state: GameState, discarder: PlayerId, discarded: Tile): GameState {
+  // Four-kan abort is authoritative immediately after the declaring player's discard.
+  // Do not expose a call window where another player could create an illegal fifth kan.
+  const immediateAbortive = checkAbortiveDrawAfterDiscard(state, discarder, discarded);
+  if (immediateAbortive?.reason === 'suukan-sanra') return settleRound(state, immediateAbortive);
   const options = [
     ...getMinkanOptions(state, discarder, discarded),
     ...getPonOptions(state, discarder, discarded),

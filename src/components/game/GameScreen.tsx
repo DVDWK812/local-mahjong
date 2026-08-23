@@ -5,6 +5,8 @@ import type { GameState, PlayerId, RiichiState, TileId } from '../../game/types'
 import type { PlayerProfile } from '../../profile/playerProfile';
 import { DiscardSourceSnapshotStore } from '../../presentation/handAnimation/DiscardSourceSnapshot';
 import { ResultDialog } from '../ResultDialog';
+import type { WinResultPresentationController } from '../../audio/voice/WinResultPresentationController';
+import type { SettlementPresentationCoordinator } from '../../audio/voice/SettlementPresentationCoordinator';
 import { TenpaiWaitPanel } from '../TenpaiWaitPanel';
 import { AnalysisDrawer } from './AnalysisDrawer';
 import { GameTopBar } from './GameTopBar';
@@ -40,6 +42,8 @@ interface GameScreenProps {
   tableBottomPlayerId?: PlayerId;
   revealAllHands?: boolean;
   playerProfile?: PlayerProfile;
+  winPresentationController?: WinResultPresentationController;
+  settlementPresentationCoordinator?: SettlementPresentationCoordinator;
 }
 
 export function GameScreen({
@@ -70,6 +74,8 @@ export function GameScreen({
   tableBottomPlayerId = localPlayerId,
   revealAllHands = false,
   playerProfile,
+  winPresentationController,
+  settlementPresentationCoordinator,
 }: GameScreenProps) {
   const [handPreviewDiscardInstanceId, setHandPreviewDiscardInstanceId] = useState<string | null>(null);
   const discardSourceSnapshotsRef = useRef<DiscardSourceSnapshotStore | null>(null);
@@ -88,6 +94,20 @@ export function GameScreen({
         tenpaiPreviewDiscardInstanceId ? tenpaiPreviewRiichiKind ?? undefined : undefined,
       )
     : null;
+
+  useEffect(() => {
+    if (!gameState.result) {
+      winPresentationController?.reset();
+      settlementPresentationCoordinator?.reset();
+      return;
+    }
+    settlementPresentationCoordinator?.begin({
+      id: `${gameState.turn}:${gameState.result.type}:${gameState.result.pointDeltas.join(',')}:${gameState.result.type === 'ron' || gameState.result.type === 'tsumo' ? gameState.result.winners.map((winner) => winner.winner).join(',') : ''}`,
+      result: gameState.result,
+      playerIds: gameState.players.map((player) => player.id),
+      scoreAfter: gameState.players.map((player) => player.score),
+    });
+  }, [gameState.result, gameState.turn, gameState.players, settlementPresentationCoordinator, winPresentationController]);
 
   useEffect(() => {
     setHandPreviewDiscardInstanceId(null);
@@ -148,7 +168,7 @@ export function GameScreen({
       ) : null}
       {tenpaiDisplay ? <div className="game-tenpai-layer"><TenpaiWaitPanel display={tenpaiDisplay} /></div> : null}
       <AnalysisDrawer open={analysisOpen} gameState={gameState} onClose={onCloseAnalysis} />
-      <ResultDialog gameState={gameState} onReset={onReset} doraGlowEnabled={doraGlowEnabled} />
+      <ResultDialog gameState={gameState} onReset={onReset} doraGlowEnabled={doraGlowEnabled} winPresentationController={winPresentationController} settlementPresentationCoordinator={settlementPresentationCoordinator} />
     </main>
   );
 }

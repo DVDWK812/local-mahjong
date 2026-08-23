@@ -31,11 +31,20 @@ describe('AudioSettings storage', () => {
     expect(storage.getItem(AUDIO_SETTINGS_STORAGE_KEY)).toContain(`"version":${AUDIO_SETTINGS_STORAGE_VERSION}`);
   });
 
-  it('保存后可恢复已选择的角色语音 Pack', () => {
+  it('保存后可恢复默认角色与四个座位的角色语音配置', () => {
     const storage = memoryStorage();
-    const settings = { ...DEFAULT_AUDIO_SETTINGS, selectedVoicePackId: 'xiaozhang' };
+    const settings = { ...DEFAULT_AUDIO_SETTINGS, selectedVoicePackId: 'xiaozhang', voicePackBySeat: ['xiaozhang', 'mambo', 'robot', 'master'] as const };
     saveAudioSettings(settings, storage);
-    expect(loadAudioSettings(storage).selectedVoicePackId).toBe('xiaozhang');
+    expect(loadAudioSettings(storage)).toMatchObject({ selectedVoicePackId: 'xiaozhang', voicePackBySeat: ['xiaozhang', 'mambo', 'robot', 'master'] });
+  });
+
+  it('总音量开关独立保存，关闭或重新开启都不改写滑条位置', () => {
+    const storage = memoryStorage();
+    const muted = { ...DEFAULT_AUDIO_SETTINGS, masterVolume: 0.23, masterEnabled: false };
+    saveAudioSettings(muted, storage);
+    expect(loadAudioSettings(storage)).toMatchObject({ masterVolume: 0.23, masterEnabled: false });
+    saveAudioSettings({ ...muted, masterEnabled: true }, storage);
+    expect(loadAudioSettings(storage)).toMatchObject({ masterVolume: 0.23, masterEnabled: true });
   });
 
   it('损坏 JSON、空值、数组和未知版本安全回退', () => {

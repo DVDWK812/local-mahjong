@@ -172,7 +172,7 @@ describe('fuCalculator - kan fu', () => {
 
 describe('fuCalculator - special hands', () => {
   it('returns fixed 25 fu for seven pairs', () => {
-    const result = calculateFuDetails(ctx({ melds: [], pair: null, yakuList: [{ name: '七对子', category: 'normal', han: 2, openAllowed: false }] }));
+    const result = calculateFuDetails(ctx({ melds: [], pair: null, yakuList: [{ id: 'chiitoitsu', name: '七对子', category: 'normal', han: 2, openAllowed: false }] }));
     expect(result.fixedReason).toBe('seven-pairs');
     expect(result.total).toBe(25);
   });
@@ -228,8 +228,8 @@ describe('fuCalculator - integrated examples', () => {
       waitType: 'shanpon',
       melds: [meld('triplet', 0, true), meld('triplet', 1, true), meld('triplet', 8, true), meld('triplet', 27, true)],
       yakuList: [
-        { name: '混一色', category: 'normal', han: 2, openAllowed: true },
-        { name: '对对和', category: 'normal', han: 2, openAllowed: true },
+        { id: 'honitsu', name: '混一色', category: 'normal', han: 2, openAllowed: true },
+        { id: 'toitoi', name: '对对和', category: 'normal', han: 2, openAllowed: true },
       ],
     }));
     expect(result.totalBeforeRounding).toBe(36);

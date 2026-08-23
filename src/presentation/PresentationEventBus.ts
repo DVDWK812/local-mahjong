@@ -1,4 +1,6 @@
-import type { PlayerId, TileId } from '../game/types';
+import type { AbortiveDrawReason, PlayerId, TileId } from '../game/types';
+import type { LimitTier } from '../game/score/pointCalculator';
+import type { YakuhaiSource, YakuId } from '../game/score/yaku/types';
 
 export interface PresentationTile {
   readonly id: TileId;
@@ -28,6 +30,8 @@ export interface RiichiDeclaredPresentationEvent {
   readonly type: 'riichi_declared';
   readonly playerId: PlayerId;
   readonly riverIndex: number;
+  /** Optional for compatibility with older presentation payloads; live observer always supplies it. */
+  readonly kind?: 'riichi' | 'double-riichi';
 }
 
 export interface MeldDeclaredPresentationEvent {
@@ -36,9 +40,64 @@ export interface MeldDeclaredPresentationEvent {
   readonly type: 'meld_declared';
   readonly playerId: PlayerId;
   readonly meldType: 'chi' | 'pon' | 'kan';
+  /** Present only for a confirmed kan; retained from the authoritative CallSet. */
+  readonly kanType?: 'minkan' | 'ankan' | 'kakan';
 }
 
-export type PresentationEvent = TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent;
+export interface WinDeclaredPresentationEvent {
+  readonly eventId: string;
+  readonly sequence: number;
+  readonly type: 'win_declared';
+  readonly playerId: PlayerId;
+  readonly winType: 'ron' | 'tsumo';
+}
+
+/** Structured scoring semantics; names intentionally remain outside this event contract. */
+export interface ScoredYakuPresentationEntry {
+  readonly id: YakuId;
+  readonly sourceTile?: YakuhaiSource;
+  /** Actual awarded han for this winning result. */
+  readonly han: number;
+  readonly yakuman: boolean;
+}
+
+export interface WinScoredPresentationEvent {
+  readonly eventId: string;
+  readonly sequence: number;
+  readonly type: 'win_scored';
+  readonly winnerId: PlayerId;
+  readonly winType: 'ron' | 'tsumo';
+  readonly yakuIds: readonly YakuId[];
+  readonly yaku: readonly ScoredYakuPresentationEntry[];
+  readonly limitTier: LimitTier;
+  readonly yakumanMultiplier: number;
+  readonly totalDora: number;
+}
+
+export type VoiceAbortiveDrawReason = Extract<
+  AbortiveDrawReason,
+  'suufon-renda' | 'suukan-sanra' | 'suucha-riichi' | 'kyuushu-kyuuhai'
+>;
+
+interface RoundSettledPresentationEventBase {
+  readonly eventId: string;
+  readonly sequence: number;
+  readonly type: 'round_settled';
+}
+
+/** A completed round outcome that is eligible for the current voice catalogue. */
+export type RoundSettledPresentationEvent =
+  | (RoundSettledPresentationEventBase & {
+      readonly settlementType: 'exhaustive-draw';
+    })
+  | (RoundSettledPresentationEventBase & {
+      readonly settlementType: 'abortive-draw';
+      readonly reason: VoiceAbortiveDrawReason;
+  /** The player who declared or triggered an abortive draw; absent for exhaustive draws. */
+      readonly triggeringPlayerId?: PlayerId;
+    });
+
+export type PresentationEvent = TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | WinDeclaredPresentationEvent | WinScoredPresentationEvent | RoundSettledPresentationEvent;
 type WithoutPresentationMetadata<T> = T extends PresentationEvent ? Omit<T, 'eventId' | 'sequence'> : never;
 export type PresentationEventInput = WithoutPresentationMetadata<PresentationEvent>;
 export type PresentationEventListener = (event: PresentationEvent) => void;

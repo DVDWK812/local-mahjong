@@ -44,15 +44,23 @@ describe('pointCalculator - limit and non-limit hands', () => {
   });
 
   it('treats kazoe yakuman according to RuleConfig', () => {
-    expect(calculatePoints(13, 30, ctx()).ron).toBe(32000);
-    expect(calculatePoints(13, 30, ctx({ ruleConfig: { kazoeYakumanMode: 'sanbaiman' } })).ron).toBe(24000);
-    expect(calculatePoints(13, 30, ctx({ ruleConfig: { kazoeYakumanMode: 'disabled' } })).ron).toBe(24000);
+    expect(calculatePoints(13, 30, ctx())).toMatchObject({ ron: 32000, limitTier: 'counted-yakuman' });
+    expect(calculatePoints(13, 30, ctx({ ruleConfig: { kazoeYakumanMode: 'sanbaiman' } }))).toMatchObject({ ron: 24000, limitTier: 'sanbaiman' });
+    expect(calculatePoints(13, 30, ctx({ ruleConfig: { kazoeYakumanMode: 'disabled' } }))).toMatchObject({ ron: 24000, limitTier: 'sanbaiman' });
   });
 
   it('scores normal, double, and multiple yakuman', () => {
-    expect(calculatePoints(0, 0, ctx(), 1).ron).toBe(32000);
-    expect(calculatePoints(0, 0, ctx(), 2).ron).toBe(64000);
-    expect(calculatePoints(0, 0, ctx(), 3).ron).toBe(96000);
+    expect(calculatePoints(0, 0, ctx(), 1)).toMatchObject({ ron: 32000, limitTier: 'yakuman' });
+    expect(calculatePoints(0, 0, ctx(), 2)).toMatchObject({ ron: 64000, limitTier: 'yakuman' });
+    expect(calculatePoints(0, 0, ctx(), 3)).toMatchObject({ ron: 96000, limitTier: 'yakuman' });
+  });
+
+  it('exposes a stable limit tier without changing the payment rules', () => {
+    expect(calculatePoints(4, 40, ctx()).limitTier).toBe('mangan');
+    expect(calculatePoints(6, 30, ctx()).limitTier).toBe('haneman');
+    expect(calculatePoints(8, 30, ctx()).limitTier).toBe('baiman');
+    expect(calculatePoints(11, 30, ctx()).limitTier).toBe('sanbaiman');
+    expect(calculatePoints(4, 30, ctx({ ruleConfig: { kiriageMangan: true } })).limitTier).toBe('mangan');
   });
 
   it('does not use fu for 5 han and above', () => {

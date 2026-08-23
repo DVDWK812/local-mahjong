@@ -35,6 +35,13 @@ describe('VoicePackRepository', () => {
     expect(repository.getAudioForKey('xiaozhang', 'unknown.key')).toBeUndefined();
   });
 
+  it('accepts empty tts_text as the canonical default-pronunciation fallback', () => {
+    const repository = new VoicePackRepository(sources({
+      voiceLines: { [`${root}/voice_lines.json`]: [{ ...lines[0], tts_text: '' }] },
+    }));
+    expect(repository.getVoiceLine('xiaozhang', 'action.riichi')).toMatchObject({ line: '立直', tts_text: '' });
+  });
+
   it('keeps the first valid Pack and reports duplicate pack IDs', () => {
     const repository = new VoicePackRepository(sources({ index: { schemaVersion: 1, packs: [summary, { ...summary, path: 'duplicate' }] } }));
     expect(repository.listPacks()).toHaveLength(1);

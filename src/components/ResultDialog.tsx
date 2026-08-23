@@ -1,5 +1,9 @@
+import { useCallback, useSyncExternalStore } from 'react';
 import type React from 'react';
 import type { AbortiveDrawReason, GameState, PlayerId, ResultYaku, Tile as TileModel, WinResultEntry, WinRoundResult } from '../game/types';
+import type { WinResultPresentationController, WinResultPresentationState } from '../audio/voice/WinResultPresentationController';
+import type { SettlementPresentationCoordinator, SettlementPresentationState } from '../audio/voice/SettlementPresentationCoordinator';
+import type { WinPresentationItem } from '../audio/voice/winVoiceSequence';
 import type { SeventeenStepsWaitAnalysis } from '../game/seventeenSteps';
 import { tileLabel, windLabel } from '../game/tileUtils';
 import { PlayerMelds } from './PlayerMelds';
@@ -20,6 +24,9 @@ interface ResultDialogProps {
   visiblePlayerIds?: PlayerId[];
   scoreBefore?: number[];
   scoreAfter?: number[];
+  /** Standard-game only: streams existing win presentation items before full settlement detail. */
+  winPresentationController?: WinResultPresentationController;
+  settlementPresentationCoordinator?: SettlementPresentationCoordinator;
 }
 
 interface ResultShellProps {
@@ -194,17 +201,24 @@ function formatPoints(points: number): string {
 }
 
 function limitLabel(win: WinResultEntry): string | null {
-  const yakumanValue = win.yaku
-    .filter((yaku) => yaku.yakuman)
-    .reduce((sum, yaku) => sum + Math.max(1, yaku.han), 0);
-  if (yakumanValue > 0) return yakumanValue > 1 ? `${yakumanValue}倍役满` : '役满';
+  // Batch 3 already computed these semantic fields. The UI must never infer a
+  // limit from han/fu, points, translated names, or the number of yaku.
+  if ((win.yakumanMultiplier ?? 0) > 0) {
+    return win.yakumanMultiplier === 1 ? '役满' : `${win.yakumanMultiplier}倍役满`;
+  }
+  const labels = {
+    mangan: '满贯', haneman: '跳满', baiman: '倍满', sanbaiman: '三倍满', 'counted-yakuman': '累计役满',
+  } as const;
+  if (win.limitTier !== undefined) {
+    return win.limitTier !== 'none' && win.limitTier !== 'yakuman' ? labels[win.limitTier] : null;
+  }
+  // Compatibility for legacy saved/replay results created before Batch 3 added
+  // semantic limit fields. Live engine results always take the branch above.
   if (win.han >= 13) return '役满';
   if (win.han >= 11) return '三倍满';
   if (win.han >= 8) return '倍满';
   if (win.han >= 6) return '跳满';
-  if (win.han >= 5) return '满贯';
-  if (win.han === 4 && win.fu >= 40) return '满贯';
-  if (win.han === 3 && win.fu >= 70) return '满贯';
+  if (win.han >= 5 || (win.han === 4 && win.fu >= 40) || (win.han === 3 && win.fu >= 70)) return '满贯';
   return null;
 }
 
@@ -251,14 +265,102 @@ function winDisplayDeltas(gameState: GameState, result: WinRoundResult): number[
   ));
 }
 
-export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showDoraIndicators = true, revealExhaustiveDrawPlayerIds = [], seventeenStepsDrawAnalysis, seventeenStepsKazoeYakumanMode, continueLabel = '继续', displayPointDeltas, resultRiichiSticks = gameState.riichiSticks, visiblePlayerIds, scoreBefore, scoreAfter }: ResultDialogProps) {
+const EMPTY_WIN_PRESENTATION: WinResultPresentationState = { sequences: [], activeSequenceId: null };
+
+function useWinPresentation(controller: WinResultPresentationController | undefined): WinResultPresentationState {
+  const subscribe = useCallback((listener: () => void) => (
+    controller ? controller.subscribe(listener) : () => undefined
+  ), [controller]);
+  const getSnapshot = useCallback(() => controller?.getSnapshot() ?? EMPTY_WIN_PRESENTATION, [controller]);
+  return useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getSnapshot,
+  );
+}
+
+const EMPTY_SETTLEMENT_PRESENTATION: SettlementPresentationState = { settlementId: null, phase: 'round-result', roundResultComplete: false, visibleSeatCount: 0, playerIds: [], pointRows: [] };
+
+function useSettlementPresentation(controller: SettlementPresentationCoordinator | undefined): SettlementPresentationState {
+  const subscribe = useCallback((listener: () => void) => (
+    controller ? controller.subscribe(listener) : () => undefined
+  ), [controller]);
+  const getSnapshot = useCallback(() => controller?.getSnapshot() ?? EMPTY_SETTLEMENT_PRESENTATION, [controller]);
+  return useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getSnapshot,
+  );
+}
+
+function presentationItemClassName(item: WinPresentationItem): string {
+  switch (item.kind) {
+    case 'win-action':
+    case 'yaku':
+    case 'dora':
+      return 'result-presentation-item';
+    case 'limit':
+      return 'result-presentation-item result-presentation-item--limit';
+    default:
+      return unsupportedPresentationItemKind(item.kind);
+  }
+}
+
+function unsupportedPresentationItemKind(kind: never): never {
+  throw new Error(`Unsupported win presentation item kind: ${String(kind)}`);
+}
+
+function hasStreamedResultDetail(items: readonly WinPresentationItem[]): boolean {
+  return items.some((item) => item.kind === 'yaku' || item.kind === 'dora' || item.kind === 'limit');
+}
+
+function PointSettlement({ gameState, presentation }: {
+  gameState: GameState;
+  presentation: SettlementPresentationState;
+}) {
+  return (
+    <section className="point-settlement" aria-label="点棒结算">
+      <h3>点棒变化</h3>
+      {presentation.pointRows.slice(0, presentation.visibleSeatCount).map((row) => {
+        const { playerId, beforePoints, delta, afterPoints } = row;
+        const deltaLabel = delta > 0 ? `+${formatPoints(delta)}` : delta < 0 ? formatPoints(delta) : '±0';
+        return (
+          <div key={playerId} className="point-settlement-row">
+            <strong>{windLabel(gameState.players[playerId].seatWind)}家 {gameState.players[playerId].name}</strong>
+            <span>{formatPoints(beforePoints)}</span>
+            <span className={delta > 0 ? 'delta-positive' : delta < 0 ? 'delta-negative' : 'delta-neutral'}>{deltaLabel}</span>
+            <span>→</span>
+            <strong>{formatPoints(afterPoints)}</strong>
+          </div>
+        );
+      })}
+    </section>
+  );
+}
+
+export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showDoraIndicators = true, revealExhaustiveDrawPlayerIds = [], seventeenStepsDrawAnalysis, seventeenStepsKazoeYakumanMode, continueLabel = '继续', displayPointDeltas, resultRiichiSticks = gameState.riichiSticks, visiblePlayerIds, scoreBefore, scoreAfter, winPresentationController, settlementPresentationCoordinator }: ResultDialogProps) {
+  const winPresentation = useWinPresentation(winPresentationController);
+  const settlementPresentation = useSettlementPresentation(settlementPresentationCoordinator);
   const result = gameState.result;
   if (!result) return null;
+
+  if (settlementPresentationCoordinator && settlementPresentation.phase === 'point-settlement') {
+    return (
+      <ResultShell title="点棒结算" subtitle="本局点数变化" onReset={onReset} continueLabel={continueLabel}>
+        <PointSettlement
+          gameState={gameState}
+          presentation={settlementPresentation}
+        />
+      </ResultShell>
+    );
+  }
+
+  const continueStage = settlementPresentationCoordinator ? () => settlementPresentationCoordinator.continue() : onReset;
 
   if (result.type === 'exhaustive-draw') {
     const revealedPlayerIds = [...new Set([...result.tenpaiPlayers, ...revealExhaustiveDrawPlayerIds])];
     return (
-      <ResultShell title="荒牌流局" subtitle="听牌罚符结算" onReset={onReset} continueLabel={continueLabel}>
+      <ResultShell title="荒牌流局" subtitle="听牌罚符结算" onReset={continueStage} continueLabel={continueLabel}>
         <div className="result-card">
           <p>听牌：{playerNames(gameState, result.tenpaiPlayers)}</p>
           <p>未听：{playerNames(gameState, result.notenPlayers)}</p>
@@ -270,7 +372,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
           ))}
           {seventeenStepsDrawAnalysis ? <SeventeenStepsDrawAnalysis waits={seventeenStepsDrawAnalysis} kazoeYakumanMode={seventeenStepsKazoeYakumanMode} /> : null}
         </div>
-        <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? result.pointDeltas} visiblePlayerIds={visiblePlayerIds} scoreBefore={scoreBefore} scoreAfter={scoreAfter} />
+        {!settlementPresentationCoordinator ? <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? result.pointDeltas} visiblePlayerIds={visiblePlayerIds} scoreBefore={scoreBefore} scoreAfter={scoreAfter} /> : null}
       </ResultShell>
     );
   }
@@ -281,7 +383,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
       <ResultShell
         title={`特殊流局：${drawReasonLabel(result.reason)}`}
         subtitle={actor !== undefined ? `触发者：${gameState.players[actor].name}` : '本局途中流局'}
-        onReset={onReset}
+        onReset={continueStage}
         continueLabel={continueLabel}
       >
         <div className="result-card">
@@ -290,7 +392,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
           <p>本场增加：{result.honbaIncrement}</p>
           <p>庄家连庄：{result.dealerContinues ? '是' : '否'}</p>
         </div>
-        <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? result.pointDeltas} visiblePlayerIds={visiblePlayerIds} scoreBefore={scoreBefore} scoreAfter={scoreAfter} />
+        {!settlementPresentationCoordinator ? <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? result.pointDeltas} visiblePlayerIds={visiblePlayerIds} scoreBefore={scoreBefore} scoreAfter={scoreAfter} /> : null}
       </ResultShell>
     );
   }
@@ -299,17 +401,20 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
     <ResultShell
       title={result.type === 'tsumo' ? '自摸' : '荣和'}
       subtitle={result.winners.length > 1 ? `${result.winners.length} 人荣和` : '本局结束'}
-      onReset={onReset}
+      onReset={continueStage}
       continueLabel={continueLabel}
     >
       <div className="result-winners">
         {result.winners.map((win) => {
+          const sequence = winPresentation.sequences.find((candidate) => candidate.winnerId === win.winner);
           const winner = gameState.players[win.winner];
           const from = win.from === null ? null : gameState.players[win.from];
           const hasYakuman = win.yaku.some((yaku) => yaku.yakuman);
           const yakuRows = reconciledYakuRows(win);
           const breakdown = winScoreBreakdown(gameState, result, win, resultRiichiSticks);
           const limit = limitLabel(win);
+          const sequenceComplete = winPresentationController ? sequence?.sequenceCompleted === true : true;
+          const shouldShowWaiting = Boolean(sequence && !sequence.sequenceCompleted && !hasStreamedResultDetail(sequence.visibleItems));
           return (
             <article key={`${win.winner}-${win.winType}`} className="result-card">
               <div className="result-card-title">
@@ -318,7 +423,18 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
               </div>
               <WinHandPreview gameState={gameState} winner={winner} win={win} doraGlowEnabled={doraGlowEnabled} showDoraIndicators={showDoraIndicators} />
               <p>和牌：{tileLabel(win.winTile)}</p>
-              <div className="result-yaku-list" aria-label="役种明细">
+              {winPresentationController ? (
+                <div className="result-presentation-list" aria-label="和牌演出">
+                  {sequence?.visibleItems.map((item, index) => (
+                    <div key={`${sequence.sequenceId}-${index}-${item.voiceKey}`} className={presentationItemClassName(item)}>
+                      <span>{item.displayLabel ?? item.voiceKey}</span>
+                      {item.kind === 'yaku' && item.han !== undefined ? <strong>{item.han}番</strong> : null}
+                      {item.kind === 'dora' && item.displayValue !== undefined ? <strong>{item.displayValue}</strong> : null}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              {sequenceComplete ? <div className="result-yaku-list" aria-label="役种明细">
                 {yakuRows.length ? yakuRows.map((yaku, index) => (
                   <div key={`${win.winner}-${yaku.name}-${index}`} className="result-yaku-row">
                     <span>{yaku.name}</span>
@@ -326,7 +442,8 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
                   </div>
                 )) : <p>无役</p>}
               </div>
-              <div className="result-score-summary">
+              : shouldShowWaiting ? <p className="result-presentation-waiting">役种播报中…</p> : null}
+              {sequenceComplete ? <div className="result-score-summary">
                 {limit ? <p className="result-limit-label">{limit}</p> : null}
                 <p>合计：{hasYakuman ? '役满' : `${win.han}番${win.fu}符`}</p>
                 <p>牌型得点：{formatPoints(breakdown.handPoints)}点</p>
@@ -334,12 +451,14 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
                 <p>供托奖励：{resultRiichiSticks}根 × 1000点 = {formatPoints(breakdown.stickBonus)}点</p>
                 {breakdown.paymentNote ? <p>{breakdown.paymentNote}</p> : null}
                 <p>获得总计：{formatPoints(breakdown.total)}点</p>
-              </div>
+              </div> : null}
             </article>
           );
         })}
       </div>
-      <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? winDisplayDeltas(gameState, result)} visiblePlayerIds={visiblePlayerIds} scoreBefore={scoreBefore} scoreAfter={scoreAfter} />
+      {!settlementPresentationCoordinator && (!winPresentationController || result.winners.every((win) => winPresentation.sequences.find((sequence) => sequence.winnerId === win.winner)?.sequenceCompleted === true))
+        ? <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? winDisplayDeltas(gameState, result)} visiblePlayerIds={visiblePlayerIds} scoreBefore={scoreBefore} scoreAfter={scoreAfter} />
+        : null}
     </ResultShell>
   );
 }

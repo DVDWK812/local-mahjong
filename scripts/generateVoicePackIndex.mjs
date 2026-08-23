@@ -54,13 +54,13 @@ async function readJson(filePath) {
   return JSON.parse(await fs.readFile(filePath, 'utf8'));
 }
 
-async function generate() {
-  const entries = await fs.readdir(voiceLinesRoot, { withFileTypes: true });
+export async function generateVoicePackIndex(root = voiceLinesRoot) {
+  const entries = await fs.readdir(root, { withFileTypes: true });
   const packs = [];
   const diagnostics = [];
   const seenIds = new Set();
   for (const entry of entries.filter((candidate) => candidate.isDirectory()).sort((left, right) => left.name.localeCompare(right.name))) {
-    const packDirectory = path.join(voiceLinesRoot, entry.name);
+    const packDirectory = path.join(root, entry.name);
     const packFile = path.join(packDirectory, 'pack.json');
     const manifestFile = path.join(packDirectory, 'manifest.json');
     const csvFile = path.join(packDirectory, 'voice_lines.csv');
@@ -80,9 +80,11 @@ async function generate() {
     }
   }
   const index = { schemaVersion: 1, packs, diagnostics };
-  await fs.writeFile(path.join(voiceLinesRoot, 'voice_packs.json'), `${JSON.stringify(index, null, 2)}\n`, 'utf8');
+  await fs.writeFile(path.join(root, 'voice_packs.json'), `${JSON.stringify(index, null, 2)}\n`, 'utf8');
   console.log(`Generated Voice Pack index: ${packs.length} valid pack(s), ${diagnostics.length} skipped.`);
   for (const entry of diagnostics) console.warn(`Skipped Voice Pack ${entry.path}: ${entry.message}`);
 }
 
-generate().catch((error) => { console.error(error); process.exitCode = 1; });
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  generateVoicePackIndex().catch((error) => { console.error(error); process.exitCode = 1; });
+}

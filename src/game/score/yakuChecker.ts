@@ -6,7 +6,7 @@ import { defaultRuleConfig, type RuleConfig } from './rules/RuleConfig';
 import { ANCIENT_YAKU } from './yaku/ancient';
 import { NORMAL_YAKU } from './yaku/normal';
 import { YAKUMAN_YAKU } from './yaku/yakuman';
-import type { YakuResult } from './yaku/types';
+import type { YakuhaiSource, YakuResult } from './yaku/types';
 import type { ScoringMeld, WaitType, WinningTileSource, WinType } from './scoringTypes';
 
 export interface WinContext {
@@ -272,11 +272,20 @@ function yakuhai(shape: HandShape, context: WinContext): YakuResult[] {
   return shape.melds.filter((meld) => meld.type !== 'sequence').flatMap((meld) => {
     const id = meld.ids[0];
     const yaku: YakuResult[] = [];
-    if (DRAGONS.has(id)) yaku.push(NORMAL_YAKU.yakuhai(`役牌·${dragonName(id)}`));
-    if (id === windToTileId(context.roundWind)) yaku.push(NORMAL_YAKU.yakuhai(`场风·${windName(context.roundWind)}`));
-    if (id === windToTileId(context.seatWind)) yaku.push(NORMAL_YAKU.yakuhai(`自风·${windName(context.seatWind)}`));
+    const sourceTile = yakuhaiSource(id);
+    if (DRAGONS.has(id)) yaku.push(NORMAL_YAKU.yakuhai(`役牌·${dragonName(id)}`, sourceTile));
+    if (id === windToTileId(context.roundWind)) yaku.push(NORMAL_YAKU.yakuhai(`场风·${windName(context.roundWind)}`, sourceTile));
+    if (id === windToTileId(context.seatWind)) yaku.push(NORMAL_YAKU.yakuhai(`自风·${windName(context.seatWind)}`, sourceTile));
     return yaku;
   });
+}
+
+function yakuhaiSource(tileId: TileId): YakuhaiSource | undefined {
+  const sources: Partial<Record<TileId, YakuhaiSource>> = {
+    27: 'east', 28: 'south', 29: 'west', 30: 'north', 31: 'white', 32: 'green', 33: 'red',
+  };
+  const source = sources[tileId];
+  return source;
 }
 
 function dragonName(id: TileId): string {

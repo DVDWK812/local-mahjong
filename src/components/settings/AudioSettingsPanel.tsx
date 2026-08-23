@@ -4,6 +4,8 @@ import type { PlaybackSnapshot } from '../../audio/AudioManager';
 import { supportsFileSystemAccess, type LinkedTrackStatus, type MusicLibraryUi } from '../../audio/musicLibrary';
 import type { GameSfxGroup, MusicCategory, MusicTrackDefinition, MusicTrackId, PlaybackMode } from '../../audio/musicTypes';
 import { VoicePackSettings } from './VoicePackSettings';
+import type { VoicePackSummary } from '../../audio/voice/types';
+import type { VoiceSeatAssignments } from '../../audio/voice/voicePreferences';
 
 interface AudioSettingsPanelProps {
   settings: AudioSettings;
@@ -28,6 +30,9 @@ interface AudioSettingsPanelProps {
   onPreviousTrack: () => void;
   onNextTrack: () => void;
   onManageVoicePack: (packId: string) => void;
+  onCreateVoicePack: () => void;
+  voicePlayerCount: 2 | 3 | 4;
+  onVoicePackDeleted?: (deletedPackId: string, remainingPacks: readonly VoicePackSummary[]) => void;
 }
 
 interface MusicCategoryCardConfig {
@@ -73,6 +78,9 @@ export function AudioSettingsPanel({
   onPreviousTrack,
   onNextTrack,
   onManageVoicePack,
+  onCreateVoicePack,
+  voicePlayerCount,
+  onVoicePackDeleted,
 }: AudioSettingsPanelProps) {
   return (
     <section className="audio-settings" aria-labelledby="audio-settings-panel-title">
@@ -90,10 +98,10 @@ export function AudioSettingsPanel({
       <p className="music-library-hint">
         外部音乐默认引用原文件，不会复制到游戏存储中。移动、删除或失去源文件访问权限后，曲目可能无法播放。需要长期保留时，可选择复制到游戏音乐库。
       </p>
-      <VolumeSlider
-        label="总音量"
+      <MasterVolumeControl
         value={settings.masterVolume}
-        onChange={(value) => onChange({ ...settings, masterVolume: Number(value) / 100 })}
+        enabled={settings.masterEnabled}
+        onChange={(patch) => onChange({ ...settings, ...patch })}
       />
 
       {MANAGED_CATEGORIES.map((config) => (
@@ -153,6 +161,11 @@ export function AudioSettingsPanel({
           selectedVoicePackId={settings.selectedVoicePackId}
           onSelect={(selectedVoicePackId) => onChange({ ...settings, selectedVoicePackId })}
           onManage={onManageVoicePack}
+          onCreate={onCreateVoicePack}
+          voicePackBySeat={settings.voicePackBySeat}
+          playerCount={voicePlayerCount}
+          onSeatAssignmentChange={(seatIndex, packId) => onChange({ ...settings, voicePackBySeat: replaceVoiceSeatAssignment(settings.voicePackBySeat, seatIndex, packId) })}
+          onDeleted={onVoicePackDeleted}
         />
       </fieldset>
     </section>
@@ -672,6 +685,20 @@ function VolumeSlider({ label, value, disabled = false, onChange }: VolumeSlider
       />
     </label>
   );
+}
+
+function replaceVoiceSeatAssignment(assignments: VoiceSeatAssignments, seatIndex: number, packId: string | null): VoiceSeatAssignments {
+  return [
+    seatIndex === 0 ? packId : assignments[0],
+    seatIndex === 1 ? packId : assignments[1],
+    seatIndex === 2 ? packId : assignments[2],
+    seatIndex === 3 ? packId : assignments[3],
+  ];
+}
+
+function MasterVolumeControl({ value, enabled, onChange }: { readonly value: number; readonly enabled: boolean; readonly onChange: (patch: Pick<AudioSettings, 'masterVolume' | 'masterEnabled'>) => void }) {
+  const percent = audioVolumePercent(value);
+  return <div className="audio-volume audio-volume--master"><AudioToggle label="总音量" checked={enabled} onChange={(masterEnabled) => onChange({ masterEnabled, masterVolume: value })} /><input type="range" aria-label="总音量" min="0" max="100" step="1" value={percent} onChange={(event) => onChange({ masterEnabled: enabled, masterVolume: Number(event.target.value) / 100 })} /><output>{percent}%</output></div>;
 }
 
 interface AudioToggleProps {

@@ -3,7 +3,7 @@ import { sevenPairsShanten, thirteenOrphansShanten } from './shanten';
 import { tilesToCounts } from './tileCounts';
 import { calculateFu as calculateFuFromContext, type FuContext, type FuMeld } from './score/fu/fuCalculator';
 import { calculateHan, countDora } from './score/hanCalculator';
-import { calculatePoints as calculatePointResult, type PointResult } from './score/pointCalculator';
+import { calculatePoints as calculatePointResult, type LimitTier, type PointResult } from './score/pointCalculator';
 import { checkYaku, findWinningShape, findWinningShapes, type HandShape, type MeldShape, type WinContext } from './score/yakuChecker';
 import type { ScoringMeld, WaitType } from './score/scoringTypes';
 import { classifyWaitFromTenpaiState } from './score/waitClassifier';
@@ -20,6 +20,9 @@ export interface ScoreResult {
   redDora: number;
   han: number;
   yakumanValue: number;
+  yakumanMultiplier: number;
+  totalDora: number;
+  limitTier: LimitTier;
   fu: number;
   points: PointResult;
   shape: HandShape | null;
@@ -54,6 +57,7 @@ function evaluateShape(hand: Tile[], context: WinContext, concealedShape: HandSh
   const hanResult = calculateHan(yaku, fullHand, scoringContext, dora, uraDora, redDora);
   const fu = calculateFuFromContext(toFuContext(fullHand, scoringContext, fullShape, fixedMelds, waitType, yaku));
 
+  const points = calculatePointResult(hanResult.han, fu, scoringContext, hanResult.yakumanValue);
   return {
     score: {
       isWinning: true,
@@ -63,8 +67,11 @@ function evaluateShape(hand: Tile[], context: WinContext, concealedShape: HandSh
       redDora,
       han: hanResult.han,
       yakumanValue: hanResult.yakumanValue,
+      yakumanMultiplier: hanResult.yakumanValue,
+      totalDora: dora + uraDora + redDora,
+      limitTier: points.limitTier,
       fu,
-      points: calculatePointResult(hanResult.han, fu, scoringContext, hanResult.yakumanValue),
+      points,
       shape: fullShape,
     },
     index,
@@ -182,8 +189,11 @@ function emptyScore(isWinning: boolean): ScoreResult {
     redDora: 0,
     han: 0,
     yakumanValue: 0,
+    yakumanMultiplier: 0,
+    totalDora: 0,
+    limitTier: 'none',
     fu: 0,
-    points: { total: 0 },
+    points: { total: 0, limitTier: 'none' },
     shape: null,
   };
 }

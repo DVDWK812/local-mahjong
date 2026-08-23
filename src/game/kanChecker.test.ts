@@ -95,6 +95,7 @@ describe('kan calls', () => {
 
     expect(rinshanIds).toEqual(['dead-0', 'dead-1', 'dead-2', 'dead-3']);
     expect(new Set(rinshanIds).size).toBe(4);
+    expect(state.pendingAbortiveDrawAfterFourthKan).toBe(false);
     const uraSlots = [5, 7, 9, 11, 13].map((slot) => deadWall[slot].instanceId);
     expect(state.doraIndicators.some((tile) => uraSlots.includes(tile.instanceId))).toBe(false);
   });

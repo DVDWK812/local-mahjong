@@ -92,6 +92,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model-id", help="Override modelId from config.")
     parser.add_argument("--character", help="Manifest character name (defaults to CSV, or the output folder name).")
     parser.add_argument("--limit", type=int, help="Generate at most this many eligible CSV rows.")
+    parser.add_argument("--keys", help="Comma-separated CSV key filter for safe single or selected-line generation.")
     parser.add_argument("--retries", type=int, help="Override retry count for network/429/5xx failures.")
     parser.add_argument("--dry-run", action="store_true", help="Validate CSV and show planned rows without an API request or writes.")
     parser.add_argument(
@@ -100,12 +101,63 @@ def parse_args() -> argparse.Namespace:
         help="Rewrite legacy cache/log/manifest for the Pack layout only when every entry is unchanged; never calls Fish Audio.",
     )
     parser.add_argument("--force", action="store_true", help="Regenerate even when the cache and output file match.")
+    parser.add_argument("--json", action="store_true", help="Append a machine-readable plan/result JSON record to stdout.")
     args = parser.parse_args()
     if args.limit is not None and args.limit < 1:
         parser.error("--limit must be at least 1")
     if args.retries is not None and args.retries < 0:
         parser.error("--retries cannot be negative")
     return args
+
+
+def parse_key_filter(value: str | None) -> list[str]:
+    """Parse an optional comma-separated key selection without accepting empty keys."""
+    if value is None:
+        return []
+    keys = [key.strip() for key in value.split(",")]
+    if not keys or any(not key for key in keys):
+        raise ValueError("--keys must contain one or more comma-separated CSV keys")
+    if len(set(keys)) != len(keys):
+        raise ValueError("--keys must not contain duplicate keys")
+    return keys
+
+
+def configure_json_streams(args: argparse.Namespace) -> None:
+    """Force UTF-8 pipes on Windows so --json is safe for the local Bridge."""
+    if args.json:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+
+
+def cli_log(args: argparse.Namespace, message: str) -> None:
+    """Keep the machine-readable stdout channel pristine when --json is selected."""
+    print(message, file=sys.stderr if args.json else sys.stdout)
+
+
+def json_result(
+    *, success: bool, generated: int = 0, failed: int = 0, skipped: int = 0,
+    items: list[dict[str, Any]] | None = None, error_code: str | None = None,
+    error_message: str | None = None,
+) -> dict[str, Any]:
+    result: dict[str, Any] = {
+        "success": success,
+        "generated": generated,
+        "failed": failed,
+        "skipped": skipped,
+        "items": items or [],
+    }
+    if error_code and error_message:
+        result["error"] = {"code": error_code, "message": error_message}
+    return {"kind": "result", "result": result}
+
+
+def cli_failure(args: argparse.Namespace, code: str, message: str, exit_code: int = 2) -> int:
+    """Return an inspectable, secret-free error response on known --json failure paths."""
+    if args.json:
+        print(json.dumps(json_result(success=False, failed=1, error_code=code, error_message=message), ensure_ascii=False))
+    else:
+        print(f"Error: {message}", file=sys.stderr)
+    return exit_code
 
 
 def resolve_path(path: Path) -> Path:
@@ -447,6 +499,39 @@ def plan_summary(plan: Iterable[GenerationPlanItem], orphaned: Iterable[str]) ->
     return counts
 
 
+def filter_generation_plan(
+    plan: list[GenerationPlanItem], selected_keys: list[str], valid_keys: Iterable[str]
+) -> list[GenerationPlanItem]:
+    """Return only explicitly requested keys after rejecting any key not in this Pack."""
+    if not selected_keys:
+        return plan
+    unknown = sorted(set(selected_keys).difference(valid_keys))
+    if unknown:
+        raise ValueError(f"Unknown CSV key(s): {', '.join(unknown)}")
+    wanted = set(selected_keys)
+    return [item for item in plan if item.key in wanted]
+
+
+def json_plan(summary: dict[str, int], plan: Iterable[GenerationPlanItem], pack: Path) -> dict[str, Any]:
+    """Expose no credentials or raw TTS text to the local Bridge client."""
+    return {
+        "kind": "plan",
+        "plan": {
+            "packId": pack.name,
+            "total": sum(1 for _ in plan),
+            "unchanged": summary["unchanged"],
+            "changed": summary["changed"],
+            "new": summary["new"],
+            "missing": summary["missing"],
+            "apiCalls": summary["api_calls"],
+            "items": [
+                {"key": item.key, "line": item.line, "file": item.filename, "status": item.status, "reason": item.reason}
+                for item in plan
+            ],
+        },
+    }
+
+
 def write_json(path: Path, value: Any) -> None:
     """Write valid UTF-8 JSON atomically so an interrupted run keeps prior files usable."""
     temporary = path.with_suffix(f"{path.suffix}.part")
@@ -647,9 +732,9 @@ def migrate_pack_metadata(
 
 def main() -> int:
     args = parse_args()
+    configure_json_streams(args)
     if args.pack and args.output and resolve_path(args.pack) != resolve_path(args.output):
-        print("Error: --pack and --output must refer to the same Voice Pack directory.", file=sys.stderr)
-        return 2
+        return cli_failure(args, "ARGUMENT_INVALID", "--pack and --output must refer to the same Voice Pack directory.")
     output = resolve_path(args.pack or args.output) if (args.pack or args.output) else DEFAULT_PACK
     csv_path = resolve_path(args.csv) if args.csv else output / "voice_lines.csv"
     config_path = resolve_path(args.config)
@@ -658,27 +743,35 @@ def main() -> int:
         config = load_config(config_path, args, pack_metadata)
         rows, detected_encoding = load_lines(csv_path)
     except ValueError as exc:
-        print(f"Error: {exc}", file=sys.stderr)
-        return 2
+        return cli_failure(args, "PACK_OR_CSV_INVALID", str(exc))
 
     try:
         filenames_by_key = validate_unique_keys(rows)
     except ValueError as exc:
-        print(f"Error: {exc}", file=sys.stderr)
-        return 2
+        return cli_failure(args, "CSV_KEYS_INVALID", str(exc))
 
-    print(f"Loaded CSV (detected encoding: {detected_encoding}); saved as UTF-8 BOM.")
+    cli_log(args, f"Loaded CSV (detected encoding: {detected_encoding}); saved as UTF-8 BOM.")
     cache_path = output / ".voice_cache.json"
     cache = read_voice_cache(cache_path, config)
     audio_dir = output / "audio"
     full_plan, orphaned = build_generation_plan(rows, filenames_by_key, cache, audio_dir, config, args.force)
-    plan = full_plan[: args.limit] if args.limit else full_plan
-    summary = plan_summary(plan, orphaned)
+    try:
+        selected_keys = parse_key_filter(args.keys)
+        plan = filter_generation_plan(full_plan, selected_keys, filenames_by_key)
+    except ValueError as exc:
+        return cli_failure(args, "KEY_SELECTION_INVALID", str(exc))
+    if args.limit:
+        plan = plan[: args.limit]
+    plan_orphaned = orphaned if not selected_keys else []
+    summary = plan_summary(plan, plan_orphaned)
     key_report = build_key_report(rows)
     for issue in key_report["nonAsciiKeys"]:
         print(f"Warning: {issue['key']!r}. {issue['note']} Suggested: {issue['suggestedKey']}", file=sys.stderr)
 
     if args.dry_run:
+        if args.json:
+            print(json.dumps(json_plan(summary, plan, output), ensure_ascii=False))
+            return 0
         print("Voice generation plan:")
         print(f"unchanged: {summary['unchanged']}")
         print(f"changed:   {summary['changed']}")
@@ -686,7 +779,7 @@ def main() -> int:
         print(f"missing:   {summary['missing']}")
         print(f"orphaned:  {summary['orphaned']}")
         print(f"API calls: {summary['api_calls']}")
-        for key in orphaned:
+        for key in plan_orphaned:
             print(f"Orphaned cache key (kept): {key}")
         for item in plan:
             if item.status in {"changed", "new", "missing"}:
@@ -703,17 +796,13 @@ def main() -> int:
     if args.migrate_pack:
         non_migratable = [item for item in full_plan if item.status != "unchanged"]
         if non_migratable:
-            print(
-                "Error: migration refused because the Pack is not fully unchanged; use --dry-run to inspect it.",
-                file=sys.stderr,
-            )
-            return 2
+            return cli_failure(args, "MIGRATION_REFUSED", "migration refused because the Pack is not fully unchanged; use --dry-run to inspect it.")
         output.mkdir(parents=True, exist_ok=True)
         audio_dir.mkdir(parents=True, exist_ok=True)
         migrate_pack_metadata(
             output, audio_dir, rows, full_plan, cache, config, pack_metadata, character or "default", key_report
         )
-        print(f"Migrated Voice Pack metadata only; API calls: 0; output={output}")
+        cli_log(args, f"Migrated Voice Pack metadata only; API calls: 0; output={output}")
         return 0
 
     output.mkdir(parents=True, exist_ok=True)
@@ -722,16 +811,15 @@ def main() -> int:
     log_path = output / "generation_log.json"
     records_by_key = {str(item.get("key")): item for item in read_json_list(log_path) if item.get("key")}
     requires_api = summary["api_calls"] > 0
-    try:
-        api_keys = load_api_keys()
-    except ValueError as exc:
-        print(f"Error: {exc}", file=sys.stderr)
-        return 2
-    if requires_api and not api_keys:
-        print(f"Error: set FISHAUDIO_API_KEY or add API keys to {DEFAULT_API_KEYS_FILE} (one per line).", file=sys.stderr)
-        return 2
+    api_keys: list[str] = []
     if requires_api:
-        print(f"Loaded {len(api_keys)} API key(s) for credential rotation.")
+        try:
+            api_keys = load_api_keys()
+        except ValueError as exc:
+            return cli_failure(args, "API_KEY_UNAVAILABLE", "No configured Fish Audio API key is available.")
+        if not api_keys:
+            return cli_failure(args, "API_KEY_UNAVAILABLE", "No configured Fish Audio API key is available.")
+        cli_log(args, f"Loaded {len(api_keys)} API key(s) for credential rotation.")
 
     generated = skipped = failed = 0
     session = requests.Session()
@@ -747,7 +835,7 @@ def main() -> int:
             cache[item.key]["ttsText"] = item.tts_text
             records_by_key[item.key] = asdict(make_record(item.key, item.line, item.tts_text, config, item.filename, "skipped"))
             skipped += 1
-            print(f"Skip: {item.filename} ({item.reason})")
+            cli_log(args, f"Skip: {item.filename} ({item.reason})")
             continue
 
         destination = audio_dir / item.filename
@@ -763,7 +851,7 @@ def main() -> int:
         cache[item.key] = cache_entry(item.key, item.line, item.tts_text, item.filename, item.fingerprint, config)
         records_by_key[item.key] = asdict(make_record(item.key, item.line, item.tts_text, config, item.filename, "generated", http_status=http_status))
         generated += 1
-        print(f"Generated {item.key} -> {destination.name}")
+        cli_log(args, f"Generated {item.key} -> {destination.name}")
 
     records = list(records_by_key.values())
     write_json(cache_path, cache)
@@ -773,7 +861,20 @@ def main() -> int:
     locale = rows[0].get("locale", "") if rows else ""
     write_json(output / "pack.json", build_pack_metadata(pack_metadata, character or "default", locale, config))
     write_json(output / "manifest.json", build_manifest(character or "default", config, records, audio_dir))
-    print(f"Complete: generated={generated}, skipped={skipped}, failed={failed}; output={output}")
+    cli_log(args, f"Complete: generated={generated}, skipped={skipped}, failed={failed}; output={output}")
+    if args.json:
+        result_items = []
+        for item in plan:
+            record = records_by_key.get(item.key, {})
+            result_items.append({
+                "key": item.key,
+                "file": item.filename,
+                "status": str(record.get("status") or item.status),
+                "error": str(record.get("error")) if record.get("error") else None,
+            })
+        print(json.dumps(json_result(
+            success=failed == 0, generated=generated, failed=failed, skipped=skipped, items=result_items,
+        ), ensure_ascii=False))
     return 1 if failed else 0
 
 

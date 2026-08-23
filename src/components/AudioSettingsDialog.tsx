@@ -4,6 +4,7 @@ import type { AudioSettings } from '../audio/audioSettings';
 import type { MusicLibraryUi } from '../audio/musicLibrary';
 import type { GameSfxGroup, MusicCategory, MusicTrackDefinition, MusicTrackId, PlaybackMode } from '../audio/musicTypes';
 import { AudioSettingsPanel } from './settings/AudioSettingsPanel';
+import type { VoicePackSummary } from '../audio/voice/types';
 
 interface AudioSettingsDialogProps {
   settings: AudioSettings;
@@ -29,6 +30,9 @@ interface AudioSettingsDialogProps {
   onPreviousTrack: () => void;
   onNextTrack: () => void;
   onManageVoicePack: (packId: string) => void;
+  onCreateVoicePack: () => void;
+  voicePlayerCount?: 2 | 3 | 4;
+  onVoicePackDeleted?: (deletedPackId: string, remainingPacks: readonly VoicePackSummary[]) => void;
 }
 
 export function AudioSettingsDialog({
@@ -55,6 +59,9 @@ export function AudioSettingsDialog({
   onPreviousTrack,
   onNextTrack,
   onManageVoicePack,
+  onCreateVoicePack,
+  voicePlayerCount = 4,
+  onVoicePackDeleted,
 }: AudioSettingsDialogProps) {
   const dialogRef = useRef<HTMLElement>(null);
   const onCloseRef = useRef(onClose);
@@ -117,6 +124,9 @@ export function AudioSettingsDialog({
             onPreviousTrack={onPreviousTrack}
             onNextTrack={onNextTrack}
             onManageVoicePack={onManageVoicePack}
+            onCreateVoicePack={onCreateVoicePack}
+            voicePlayerCount={voicePlayerCount}
+            onVoicePackDeleted={onVoicePackDeleted}
           />
         </div>
         <footer className="result-actions">

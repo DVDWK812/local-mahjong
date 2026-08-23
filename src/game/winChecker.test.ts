@@ -47,6 +47,7 @@ describe('winChecker', () => {
     const blockingThreshold = ([2, 3, 4, 5] as const).find((minimumHan) => minimumHan > yakuHan)!;
     expect(unrestricted.dora).toBeGreaterThan(0);
     expect(unrestricted.redDora).toBeGreaterThan(0);
+    expect(unrestricted.totalDora).toBe((unrestricted.dora ?? 0) + (unrestricted.uraDora ?? 0) + (unrestricted.redDora ?? 0));
     expect(unrestricted.han).toBeGreaterThan(yakuHan);
     expect(canTsumo({ ...state, matchRuleConfig: { minimumHan: yakuHan as 2 | 3 | 4 | 5 } }, 0)).not.toBeNull();
     expect(canTsumo({ ...state, matchRuleConfig: { minimumHan: blockingThreshold } }, 0)).toBeNull();
@@ -97,6 +98,10 @@ describe('winChecker', () => {
     expect(result?.winner).toBe(0);
     expect(result?.winType).toBe('tsumo');
     expect(result?.han).toBeGreaterThan(0);
+    expect(result?.yakuIds).toContain('menzen-tsumo');
+    expect(result?.limitTier).toBeDefined();
+    expect(result?.yakumanMultiplier).toBe(0);
+    expect(result?.totalDora).toBe((result?.dora ?? 0) + (result?.uraDora ?? 0) + (result?.redDora ?? 0));
   });
 
   it('canRon returns a ron result for a player waiting on the discard', () => {
@@ -110,6 +115,8 @@ describe('winChecker', () => {
     const results = canRon(state, 0, discarded);
     expect(results.map((result) => result.winner)).toContain(1);
     expect(results[0].winType).toBe('ron');
+    expect(results[0].yakuIds).toEqual(results[0].yaku.map((yaku) => yaku.id));
+    expect(results[0].totalDora).toBe((results[0].dora ?? 0) + (results[0].uraDora ?? 0) + (results[0].redDora ?? 0));
   });
 
   it('canRon collects multiple ron winners in turn order from the discarder', () => {
@@ -134,6 +141,8 @@ describe('winChecker', () => {
     expect(result?.type).toBe('ron');
     if (!result || result.type !== 'ron') throw new Error('Expected ron result');
     expect(result.winners.map((winner) => winner.winner)).toEqual([1, 2]);
+    expect(result.winners).toHaveLength(2);
+    expect(result.winners.every((winner) => winner.yakuIds?.length && winner.limitTier !== undefined)).toBe(true);
   });
 
   it('keeps only the nearest ron winner when head-bump is enabled', () => {

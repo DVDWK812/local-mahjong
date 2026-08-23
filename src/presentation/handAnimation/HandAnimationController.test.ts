@@ -1,15 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AnimationScheduler } from '../animation/AnimationScheduler';
-import type { PresentationEvent } from '../PresentationEventBus';
 import { PresentationPacingGate } from '../pacing/PresentationPacingGate';
 import { HandAnimationController, type HandAnimationAction, type HandAnimationPhase, type HandAnimationTarget } from './HandAnimationController';
 import { RiverTileMask, type MaskableRiverTile } from './RiverTileMask';
 
-function drawn(sequence: number, playerId: 0 | 1 | 2 | 3 = 0): PresentationEvent {
+function drawn(sequence: number, playerId: 0 | 1 | 2 | 3 = 0): HandAnimationAction {
   return { eventId: `draw-${sequence}`, sequence, type: 'tile_drawn', playerId };
 }
 
-function discarded(sequence: number, playerId: 0 | 1 | 2 | 3 = 0): PresentationEvent {
+function discarded(sequence: number, playerId: 0 | 1 | 2 | 3 = 0): HandAnimationAction {
   return {
     eventId: `discard-${sequence}`,
     sequence,
@@ -21,11 +20,11 @@ function discarded(sequence: number, playerId: 0 | 1 | 2 | 3 = 0): PresentationE
   };
 }
 
-function riichiDeclared(sequence: number, playerId: 0 | 1 | 2 | 3 = 0): PresentationEvent {
+function riichiDeclared(sequence: number, playerId: 0 | 1 | 2 | 3 = 0): HandAnimationAction {
   return { eventId: `riichi-${sequence}`, sequence, type: 'riichi_declared', playerId, riverIndex: sequence - 1 };
 }
 
-function meldDeclared(sequence: number, playerId: 0 | 1 | 2 | 3 = 0, meldType: 'chi' | 'pon' | 'kan' = 'pon'): PresentationEvent {
+function meldDeclared(sequence: number, playerId: 0 | 1 | 2 | 3 = 0, meldType: 'chi' | 'pon' | 'kan' = 'pon'): HandAnimationAction {
   return { eventId: `meld-${sequence}`, sequence, type: 'meld_declared', playerId, meldType };
 }
 

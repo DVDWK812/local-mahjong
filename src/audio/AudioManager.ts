@@ -48,6 +48,12 @@ export interface PlaybackSnapshot {
   readonly playbackMode: PlaybackMode | undefined;
 }
 
+/** A single managed dynamic voice stream for Voice Pack playback. */
+export interface ManagedVoicePlayback {
+  readonly handle: AudioPlaybackHandle;
+  stop(): void;
+}
+
 interface SuspendedRuntime {
   readonly sceneTrackId: BgmTrackId;
   readonly category: MusicCategory;
@@ -145,7 +151,7 @@ export class AudioManager {
       : channel === 'sfx'
         ? this.settings.sfxEnabled
         : this.settings.voiceEnabled;
-    if (!enabled) return 0;
+    if (!this.settings.masterEnabled || !enabled) return 0;
     const channelVolume = channel === 'bgm'
       ? this.settings.bgmVolume
       : channel === 'sfx'
@@ -155,7 +161,7 @@ export class AudioManager {
   }
 
   getEffectiveCategoryVolume(category: MusicCategory): number {
-    return categoryEnabledFrom(this.settings, category)
+    return this.settings.masterEnabled && categoryEnabledFrom(this.settings, category)
       ? this.settings.masterVolume * categoryVolumeFrom(this.settings, category)
       : 0;
   }
@@ -323,6 +329,34 @@ export class AudioManager {
     if (this.disposed || !this.settings.voiceEnabled) return;
     const asset = this.registry.voice[voiceId];
     if (asset) this.playOneShot(asset, 'voice');
+  }
+
+  createVoicePlayback(id: string, src: string, volume: number): ManagedVoicePlayback | undefined {
+    if (this.disposed || !this.settings.voiceEnabled) return undefined;
+    const handle = this.backend.createPlayback({ id, channel: 'voice', src, loop: false, source: 'self-generated' });
+    if (this.activeVoice.size >= MAX_ACTIVE_VOICE) {
+      const oldest = this.activeVoice.values().next().value as AudioPlaybackHandle | undefined;
+      if (oldest) {
+        this.releaseCallbacks.get(oldest)?.();
+        this.releaseCallbacks.delete(oldest);
+        oldest.dispose();
+        this.activeVoice.delete(oldest);
+      }
+    }
+    this.activeVoice.add(handle);
+    handle.setVolume(volume);
+    let stopped = false;
+    let removeEnded: () => void = () => undefined;
+    const stop = () => {
+      if (stopped) return;
+      stopped = true;
+      removeEnded();
+      this.activeVoice.delete(handle);
+      this.releaseCallbacks.delete(handle);
+      handle.dispose();
+    };
+    removeEnded = handle.onEnded(stop);
+    return { handle, stop };
   }
 
   playTemporary(track: MusicTrackDefinition): void {
@@ -580,7 +614,7 @@ export class AudioManager {
   }
 
   private getPreviewVolume(category: MusicCategory): number {
-    return this.settings.masterVolume * categoryVolumeFrom(this.settings, category);
+    return this.settings.masterEnabled ? this.settings.masterVolume * categoryVolumeFrom(this.settings, category) : 0;
   }
 
   private startCurrentBgm(): void {

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import importlib.util
+import contextlib
+import io
 import sys
 import unittest
 from pathlib import Path
@@ -116,6 +118,49 @@ class VoiceGenerationPlanTests(unittest.TestCase):
         self.assertEqual(summary["new"], 1)
         self.assertEqual(summary["unchanged"], 0)
         self.assertEqual(summary["api_calls"], 1)
+
+    def test_key_filter_limits_plan_without_changing_unselected_rows(self) -> None:
+        first_plan, _ = self.plan(self.rows, {})
+        cache = self.materialize_first_run(first_plan)
+        edited_rows = [dict(row, tts_text=f"changed {index}") if index < 10 else row for index, row in enumerate(self.rows)]
+        full_plan, _ = self.plan(edited_rows, cache)
+        selected = [row["key"] for row in edited_rows[:10]]
+        filtered = voice.filter_generation_plan(full_plan, selected, self.filenames)
+        summary = voice.plan_summary(filtered, [])
+        self.assertEqual(len(filtered), 10)
+        self.assertEqual(summary["changed"], 10)
+        self.assertEqual(summary["api_calls"], 10)
+        self.assertTrue(all(item.key in selected for item in filtered))
+        one = voice.filter_generation_plan(full_plan, [selected[0]], self.filenames)
+        one_summary = voice.plan_summary(one, [])
+        self.assertEqual(one_summary["changed"], 1)
+        self.assertEqual(one_summary["api_calls"], 1)
+        with self.assertRaisesRegex(ValueError, "Unknown CSV key"):
+            voice.filter_generation_plan(full_plan, ["../escape"], self.filenames)
+
+    def test_json_plan_does_not_include_tts_text_or_credentials(self) -> None:
+        plan, _ = self.plan([self.rows[0]], {})
+        summary = voice.plan_summary(plan, [])
+        payload = voice.json_plan(summary, plan, Path("safe-pack"))
+        self.assertEqual(payload["plan"]["total"], 1)
+        self.assertEqual(payload["plan"]["apiCalls"], 1)
+        self.assertNotIn("tts_text", str(payload))
+        self.assertNotIn("api_key", str(payload).lower())
+
+    def test_json_protocol_keeps_stdout_as_one_secret_free_object_and_logs_on_stderr(self) -> None:
+        args = SimpleNamespace(json=True)
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            voice.cli_log(args, "ordinary progress")
+            exit_code = voice.cli_failure(args, "API_KEY_UNAVAILABLE", "No configured Fish Audio API key is available.")
+        self.assertEqual(exit_code, 2)
+        self.assertEqual(stderr.getvalue(), "ordinary progress\n")
+        payload = voice.json.loads(stdout.getvalue())
+        self.assertEqual(payload["kind"], "result")
+        self.assertFalse(payload["result"]["success"])
+        self.assertEqual(payload["result"]["error"]["code"], "API_KEY_UNAVAILABLE")
+        self.assertNotIn("key=", stdout.getvalue().lower())
 
     def test_rotates_to_the_next_key_after_an_authentication_failure(self) -> None:
         calls: list[str] = []
