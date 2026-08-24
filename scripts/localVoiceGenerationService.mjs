@@ -1,10 +1,15 @@
 import { spawn } from 'node:child_process';
-import { promises as fs } from 'node:fs';
+import { promises as fs, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { generateVoicePackIndex } from './generateVoicePackIndex.mjs';
 import { VoicePackServiceError } from './localVoicePackService.mjs';
 
 const SAFE_PACK_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
+const generationContract = JSON.parse(readFileSync(path.join(scriptDirectory, '../src/audio/voice/voiceSynthesisSettings.contract.json'), 'utf8'));
+const GENERATION_COLUMNS = generationContract.columns;
+const GENERATION_DEFAULTS = Object.fromEntries(GENERATION_COLUMNS.map((column) => [column, String(generationContract.defaults[column])]));
 
 /** Dev-only process boundary for the existing Python generator. It never reads or returns credentials. */
 export class LocalVoiceGenerationService {
@@ -64,6 +69,7 @@ export class LocalVoiceGenerationService {
     if (!Array.isArray(overrides)) throw new VoicePackServiceError(400, '语音编辑参数无效。');
     const packDirectory = safeChildPath(this.root, packId);
     const rows = await readCsvRows(path.join(packDirectory, 'voice_lines.csv'));
+    ensureGenerationColumns(rows);
     const validKeys = new Set(rows.values.map((row) => row.key));
     const selectedKeys = selected ? new Set(selected) : validKeys;
     const seen = new Set();
@@ -75,9 +81,16 @@ export class LocalVoiceGenerationService {
       seen.add(patch.key);
       if (patch.line !== undefined && (typeof patch.line !== 'string' || !patch.line.trim())) throw new VoicePackServiceError(400, '台词内容无效。');
       if (patch.ttsText !== undefined && typeof patch.ttsText !== 'string') throw new VoicePackServiceError(400, '高级发音内容无效。');
+      validateGenerationPatch(patch);
       const row = rows.values.find((value) => value.key === patch.key);
       if (patch.line !== undefined && row.line !== patch.line) { row.line = patch.line; changed = true; }
       if (patch.ttsText !== undefined && row.tts_text !== patch.ttsText) { row.tts_text = patch.ttsText; changed = true; }
+      const fields = { speed: patch.speed, volume: patch.volume, stability: patch.stability, similarity: patch.similarity, language_override: patch.languageOverride, text_normalization: patch.textNormalization, pitch: patch.pitch, tts_emotion: patch.ttsEmotion, tts_instruction: patch.ttsInstruction };
+      for (const [field, value] of Object.entries(fields)) {
+        if (value === undefined) continue;
+        const serialized = field === 'pitch' && value === null ? '' : String(value);
+        if (row[field] !== serialized) { row[field] = serialized; changed = true; }
+      }
     }
     if (!changed) return;
     await writeCsvRows(path.join(packDirectory, 'voice_lines.csv'), rows);
@@ -118,6 +131,24 @@ async function readCsvRows(file) {
   const mapped = values.filter((value) => value.some((cell) => cell !== '')).map((value) => Object.fromEntries(headers.map((header, index) => [header, value[index] ?? ''])));
   if (mapped.some((row) => !row.key)) throw new VoicePackServiceError(422, '角色语音台词包含无效 key。');
   return { headers, values: mapped };
+}
+
+function ensureGenerationColumns(rows) {
+  for (const column of GENERATION_COLUMNS) if (!rows.headers.includes(column)) rows.headers.push(column);
+  for (const row of rows.values) for (const column of GENERATION_COLUMNS) if (row[column] === undefined || row[column] === '') row[column] = GENERATION_DEFAULTS[column];
+}
+
+function validateGenerationPatch(patch) {
+  const ranges = [['speed', patch.speed, 0.5, 2], ['volume', patch.volume, -20, 20], ['stability', patch.stability, 0, 1], ['similarity', patch.similarity, 0, 1], ['pitch', patch.pitch, -12, 12]];
+  for (const [name, value, min, max] of ranges) {
+    // Blank/null pitch is the persisted UNSET state, not a numeric control.
+    if (name === 'pitch' && (value === null || value === '')) continue;
+    if (value !== undefined && (typeof value !== 'number' || !Number.isFinite(value) || value < min || value > max)) throw new VoicePackServiceError(400, `${name} 参数无效。`);
+  }
+  if (patch.languageOverride !== undefined && typeof patch.languageOverride !== 'string') throw new VoicePackServiceError(400, 'languageOverride 参数无效。');
+  if (patch.textNormalization !== undefined && typeof patch.textNormalization !== 'boolean') throw new VoicePackServiceError(400, 'textNormalization 参数无效。');
+  if (patch.ttsEmotion !== undefined && typeof patch.ttsEmotion !== 'string') throw new VoicePackServiceError(400, 'ttsEmotion 参数无效。');
+  if (patch.ttsInstruction !== undefined && (typeof patch.ttsInstruction !== 'string' || patch.ttsInstruction.length > 1600)) throw new VoicePackServiceError(400, 'ttsInstruction 参数无效。');
 }
 
 async function writeCsvRows(file, rows) {
@@ -172,7 +203,7 @@ function isValidResult(value) {
 }
 function normalizeResult(value) {
   return { success: value.success, generated: value.generated, failed: value.failed, skipped: value.skipped,
-    items: value.items.map((item) => ({ key: item.key, file: item.file, status: item.status, error: typeof item.error === 'string' ? item.error : null })),
+    items: value.items.map((item) => ({ key: item.key, file: item.file, status: item.status, error: typeof item.error === 'string' ? item.error : null, warnings: Array.isArray(item.warnings) ? item.warnings.filter((warning) => typeof warning === 'string') : [] })),
     ...(isRecord(value.error) ? { error: { code: value.error.code, message: value.error.message } } : {}) };
 }
 function generatorFailure(code, processResult) {

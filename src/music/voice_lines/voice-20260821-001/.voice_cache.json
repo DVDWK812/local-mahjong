@@ -49,15 +49,21 @@
   },
   "flavor.win": {
     "key": "flavor.win",
-    "fingerprint": "6695b93f6659ebe34321ecc94a710a78539ff550350231a466d52e6bfc6e8da4",
+    "fingerprint": "ab61ef81b3a95ce11abd37c7d5d6a9dd3c44a588570b96839321883061c5c948",
+    "fingerprintVersion": "voice-fingerprint-v2",
     "line": "啊~死国一",
-    "ttsText": "<|phoneme_start|>a4<|phoneme_end|>~<|phoneme_start|>si3<|phoneme_end|><|phoneme_start|>guo2<|phoneme_end|>一",
+    "ttsText": "<|phoneme_start|>a4<|phoneme_end|>~<|phoneme_start|>si3<|phoneme_end|><|phoneme_start|>guo4<|phoneme_end|>一",
     "voiceId": "6ea69a95-793f-4c10-811f-f1b9ecb8866d",
     "modelId": "fishaudio-s21pro-flash",
-    "speed": 1.0,
+    "speed": 1.15,
+    "volume": 0.0,
+    "stability": 1.0,
+    "similarity": 1.0,
+    "language": "zh-CN",
+    "textNormalization": true,
     "format": "mp3",
     "file": "flavor_win.mp3",
-    "createdAt": "2026-08-22T09:51:10.522737Z"
+    "createdAt": "2026-08-24T15:01:44.272157Z"
   },
   "action.chi": {
     "key": "action.chi",

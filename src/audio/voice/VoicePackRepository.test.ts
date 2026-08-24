@@ -42,6 +42,19 @@ describe('VoicePackRepository', () => {
     expect(repository.getVoiceLine('xiaozhang', 'action.riichi')).toMatchObject({ line: '立直', tts_text: '' });
   });
 
+  it('accepts a provider-neutral MiniMax Pack with an empty manifest as manageable', () => {
+    const minimax = { id: 'minimax-001', name: '雅雅', locale: 'zh-CN', path: 'minimax-001' };
+    const miniRoot = '../../music/voice_lines/minimax-001';
+    const repository = new VoicePackRepository({
+      index: { schemaVersion: 1, packs: [minimax] },
+      packMetadata: { [`${miniRoot}/pack.json`]: { id: minimax.id, name: minimax.name, locale: minimax.locale, voiceId: '32294a57-23f7-4706-9762-eede78f57f41', modelId: 'minimax-2.8-turbo', provider: 'fish-audio' } },
+      manifests: { [`${miniRoot}/manifest.json`]: { character: minimax.id, voiceId: '32294a57-23f7-4706-9762-eede78f57f41', voices: {} } },
+      voiceLines: { [`${miniRoot}/voice_lines.json`]: lines }, audio: {},
+    });
+    expect(repository.getPack(minimax.id)).toMatchObject({ meta: { modelId: 'minimax-2.8-turbo' }, manifest: { voices: {} } });
+    expect(repository.getPack(minimax.id)?.voiceLines).toHaveLength(1);
+  });
+
   it('keeps the first valid Pack and reports duplicate pack IDs', () => {
     const repository = new VoicePackRepository(sources({ index: { schemaVersion: 1, packs: [summary, { ...summary, path: 'duplicate' }] } }));
     expect(repository.listPacks()).toHaveLength(1);

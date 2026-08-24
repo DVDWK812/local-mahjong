@@ -1,10 +1,11 @@
 import { VOICE_PACK_REPOSITORY, type VoicePackRepository } from './VoicePackRepository';
 import type { VoiceLine } from './types';
+import { generationSettingsPatchToCsv, validateGenerationSettingsPatch, type VoiceGenerationSettingsPatch } from './voiceSynthesisSettings';
 
 const STORAGE_KEY = 'local-mahjong.voice-pack-line-overrides.v1';
 const MAX_LINE_GRAPHEMES = 30;
 
-export interface VoiceLinePatch { readonly line?: string; readonly ttsText?: string; }
+export interface VoiceLinePatch extends VoiceGenerationSettingsPatch { readonly line?: string; readonly ttsText?: string; }
 export interface VoiceLineDraft { readonly line: string; readonly ttsText: string; }
 export interface VoiceLineOverrideStorage { load(): Record<string, Record<string, VoiceLinePatch>>; save(value: Record<string, Record<string, VoiceLinePatch>>): void; }
 
@@ -42,11 +43,25 @@ export class VoicePackEditingService {
   getVoiceLine(packId: string, key: string, sourceLines?: readonly VoiceLine[]): VoiceLine | undefined { return this.getVoiceLines(packId, sourceLines).find((line) => line.key === key); }
 
   /** Patches awaiting persistence by the development-only generation bridge. */
-  getPatches(packId: string, keys?: readonly string[]): readonly { readonly key: string; readonly line?: string; readonly ttsText?: string }[] {
+  getPatches(packId: string, keys?: readonly string[]): readonly ({ readonly key: string } & VoiceLinePatch)[] {
     const permitted = keys ? new Set(keys) : undefined;
     return Object.entries(this.overrides[packId] ?? {})
       .filter(([key]) => !permitted || permitted.has(key))
       .map(([key, patch]) => ({ key, ...patch }));
+  }
+
+  /** The local bridge has atomically written these overrides into voice_lines.csv. */
+  acknowledgePersisted(packId: string, keys: readonly string[]): void {
+    const current = this.overrides[packId];
+    if (!current) return;
+    const acknowledged = new Set(keys);
+    const remaining = Object.fromEntries(Object.entries(current).filter(([key]) => !acknowledged.has(key)));
+    if (Object.keys(remaining).length === Object.keys(current).length) return;
+    const next = { ...this.overrides };
+    if (Object.keys(remaining).length) next[packId] = remaining;
+    else delete next[packId];
+    this.overrides = next;
+    this.persist();
   }
 
   updateVoiceLine(packId: string, key: string, patch: VoiceLinePatch, sourceLines?: readonly VoiceLine[]): VoiceLine {
@@ -56,6 +71,8 @@ export class VoicePackEditingService {
       const validation = validateDisplayLine(patch.line);
       if (!validation.valid) throw new Error(validation.message ?? '台词无效。');
     }
+    const settingsError = validateGenerationSettingsPatch(patch);
+    if (settingsError) throw new Error(settingsError);
     // Historical `tts_text === line` is default pronunciation, not a custom override.
     // Editing a default line clears tts_text so Python's fallback follows the new line.
     const followsLine = !current.tts_text.trim() || normalizeForComparison(current.tts_text) === normalizeForComparison(current.line);
@@ -103,7 +120,12 @@ export function validateDisplayLine(line: string): { readonly valid: boolean; re
 
 function applyPatch(line: VoiceLine, patch: VoiceLinePatch | undefined): VoiceLine {
   if (!patch) return line;
-  return { ...line, ...(patch.line !== undefined ? { line: patch.line } : {}), ...(patch.ttsText !== undefined ? { tts_text: patch.ttsText } : {}) };
+  return {
+    ...line,
+    ...(patch.line !== undefined ? { line: patch.line } : {}),
+    ...(patch.ttsText !== undefined ? { tts_text: patch.ttsText } : {}),
+    ...generationSettingsPatchToCsv(patch),
+  };
 }
 
 function normalizeForComparison(value: string): string { return value.trim(); }
@@ -120,7 +142,11 @@ function parseOverrides(value: string | null): Record<string, Record<string, Voi
       for (const [key, patch] of Object.entries(rows)) {
         if (!isRecord(patch)) continue;
         const line = typeof patch.line === 'string' ? patch.line : undefined; const ttsText = typeof patch.ttsText === 'string' ? patch.ttsText : undefined;
-        if (line !== undefined || ttsText !== undefined) validRows[key] = { ...(line !== undefined ? { line } : {}), ...(ttsText !== undefined ? { ttsText } : {}) };
+        const speed = typeof patch.speed === 'number' ? patch.speed : undefined; const volume = typeof patch.volume === 'number' ? patch.volume : undefined;
+        const stability = typeof patch.stability === 'number' ? patch.stability : undefined; const similarity = typeof patch.similarity === 'number' ? patch.similarity : undefined;
+        const languageOverride = typeof patch.languageOverride === 'string' ? patch.languageOverride : undefined; const textNormalization = typeof patch.textNormalization === 'boolean' ? patch.textNormalization : undefined;
+        const pitch = typeof patch.pitch === 'number' ? patch.pitch : patch.pitch === null ? null : undefined; const ttsEmotion = typeof patch.ttsEmotion === 'string' ? patch.ttsEmotion : undefined; const ttsInstruction = typeof patch.ttsInstruction === 'string' ? patch.ttsInstruction : undefined;
+        if (line !== undefined || ttsText !== undefined || speed !== undefined || volume !== undefined || stability !== undefined || similarity !== undefined || languageOverride !== undefined || textNormalization !== undefined || pitch !== undefined || ttsEmotion !== undefined || ttsInstruction !== undefined) validRows[key] = { ...(line !== undefined ? { line } : {}), ...(ttsText !== undefined ? { ttsText } : {}), ...(speed !== undefined ? { speed } : {}), ...(volume !== undefined ? { volume } : {}), ...(stability !== undefined ? { stability } : {}), ...(similarity !== undefined ? { similarity } : {}), ...(languageOverride !== undefined ? { languageOverride } : {}), ...(textNormalization !== undefined ? { textNormalization } : {}), ...(pitch !== undefined ? { pitch } : {}), ...(ttsEmotion !== undefined ? { ttsEmotion } : {}), ...(ttsInstruction !== undefined ? { ttsInstruction } : {}) };
       }
       if (Object.keys(validRows).length) result[packId] = validRows;
     }

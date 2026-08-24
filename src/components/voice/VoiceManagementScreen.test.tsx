@@ -1,7 +1,9 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { VOICE_PACK_REPOSITORY, VoicePackRepository } from '../../audio/voice/VoicePackRepository';
-import { GenerationPlanDialog, VoiceManagementScreen, generatePlanTargets, generationOutcome, generationTargetCount, generationTargetKeys, ttsOverrideForDraft } from './VoiceManagementScreen';
+import { DisclosureButton, GenerationConfirmationPanel, GenerationSettingsFields, TextControlPalette, VoiceManagementScreen, generatePlanTargets, generationOutcome, generationTargetCount, generationTargetKeys, ttsOverrideForDraft } from './VoiceManagementScreen';
+import { textControlProfileForModel } from '../../audio/voice/textControlProfiles';
+import { SettingHelpTooltip, settingHelpTooltipPosition } from './SettingHelpTooltip';
 
 describe('VoiceManagementScreen', () => {
   it('作为独立界面显示当前校长的 148 条可编辑语音与生成摘要', () => {
@@ -11,7 +13,8 @@ describe('VoiceManagementScreen', () => {
     expect(html).toContain('校长');
     expect(html).toContain('中文 · 148 条语音');
     expect(html).toContain('立直');
-    expect(html).toContain('高级发音');
+    expect(html).toContain('统一高级设置');
+    expect(html).toContain('高级设置');
     expect(html).toContain('placeholder="动作或台词"');
     expect(html).not.toContain('placeholder="动作、台词或 key"');
     expect(html).toContain('试听始终播放已生成的音频版本');
@@ -72,7 +75,7 @@ describe('VoiceManagementScreen', () => {
     expect(ttsOverrideForDraft(line, '<|phoneme_start|>zi4 mo1<|phoneme_end|>')).toBe('<|phoneme_start|>zi4 mo1<|phoneme_end|>');
   });
 
-  it('生成确认弹窗显示实际目标数量与运行中 key 级进度，0 条时不显示进度', () => {
+  it('固定生成确认区域显示实际目标数量与运行中 key 级进度，0 条时不显示进度', () => {
     const plan = {
       packId: 'xiaozhang', total: 148, unchanged: 114, changed: 1, new: 32, missing: 1, apiCalls: 34,
       items: [
@@ -83,12 +86,35 @@ describe('VoiceManagementScreen', () => {
     };
     expect(generationTargetCount(plan)).toBe(34);
     expect(generationTargetKeys(plan)).toEqual(['tile.m1', 'action.riichi', 'action.ron']);
-    const running = renderToStaticMarkup(<GenerationPlanDialog plan={plan} lines={[]} selectedKeys={undefined} generating progress={{ completed: 0, total: 34 }} onCancel={() => undefined} onConfirm={() => undefined} />);
+    const empty = renderToStaticMarkup(<GenerationConfirmationPanel plan={null} lines={[]} selectedKeys={undefined} generating={false} progress={null} result={null} onCancel={() => undefined} onConfirm={() => undefined} />);
+    expect(empty).toContain('选择单条“生成/更新”或“一键生成”后');
+    const running = renderToStaticMarkup(<GenerationConfirmationPanel plan={plan} lines={[]} selectedKeys={undefined} generating progress={{ completed: 0, total: 34 }} result={null} onCancel={() => undefined} onConfirm={() => undefined} />);
+    expect(running).toContain('确认批量生成语音');
     expect(running).toContain('预计消耗次数：34 次');
     expect(running).toContain('当前进度：0/34');
     expect(running).not.toContain('预计 Fish Audio API 请求');
-    const nothingToDo = renderToStaticMarkup(<GenerationPlanDialog plan={{ ...plan, changed: 0, new: 0, missing: 0, apiCalls: 0, items: [] }} lines={[]} selectedKeys={undefined} generating progress={{ completed: 0, total: 0 }} onCancel={() => undefined} onConfirm={() => undefined} />);
+    const single = renderToStaticMarkup(<GenerationConfirmationPanel plan={{ ...plan, changed: 1, new: 0, missing: 0, apiCalls: 1, items: [plan.items[1]] }} lines={[{ key: 'action.riichi', category: 'action', action: 'riichi', line: '立直', tts_text: '立直', locale: 'zh-CN', character: 'xiaozhang', emotion: 'firm' }]} selectedKeys={['action.riichi']} generating={false} progress={null} result={null} onCancel={() => undefined} onConfirm={() => undefined} />);
+    expect(single).toContain('确认生成单条语音'); expect(single).toContain('实际 TTS：立直');
+    const nothingToDo = renderToStaticMarkup(<GenerationConfirmationPanel plan={{ ...plan, changed: 0, new: 0, missing: 0, apiCalls: 0, items: [] }} lines={[]} selectedKeys={undefined} generating progress={{ completed: 0, total: 0 }} result={null} onCancel={() => undefined} onConfirm={() => undefined} />);
     expect(nothingToDo).not.toContain('当前进度');
+    const result = renderToStaticMarkup(<GenerationConfirmationPanel plan={null} lines={[]} selectedKeys={undefined} generating={false} progress={null} result={{ success: false, generated: 3, failed: 1, skipped: 0, items: [], error: { code: 'NETWORK', message: '连接失败' } }} onCancel={() => undefined} onConfirm={() => undefined} />);
+    expect(result).toContain('语音生成结束'); expect(result).toContain('成功：3'); expect(result).toContain('失败：1'); expect(result).toContain('NETWORK: 连接失败');
+  });
+
+  it('确认区域在管理页顶部始终只出现一次，表格不会承载动态确认区', () => {
+    const html = renderToStaticMarkup(<VoiceManagementScreen packId="xiaozhang" voiceVolume={0.8} onBack={() => undefined} />);
+    expect((html.match(/<aside class="voice-management-screen__generation-panel"/g) ?? []).length).toBe(1);
+    expect(html.indexOf('voice-management-screen__generation-panel')).toBeLessThan(html.indexOf('voice-management-screen__table'));
+    expect(html).toContain('voice-management-screen__top');
+  });
+
+  it('所有高级区域使用带可访问状态和清晰箭头的原生 disclosure button', () => {
+    const collapsed = renderToStaticMarkup(<DisclosureButton expanded={false} controlsId="advanced-a" onClick={() => undefined}>高级设置</DisclosureButton>);
+    expect(collapsed).toContain('aria-expanded="false"'); expect(collapsed).toContain('aria-controls="advanced-a"'); expect(collapsed).toContain('▼');
+    const expanded = renderToStaticMarkup(<DisclosureButton expanded controlsId="advanced-a" onClick={() => undefined}>高级设置</DisclosureButton>);
+    expect(expanded).toContain('aria-expanded="true"'); expect(expanded).toContain('▲');
+    const palette = renderToStaticMarkup(<TextControlPalette profile={textControlProfileForModel('fishaudio-s21pro-flash')} />);
+    expect(palette).toContain('voice-management-screen__disclosure'); expect(palette).toContain('aria-expanded="false"');
   });
 
   it('逐 key 调用既有生成接口，成功或最终失败都推进进度', async () => {
@@ -120,5 +146,35 @@ describe('VoiceManagementScreen', () => {
       { completed: 2, total: 2, key: 'tile.m1' },
     ]);
     expect(result).toMatchObject({ success: false, generated: 1, failed: 1 });
+  });
+
+  it('高级设置明确显示所有生成参数与 Fish 语言覆盖，且不在静态渲染时请求生成', () => {
+    const html = renderToStaticMarkup(<GenerationSettingsFields settings={{ speed: 1, volume: 0, stability: 1, similarity: 1, languageOverride: '', textNormalization: true }} locale="zh-CN" onChange={() => undefined} />);
+    for (const label of ['语速', '音量', '稳定性', '相似度', '语言覆盖', '文本归一化', '简体中文', '日本語']) expect(html).toContain(label);
+    expect(html).toContain('跟随角色语言（zh-CN）');
+    expect(html).toContain('文本归一化'); expect(html).toContain('指定这一条语音生成时使用的语言提示');
+    expect(html).toContain('voice-management-screen__setting-row');
+    expect(html).toContain('voice-management-screen__setting-help-button');
+  });
+
+  it('明确不支持的控制不会显示为可编辑参数，避免制造 false changed 预期', () => {
+    const html = renderToStaticMarkup(<GenerationSettingsFields settings={{ speed: 1, volume: 0, stability: 1, similarity: 1, languageOverride: '', textNormalization: true }} locale="zh-CN" controls={{ speed: false, volume: false, pitch: false, stability: false, similarity: false, language: true, textNormalization: true, emotion: false, instruction: false }} onChange={() => undefined} />);
+    for (const unsupported of ['语速', '音量', '稳定性', '相似度']) expect(html).not.toContain(`aria-label="${unsupported}"`);
+    expect(html).toContain('语言覆盖'); expect(html).toContain('文本归一化');
+  });
+
+  it('设置说明使用可访问的小型信息图标，并在页面顶部/中部/底部给出可见定位', () => {
+    const html = renderToStaticMarkup(<SettingHelpTooltip text="说明文字" />);
+    expect(html).toContain('aria-describedby='); expect(html).toContain('说明文字');
+    expect(settingHelpTooltipPosition({ left: 20, right: 36, top: 20, bottom: 36 }, 800)).toMatchObject({ placement: 'below' });
+    expect(settingHelpTooltipPosition({ left: 20, right: 36, top: 320, bottom: 336 }, 800)).toMatchObject({ placement: 'above' });
+    expect(settingHelpTooltipPosition({ left: 20, right: 36, top: 720, bottom: 736 }, 800)).toMatchObject({ placement: 'above' });
+  });
+
+  it('按模型显示严格独立的文本控制标签 profile', () => {
+    const fish = renderToStaticMarkup(<TextControlPalette profile={textControlProfileForModel('fishaudio-s21pro-flash')} />);
+    expect(fish).toContain('文本控制标签'); expect(fish).not.toContain('(laughs)');
+    const minimax = renderToStaticMarkup(<TextControlPalette profile={textControlProfileForModel('minimax-2.8-turbo')} />);
+    expect(minimax).toContain('文本控制标签'); expect(minimax).not.toContain('[excited]');
   });
 });

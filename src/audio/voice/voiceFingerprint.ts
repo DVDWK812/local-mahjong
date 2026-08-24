@@ -1,27 +1,51 @@
-import type { VoiceLine, VoicePackMeta, VoiceSynthesisSettings } from './types';
+import type { VoiceGenerationCacheEntry, VoiceSynthesisSettings } from './types';
+import { canonicalEffectiveGenerationConfigPayload, type EffectiveGenerationConfig, VOICE_FINGERPRINT_VERSION } from './effectiveGenerationConfig';
 
 /**
- * Canonical Phase 0/4 fingerprint contract. It mirrors generate_voice.py:
- * SHA256("\x1f".join((voiceId, modelId, effectiveTtsText, str(speed), format))).
+ * Canonical generation fingerprint contract shared with generate_voice.py.
  */
-export function effectiveTtsText(line: Pick<VoiceLine, 'line' | 'tts_text'>): string {
-  return line.tts_text.trim() ? line.tts_text : line.line.trim();
+export function voiceFingerprint(config: EffectiveGenerationConfig): string {
+  return sha256Utf8(canonicalEffectiveGenerationConfigPayload(config));
 }
 
-export function voiceFingerprintPayload(
-  meta: Pick<VoicePackMeta, 'voiceId' | 'modelId'>,
-  synthesis: VoiceSynthesisSettings,
-  ttsText: string,
-): string {
-  return [meta.voiceId, meta.modelId, ttsText, pythonFloatString(synthesis.speed), synthesis.format].join('\x1f');
+/** Pre-advanced-settings cache contract. It is retained only to avoid recharging existing default MP3s. */
+export function legacyVoiceFingerprint(config: EffectiveGenerationConfig, synthesis: VoiceSynthesisSettings): string {
+  return sha256Utf8([config.voiceId, config.modelId, config.text, pythonFloatString(synthesis.speed), synthesis.format].join('\x1f'));
 }
 
-export function voiceFingerprint(
-  meta: Pick<VoicePackMeta, 'voiceId' | 'modelId'>,
+/** The Phase 8.5.2 full-settings format had no explicit version field. */
+export function v1VoiceFingerprint(config: EffectiveGenerationConfig): string {
+  return sha256Utf8([
+    config.voiceId, config.modelId, config.text, pythonFloatString(config.speed ?? 0), config.format,
+    pythonFloatString(config.volume ?? 0), pythonFloatString(config.stability ?? 0), pythonFloatString(config.similarity ?? 0),
+    config.effectiveLanguage ?? '', String(config.textNormalization ?? false),
+  ].join('\x1f'));
+}
+
+export function isLegacyCacheCompatible(
+  cache: VoiceGenerationCacheEntry,
+  config: EffectiveGenerationConfig,
   synthesis: VoiceSynthesisSettings,
-  ttsText: string,
-): string {
-  return sha256Utf8(voiceFingerprintPayload(meta, synthesis, ttsText));
+  inheritedLanguage: string,
+): boolean {
+  return cache.volume === undefined && cache.stability === undefined && cache.similarity === undefined
+    && cache.language === undefined && cache.textNormalization === undefined
+    && config.speed === synthesis.speed && config.volume === 0 && config.stability === 1 && config.similarity === 1
+    // A legacy cache did not encode language, so it is safe only for the
+    // original inherited Pack locale.  Python makes the same distinction.
+    && config.effectiveLanguage === inheritedLanguage && config.textNormalization === true
+    && cache.fingerprint === legacyVoiceFingerprint(config, synthesis);
+}
+
+export function isV1CacheCompatible(cache: VoiceGenerationCacheEntry, config: EffectiveGenerationConfig): boolean {
+  return cache.fingerprintVersion === undefined
+    && cache.volume !== undefined && cache.stability !== undefined && cache.similarity !== undefined
+    && cache.language !== undefined && cache.textNormalization !== undefined
+    && cache.fingerprint === v1VoiceFingerprint(config);
+}
+
+export function isV2CacheCompatible(cache: VoiceGenerationCacheEntry, config: EffectiveGenerationConfig): boolean {
+  return cache.fingerprintVersion === VOICE_FINGERPRINT_VERSION && cache.fingerprint === voiceFingerprint(config);
 }
 
 function pythonFloatString(value: number): string {

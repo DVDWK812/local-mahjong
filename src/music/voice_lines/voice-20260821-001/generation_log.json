@@ -50,14 +50,21 @@
   {
     "key": "flavor.win",
     "line": "啊~死国一",
-    "ttsText": "<|phoneme_start|>a4<|phoneme_end|>~<|phoneme_start|>si3<|phoneme_end|><|phoneme_start|>guo2<|phoneme_end|>一",
+    "ttsText": "<|phoneme_start|>a4<|phoneme_end|>~<|phoneme_start|>si3<|phoneme_end|><|phoneme_start|>guo4<|phoneme_end|>一",
     "voiceId": "6ea69a95-793f-4c10-811f-f1b9ecb8866d",
     "modelId": "fishaudio-s21pro-flash",
-    "generatedAt": "2026-08-23T15:11:22.309993Z",
+    "generatedAt": "2026-08-24T15:01:44.272157Z",
     "file": "flavor_win.mp3",
-    "status": "skipped",
+    "status": "generated",
+    "speed": 1.15,
+    "volume": 0.0,
+    "stability": 1.0,
+    "similarity": 1.0,
+    "language": "zh-CN",
+    "textNormalization": true,
     "error": null,
-    "httpStatus": null
+    "httpStatus": 200,
+    "warnings": []
   },
   {
     "key": "action.chi",

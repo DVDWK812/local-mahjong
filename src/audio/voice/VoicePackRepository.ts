@@ -36,7 +36,12 @@ function parseMeta(value: unknown, packId: string): { meta?: VoicePackMeta; diag
   if (!isRecord(value)) return { diagnostic: diagnostic('invalid-pack-metadata', 'pack.json must contain an object.', packId) };
   const id = nonEmptyString(value.id); const name = nonEmptyString(value.name); const locale = nonEmptyString(value.locale); const voiceId = nonEmptyString(value.voiceId); const modelId = nonEmptyString(value.modelId);
   if (!id || !name || !locale || !voiceId || !modelId || !safePackPath(id) || !LOCALE_PATTERN.test(locale)) return { diagnostic: diagnostic('invalid-pack-metadata', 'pack.json has missing or invalid required fields.', packId) };
-  return { meta: { id, name, locale, voiceId, modelId } };
+  const rawControls = isRecord(value.ttsControls) ? value.ttsControls : undefined;
+  const controlNames = ['speed', 'volume', 'pitch', 'stability', 'similarity', 'language', 'textNormalization', 'emotion', 'instruction'] as const;
+  const ttsControls = rawControls && controlNames.every((name) => typeof rawControls[name] === 'boolean')
+    ? Object.fromEntries(controlNames.map((name) => [name, rawControls[name] as boolean]))
+    : undefined;
+  return { meta: { id, name, locale, voiceId, modelId, ...(ttsControls ? { ttsControls } : {}) } };
 }
 
 function parseManifest(value: unknown, packId: string): { manifest?: VoiceManifest; diagnostics: VoicePackDiagnostic[] } {
@@ -58,10 +63,15 @@ function parseVoiceLines(value: unknown, packId: string): { lines?: VoiceLine[];
   for (const candidate of value) {
     if (!isRecord(candidate)) return { diagnostic: diagnostic('invalid-voice-lines', 'voice_lines.json contains a non-object row.', packId) };
     const key = nonEmptyString(candidate.key); const category = nonEmptyString(candidate.category); const action = nonEmptyString(candidate.action); const line = nonEmptyString(candidate.line); const ttsText = typeof candidate.tts_text === 'string' ? candidate.tts_text : ''; const locale = nonEmptyString(candidate.locale); const character = nonEmptyString(candidate.character); const emotion = nonEmptyString(candidate.emotion); const actionCn = nonEmptyString(candidate.action_cn);
+    const speed = typeof candidate.speed === 'string' ? candidate.speed : undefined; const volume = typeof candidate.volume === 'string' ? candidate.volume : undefined;
+    const stability = typeof candidate.stability === 'string' ? candidate.stability : undefined; const similarity = typeof candidate.similarity === 'string' ? candidate.similarity : undefined;
+    const languageOverride = typeof candidate.language_override === 'string' ? candidate.language_override : undefined;
+    const textNormalization = typeof candidate.text_normalization === 'string' ? candidate.text_normalization : undefined;
+    const pitch = typeof candidate.pitch === 'string' ? candidate.pitch : undefined; const ttsEmotion = typeof candidate.tts_emotion === 'string' ? candidate.tts_emotion : undefined; const ttsInstruction = typeof candidate.tts_instruction === 'string' ? candidate.tts_instruction : undefined;
     // Empty tts_text is the canonical default-pronunciation representation:
     // Python then uses line as the actual TTS input.
     if (!key || !category || !action || !line || !locale || !character || !emotion || !LOCALE_PATTERN.test(locale) || seenKeys.has(key)) return { diagnostic: diagnostic('invalid-voice-lines', 'voice_lines.json has a duplicate key or invalid required field.', packId, key) };
-    seenKeys.add(key); lines.push({ key, category, action, line, tts_text: ttsText, locale, character, emotion, ...(actionCn ? { action_cn: actionCn } : {}) });
+    seenKeys.add(key); lines.push({ key, category, action, line, tts_text: ttsText, locale, character, emotion, ...(actionCn ? { action_cn: actionCn } : {}), ...(speed !== undefined ? { speed } : {}), ...(volume !== undefined ? { volume } : {}), ...(stability !== undefined ? { stability } : {}), ...(similarity !== undefined ? { similarity } : {}), ...(languageOverride !== undefined ? { language_override: languageOverride } : {}), ...(textNormalization !== undefined ? { text_normalization: textNormalization } : {}), ...(pitch !== undefined ? { pitch } : {}), ...(ttsEmotion !== undefined ? { tts_emotion: ttsEmotion } : {}), ...(ttsInstruction !== undefined ? { tts_instruction: ttsInstruction } : {}) });
   }
   return { lines };
 }
@@ -78,12 +88,20 @@ function parseCache(value: unknown): Record<string, VoiceGenerationCacheEntry> {
   for (const [index, candidate] of Object.entries(value)) {
     if (!isRecord(candidate)) continue;
     const key = nonEmptyString(candidate.key) ?? index;
-    const fingerprint = nonEmptyString(candidate.fingerprint); const line = typeof candidate.line === 'string' ? candidate.line : '';
+    const fingerprint = nonEmptyString(candidate.fingerprint); const fingerprintVersion = typeof candidate.fingerprintVersion === 'string' ? candidate.fingerprintVersion : undefined; const line = typeof candidate.line === 'string' ? candidate.line : '';
     const ttsText = typeof candidate.ttsText === 'string' ? candidate.ttsText : typeof candidate.text === 'string' ? candidate.text : '';
     const voiceId = nonEmptyString(candidate.voiceId); const modelId = nonEmptyString(candidate.modelId); const format = nonEmptyString(candidate.format); const file = nonEmptyString(candidate.file);
     const speed = typeof candidate.speed === 'number' && Number.isFinite(candidate.speed) ? candidate.speed : undefined;
+    const volume = typeof candidate.volume === 'number' && Number.isFinite(candidate.volume) ? candidate.volume : undefined;
+    const stability = typeof candidate.stability === 'number' && Number.isFinite(candidate.stability) ? candidate.stability : undefined;
+    const similarity = typeof candidate.similarity === 'number' && Number.isFinite(candidate.similarity) ? candidate.similarity : undefined;
+    const language = typeof candidate.language === 'string' ? candidate.language : undefined;
+    const textNormalization = typeof candidate.textNormalization === 'boolean' ? candidate.textNormalization : undefined;
+    const cachePitch = typeof candidate.pitch === 'number' && Number.isFinite(candidate.pitch) ? candidate.pitch : undefined;
+    const cacheTtsEmotion = typeof candidate.ttsEmotion === 'string' ? candidate.ttsEmotion : undefined;
+    const cacheTtsInstruction = typeof candidate.ttsInstruction === 'string' ? candidate.ttsInstruction : undefined;
     if (!key || !fingerprint || !voiceId || !modelId || !format || !file || speed === undefined) continue;
-    cache[key] = { key, fingerprint, line, ttsText, voiceId, modelId, speed, format, file };
+    cache[key] = { key, fingerprint, ...(fingerprintVersion ? { fingerprintVersion } : {}), line, ttsText, voiceId, modelId, speed, format, file, ...(volume !== undefined ? { volume } : {}), ...(stability !== undefined ? { stability } : {}), ...(similarity !== undefined ? { similarity } : {}), ...(language !== undefined ? { language } : {}), ...(textNormalization !== undefined ? { textNormalization } : {}), ...(cachePitch !== undefined ? { pitch: cachePitch } : {}), ...(cacheTtsEmotion ? { ttsEmotion: cacheTtsEmotion } : {}), ...(cacheTtsInstruction ? { ttsInstruction: cacheTtsInstruction } : {}) };
   }
   return cache;
 }

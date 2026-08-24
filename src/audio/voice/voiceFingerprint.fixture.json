@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "name": "frozen-default-pack-locale",
+      "voiceId": "voice-a",
+      "modelId": "model-a",
+      "ttsText": "立直",
+      "format": "mp3",
+      "speed": 1,
+      "volume": 0,
+      "stability": 1,
+      "similarity": 1,
+      "language": "zh-CN",
+      "textNormalization": true,
+      "fingerprint": "23fbaeb505e12028b3598d52891294814f406ea61a542201138d250ae2a8d879"
+    },
+    {
+      "name": "per-line-overrides",
+      "voiceId": "voice-a",
+      "modelId": "model-a",
+      "ttsText": "<|phoneme_start|>fa1<|phoneme_end|>",
+      "format": "mp3",
+      "speed": 1.2,
+      "volume": -3,
+      "stability": 0.8,
+      "similarity": 0.9,
+      "language": "ja-JP",
+      "textNormalization": false,
+      "fingerprint": "719460b2610efd09cc7e56ab046fb7c4f5f5c92fd0da9895516acdd7bf256a7c"
+    }
+  ]
+}

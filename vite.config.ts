@@ -1,20 +1,62 @@
 import { fileURLToPath } from 'node:url';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { Readable } from 'node:stream';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { LocalVoicePackService, VoicePackServiceError } from './scripts/localVoicePackService.mjs';
 import { LocalVoiceGenerationService } from './scripts/localVoiceGenerationService.mjs';
+import { FishAudioModelDiscoveryService, FishDiscoveryError } from './scripts/fishAudioModelDiscovery.mjs';
+import { LocalGeneratedVoiceRegistry } from './scripts/localGeneratedVoiceRegistry.mjs';
+import { FishVoiceCreationError, FishVoiceCreationService } from './scripts/fishVoiceCreationService.mjs';
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 const voiceRoot = path.join(projectRoot, 'src', 'music', 'voice_lines');
 const voicePackService = new LocalVoicePackService({ root: voiceRoot, masterCsv: path.join(voiceRoot, 'mahjong_voice_lines.csv') });
 const voiceGenerationService = new LocalVoiceGenerationService({ root: voiceRoot, generator: path.join(projectRoot, 'src', 'audio', 'generate_voice.py') });
+const fishModelDiscovery = new FishAudioModelDiscoveryService({ projectRoot });
+const generatedVoiceRegistry = new LocalGeneratedVoiceRegistry({ root: voiceRoot });
+const fishVoiceCreation = new FishVoiceCreationService({ projectRoot, registry: generatedVoiceRegistry });
 
 function localVoiceBridge(): Plugin {
   return {
     name: 'local-voice-pack-bridge',
     configureServer(server) {
+      // Creation endpoints are development-only, bound to loopback by the Vite
+      // config below, and require an exact local same-origin POST request.
+      server.middlewares.use('/api/generated-voices', async (request, response, next) => {
+        try {
+          const pathname = new URL(request.url ?? '/', 'http://127.0.0.1').pathname;
+          if (!isLocalBridgeHost(request.headers.host)) return sendJson(response, 403, { error: '本地语音创建服务只允许本机访问。' });
+          if (request.method === 'POST' && !isLocalSameOrigin(request.headers.origin, request.headers.host)) return sendJson(response, 403, { error: '本地语音创建服务拒绝非同源请求。' });
+          if (request.method === 'GET' && pathname === '/') return sendJson(response, 200, { voices: await generatedVoiceRegistry.list() });
+          if (request.method === 'DELETE' && /^\/[A-Za-z0-9_-]+$/.test(pathname)) return sendJson(response, 200, { removed: await generatedVoiceRegistry.remove(decodeURIComponent(pathname.slice(1))) });
+          if (request.method === 'POST' && pathname === '/clone') return sendJson(response, 201, { voice: await fishVoiceCreation.cloneVoice(await readMultipartBody(request)) });
+          if (request.method === 'POST' && pathname === '/designs') return sendJson(response, 201, { design: await fishVoiceCreation.createDesign(await readJsonBody(request)) });
+          const audio = pathname.match(/^\/designs\/([^/]+)\/candidates\/([^/]+)\/audio$/);
+          if (request.method === 'GET' && audio) {
+            const result = await fishVoiceCreation.candidateAudio(decodeURIComponent(audio[1]), decodeURIComponent(audio[2]));
+            response.statusCode = 200; response.setHeader('Content-Type', result.contentType); response.setHeader('Cache-Control', 'no-store'); response.end(result.bytes); return;
+          }
+          const save = pathname.match(/^\/designs\/([^/]+)\/voices$/);
+          if (request.method === 'POST' && save) return sendJson(response, 201, { voice: await fishVoiceCreation.saveDesignVoice(decodeURIComponent(save[1]), await readJsonBody(request)) });
+          return sendJson(response, 404, { error: '未找到音色创建接口。' });
+        } catch (error) {
+          if (error instanceof FishVoiceCreationError) return sendJson(response, error.status, { error: error.message, code: error.code });
+          if (error instanceof VoicePackServiceError) return sendJson(response, error.status, { error: error.message });
+          return next(error);
+        }
+      });
+      server.middlewares.use('/api/voice-models', async (request, response, next) => {
+        try {
+          const url = new URL(request.url ?? '/', 'http://localhost');
+          if (request.method !== 'GET' || url.pathname !== '/') return sendJson(response, 404, { error: '未找到模型发现接口。' });
+          return sendJson(response, 200, { discovery: await fishModelDiscovery.discover(url.searchParams.get('voiceId')) });
+        } catch (error) {
+          if (error instanceof FishDiscoveryError) return sendJson(response, error.status, { error: error.message, code: error.code });
+          return next(error);
+        }
+      });
       server.middlewares.use('/api/voice-packs', async (request, response, next) => {
         try {
           const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
@@ -45,7 +87,16 @@ function localVoiceBridge(): Plugin {
           if (request.method === 'GET' && pathname === '/') return sendJson(response, 200, { packs: await voicePackService.listPacks() });
           if (request.method === 'GET' && /^\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pathname)) return sendJson(response, 200, { pack: await voicePackService.getPack(pathname.slice(1)) });
           if (request.method === 'POST' && pathname === '/') {
-            const created = await voicePackService.createPack(await readJsonBody(request));
+            const input = await readJsonBody(request);
+            if (!isRecord(input) || typeof input.voiceId !== 'string' || typeof input.modelId !== 'string') {
+              throw new VoicePackServiceError(400, '创建参数无效。');
+            }
+            const discovery = await fishModelDiscovery.discover(input.voiceId);
+            if (!discovery.compatibleModels.some((model) => model.modelId === input.modelId)) {
+              throw new VoicePackServiceError(422, '所选模型当前不兼容或不可用。');
+            }
+            const selectedModel = discovery.compatibleModels.find((model) => model.modelId === input.modelId);
+            const created = await voicePackService.createPack({ ...input, ttsControls: selectedModel?.controls });
             sendJson(response, 201, created);
             return;
           }
@@ -55,6 +106,7 @@ function localVoiceBridge(): Plugin {
           return sendJson(response, 404, { error: '未找到语音包接口。' });
         } catch (error) {
           if (error instanceof VoicePackServiceError) return sendJson(response, error.status, { error: error.message });
+          if (error instanceof FishDiscoveryError) return sendJson(response, error.status, { error: error.message, code: error.code });
           return next(error);
         }
       });
@@ -75,11 +127,36 @@ function readJsonBody(request: import('node:http').IncomingMessage): Promise<unk
   });
 }
 
+/** Multipart is parsed in memory only; uploaded reference audio is never written to disk. */
+async function readMultipartBody(request: import('node:http').IncomingMessage): Promise<{ name?: string; description?: string; referenceText?: string; languages?: string[]; audioFiles: File[] }> {
+  const contentType = request.headers['content-type'] ?? '';
+  if (!contentType.startsWith('multipart/form-data')) throw new VoicePackServiceError(400, '参考音频请求格式无效。');
+  const length = Number(request.headers['content-length']);
+  if (Number.isFinite(length) && length > 50 * 1024 * 1024) throw new VoicePackServiceError(413, '上传参考音频总大小不能超过 50MB。');
+  let received = 0;
+  const body = (Readable.toWeb(request) as ReadableStream<Uint8Array>).pipeThrough(new TransformStream<Uint8Array, Uint8Array>({ transform(chunk, controller) {
+    received += chunk.byteLength;
+    if (received > 50 * 1024 * 1024) throw new VoicePackServiceError(413, '上传参考音频总大小不能超过 50MB。');
+    controller.enqueue(chunk);
+  } }));
+  const webRequest = new Request('http://127.0.0.1/api/generated-voices/clone', { method: 'POST', headers: { 'Content-Type': contentType }, body, duplex: 'half' });
+  const form = await webRequest.formData();
+  const files = form.getAll('audioFiles').filter((value): value is File => value instanceof File);
+  const languages = form.getAll('languages').filter((value): value is string => typeof value === 'string');
+  return { name: form.get('name')?.toString(), description: form.get('description')?.toString(), referenceText: form.get('referenceText')?.toString(), ...(languages.length ? { languages } : {}), audioFiles: files };
+}
+
 function sendJson(response: import('node:http').ServerResponse, status: number, value: unknown): void {
   response.statusCode = status; response.setHeader('Content-Type', 'application/json; charset=utf-8'); response.end(JSON.stringify(value));
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> { return typeof value === 'object' && value !== null && !Array.isArray(value); }
+function isLocalBridgeHost(host: string | undefined): boolean {
+  if (!host) return false;
+  try { const url = new URL(`http://${host}`); return (url.hostname === '127.0.0.1' || url.hostname === 'localhost') && Boolean(url.port); }
+  catch { return false; }
+}
+function isLocalSameOrigin(origin: string | undefined, host: string | undefined): boolean { return Boolean(origin && host && (origin === `http://${host}` || origin === `https://${host}`) && isLocalBridgeHost(host)); }
 
 // Generation data is mutable at runtime and is read through the local Bridge.
 // Do not let its writes reset React state through Vite HMR/full reload.
@@ -94,6 +171,7 @@ const runtimeVoicePackFiles = [
   '**/src/music/voice_lines/*/failed.json',
   '**/src/music/voice_lines/*/voice_key_report.json',
   '**/src/music/voice_lines/*/audio/**/*.mp3',
+  '**/src/music/voice_lines/generated_voices.json',
 ];
 
-export default defineConfig({ plugins: [react(), localVoiceBridge()], server: { watch: { ignored: runtimeVoicePackFiles } } });
+export default defineConfig({ plugins: [react(), localVoiceBridge()], server: { host: '127.0.0.1', watch: { ignored: runtimeVoicePackFiles } } });

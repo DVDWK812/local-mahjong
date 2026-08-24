@@ -1,0 +1,20 @@
+{
+  "id": "voice-20260824-001",
+  "name": "雅雅",
+  "locale": "zh-CN",
+  "provider": "fish-audio",
+  "voiceId": "32294a57-23f7-4706-9762-eede78f57f41",
+  "modelId": "minimax-2.8-turbo",
+  "version": 1,
+  "ttsControls": {
+    "speed": false,
+    "volume": false,
+    "pitch": false,
+    "stability": false,
+    "similarity": false,
+    "language": true,
+    "textNormalization": true,
+    "emotion": true,
+    "instruction": false
+  }
+}

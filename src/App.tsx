@@ -628,10 +628,9 @@ export default function App() {
     if (typeof window !== 'undefined') saveAudioSettings(settingsForNewPack, window.localStorage);
     setVoicePackCreationOpen(false);
     setVoiceManagementPackId(result.pack.id);
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.setItem('local-mahjong.pending-voice-pack-manager', result.pack.id);
-      window.location.reload();
-    }
+    // VoiceManagementScreen fetches this just-created Pack through the local
+    // Bridge. Do not reload: Vite's static glob can remain stale until restart.
+    if (typeof window !== 'undefined') window.sessionStorage.removeItem('local-mahjong.pending-voice-pack-manager');
   }
 
   function handleVoicePackDeleted(_deletedPackId: string, remainingPacks: readonly VoicePackSummary[]) {

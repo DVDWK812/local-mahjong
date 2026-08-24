@@ -52,4 +52,12 @@ describe('VoicePackEditingService', () => {
     expect(editor.resetPronunciation('xiaozhang', 'action.riichi')).toMatchObject({ line: '我要立直', tts_text: '' });
     expect(editor.updateVoiceLine('xiaozhang', 'action.riichi', { line: '再次立直' })).toMatchObject({ line: '再次立直', tts_text: '' });
   });
+
+  it('Bridge 确认写入后清除本地 overlay，后续计划只读取权威 CSV 数据', () => {
+    const editor = new VoicePackEditingService(VOICE_PACK_REPOSITORY, new MemoryVoiceLineOverrideStorage());
+    editor.updateVoiceLine('xiaozhang', 'action.riichi', { speed: 1.15 });
+    expect(editor.getPatches('xiaozhang')).toEqual([{ key: 'action.riichi', speed: 1.15 }]);
+    editor.acknowledgePersisted('xiaozhang', ['action.riichi']);
+    expect(editor.getPatches('xiaozhang')).toEqual([]);
+  });
 });

@@ -1,5 +1,6 @@
 import type { VoiceLine, VoicePackDetail } from './types';
-import { effectiveTtsText, voiceFingerprint } from './voiceFingerprint';
+import { isLegacyCacheCompatible, isV1CacheCompatible, isV2CacheCompatible } from './voiceFingerprint';
+import { resolveEffectiveGenerationConfig } from './effectiveGenerationConfig';
 
 export type VoiceGenerationStatus = 'generated' | 'changed' | 'not-generated' | 'missing-audio' | 'failed';
 export type VoiceGenerationStatusByKey = Readonly<Record<string, VoiceGenerationStatus>>;
@@ -10,8 +11,9 @@ export function getVoiceLineGenerationStatus(detail: VoicePackDetail, line: Voic
   if (detail.failedKeys.includes(line.key)) return 'failed';
   const cached = detail.generationCache[line.key];
   if (!cached) return 'not-generated';
-  const fingerprint = voiceFingerprint(detail.meta, detail.synthesis, effectiveTtsText(line));
-  return cached.fingerprint === fingerprint ? 'generated' : 'changed';
+  const effective = resolveEffectiveGenerationConfig(line, detail.meta, detail.synthesis, detail.meta.ttsControls ? { controls: detail.meta.ttsControls } : undefined);
+  return isV2CacheCompatible(cached, effective) || isV1CacheCompatible(cached, effective)
+    || isLegacyCacheCompatible(cached, effective, detail.synthesis, detail.meta.locale) ? 'generated' : 'changed';
 }
 
 export function getVoicePackGenerationStatuses(detail: VoicePackDetail, lines: readonly VoiceLine[]): VoiceGenerationStatusByKey {

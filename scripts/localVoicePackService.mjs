@@ -76,6 +76,7 @@ export class LocalVoicePackService {
       const metadata = {
         id: packId, name: normalized.displayName, locale: normalized.locale, provider: 'fish-audio',
         voiceId: normalized.voiceId, modelId: normalized.modelId, version: 1,
+        ...(normalized.ttsControls ? { ttsControls: normalized.ttsControls } : {}),
       };
       await fs.writeFile(path.join(temporaryDirectory, 'pack.json'), `${JSON.stringify(metadata, null, 2)}\n`, 'utf8');
       await fs.copyFile(this.masterCsv, path.join(temporaryDirectory, 'voice_lines.csv'));
@@ -140,12 +141,16 @@ function validateInput(input) {
   const displayName = typeof input.displayName === 'string' ? input.displayName.trim() : '';
   const voiceId = typeof input.voiceId === 'string' ? input.voiceId.trim() : '';
   const locale = typeof input.locale === 'string' && input.locale.trim() ? input.locale.trim() : 'zh-CN';
-  const modelId = typeof input.modelId === 'string' && input.modelId.trim() ? input.modelId.trim() : 'fishaudio-s21pro-flash';
+  const modelId = typeof input.modelId === 'string' ? input.modelId.trim() : '';
   if (!displayName) throw new VoicePackServiceError(400, '角色名称不能为空。');
   if (displayName.includes('/') || displayName.includes('\\') || displayName.includes('..')) throw new VoicePackServiceError(400, '角色名称不能包含路径字符。');
   if (!voiceId) throw new VoicePackServiceError(400, 'Fish Audio Voice ID 不能为空。');
+  if (!modelId) throw new VoicePackServiceError(400, '必须选择一个兼容的 Fish Audio 模型。');
   if (!SAFE_LOCALE.test(locale)) throw new VoicePackServiceError(400, '语言代码无效。');
-  return { displayName, voiceId, locale, modelId };
+  const rawControls = input.ttsControls;
+  if (rawControls !== undefined && (!rawControls || typeof rawControls !== 'object' || Array.isArray(rawControls))) throw new VoicePackServiceError(400, '模型能力参数无效。');
+  const ttsControls = rawControls ? Object.fromEntries(Object.entries(rawControls).filter(([, value]) => typeof value === 'boolean')) : undefined;
+  return { displayName, voiceId, locale, modelId, ...(ttsControls ? { ttsControls } : {}) };
 }
 
 async function nextPackId(root, displayName, now) {

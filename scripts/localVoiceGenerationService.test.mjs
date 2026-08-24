@@ -64,6 +64,40 @@ describe('LocalVoiceGenerationService', () => {
     expect(indexed).toBe(1);
   });
 
+  it('保存单条或统一生成参数只写 CSV，不调用 Python/Fish', async () => {
+    let calls = 0; let indexed = 0;
+    const service = await fixture(async () => { calls += 1; return reply(plan()); }, async () => { indexed += 1; });
+    await service.updateVoiceLines('safe-pack', [
+      { key: 'action.riichi', speed: 1.2, volume: -3, stability: 0.8, similarity: 0.9, languageOverride: 'ja-JP', textNormalization: false },
+      { key: 'action.ron', speed: 1.2, volume: -3, stability: 0.8, similarity: 0.9, languageOverride: 'ja-JP', textNormalization: false },
+      { key: 'action.tsumo', speed: 1.2, volume: -3, stability: 0.8, similarity: 0.9, languageOverride: 'ja-JP', textNormalization: false },
+    ]);
+    const csv = await fs.readFile(path.join(roots.at(-1), 'safe-pack', 'voice_lines.csv'), 'utf8');
+    expect(csv).toContain('speed,volume,stability,similarity,language_override,text_normalization');
+    expect(csv).toContain('1.2,-3,0.8,0.9,ja-JP,false');
+    expect(calls).toBe(0);
+    expect(indexed).toBe(1);
+  });
+
+  it('accepts textNormalization=false and pitch unset, preserving false in the CSV', async () => {
+    const service = await fixture(async () => reply(plan()));
+    await service.updateVoiceLines('safe-pack', [{ key: 'action.riichi', textNormalization: false, pitch: null }]);
+    const csv = await fs.readFile(path.join(roots.at(-1), 'safe-pack', 'voice_lines.csv'), 'utf8');
+    expect(csv).toContain('text_normalization'); expect(csv).toContain('false'); expect(csv).not.toContain(',null');
+  });
+
+  it('参数保存后立即计划时，生成器读取刚写入的 supported speed，而不是旧快照', async () => {
+    const service = await fixture(async (_command, args) => {
+      expect(args).toContain('--dry-run');
+      const csv = await fs.readFile(path.join(roots.at(-1), 'safe-pack', 'voice_lines.csv'), 'utf8');
+      expect(csv).toContain('action.riichi,action,riichi,立直,立直,zh-CN,safe,firm,1.15');
+      return reply(plan({ total: 1, unchanged: 0, changed: 1, new: 0, apiCalls: 1, items: [{ key: 'action.riichi', line: '立直', file: 'action_riichi.mp3', status: 'changed', reason: 'content fingerprint changed' }] }));
+    });
+    await service.updateVoiceLines('safe-pack', [{ key: 'action.riichi', speed: 1.15 }]);
+    await expect(service.previewGeneration('safe-pack', ['action.riichi']))
+      .resolves.toMatchObject({ changed: 1, unchanged: 0, apiCalls: 1 });
+  });
+
   it('拒绝非法 pack、未知 key 与并发生成', async () => {
     let release;
     const waiting = new Promise((resolve) => { release = resolve; });

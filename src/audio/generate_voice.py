@@ -14,7 +14,7 @@ import json
 import os
 import sys
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
@@ -30,9 +30,12 @@ VOICE_LINES_ROOT = PROJECT_ROOT / "src" / "music" / "voice_lines"
 DEFAULT_PACK = VOICE_LINES_ROOT / "xiaozhang"
 DEFAULT_CONFIG = Path(__file__).resolve().parent / "config" / "fish_audio.example.json"
 DEFAULT_API_KEYS_FILE = PROJECT_ROOT / ".secrets" / "fish_audio_api_keys.txt"
+SYNTHESIS_SETTINGS_CONTRACT = Path(__file__).resolve().parent / "voice" / "voiceSynthesisSettings.contract.json"
 REQUIRED_COLUMNS = {"key", "category", "action", "line", "locale", "character", "emotion"}
 RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
-KEY_ROTATION_STATUS_CODES = {401, 403, 429}
+# Rate limiting is shared service pressure, not a reason to consume another key.
+# 401/402 are the only credential/quota statuses eligible for a key rotation.
+KEY_ROTATION_STATUS_CODES = {401, 402}
 SUPPORTED_CSV_ENCODINGS = ("utf-8", "gbk", "gb18030", "cp936")
 KNOWN_KEY_RECOMMENDATIONS = {
     "yaku.三倍役满": "yaku.triple_yakuman",
@@ -51,6 +54,9 @@ class FishAudioConfig:
     speed: float
     timeout_seconds: int
     retries: int
+    # Captured v3 model capability controls from pack.json.  Legacy Packs omit
+    # this field and retain their established six-control request semantics.
+    controls: dict[str, bool] | None = None
 
 
 @dataclass
@@ -65,8 +71,15 @@ class GenerationRecord:
     generatedAt: str
     file: str | None
     status: str
+    speed: float = 1.0
+    volume: float = 0.0
+    stability: float = 1.0
+    similarity: float = 1.0
+    language: str = ""
+    textNormalization: bool = True
     error: str | None = None
     httpStatus: int | None = None
+    warnings: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -80,6 +93,69 @@ class GenerationPlanItem:
     fingerprint: str
     status: str
     reason: str
+    settings: "VoiceSynthesisSettings"
+    effective: "EffectiveGenerationConfig"
+
+
+@dataclass(frozen=True)
+class VoiceSynthesisSettings:
+    """Per-line Fish TTS controls persisted in the Voice Pack CSV."""
+
+    speed: float
+    volume: float
+    stability: float
+    similarity: float
+    language: str
+    text_normalization: bool
+    # These controls intentionally remain unset for legacy CSV rows.  An
+    # omitted pitch is not the same persisted value as an explicit 0.
+    pitch: float | None = None
+    tts_emotion: str = ""
+    tts_instruction: str = ""
+
+
+@dataclass(frozen=True)
+class EffectiveGenerationConfig:
+    """The single resolved TTS identity for planning, cache, and request payloads."""
+
+    text: str
+    voice_id: str
+    model_id: str
+    audio_format: str
+    speed: float | None
+    volume: float | None
+    stability: float | None
+    similarity: float | None
+    effective_language: str | None
+    text_normalization: bool | None
+    pitch: float | None = None
+    tts_emotion: str = ""
+    tts_instruction: str = ""
+
+
+def load_synthesis_defaults() -> dict[str, Any]:
+    """Load the shared CSV-default contract used by the browser and local Bridge."""
+    try:
+        value = json.loads(SYNTHESIS_SETTINGS_CONTRACT.read_text(encoding="utf-8"))
+        defaults = value.get("defaults", {})
+        if value.get("schemaVersion") != 1 or not isinstance(defaults, dict):
+            raise ValueError("invalid synthesis settings contract")
+        return defaults
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        raise RuntimeError(f"Could not load synthesis settings contract: {exc}") from exc
+
+
+SYNTHESIS_DEFAULTS = load_synthesis_defaults()
+DEFAULT_SPEED = float(SYNTHESIS_DEFAULTS["speed"])
+DEFAULT_VOLUME = float(SYNTHESIS_DEFAULTS["volume"])
+DEFAULT_STABILITY = float(SYNTHESIS_DEFAULTS["stability"])
+DEFAULT_SIMILARITY = float(SYNTHESIS_DEFAULTS["similarity"])
+DEFAULT_TEXT_NORMALIZATION = bool(SYNTHESIS_DEFAULTS["text_normalization"])
+FINGERPRINT_VERSION = "voice-fingerprint-v2"
+CAPABILITY_CONTROL_NAMES = (
+    "speed", "volume", "pitch", "stability", "similarity", "language",
+    "textNormalization", "emotion", "instruction",
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -191,6 +267,7 @@ def load_config(path: Path, args: argparse.Namespace, pack_metadata: dict[str, A
     if missing:
         raise ValueError(f"Config missing required value(s): {', '.join(missing)}")
 
+    controls = normalized_capability_controls((pack_metadata or {}).get("ttsControls"))
     return FishAudioConfig(
         endpoint=str(data["endpoint"]),
         voice_id=args.voice_id or str((pack_metadata or {}).get("voiceId") or data["voiceId"]),
@@ -199,6 +276,7 @@ def load_config(path: Path, args: argparse.Namespace, pack_metadata: dict[str, A
         speed=float(data.get("speed", 1.0)),
         timeout_seconds=int(data.get("timeoutSeconds", 90)),
         retries=args.retries if args.retries is not None else int(data.get("retries", 2)),
+        controls=controls,
     )
 
 
@@ -301,8 +379,8 @@ def get_tts_text(row: dict[str, Any]) -> str:
     return value if value.strip() else line
 
 
-def cache_hash(config: FishAudioConfig, tts_text: str) -> str:
-    """Fingerprint every API parameter that can alter generated audio."""
+def legacy_cache_hash(config: FishAudioConfig, tts_text: str) -> str:
+    """Phase 0–8 fingerprint retained solely for safe default-setting migration."""
     payload = "\x1f".join((
         config.voice_id,
         config.model_id,
@@ -311,6 +389,116 @@ def cache_hash(config: FishAudioConfig, tts_text: str) -> str:
         config.audio_format,
     ))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def v1_cache_hash(config: FishAudioConfig, tts_text: str, settings: VoiceSynthesisSettings) -> str:
+    """Unversioned Phase 8.5.2 advanced-settings fingerprint retained for cache migration."""
+    payload = "\x1f".join((
+        config.voice_id,
+        config.model_id,
+        tts_text,
+        str(settings.speed),
+        config.audio_format,
+        str(settings.volume),
+        str(settings.stability),
+        str(settings.similarity),
+        settings.language,
+        "true" if settings.text_normalization else "false",
+    ))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def canonical_effective_config_payload(effective: EffectiveGenerationConfig) -> str:
+    """Fixed-order v2 identity shared with effectiveGenerationConfig.ts."""
+    return "\x1f".join((
+        FINGERPRINT_VERSION, effective.text, effective.voice_id, effective.model_id, effective.audio_format,
+        "" if effective.speed is None else str(effective.speed), "" if effective.volume is None else str(effective.volume), "" if effective.stability is None else str(effective.stability), "" if effective.similarity is None else str(effective.similarity),
+        effective.effective_language or "", "" if effective.text_normalization is None else ("true" if effective.text_normalization else "false"),
+        "" if effective.pitch is None else str(effective.pitch), effective.tts_emotion, effective.tts_instruction,
+    ))
+
+
+def effective_config_fingerprint(effective: EffectiveGenerationConfig) -> str:
+    return hashlib.sha256(canonical_effective_config_payload(effective).encode("utf-8")).hexdigest()
+
+
+def cache_hash(config: FishAudioConfig, tts_text: str, settings: VoiceSynthesisSettings | None = None) -> str:
+    """Compatibility helper used only when reading unversioned cache formats."""
+    return legacy_cache_hash(config, tts_text) if settings is None else v1_cache_hash(config, tts_text, settings)
+
+
+def _number_setting(row: dict[str, Any], field: str, default: float, minimum: float, maximum: float) -> float:
+    value = str(row.get(field, "")).strip()
+    if not value:
+        return default
+    try:
+        number = float(value)
+    except ValueError as exc:
+        raise ValueError(f"invalid {field}: {value!r}") from exc
+    if not minimum <= number <= maximum:
+        raise ValueError(f"invalid {field}: must be between {minimum} and {maximum}")
+    return number
+
+
+def _boolean_setting(row: dict[str, Any], field: str, default: bool) -> bool:
+    value = str(row.get(field, "")).strip().lower()
+    if not value:
+        return default
+    if value == "true":
+        return True
+    if value == "false":
+        return False
+    raise ValueError(f"invalid {field}: expected true or false")
+
+
+def synthesis_settings_for_row(
+    row: dict[str, Any], config: FishAudioConfig, pack_locale: str = ""
+) -> VoiceSynthesisSettings:
+    """Resolve legacy blank fields to the no-regeneration Fish-compatible defaults."""
+    return VoiceSynthesisSettings(
+        speed=_number_setting(row, "speed", DEFAULT_SPEED, 0.5, 2.0),
+        volume=_number_setting(row, "volume", DEFAULT_VOLUME, -20.0, 20.0),
+        stability=_number_setting(row, "stability", DEFAULT_STABILITY, 0.0, 1.0),
+        similarity=_number_setting(row, "similarity", DEFAULT_SIMILARITY, 0.0, 1.0),
+        language=str(row.get("language_override", "")).strip() or pack_locale.strip() or str(row.get("locale", "")).strip(),
+        text_normalization=_boolean_setting(row, "text_normalization", DEFAULT_TEXT_NORMALIZATION),
+        pitch=_number_setting(row, "pitch", 0.0, -12.0, 12.0) if str(row.get("pitch", "")).strip() else None,
+        tts_emotion=str(row.get("tts_emotion", "")).strip(),
+        tts_instruction=str(row.get("tts_instruction", "")),
+    )
+
+
+def normalized_capability_controls(raw_controls: Any) -> dict[str, bool] | None:
+    """Accept only a complete discovery snapshot; partial old data is legacy."""
+    if not isinstance(raw_controls, dict):
+        return None
+    if not all(isinstance(raw_controls.get(name), bool) for name in CAPABILITY_CONTROL_NAMES):
+        return None
+    return {name: bool(raw_controls[name]) for name in CAPABILITY_CONTROL_NAMES}
+
+
+def resolve_effective_generation_config(
+    row: dict[str, Any], config: FishAudioConfig, pack_locale: str = ""
+) -> EffectiveGenerationConfig:
+    """Resolve text and all active controls exactly once for plan, hash, and Fish payload."""
+    settings = synthesis_settings_for_row(row, config, pack_locale)
+    controls = normalized_capability_controls(config.controls)
+    # A missing capability snapshot means this is a legacy Pack: preserve the
+    # pre-v3 six controls, while treating the three new controls as unset.
+    def supported(control: str, *, legacy: bool = True) -> bool:
+        return legacy if controls is None else controls.get(control) is True
+    return EffectiveGenerationConfig(
+        text=get_tts_text(row), voice_id=config.voice_id, model_id=config.model_id, audio_format=config.audio_format,
+        speed=settings.speed if supported("speed") else None,
+        volume=settings.volume if supported("volume") else None,
+        stability=settings.stability if supported("stability") else None,
+        similarity=settings.similarity if supported("similarity") else None,
+        effective_language=settings.language if supported("language") else None,
+        text_normalization=settings.text_normalization if supported("textNormalization") else None,
+        pitch=settings.pitch if supported("pitch", legacy=False) else None,
+        tts_emotion=settings.tts_emotion if settings.tts_emotion and supported("emotion", legacy=False) else "",
+        tts_instruction=settings.tts_instruction if settings.tts_instruction and supported("instruction", legacy=False) else "",
+    )
 
 
 def recommended_key(key: str) -> str:
@@ -417,7 +605,9 @@ def migrate_voice_cache(value: Any, config: FishAudioConfig) -> dict[str, dict[s
             and migrated.get("speed") == config.speed
             and migrated.get("format") == config.audio_format
         )
-        if matches_active_config:
+        if matches_active_config and migrated.get("fingerprintVersion") is None and all(
+            field not in migrated for field in ("volume", "stability", "similarity", "language", "textNormalization")
+        ):
             migrated["fingerprint"] = cache_hash(config, str(migrated.get("ttsText", "")))
         else:
             migrated.setdefault("fingerprint", str(index) if len(str(index)) == 64 else "")
@@ -426,17 +616,30 @@ def migrate_voice_cache(value: Any, config: FishAudioConfig) -> dict[str, dict[s
 
 
 def cache_entry(
-    key: str, line: str, tts_text: str, filename: str, fingerprint: str, config: FishAudioConfig
+    key: str, line: str, tts_text: str, filename: str, fingerprint: str, config: FishAudioConfig,
+    settings: VoiceSynthesisSettings | None = None, effective: EffectiveGenerationConfig | None = None,
 ) -> dict[str, Any]:
     """Build the only cache representation written by new runs."""
+    resolved = settings or VoiceSynthesisSettings(
+        DEFAULT_SPEED, DEFAULT_VOLUME, DEFAULT_STABILITY, DEFAULT_SIMILARITY, "", DEFAULT_TEXT_NORMALIZATION
+    )
     return {
         "key": key,
         "fingerprint": fingerprint,
+        "fingerprintVersion": FINGERPRINT_VERSION if effective is not None else None,
         "line": line,
         "ttsText": tts_text,
         "voiceId": config.voice_id,
         "modelId": config.model_id,
-        "speed": config.speed,
+        "speed": resolved.speed,
+        "volume": resolved.volume,
+        "stability": resolved.stability,
+        "similarity": resolved.similarity,
+        "language": resolved.language,
+        "textNormalization": resolved.text_normalization,
+        **({"pitch": resolved.pitch} if resolved.pitch is not None else {}),
+        **({"ttsEmotion": resolved.tts_emotion} if resolved.tts_emotion else {}),
+        **({"ttsInstruction": resolved.tts_instruction} if resolved.tts_instruction else {}),
         "format": config.audio_format,
         "file": filename,
         "createdAt": utc_now(),
@@ -450,6 +653,7 @@ def build_generation_plan(
     output: Path,
     config: FishAudioConfig,
     force: bool,
+    pack_locale: str = "",
 ) -> tuple[list[GenerationPlanItem], list[str]]:
     """Classify every CSV row without API calls or writes.
 
@@ -463,15 +667,23 @@ def build_generation_plan(
         key = row.get("key", "").strip()
         line = str(row.get("line", "")).strip()
         tts_text = get_tts_text(row)
+        fallback_settings = VoiceSynthesisSettings(DEFAULT_SPEED, DEFAULT_VOLUME, DEFAULT_STABILITY, DEFAULT_SIMILARITY, pack_locale, DEFAULT_TEXT_NORMALIZATION)
+        fallback_effective = EffectiveGenerationConfig("", config.voice_id, config.model_id, config.audio_format, DEFAULT_SPEED, DEFAULT_VOLUME, DEFAULT_STABILITY, DEFAULT_SIMILARITY, pack_locale, DEFAULT_TEXT_NORMALIZATION)
         if not key:
-            plan.append(GenerationPlanItem("", line, tts_text, "", "", "invalid", "empty key"))
+            plan.append(GenerationPlanItem("", line, tts_text, "", "", "invalid", "empty key", fallback_settings, fallback_effective))
             continue
         csv_keys.add(key)
         filename = filenames_by_key[key]
         if not tts_text.strip():
-            plan.append(GenerationPlanItem(key, line, tts_text, filename, "", "invalid", "empty TTS text"))
+            plan.append(GenerationPlanItem(key, line, tts_text, filename, "", "invalid", "empty TTS text", fallback_settings, fallback_effective))
             continue
-        fingerprint = cache_hash(config, tts_text)
+        try:
+            effective = resolve_effective_generation_config(row, config, pack_locale)
+            settings = synthesis_settings_for_row(row, config, pack_locale)
+        except ValueError as exc:
+            plan.append(GenerationPlanItem(key, line, tts_text, filename, "", "invalid", str(exc), fallback_settings, fallback_effective))
+            continue
+        fingerprint = effective_config_fingerprint(effective)
         file_exists = (output / filename).is_file() and (output / filename).stat().st_size > 0
         cached = cache.get(key)
         if force:
@@ -480,11 +692,28 @@ def build_generation_plan(
             status, reason = "new", "no cache entry"
         elif not file_exists:
             status, reason = "missing", "cached file is missing"
-        elif cached.get("fingerprint") == fingerprint:
+        elif cached.get("fingerprintVersion") == FINGERPRINT_VERSION and cached.get("fingerprint") == fingerprint:
             status, reason = "unchanged", "file and fingerprint match"
+        elif (
+            all(field not in cached for field in ("volume", "stability", "similarity", "language", "textNormalization"))
+            and settings.speed == DEFAULT_SPEED
+            and settings.volume == DEFAULT_VOLUME
+            and settings.stability == DEFAULT_STABILITY
+            and settings.similarity == DEFAULT_SIMILARITY
+            and settings.language == (pack_locale.strip() or str(row.get("locale", "")).strip())
+            and settings.text_normalization is DEFAULT_TEXT_NORMALIZATION
+            and cached.get("fingerprint") == legacy_cache_hash(config, tts_text)
+        ):
+            status, reason = "unchanged", "legacy default settings match"
+        elif (
+            cached.get("fingerprintVersion") is None
+            and all(field in cached for field in ("volume", "stability", "similarity", "language", "textNormalization"))
+            and cached.get("fingerprint") == v1_cache_hash(config, tts_text, settings)
+        ):
+            status, reason = "unchanged", "v1 effective settings match"
         else:
             status, reason = "changed", "content fingerprint changed"
-        plan.append(GenerationPlanItem(key, line, tts_text, filename, fingerprint, status, reason))
+        plan.append(GenerationPlanItem(key, line, tts_text, filename, fingerprint, status, reason, settings, effective))
     orphaned = sorted(set(cache).difference(csv_keys))
     return plan, orphaned
 
@@ -574,22 +803,35 @@ def error_text(response: Response) -> str:
     return response.text[:500].strip() or f"HTTP {response.status_code}"
 
 
+def ignored_parameter_warnings(response: Response) -> list[str]:
+    """Normalize Fish v3's ignored-control header into safe user diagnostics."""
+    raw = response.headers.get("X-OpenAPI-Ignored-Parameters", "")
+    return [name.strip() for name in raw.split(",") if name.strip()]
+
+
 def synthesize(
-    session: requests.Session, config: FishAudioConfig, api_key: str, text: str
-) -> tuple[bytes | None, int | None, str | None]:
+    session: requests.Session, config: FishAudioConfig, api_key: str,
+    effective: EffectiveGenerationConfig | None = None,
+) -> tuple[bytes | None, int | None, str | None, list[str]]:
     """Call TTS, explicitly serializing Chinese JSON as UTF-8 bytes."""
+    resolved = effective or EffectiveGenerationConfig("", config.voice_id, config.model_id, config.audio_format, DEFAULT_SPEED, DEFAULT_VOLUME, DEFAULT_STABILITY, DEFAULT_SIMILARITY, "", DEFAULT_TEXT_NORMALIZATION)
     payload = {
-        "text": text,
-        "reference_id": config.voice_id,
-        "format": config.audio_format,
-        "prosody": {"speed": config.speed},
+        "text": resolved.text, "voiceId": resolved.voice_id, "modelId": resolved.model_id, "format": resolved.audio_format,
     }
+    optional_controls = {
+        "speed": resolved.speed, "volume": resolved.volume, "stability": resolved.stability,
+        "similarity": resolved.similarity, "language": resolved.effective_language,
+        "textNormalization": resolved.text_normalization, "pitch": resolved.pitch,
+        "emotion": resolved.tts_emotion or None, "instruction": resolved.tts_instruction or None,
+    }
+    payload.update({key: value for key, value in optional_controls.items() if value is not None})
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json; charset=utf-8",
         "Accept": "audio/mpeg, application/octet-stream, application/json",
-        "model": config.model_id,
+        "X-Request-Id": effective_config_fingerprint(resolved),
+        "Idempotency-Key": effective_config_fingerprint(resolved),
     }
 
     for attempt in range(config.retries + 1):
@@ -601,12 +843,12 @@ def synthesize(
             if attempt < config.retries:
                 time.sleep(2**attempt)
                 continue
-            return None, None, f"network error: {exc}"
+            return None, None, f"network error: {exc}", []
 
         if response.ok:
             if response.content:
-                return response.content, response.status_code, None
-            return None, response.status_code, "API returned an empty audio response"
+                return response.content, response.status_code, None, ignored_parameter_warnings(response)
+            return None, response.status_code, "API returned an empty audio response", []
 
         message = error_text(response)
         if response.status_code in RETRYABLE_STATUS_CODES and attempt < config.retries:
@@ -614,32 +856,35 @@ def synthesize(
             delay = float(retry_after) if retry_after and retry_after.isdigit() else 2**attempt
             time.sleep(delay)
             continue
-        return None, response.status_code, message
-    return None, None, "unreachable retry state"
+        return None, response.status_code, message, []
+    return None, None, "unreachable retry state", []
 
 
 def synthesize_with_api_keys(
-    session: requests.Session, config: FishAudioConfig, api_keys: Iterable[str], text: str
-) -> tuple[bytes | None, int | None, str | None]:
+    session: requests.Session, config: FishAudioConfig, api_keys: Iterable[str],
+    effective: EffectiveGenerationConfig | None = None,
+) -> tuple[bytes | None, int | None, str | None, list[str]]:
     """Try keys in file order, rotating only for authentication/rate-limit failures."""
     last_status: int | None = None
     errors: list[str] = []
     for key_index, api_key in enumerate(api_keys, start=1):
-        audio, status, error = synthesize(session, config, api_key, text)
+        audio, status, error, warnings = synthesize(session, config, api_key, effective)
         if audio is not None:
-            return audio, status, None
+            return audio, status, None, warnings
         last_status = status
         errors.append(f"key #{key_index}: HTTP {status or '-'} {error or 'generation failed'}")
         if status not in KEY_ROTATION_STATUS_CODES:
             # A validation or network error is not credential-specific.
-            return None, status, errors[-1]
-    return None, last_status, "All configured API keys failed. " + "; ".join(errors)
+            return None, status, errors[-1], []
+    return None, last_status, "All configured API keys failed. " + "; ".join(errors), []
 
 
 def make_record(
     key: str, line: str, tts_text: str, config: FishAudioConfig, filename: str | None, status: str,
-    error: str | None = None, http_status: int | None = None,
+    settings: VoiceSynthesisSettings | None = None,
+    error: str | None = None, http_status: int | None = None, warnings: list[str] | None = None,
 ) -> GenerationRecord:
+    resolved = settings or VoiceSynthesisSettings(DEFAULT_SPEED, DEFAULT_VOLUME, DEFAULT_STABILITY, DEFAULT_SIMILARITY, "", DEFAULT_TEXT_NORMALIZATION)
     return GenerationRecord(
         key=key,
         line=line,
@@ -649,8 +894,15 @@ def make_record(
         generatedAt=utc_now(),
         file=filename,
         status=status,
+        speed=resolved.speed,
+        volume=resolved.volume,
+        stability=resolved.stability,
+        similarity=resolved.similarity,
+        language=resolved.language,
+        textNormalization=resolved.text_normalization,
         error=error,
         httpStatus=http_status,
+        warnings=warnings or [],
     )
 
 
@@ -699,7 +951,7 @@ def migrate_pack_metadata(
     refreshed_cache: dict[str, dict[str, Any]] = {}
     for item in plan:
         previous = cache[item.key]
-        refreshed = cache_entry(item.key, item.line, item.tts_text, item.filename, item.fingerprint, config)
+        refreshed = cache_entry(item.key, item.line, item.tts_text, item.filename, item.fingerprint, config, item.settings, item.effective)
         refreshed["createdAt"] = previous.get("createdAt", refreshed["createdAt"])
         refreshed_cache[item.key] = refreshed
 
@@ -716,6 +968,12 @@ def migrate_pack_metadata(
                 "modelId": config.model_id,
                 "file": item.filename,
                 "status": str(previous.get("status") or "reused"),
+                "speed": item.settings.speed,
+                "volume": item.settings.volume,
+                "stability": item.settings.stability,
+                "similarity": item.settings.similarity,
+                "language": item.settings.language,
+                "textNormalization": item.settings.text_normalization,
             }
         )
         previous.pop("text", None)
@@ -754,7 +1012,8 @@ def main() -> int:
     cache_path = output / ".voice_cache.json"
     cache = read_voice_cache(cache_path, config)
     audio_dir = output / "audio"
-    full_plan, orphaned = build_generation_plan(rows, filenames_by_key, cache, audio_dir, config, args.force)
+    pack_locale = str(pack_metadata.get("locale", "")).strip()
+    full_plan, orphaned = build_generation_plan(rows, filenames_by_key, cache, audio_dir, config, args.force, pack_locale)
     try:
         selected_keys = parse_key_filter(args.keys)
         plan = filter_generation_plan(full_plan, selected_keys, filenames_by_key)
@@ -826,30 +1085,30 @@ def main() -> int:
     for row_number, item in enumerate(plan, start=2):
         if item.status == "invalid":
             identifier = item.key or f"__row_{row_number}"
-            records_by_key[identifier] = asdict(make_record(identifier, item.line, item.tts_text, config, item.filename or None, "failed", item.reason))
+            records_by_key[identifier] = asdict(make_record(identifier, item.line, item.tts_text, config, item.filename or None, "failed", item.settings, item.reason))
             failed += 1
             continue
         if item.status == "unchanged":
             # Keep UI text current in diagnostics even when the TTS input did not change.
             cache[item.key]["line"] = item.line
             cache[item.key]["ttsText"] = item.tts_text
-            records_by_key[item.key] = asdict(make_record(item.key, item.line, item.tts_text, config, item.filename, "skipped"))
+            records_by_key[item.key] = asdict(make_record(item.key, item.line, item.tts_text, config, item.filename, "skipped", item.settings))
             skipped += 1
             cli_log(args, f"Skip: {item.filename} ({item.reason})")
             continue
 
         destination = audio_dir / item.filename
-        audio, http_status, error = synthesize_with_api_keys(session, config, api_keys, item.tts_text)
+        audio, http_status, error, warnings = synthesize_with_api_keys(session, config, api_keys, item.effective)
         if audio is None:
-            records_by_key[item.key] = asdict(make_record(item.key, item.line, item.tts_text, config, item.filename, "failed", error, http_status))
+            records_by_key[item.key] = asdict(make_record(item.key, item.line, item.tts_text, config, item.filename, "failed", item.settings, error, http_status))
             failed += 1
             print(f"Failed {item.key}: HTTP {http_status or '-'} {error}", file=sys.stderr)
             continue
         temporary = destination.with_suffix(f"{destination.suffix}.part")
         temporary.write_bytes(audio)
         temporary.replace(destination)
-        cache[item.key] = cache_entry(item.key, item.line, item.tts_text, item.filename, item.fingerprint, config)
-        records_by_key[item.key] = asdict(make_record(item.key, item.line, item.tts_text, config, item.filename, "generated", http_status=http_status))
+        cache[item.key] = cache_entry(item.key, item.line, item.tts_text, item.filename, item.fingerprint, config, item.settings, item.effective)
+        records_by_key[item.key] = asdict(make_record(item.key, item.line, item.tts_text, config, item.filename, "generated", item.settings, http_status=http_status, warnings=warnings))
         generated += 1
         cli_log(args, f"Generated {item.key} -> {destination.name}")
 
@@ -871,6 +1130,7 @@ def main() -> int:
                 "file": item.filename,
                 "status": str(record.get("status") or item.status),
                 "error": str(record.get("error")) if record.get("error") else None,
+                "warnings": record.get("warnings") if isinstance(record.get("warnings"), list) else [],
             })
         print(json.dumps(json_result(
             success=failed == 0, generated=generated, failed=failed, skipped=skipped, items=result_items,

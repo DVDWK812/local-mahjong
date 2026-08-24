@@ -18,6 +18,8 @@ describe('syncVoiceLineCatalog', () => {
     expect(await syncVoiceLineCatalog(root)).toBe(34);
     const rows = await fs.readFile(path.join(root, 'custom', 'voice_lines.csv'), 'utf8');
     expect(rows).toContain('legacy.one,action,one,用户编辑,用户发音,zh-CN,custom,neutral');
+    expect(rows.split(/\r?\n/)[0]).toContain('speed,volume,stability,similarity,language_override,text_normalization');
+    expect(rows).toContain('用户编辑,用户发音,zh-CN,custom,neutral,1,0,1,1,,true');
     expect(rows.split(/\r?\n/).filter(Boolean)).toHaveLength(36);
     expect(await syncVoiceLineCatalog(root)).toBe(0);
   });
