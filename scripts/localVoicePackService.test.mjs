@@ -10,7 +10,7 @@ async function fixture() {
   const voiceRoot = path.join(root, 'voice_lines'); await fs.mkdir(voiceRoot);
   const master = path.join(voiceRoot, 'mahjong_voice_lines.csv');
   const rows = ['key,category,action,line,tts_text,locale,character,emotion'];
-  for (let index = 0; index < 148; index += 1) rows.push(`action.test_${index},action,test,测试,测试,zh-CN,default,firm`);
+  for (let index = 0; index < 145; index += 1) rows.push(`action.test_${index},action,test,测试,测试,zh-CN,default,firm`);
   await fs.writeFile(master, `${rows.join('\n')}\n`, 'utf8');
   return { root: voiceRoot, master, service: new LocalVoicePackService({ root: voiceRoot, masterCsv: master, now: () => new Date('2026-08-22T00:00:00Z') }) };
 }
@@ -23,10 +23,10 @@ describe('LocalVoicePackService', () => {
     expect(attempts).toBe(3); expect(delays).toEqual([100, 200]);
   });
 
-  it('原子创建标准 Pack，复制 148 条母版且生成可发现 index', async () => {
+  it('原子创建标准 Pack，复制 145 条母版且生成可发现 index', async () => {
     const { root, master, service } = await fixture();
     const result = await service.createPack({ displayName: '冷静女声', voiceId: 'voice-id-2', modelId: 'fishaudio-s21pro-flash' });
-    expect(result).toMatchObject({ pack: { id: 'voice-20260822-001', name: '冷静女声', locale: 'zh-CN' }, lineCount: 148 });
+    expect(result).toMatchObject({ pack: { id: 'voice-20260822-001', name: '冷静女声', locale: 'zh-CN' }, lineCount: 145 });
     const created = path.join(root, result.pack.id);
     expect(JSON.parse(await fs.readFile(path.join(created, 'pack.json'), 'utf8'))).toMatchObject({ id: result.pack.id, name: '冷静女声', provider: 'fish-audio', voiceId: 'voice-id-2', modelId: 'fishaudio-s21pro-flash', version: 1 });
     expect(await fs.readFile(path.join(created, 'voice_lines.csv'), 'utf8')).toBe(await fs.readFile(master, 'utf8'));
@@ -38,7 +38,7 @@ describe('LocalVoicePackService', () => {
       meta: { id: result.pack.id, name: '冷静女声', voiceId: 'voice-id-2' },
       manifest: { voices: {} }, generationCache: {}, failedKeys: [],
     });
-    expect(detail.voiceLines).toHaveLength(148);
+    expect(detail.voiceLines).toHaveLength(145);
   });
 
   it('只生成安全 ASCII ID，重复创建使用安全后缀', async () => {

@@ -1,34 +1,58 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { VOICE_PACK_REPOSITORY, VoicePackRepository } from '../../audio/voice/VoicePackRepository';
-import { DisclosureButton, GenerationConfirmationPanel, GenerationSettingsFields, TextControlPalette, VoiceManagementScreen, generatePlanTargets, generationOutcome, generationTargetCount, generationTargetKeys, ttsOverrideForDraft } from './VoiceManagementScreen';
+import { DisclosureButton, EffectiveTtsTextEditor, GenerationConfirmationPanel, GenerationSettingsFields, TextControlPalette, VoiceManagementScreen, VoiceSearchResultGroup, effectiveTtsForDisplay, filterVoiceLines, generatePlanTargets, generationOutcome, generationTargetCount, generationTargetKeys, groupSearchVoiceLines, insertTextControlAtSelection, resolveRuntimeGenerationStatus, searchGroupStatusSummary } from './VoiceManagementScreen';
 import { textControlProfileForModel } from '../../audio/voice/textControlProfiles';
+import { synchronizeFromPlainText, synchronizeFromTtsText } from '../../audio/voice/ttsTextSynchronization';
 import { SettingHelpTooltip, settingHelpTooltipPosition } from './SettingHelpTooltip';
+import type { VoiceLine } from '../../audio/voice/types';
 
 describe('VoiceManagementScreen', () => {
-  it('作为独立界面显示当前校长的 148 条可编辑语音与生成摘要', () => {
+  it('作为独立界面显示当前校长的 145 条可编辑语音与生成摘要', () => {
     const html = renderToStaticMarkup(<VoiceManagementScreen packId="xiaozhang" voiceVolume={0.8} onBack={() => undefined} />);
     expect(html).toContain('语音管理');
     expect(html).toContain('← 返回');
     expect(html).toContain('校长');
-    expect(html).toContain('中文 · 148 条语音');
+    expect(html).toContain('中文 · 145 条语音');
     expect(html).toContain('立直');
     expect(html).toContain('统一高级设置');
     expect(html).toContain('高级设置');
     expect(html).toContain('placeholder="动作或台词"');
     expect(html).not.toContain('placeholder="动作、台词或 key"');
     expect(html).toContain('试听始终播放已生成的音频版本');
-    expect(html).toContain('已生成 148');
+    for (const removed of ['实际 TTS 输入：', '高级发音已自定义', '高级发音覆盖']) expect(html).not.toContain(removed);
+    expect(html).toContain('已生成 145');
     for (const heading of ['个性化 / 对局', '核心动作', '特殊对局', '结算等级', '役满', '常规役种', '特殊役', '宝牌', '出牌报牌']) {
       expect(html).toContain(`voice-management-screen__group-title">${heading}`);
     }
-    expect((html.match(/voice-management-screen__row" role="row"/g) ?? []).length).toBe(148);
+    expect((html.match(/voice-management-screen__row" role="row"/g) ?? []).length).toBe(145);
   });
 
   it('未知 Pack 显示可恢复错误，不会导致页面崩溃', () => {
     const html = renderToStaticMarkup(<VoiceManagementScreen packId="removed-pack" voiceVolume={0.8} onBack={() => undefined} />);
     expect(html).toContain('当前语音包不可用');
     expect(html).toContain('← 返回');
+  });
+
+  it('搜索同名立直台词时仅按显示台词分组；展开后每个原 key 仍独立存在', () => {
+    const matches: VoiceLine[] = [
+      { key: 'action.riichi', category: 'action', action: 'riichi', line: '立直', tts_text: '立直', locale: 'zh-CN', character: 'test', emotion: '' },
+      { key: 'yaku.riichi', category: 'yaku', action: 'riichi', line: ' 立直 ', tts_text: '立直', locale: 'zh-CN', character: 'test', emotion: '' },
+    ];
+    const original = JSON.stringify(matches);
+    const groups = groupSearchVoiceLines(filterVoiceLines(matches, '立直'));
+    expect(groups.map((group) => [group.line, group.lines.length])).toEqual([['立直', 2]]);
+    expect(groups.flatMap((group) => group.lines.map((line) => line.key))).toEqual(matches.map((line) => line.key));
+    expect(new Set(groups.flatMap((group) => group.lines.map((line) => line.key))).size).toBe(2);
+    expect(JSON.stringify(matches)).toBe(original);
+
+    const statuses = { 'action.riichi': 'generated', 'yaku.riichi': 'changed' } as const;
+    expect(searchGroupStatusSummary(groups[0].lines, statuses)).toBe('1 已生成 · 1 已修改');
+    const collapsed = renderToStaticMarkup(<VoiceSearchResultGroup group={groups[0]} expanded={false} statuses={statuses} onToggle={() => undefined} renderLine={(line) => <span key={line.key}>{line.key}</span>} />);
+    expect(collapsed).toContain('立直'); expect(collapsed).toContain('2 条'); expect(collapsed).not.toContain('action.riichi');
+    const expanded = renderToStaticMarkup(<VoiceSearchResultGroup group={groups[0]} expanded statuses={statuses} onToggle={() => undefined} renderLine={(line) => <span key={line.key}>{line.key}</span>} />);
+    expect((expanded.match(/action\.riichi/g) ?? []).length).toBe(1);
+    expect((expanded.match(/yaku\.riichi/g) ?? []).length).toBe(1);
   });
 
   it('缺失音频在独立列表中禁用试听', () => {
@@ -68,16 +92,34 @@ describe('VoiceManagementScreen', () => {
       .toEqual(expect.objectContaining({ remainInManagement: true }));
   });
 
-  it('高级发音输入为空或与台词相同即恢复为 Python fallback 的默认发音', () => {
-    const line = { line: '自摸！' };
-    expect(ttsOverrideForDraft(line, '')).toBe('');
-    expect(ttsOverrideForDraft(line, '  自摸！  ')).toBe('');
-    expect(ttsOverrideForDraft(line, '<|phoneme_start|>zi4 mo1<|phoneme_end|>')).toBe('<|phoneme_start|>zi4 mo1<|phoneme_end|>');
+  it('普通台词和高级 TTS 文本均作为一次同步编辑，最后一次编辑决定两者', () => {
+    expect(synchronizeFromPlainText('这次是我输了。')).toEqual({ line: '这次是我输了。', ttsText: '这次是我输了。' });
+    expect(synchronizeFromTtsText('哼[pause]，让你们一把！[embarrassed]', '第四名', textControlProfileForModel('fishaudio-s21pro-flash')))
+      .toEqual({ line: '哼，让你们一把！', ttsText: '哼[pause]，让你们一把！[embarrassed]' });
+  });
+
+  it('高级设置文本框始终显示实际 TTS 输入；仅编辑或插入标签才创建 override', () => {
+    const followingLine = { line: '第四名', tts_text: '' };
+    const customLine = { line: '第四名', tts_text: '哼，让你们一把[embarrassed]' };
+    expect(effectiveTtsForDisplay(followingLine)).toBe('第四名');
+    expect(followingLine.tts_text).toBe('');
+    expect(effectiveTtsForDisplay({ line: '  第四名  ', tts_text: '  ' })).toBe('第四名');
+    expect(effectiveTtsForDisplay(customLine)).toBe('哼，让你们一把[embarrassed]');
+    const editor = renderToStaticMarkup(<EffectiveTtsTextEditor inputRef={{ current: null }} lineKey="result.fourth_place" value={effectiveTtsForDisplay(followingLine)} onChange={() => undefined} onBlur={() => undefined} />);
+    expect(editor).toContain('textarea');
+    expect(editor).toContain('第四名');
+    expect(editor).not.toContain('高级发音覆盖');
+    const withTag = insertTextControlAtSelection(effectiveTtsForDisplay(followingLine), '[embarrassed]', 3, 3);
+    expect(withTag).toBe('第四名[embarrassed]');
+    expect(synchronizeFromTtsText(withTag, followingLine.line, textControlProfileForModel('fishaudio-s21pro-flash')))
+      .toEqual({ line: '第四名', ttsText: '第四名[embarrassed]' });
+    expect(synchronizeFromTtsText('', followingLine.line, textControlProfileForModel('fishaudio-s21pro-flash')))
+      .toEqual({ line: '第四名', ttsText: '' });
   });
 
   it('固定生成确认区域显示实际目标数量与运行中 key 级进度，0 条时不显示进度', () => {
     const plan = {
-      packId: 'xiaozhang', total: 148, unchanged: 114, changed: 1, new: 32, missing: 1, apiCalls: 34,
+      packId: 'xiaozhang', total: 145, unchanged: 111, changed: 1, new: 32, missing: 1, apiCalls: 34,
       items: [
         { key: 'tile.m1', line: '一万', file: 'audio/tile_m1.mp3', status: 'new' as const, reason: 'new' },
         { key: 'action.riichi', line: '立直', file: 'audio/action_riichi.mp3', status: 'changed' as const, reason: 'changed' },
@@ -135,17 +177,47 @@ describe('VoiceManagementScreen', () => {
           : { success: false, generated: 0, failed: 1, skipped: 0, items: [{ key: 'tile.m1', file: 'audio/tile_m1.mp3', status: 'failed', error: 'final failure' }] };
       },
     };
-    const result = await generatePlanTargets(service, 'xiaozhang', plan, [{ key: 'tile.m1', ttsText: '一万' }], (next, key) => progress.push({ ...next, key }));
+    const terminal: Array<{ key: string; status: string }> = [];
+    const result = await generatePlanTargets(service, 'xiaozhang', plan, [{ key: 'tile.m1', ttsText: '一万' }], (next, key) => { progress.push({ ...next, key }); }, (key, itemResult) => { terminal.push({ key, status: itemResult.items[0]?.status ?? '' }); });
     expect(calls).toEqual([
       ['xiaozhang', ['action.riichi'], []],
       ['xiaozhang', ['tile.m1'], [{ key: 'tile.m1', ttsText: '一万' }]],
     ]);
     expect(progress).toEqual([
       { completed: 0, total: 2, key: null },
-      { completed: 1, total: 2, key: 'action.riichi' },
-      { completed: 2, total: 2, key: 'tile.m1' },
+      { completed: 0, total: 2, key: 'action.riichi' },
+      { completed: 1, total: 2, key: null },
+      { completed: 1, total: 2, key: 'tile.m1' },
+      { completed: 2, total: 2, key: null },
     ]);
+    expect(terminal).toEqual([{ key: 'action.riichi', status: 'generated' }, { key: 'tile.m1', status: 'failed' }]);
     expect(result).toMatchObject({ success: false, generated: 1, failed: 1 });
+  });
+
+  it('Bridge 异常也将对应 key 标记为终态，保留已成功的条目', async () => {
+    const plan = { packId: 'xiaozhang', total: 2, unchanged: 0, changed: 0, new: 2, missing: 0, apiCalls: 2, items: [
+      { key: 'action.riichi', line: '立直', file: 'audio/action_riichi.mp3', status: 'new' as const, reason: 'new' },
+      { key: 'action.ron', line: '荣和', file: 'audio/action_ron.mp3', status: 'new' as const, reason: 'new' },
+    ] };
+    let attempts = 0; const progress: number[] = [];
+    const service = {
+      previewGeneration: async () => plan,
+      generate: async () => {
+        attempts += 1;
+        if (attempts === 2) throw new Error('GENERATOR_INVALID_RESPONSE: 语音生成器响应无效。');
+        return { success: true, generated: 1, failed: 0, skipped: 0, items: [{ key: 'action.riichi', file: 'audio/action_riichi.mp3', status: 'generated', error: null }] };
+      },
+    };
+    const result = await generatePlanTargets(service, 'xiaozhang', plan, [], (next) => progress.push(next.completed));
+    expect(result).toMatchObject({ success: false, generated: 1, failed: 1 });
+    expect(progress).toEqual([0, 0, 1, 1, 2]);
+  });
+
+  it('单条 runtime overlay 在刷新前保留 terminal 状态，不会回退到旧的未生成快照', () => {
+    expect(resolveRuntimeGenerationStatus('not-generated', 'generating')).toBe('not-generated');
+    expect(resolveRuntimeGenerationStatus('not-generated', 'generated')).toBe('generated');
+    expect(resolveRuntimeGenerationStatus('changed', 'failed')).toBe('failed');
+    expect(resolveRuntimeGenerationStatus('generated')).toBe('generated');
   });
 
   it('高级设置明确显示所有生成参数与 Fish 语言覆盖，且不在静态渲染时请求生成', () => {

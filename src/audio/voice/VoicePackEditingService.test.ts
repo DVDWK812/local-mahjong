@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { MemoryVoiceLineOverrideStorage, VoicePackEditingService, createVoiceLineDraft, graphemeCount, hasCustomPronunciation, validateDisplayLine, voiceLineEditorKeyAction } from './VoicePackEditingService';
+import { MemoryVoiceLineOverrideStorage, VoicePackEditingService, createVoiceLineDraft, graphemeCount, hasCustomPronunciation, type VoiceLineOverrideStorage, type VoiceLinePatch, validateDisplayLine, voiceLineEditorKeyAction } from './VoicePackEditingService';
+import { textControlProfileForModel } from './textControlProfiles';
 import { VOICE_PACK_REPOSITORY } from './VoicePackRepository';
 
 describe('VoicePackEditingService', () => {
@@ -30,27 +31,33 @@ describe('VoicePackEditingService', () => {
     expect(reloaded.getVoiceLine('xiaozhang', 'action.riichi')).toMatchObject({ line: '我要立直', tts_text: longPhoneme });
   });
 
-  it('历史 tts_text 等于旧 line 时视为默认发音，编辑台词后清空 override 以跟随新台词', () => {
+  it('普通台词编辑作为最新来源，同步覆盖旧的 TTS 控制文本', () => {
     const editor = new VoicePackEditingService(VOICE_PACK_REPOSITORY, new MemoryVoiceLineOverrideStorage());
+    editor.updateFromTtsText('xiaozhang', 'action.riichi', '哼[pause]，让你们一把！[embarrassed]', textControlProfileForModel('fishaudio-s21pro-flash'));
     const updated = editor.updateVoiceLine('xiaozhang', 'action.riichi', { line: '哇哦！我要立直' });
-    expect(updated).toMatchObject({ line: '哇哦！我要立直', tts_text: '' });
+    expect(updated).toMatchObject({ line: '哇哦！我要立直', tts_text: '哇哦！我要立直' });
     expect(hasCustomPronunciation(updated)).toBe(false);
   });
 
-  it('自定义高级发音在编辑显示台词时保持不变', () => {
-    const editor = new VoicePackEditingService(VOICE_PACK_REPOSITORY, new MemoryVoiceLineOverrideStorage());
-    const phoneme = '<|phoneme_start|>li4 zhi2<|phoneme_end|>';
-    editor.updateVoiceLine('xiaozhang', 'action.riichi', { ttsText: phoneme });
-    const updated = editor.updateVoiceLine('xiaozhang', 'action.riichi', { line: '漂亮！立直！' });
-    expect(updated).toMatchObject({ line: '漂亮！立直！', tts_text: phoneme });
+  it('高级 TTS 文本编辑会在一次持久化事务中同步可显示台词', () => {
+    class CountingStorage implements VoiceLineOverrideStorage {
+      count = 0; private value: Record<string, Record<string, VoiceLinePatch>> = {};
+      load(): Record<string, Record<string, VoiceLinePatch>> { return structuredClone(this.value); }
+      save(value: Record<string, Record<string, VoiceLinePatch>>): void { this.count += 1; this.value = structuredClone(value); }
+    }
+    const storage = new CountingStorage();
+    const editor = new VoicePackEditingService(VOICE_PACK_REPOSITORY, storage);
+    const updated = editor.updateFromTtsText('xiaozhang', 'action.riichi', '哼[pause]，让你们一把！[embarrassed]', textControlProfileForModel('fishaudio-s21pro-flash'));
+    expect(updated).toMatchObject({ line: '哼，让你们一把！', tts_text: '哼[pause]，让你们一把！[embarrassed]' });
     expect(hasCustomPronunciation(updated)).toBe(true);
+    expect(storage.count).toBe(1);
   });
 
   it('恢复默认发音保存空 tts_text，之后台词继续自动跟随', () => {
     const editor = new VoicePackEditingService(VOICE_PACK_REPOSITORY, new MemoryVoiceLineOverrideStorage());
     editor.updateVoiceLine('xiaozhang', 'action.riichi', { line: '我要立直', ttsText: '<|phoneme_start|>li4 zhi2<|phoneme_end|>' });
     expect(editor.resetPronunciation('xiaozhang', 'action.riichi')).toMatchObject({ line: '我要立直', tts_text: '' });
-    expect(editor.updateVoiceLine('xiaozhang', 'action.riichi', { line: '再次立直' })).toMatchObject({ line: '再次立直', tts_text: '' });
+    expect(editor.updateVoiceLine('xiaozhang', 'action.riichi', { line: '再次立直' })).toMatchObject({ line: '再次立直', tts_text: '再次立直' });
   });
 
   it('Bridge 确认写入后清除本地 overlay，后续计划只读取权威 CSV 数据', () => {

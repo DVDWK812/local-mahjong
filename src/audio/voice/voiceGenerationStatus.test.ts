@@ -4,6 +4,7 @@ import { VOICE_PACK_REPOSITORY } from './VoicePackRepository';
 import { generationStatusSummary, getVoiceLineGenerationStatus, getVoicePackGenerationStatuses } from './voiceGenerationStatus';
 import { voiceFingerprint } from './voiceFingerprint';
 import { resolveEffectiveGenerationConfig, VOICE_FINGERPRINT_VERSION } from './effectiveGenerationConfig';
+import { textControlProfileForModel } from './textControlProfiles';
 
 describe('Voice generation status', () => {
   it('与 Phase 0 Python cache 的实际 fingerprint 严格一致', () => {
@@ -14,23 +15,23 @@ describe('Voice generation status', () => {
     expect(getVoiceLineGenerationStatus(detail, line)).toBe('generated');
   });
 
-  it('现有 148 条初始均为已生成；改变十条实际 TTS 输入后只标记十条已修改', () => {
+  it('现有 145 条初始均为已生成；改变十条实际 TTS 输入后只标记十条已修改', () => {
     const detail = VOICE_PACK_REPOSITORY.getPack('xiaozhang');
     if (!detail) throw new Error('Missing xiaozhang fixture');
     const initial = generationStatusSummary(getVoicePackGenerationStatuses(detail, detail.voiceLines));
-    expect(initial).toMatchObject({ generated: 148, changed: 0, 'not-generated': 0, 'missing-audio': 0 });
+    expect(initial).toMatchObject({ generated: 145, changed: 0, 'not-generated': 0, 'missing-audio': 0 });
     const editor = new VoicePackEditingService(VOICE_PACK_REPOSITORY, new MemoryVoiceLineOverrideStorage());
     detail.voiceLines.slice(0, 10).forEach((line) => editor.updateVoiceLine('xiaozhang', line.key, { ttsText: `${line.tts_text}<|phoneme_start|>fa1<|phoneme_end|>` }));
-    expect(generationStatusSummary(getVoicePackGenerationStatuses(detail, editor.getVoiceLines('xiaozhang')))).toMatchObject({ generated: 138, changed: 10, 'not-generated': 0, 'missing-audio': 0 });
+    expect(generationStatusSummary(getVoicePackGenerationStatuses(detail, editor.getVoiceLines('xiaozhang')))).toMatchObject({ generated: 135, changed: 10, 'not-generated': 0, 'missing-audio': 0 });
   });
 
   it('完整 Pack 保留真实增量状态：校长与曼波均全量已生成', () => {
     const xiaozhang = VOICE_PACK_REPOSITORY.getPack('xiaozhang');
     const mambo = VOICE_PACK_REPOSITORY.getPack('voice-20260821-001');
     if (!xiaozhang || !mambo) throw new Error('Missing complete Pack fixture');
-    expect(xiaozhang.voiceLines).toHaveLength(148); expect(mambo.voiceLines).toHaveLength(148);
-    expect(generationStatusSummary(getVoicePackGenerationStatuses(xiaozhang, xiaozhang.voiceLines))).toMatchObject({ generated: 148, changed: 0, 'not-generated': 0, 'missing-audio': 0 });
-    expect(generationStatusSummary(getVoicePackGenerationStatuses(mambo, mambo.voiceLines))).toMatchObject({ generated: 148, changed: 0, 'not-generated': 0, 'missing-audio': 0 });
+    expect(xiaozhang.voiceLines).toHaveLength(145); expect(mambo.voiceLines).toHaveLength(145);
+    expect(generationStatusSummary(getVoicePackGenerationStatuses(xiaozhang, xiaozhang.voiceLines))).toMatchObject({ generated: 145, changed: 0, 'not-generated': 0, 'missing-audio': 0 });
+    expect(generationStatusSummary(getVoicePackGenerationStatuses(mambo, mambo.voiceLines))).toMatchObject({ generated: 145, changed: 0, 'not-generated': 0, 'missing-audio': 0 });
     expect(getVoiceLineGenerationStatus(mambo, mambo.voiceLines.find((line) => line.key === 'flavor.close_game')!)).toBe('generated');
   });
 
@@ -44,6 +45,20 @@ describe('Voice generation status', () => {
     expect(getVoiceLineGenerationStatus(detail, { ...line, tts_text: '<|phoneme_start|>wo3 yao4 li4 zhi2<|phoneme_end|>' })).toBe('changed');
   });
 
+  it('最后一次普通或高级文本编辑都会改变 effective TTS 与 generation plan 状态', () => {
+    const detail = VOICE_PACK_REPOSITORY.getPack('xiaozhang');
+    const source = detail?.voiceLines.find((line) => line.key === 'action.ron');
+    if (!detail || !source) throw new Error('Missing ron fixture');
+    const editor = new VoicePackEditingService(VOICE_PACK_REPOSITORY, new MemoryVoiceLineOverrideStorage());
+    const advanced = editor.updateFromTtsText('xiaozhang', source.key, '哼[pause]，让你们一把！[embarrassed]', textControlProfileForModel(detail.meta.modelId));
+    expect(advanced).toMatchObject({ line: '哼，让你们一把！', tts_text: '哼[pause]，让你们一把！[embarrassed]' });
+    expect(getVoiceLineGenerationStatus(detail, advanced)).toBe('changed');
+    const plain = editor.updateFromPlainText('xiaozhang', source.key, '这次是我输了。');
+    expect(plain).toMatchObject({ line: '这次是我输了。', tts_text: '这次是我输了。' });
+    expect(resolveEffectiveGenerationConfig(plain, detail.meta, detail.synthesis).text).toBe('这次是我输了。');
+    expect(generationStatusSummary(getVoicePackGenerationStatuses(detail, editor.getVoiceLines('xiaozhang')))).toMatchObject({ generated: 144, changed: 1 });
+  });
+
   it('缺失音频与明确失败记录安全显示为对应状态', () => {
     const source = VOICE_PACK_REPOSITORY.getPack('xiaozhang');
     if (!source) throw new Error('Missing xiaozhang fixture');
@@ -52,18 +67,26 @@ describe('Voice generation status', () => {
     expect(getVoiceLineGenerationStatus({ ...source, failedKeys: [line.key] }, line)).toBe('failed');
   });
 
-  it('单条生成参数变更只标记该条；统一参数应用会标记全部 148 条', () => {
+  it('cache 有记录但 manifest 没有可用 MP3 时显示缺失，而不是幽灵已生成', () => {
+    const source = VOICE_PACK_REPOSITORY.getPack('xiaozhang');
+    if (!source) throw new Error('Missing xiaozhang fixture');
+    const line = source.voiceLines[0];
+    const ghost = { ...source, voiceAvailability: Object.fromEntries(Object.entries(source.voiceAvailability).filter(([key]) => key !== line.key)) };
+    expect(getVoiceLineGenerationStatus(ghost, line)).toBe('missing-audio');
+  });
+
+  it('单条生成参数变更只标记该条；统一参数应用会标记全部 145 条', () => {
     const detail = VOICE_PACK_REPOSITORY.getPack('xiaozhang');
     if (!detail) throw new Error('Missing xiaozhang fixture');
     const one = new VoicePackEditingService(VOICE_PACK_REPOSITORY, new MemoryVoiceLineOverrideStorage());
     one.updateVoiceLine('xiaozhang', 'action.ron', { speed: 1.2 });
-    expect(generationStatusSummary(getVoicePackGenerationStatuses(detail, one.getVoiceLines('xiaozhang')))).toMatchObject({ generated: 147, changed: 1 });
+    expect(generationStatusSummary(getVoicePackGenerationStatuses(detail, one.getVoiceLines('xiaozhang')))).toMatchObject({ generated: 144, changed: 1 });
     const stability = new VoicePackEditingService(VOICE_PACK_REPOSITORY, new MemoryVoiceLineOverrideStorage());
     stability.updateVoiceLine('xiaozhang', 'action.ron', { stability: 0.8 });
-    expect(generationStatusSummary(getVoicePackGenerationStatuses(detail, stability.getVoiceLines('xiaozhang')))).toMatchObject({ generated: 147, changed: 1 });
+    expect(generationStatusSummary(getVoicePackGenerationStatuses(detail, stability.getVoiceLines('xiaozhang')))).toMatchObject({ generated: 144, changed: 1 });
     const all = new VoicePackEditingService(VOICE_PACK_REPOSITORY, new MemoryVoiceLineOverrideStorage());
     detail.voiceLines.forEach((line) => all.updateVoiceLine('xiaozhang', line.key, { speed: 1.2 }));
-    expect(generationStatusSummary(getVoicePackGenerationStatuses(detail, all.getVoiceLines('xiaozhang')))).toMatchObject({ generated: 0, changed: 148 });
+    expect(generationStatusSummary(getVoicePackGenerationStatuses(detail, all.getVoiceLines('xiaozhang')))).toMatchObject({ generated: 0, changed: 145 });
   });
 
   it('language 和文本归一化属于 fingerprint，且不会改变 UI 台词或高级发音', () => {

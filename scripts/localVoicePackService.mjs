@@ -38,7 +38,7 @@ export class LocalVoicePackService {
     const voiceAvailability = {};
     for (const [key, entry] of Object.entries(manifest.voices ?? {})) {
       const file = typeof entry?.file === 'string' ? entry.file : '';
-      const exists = file && await fs.access(path.join(packDirectory, file)).then(() => true).catch(() => false);
+      const exists = file && await isValidMp3File(path.join(packDirectory, file));
       voiceAvailability[key] = { key, file, status: exists ? 'available' : 'missing-audio' };
     }
     const failedKeys = [...new Set([
@@ -145,6 +145,19 @@ export class LocalVoicePackService {
         : new VoicePackServiceError(500, '删除角色后刷新索引失败，已恢复本地角色。');
     }
   }
+}
+
+async function isValidMp3File(file) {
+  try {
+    const stat = await fs.stat(file);
+    if (!stat.isFile() || stat.size <= 0) return false;
+    const handle = await fs.open(file, 'r');
+    try {
+      const buffer = Buffer.alloc(3);
+      const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
+      return bytesRead === 3 && (buffer.subarray(0, 3).equals(Buffer.from('ID3')) || (buffer[0] === 0xff && (buffer[1] & 0xe0) === 0xe0));
+    } finally { await handle.close(); }
+  } catch { return false; }
 }
 
 async function readJson(file) { return JSON.parse(await fs.readFile(file, 'utf8')); }

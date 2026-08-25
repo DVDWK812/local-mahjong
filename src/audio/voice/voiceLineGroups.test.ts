@@ -10,9 +10,9 @@ describe('voiceLineGroups', () => {
     const flattened = grouped.flatMap(({ lines: groupLines }) => groupLines);
 
     expect(grouped.map(({ group }) => group.id)).toEqual(VOICE_LINE_GROUPS.map(({ id }) => id));
-    expect(grouped.map(({ lines: groupLines }) => groupLines.length)).toEqual([11, 10, 5, 11, 16, 32, 15, 14, 34]);
-    expect(flattened).toHaveLength(148);
-    expect(new Set(flattened.map((line) => line.key)).size).toBe(148);
+    expect(grouped.map(({ lines: groupLines }) => groupLines.length)).toEqual([11, 10, 5, 11, 15, 30, 15, 14, 34]);
+    expect(flattened).toHaveLength(145);
+    expect(new Set(flattened.map((line) => line.key)).size).toBe(145);
     expect(new Set(flattened.map((line) => line.key))).toEqual(new Set(lines.map((line) => line.key)));
   });
 

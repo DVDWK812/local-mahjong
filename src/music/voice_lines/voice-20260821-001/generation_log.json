@@ -57,9 +57,9 @@
     "file": "flavor_win.mp3",
     "status": "generated",
     "speed": 1.15,
-    "volume": 0.0,
-    "stability": 1.0,
-    "similarity": 1.0,
+    "volume": 0,
+    "stability": 1,
+    "similarity": 1,
     "language": "zh-CN",
     "textNormalization": true,
     "error": null,
@@ -679,18 +679,6 @@
     "httpStatus": null
   },
   {
-    "key": "yaku.honroutou_variant",
-    "line": "混老头",
-    "ttsText": "混老头",
-    "voiceId": "6ea69a95-793f-4c10-811f-f1b9ecb8866d",
-    "modelId": "fishaudio-s21pro-flash",
-    "generatedAt": "2026-08-23T15:11:22.309993Z",
-    "file": "yaku_honroutou_variant.mp3",
-    "status": "skipped",
-    "error": null,
-    "httpStatus": null
-  },
-  {
     "key": "yaku.sanshoku_doukou",
     "line": "三色同刻",
     "ttsText": "三色同刻",
@@ -751,18 +739,6 @@
     "httpStatus": null
   },
   {
-    "key": "yaku.chinroutou",
-    "line": "清老头",
-    "ttsText": "清老头",
-    "voiceId": "6ea69a95-793f-4c10-811f-f1b9ecb8866d",
-    "modelId": "fishaudio-s21pro-flash",
-    "generatedAt": "2026-08-23T15:11:22.309993Z",
-    "file": "yaku_chinroutou.mp3",
-    "status": "skipped",
-    "error": null,
-    "httpStatus": null
-  },
-  {
     "key": "yaku.shousangen",
     "line": "小三元",
     "ttsText": "小三元",
@@ -770,18 +746,6 @@
     "modelId": "fishaudio-s21pro-flash",
     "generatedAt": "2026-08-23T15:11:22.309993Z",
     "file": "yaku_shousangen.mp3",
-    "status": "skipped",
-    "error": null,
-    "httpStatus": null
-  },
-  {
-    "key": "yaku.honroutou_duplicate",
-    "line": "混老头",
-    "ttsText": "混老头",
-    "voiceId": "6ea69a95-793f-4c10-811f-f1b9ecb8866d",
-    "modelId": "fishaudio-s21pro-flash",
-    "generatedAt": "2026-08-23T15:11:22.309993Z",
-    "file": "yaku_honroutou_duplicate.mp3",
     "status": "skipped",
     "error": null,
     "httpStatus": null

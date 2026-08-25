@@ -33,4 +33,9 @@ export function textControlProfileForModel(modelId: string): TextControlProfile 
   return none;
 }
 
+/** Provider-recognized text-control tokens for shared editor normalization. */
+export function textControlTokens(profile: TextControlProfile): readonly string[] {
+  return profile.groups.flatMap((group) => group.controls.map((control) => control.token));
+}
+
 function examples(values: readonly (readonly [string, string])[]): TextControl[] { return values.map(([label, token]) => ({ label, token })); }

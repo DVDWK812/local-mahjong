@@ -1,6 +1,8 @@
 import { VOICE_PACK_REPOSITORY, type VoicePackRepository } from './VoicePackRepository';
 import type { VoiceLine } from './types';
 import { generationSettingsPatchToCsv, validateGenerationSettingsPatch, type VoiceGenerationSettingsPatch } from './voiceSynthesisSettings';
+import { synchronizeFromPlainText, synchronizeFromTtsText } from './ttsTextSynchronization';
+import type { TextControlProfile } from './textControlProfiles';
 
 const STORAGE_KEY = 'local-mahjong.voice-pack-line-overrides.v1';
 const MAX_LINE_GRAPHEMES = 30;
@@ -67,22 +69,29 @@ export class VoicePackEditingService {
   updateVoiceLine(packId: string, key: string, patch: VoiceLinePatch, sourceLines?: readonly VoiceLine[]): VoiceLine {
     const current = this.getVoiceLine(packId, key, sourceLines);
     if (!current) throw new Error('当前语音包或台词不存在，无法保存。');
-    if (patch.line !== undefined) {
-      const validation = validateDisplayLine(patch.line);
+    const synchronizedPatch = synchronizePatch(current, patch);
+    if (synchronizedPatch.line !== undefined) {
+      const validation = validateDisplayLine(synchronizedPatch.line);
       if (!validation.valid) throw new Error(validation.message ?? '台词无效。');
     }
-    const settingsError = validateGenerationSettingsPatch(patch);
+    const settingsError = validateGenerationSettingsPatch(synchronizedPatch);
     if (settingsError) throw new Error(settingsError);
-    // Historical `tts_text === line` is default pronunciation, not a custom override.
-    // Editing a default line clears tts_text so Python's fallback follows the new line.
-    const followsLine = !current.tts_text.trim() || normalizeForComparison(current.tts_text) === normalizeForComparison(current.line);
-    const normalizedPatch = patch.line !== undefined && patch.ttsText === undefined && followsLine
-      ? { ...patch, ttsText: '' }
-      : patch;
-    const next = { ...(this.overrides[packId]?.[key] ?? {}), ...normalizedPatch };
+    const next = { ...(this.overrides[packId]?.[key] ?? {}), ...synchronizedPatch };
     this.overrides = { ...this.overrides, [packId]: { ...(this.overrides[packId] ?? {}), [key]: next } };
     this.persist();
     return this.getVoiceLine(packId, key, sourceLines) as VoiceLine;
+  }
+
+  /** One local transaction: a normal display-text edit clears any old TTS controls. */
+  updateFromPlainText(packId: string, key: string, line: string, sourceLines?: readonly VoiceLine[]): VoiceLine {
+    return this.updateVoiceLine(packId, key, synchronizeFromPlainText(line), sourceLines);
+  }
+
+  /** One local transaction: an advanced TTS edit also refreshes the visible line. */
+  updateFromTtsText(packId: string, key: string, ttsText: string, profile?: TextControlProfile, sourceLines?: readonly VoiceLine[]): VoiceLine {
+    const current = this.getVoiceLine(packId, key, sourceLines);
+    if (!current) throw new Error('当前语音包或台词不存在，无法保存。');
+    return this.updateVoiceLine(packId, key, synchronizeFromTtsText(ttsText, current.line, profile), sourceLines);
   }
 
   resetPronunciation(packId: string, key: string, sourceLines?: readonly VoiceLine[]): VoiceLine {
@@ -126,6 +135,12 @@ function applyPatch(line: VoiceLine, patch: VoiceLinePatch | undefined): VoiceLi
     ...(patch.ttsText !== undefined ? { tts_text: patch.ttsText } : {}),
     ...generationSettingsPatchToCsv(patch),
   };
+}
+
+function synchronizePatch(current: VoiceLine, patch: VoiceLinePatch): VoiceLinePatch {
+  if (patch.line !== undefined && patch.ttsText === undefined) return { ...patch, ...synchronizeFromPlainText(patch.line) };
+  if (patch.ttsText !== undefined && patch.line === undefined) return { ...patch, ...synchronizeFromTtsText(patch.ttsText, current.line) };
+  return patch;
 }
 
 function normalizeForComparison(value: string): string { return value.trim(); }

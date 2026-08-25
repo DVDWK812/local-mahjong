@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { canCreateWithDiscovery, chooseDefaultCompatibleModel, createVoicePackInputForLanguage, CreateVoicePackScreen, selectedVoiceDesignPreset, shouldApplyDiscoveryResponse, VOICE_DESIGN_PRESET_GROUPS } from './CreateVoicePackScreen';
+import { canCreateWithDiscovery, chooseDefaultCompatibleModel, createVoicePackInputForLanguage, CreateVoicePackScreen, GeneratedVoiceRegistry, isCreatedVoiceInUse, selectedVoiceDesignPreset, shouldApplyDiscoveryResponse, VOICE_DESIGN_PRESET_GROUPS } from './CreateVoicePackScreen';
 
 describe('CreateVoicePackScreen', () => {
   it('展示独立创建表单，启动检测期间禁用创建，并明确 Voice ID 与零费用边界', () => {
@@ -64,5 +64,25 @@ describe('CreateVoicePackScreen', () => {
     expect(html).toContain('清泉少女');
     expect(html).toContain('热血解说');
     expect(html).toContain('职业 / 风格');
+  });
+
+  it('已生成音色在左侧提供删除控件；被角色使用时禁用并保留状态提示', () => {
+    const used = { voiceId: 'used-voice', name: '已使用音色', source: 'clone' as const, createdAt: '2026-08-25T00:00:00.000Z', linkedPackIds: ['yaya-001'] };
+    const unused = { voiceId: 'unused-voice', name: '未使用音色', source: 'design' as const, createdAt: '2026-08-25T00:00:00.000Z' };
+    const html = renderToStaticMarkup(<GeneratedVoiceRegistry voices={[used, unused]} state="ready" onRefresh={async () => undefined} onUse={async () => undefined} />);
+    expect(isCreatedVoiceInUse(used)).toBe(true);
+    expect(isCreatedVoiceInUse(unused)).toBe(false);
+    expect(html).toMatch(/aria-label="删除 已使用音色 音色"[^>]*disabled=""[^>]*title="角色正在被使用，无法删除"/);
+    expect(html).not.toContain('created-voice-list__status');
+    expect(html).toMatch(/aria-label="删除 未使用音色 音色"(?![^>]*disabled)/);
+    expect(html).toContain('class="created-voice-list__remove"');
+    expect(html).toContain('aria-label="复制 已使用音色 Voice ID"');
+    expect(html).toContain('aria-label="复制 未使用音色 Voice ID"');
+  });
+
+  it('已生成音色列表保留对齐与滚动所需的稳定容器 class', () => {
+    const html = renderToStaticMarkup(<GeneratedVoiceRegistry voices={[]} state="ready" onRefresh={async () => undefined} onUse={async () => undefined} />);
+    expect(html).toContain('create-voice-pack-screen__registry');
+    expect(html).toContain('create-voice-panel');
   });
 });

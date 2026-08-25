@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { LOCAL_VOICE_PACK_SERVICE, type VoicePackService } from '../../audio/voice/VoicePackService';
 import { VOICE_PACK_REPOSITORY, VoicePackRepository } from '../../audio/voice/VoicePackRepository';
 import type { VoicePackSummary } from '../../audio/voice/types';
@@ -15,6 +15,8 @@ interface VoicePackSettingsProps {
   readonly playerCount: 2 | 3 | 4;
   readonly onSeatAssignmentChange: (seatIndex: number, packId: string | null) => void;
   readonly onDeleted?: (deletedPackId: string, remainingPacks: readonly VoicePackSummary[]) => void;
+  /** Voice-level controls rendered in the left settings column. */
+  readonly controls?: ReactNode;
   readonly repository?: VoicePackRepository;
   readonly service?: Pick<VoicePackService, 'listPacks' | 'getPack' | 'deletePack'>;
 }
@@ -22,7 +24,7 @@ interface VoicePackSettingsProps {
 export interface VoicePackRow extends VoicePackSummary { readonly lineCount: number; }
 
 /** Audio Settings pack overview, seat assignment, and safe local deletion. */
-export function VoicePackSettings({ selectedVoicePackId, onSelect, onManage, onCreate, voicePackBySeat, playerCount, onSeatAssignmentChange, onDeleted, repository = VOICE_PACK_REPOSITORY, service = LOCAL_VOICE_PACK_SERVICE }: VoicePackSettingsProps) {
+export function VoicePackSettings({ selectedVoicePackId, onSelect, onManage, onCreate, voicePackBySeat, playerCount, onSeatAssignmentChange, onDeleted, controls, repository = VOICE_PACK_REPOSITORY, service = LOCAL_VOICE_PACK_SERVICE }: VoicePackSettingsProps) {
   const initialRows = useMemo(() => repository.listPacks().map((pack) => ({ ...pack, lineCount: repository.getPack(pack.id)?.voiceLines.length ?? 0 })), [repository]);
   const [packs, setPacks] = useState<readonly VoicePackRow[]>(initialRows);
   const [pendingDeletion, setPendingDeletion] = useState<VoicePackRow | null>(null);
@@ -67,7 +69,7 @@ export function VoicePackSettings({ selectedVoicePackId, onSelect, onManage, onC
     finally { setDeleting(false); }
   };
 
-  return <section className="voice-pack-settings" aria-labelledby="voice-pack-settings-title"><h4 id="voice-pack-settings-title">角色语音</h4><button type="button" className="voice-pack-settings__create" onClick={onCreate}>＋ 创建新角色</button>{packs.length === 0 ? <p className="voice-pack-settings__empty">暂无可用角色语音包。</p> : <><VoiceSeatAssignmentSettings packs={packs} assignments={voicePackBySeat} playerCount={playerCount} onChange={onSeatAssignmentChange} /><div className="voice-pack-settings__list">{packs.map((pack) => <VoicePackCard key={pack.id} pack={pack} onManage={() => onManage(pack.id)} onDelete={() => openDeletion(pack)} />)}</div></>}{pendingDeletion ? <VoicePackDeleteDialog pack={pendingDeletion} stage={deleteStage} deleting={deleting} error={deleteError} onCancel={closeDeletion} onContinue={() => setDeleteStage('confirm')} onConfirm={() => void deletePack()} /> : null}</section>;
+  return <section className="voice-pack-settings" aria-label="语音角色配置"><div className="voice-pack-settings__configuration">{controls}<button type="button" className="voice-pack-settings__create" onClick={onCreate}>＋ 创建新角色</button>{packs.length === 0 ? <p className="voice-pack-settings__empty">暂无可用角色语音包。</p> : <VoiceSeatAssignmentSettings packs={packs} assignments={voicePackBySeat} playerCount={playerCount} onChange={onSeatAssignmentChange} />}</div><section className="voice-pack-settings__catalog" aria-labelledby="voice-pack-settings-title"><h4 id="voice-pack-settings-title">角色语音</h4>{packs.length ? <div className="voice-pack-settings__list">{packs.map((pack) => <VoicePackCard key={pack.id} pack={pack} onManage={() => onManage(pack.id)} onDelete={() => openDeletion(pack)} />)}</div> : null}</section>{pendingDeletion ? <VoicePackDeleteDialog pack={pendingDeletion} stage={deleteStage} deleting={deleting} error={deleteError} onCancel={closeDeletion} onContinue={() => setDeleteStage('confirm')} onConfirm={() => void deletePack()} /> : null}</section>;
 }
 
 export function VoiceSeatAssignmentSettings({ packs, assignments, playerCount, onChange }: {

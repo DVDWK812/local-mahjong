@@ -167,9 +167,6 @@
     "yaku.sankantsu": {
       "file": "audio/yaku_sankantsu.mp3"
     },
-    "yaku.honroutou_variant": {
-      "file": "audio/yaku_honroutou_variant.mp3"
-    },
     "yaku.sanshoku_doukou": {
       "file": "audio/yaku_sanshoku_doukou.mp3"
     },
@@ -185,14 +182,8 @@
     "yaku.chiitoitsu": {
       "file": "audio/yaku_chiitoitsu.mp3"
     },
-    "yaku.chinroutou": {
-      "file": "audio/yaku_chinroutou.mp3"
-    },
     "yaku.shousangen": {
       "file": "audio/yaku_shousangen.mp3"
-    },
-    "yaku.honroutou_duplicate": {
-      "file": "audio/yaku_honroutou_duplicate.mp3"
     },
     "yaku.ryanpeikou": {
       "file": "audio/yaku_ryanpeikou.mp3"

@@ -7,6 +7,7 @@ import contextlib
 import io
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -273,6 +274,17 @@ class VoiceGenerationPlanTests(unittest.TestCase):
         self.assertEqual(warnings, ["instruction"])
         self.assertEqual(session.headers["Idempotency-Key"], voice.effective_config_fingerprint(effective))
 
+    def test_idempotency_identity_is_unique_per_voice_key_for_identical_text(self) -> None:
+        effective = voice.EffectiveGenerationConfig("立直", self.config.voice_id, self.config.model_id, self.config.audio_format, 1.0, 0.0, 1.0, 1.0, "zh-CN", True)
+        self.assertNotEqual(
+            voice.generation_request_identity("action.riichi", effective),
+            voice.generation_request_identity("yaku.riichi", effective),
+        )
+        self.assertEqual(
+            voice.generation_request_identity("action.riichi", effective),
+            voice.generation_request_identity("action.riichi", effective),
+        )
+
     def test_429_retries_without_rotating_to_another_key(self) -> None:
         calls: list[str] = []
         original_synthesize = voice.synthesize
@@ -446,6 +458,20 @@ class VoiceGenerationPlanTests(unittest.TestCase):
 
         self.assertEqual(voice.DEFAULT_API_KEYS_FILE.parent.name, ".secrets")
         self.assertEqual(voice.DEFAULT_PACK.name, "xiaozhang")
+
+    def test_invalid_or_zero_byte_mp3_is_missing_and_atomic_commit_keeps_previous_audio(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            audio_dir = Path(directory)
+            destination = audio_dir / "score_haneman.mp3"
+            previous = b"\xff\xfb\x90\xc4old-audio"
+            destination.write_bytes(previous)
+            self.assertTrue(voice.is_valid_audio_file(destination))
+            with self.assertRaises(ValueError):
+                voice.commit_audio_file(destination, b"not audio")
+            self.assertEqual(destination.read_bytes(), previous)
+            self.assertEqual(list(audio_dir.glob("*.tmp-*")), [])
+            destination.write_bytes(b"")
+            self.assertFalse(voice.is_valid_audio_file(destination))
 
 
 if __name__ == "__main__":

@@ -142,7 +142,7 @@
 
 > 上列实际为 15 条（CSV 的古役尾段共 15 条）。它们与 B5 同样使用 `win_scored.yakuIds`：权威来源是 `checkAncientYaku()` / `checkYakuman()`，且受 `allowAncientYaku` 等规则开关控制；actor 是赢家；建议优先级 90（役满结果为 95）；与和牌、其他役种和 limit 同时发生。实施时必须给古役结果稳定 ID，不能用展示名称匹配。
 
-## C. 当前无可靠独立触发点 / flavor（8）
+## C. 当前无可靠独立触发点 / flavor（5）
 
 | key | 原因 | 处理建议 |
 | --- | --- | --- |
@@ -151,9 +151,6 @@
 | `flavor.win` | 只有情绪标签，没有不歧义的游戏语义。 | 未来由产品定义为哪种胜利/何时触发。 |
 | `flavor.lose` | 同上。 | 同上。 |
 | `flavor.close_game` | 同上；退出菜单不等于对局结算。 | 未来明确是否仅在 final result 后播。 |
-| `yaku.honroutou_variant` | 与 `yaku.honroutou` 没有独立的评分结果。 | 保留资源但不要触发；若产品需要，先定义不同规则 ID。 |
-| `yaku.honroutou_duplicate` | 同上，重复 key 资源没有独立语义。 | 同上。 |
-| `yaku.chinroutou` | 游戏里这是役满，已有唯一语义 key `yakuman.chinroutou`；此 key 无独立结果。 | 只接 `yakuman.chinroutou`，不要双播。 |
 
 ## 推荐实施批次（不在本审计中实施）
 

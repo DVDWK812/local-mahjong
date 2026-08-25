@@ -43,15 +43,16 @@ describe('LocalVoiceGenerationService', () => {
     expect(indexed).toBe(1);
   });
 
-  it('将 UI 的高级发音编辑写入角色 CSV 后，计划只针对该单条调用生成器', async () => {
+  it('将 UI 的高级 TTS 编辑作为一笔 CSV 事务写入完整 TTS 和同步后的纯台词', async () => {
     const service = await fixture(async (_command, args) => {
       expect(args).toContain('--keys'); expect(args).toContain('action.riichi');
       return reply(plan({ total: 1, changed: 1, new: 0, apiCalls: 1 }));
     });
-    await expect(service.previewGeneration('safe-pack', ['action.riichi'], [{ key: 'action.riichi', ttsText: '<|phoneme_start|>li4 zhi2<|phoneme_end|>' }]))
+    await expect(service.previewGeneration('safe-pack', ['action.riichi'], [{ key: 'action.riichi', line: '哼，让你们一把！', ttsText: '哼[pause]，让你们一把！[embarrassed]' }]))
       .resolves.toMatchObject({ total: 1, changed: 1, apiCalls: 1 });
     const csv = await fs.readFile(path.join(roots.at(-1), 'safe-pack', 'voice_lines.csv'), 'utf8');
-    expect(csv).toContain('<|phoneme_start|>li4 zhi2<|phoneme_end|>');
+    expect(csv).toContain('哼，让你们一把！');
+    expect(csv).toContain('哼[pause]，让你们一把！[embarrassed]');
   });
 
   it('自动保存只写当前角色 CSV：历史默认 tts_text 随 line 规范为空，且绝不调用生成器', async () => {
@@ -121,7 +122,7 @@ describe('LocalVoiceGenerationService', () => {
       : reply({ kind: 'result', result: { success: true, generated: 1, failed: 0, items: [] } }));
     await expect(incomplete.generate('safe-pack', ['action.riichi'])).rejects.toThrow('GENERATOR_INVALID_RESPONSE');
     const nonzero = await fixture(async () => ({ code: 2, stdout: '', stderr: 'safe failure\n' }));
-    await expect(nonzero.previewGeneration('safe-pack')).rejects.toThrow('GENERATOR_INVALID_RESPONSE');
+    await expect(nonzero.previewGeneration('safe-pack')).rejects.toThrow('GENERATOR_PROCESS_FAILED');
   });
 
   it('保留可解析的 Python 失败结果，供 UI 刷新 failed 状态而不泄露进程输出', async () => {

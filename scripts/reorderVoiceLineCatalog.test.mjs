@@ -32,7 +32,7 @@ describe('reorderVoiceLineCatalog', () => {
     const after = reorderMasterRows(before);
 
     expectReorderToPreserveEveryRow(before, after);
-    expect(after).toHaveLength(148);
+    expect(after).toHaveLength(145);
     expect(after.map((row) => row.key).slice(-34)).toEqual([
       ...Array.from({ length: 9 }, (_, index) => `tile.m${index + 1}`),
       ...Array.from({ length: 9 }, (_, index) => `tile.p${index + 1}`),

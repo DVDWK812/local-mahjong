@@ -24,14 +24,14 @@ const PERSONAL_KEYS = new Set([
   'yaku.tenpai', 'yaku.noten',
 ]);
 const SETTLEMENT_YAKU = new Set(['yaku.triple_yakuman', 'yaku.quadruple_yakuman', 'yaku.quintuple_yakuman', 'yaku.sextuple_yakuman']);
-const YAKUMAN_YAKU = new Set(['yaku.chinroutou', 'yaku.tenhou', 'yaku.chiihou', 'yaku.kokushi_13_wait', 'yaku.suukantsu', 'yaku.junsei_chuuren']);
+const YAKUMAN_YAKU = new Set(['yaku.tenhou', 'yaku.chiihou', 'yaku.kokushi_13_wait', 'yaku.suukantsu', 'yaku.junsei_chuuren']);
 const REGULAR_YAKU = new Set([
   'yaku.riichi', 'yaku.ippatsu', 'yaku.chankan', 'yaku.rinshan_kaihou', 'yaku.haitei', 'yaku.houtei',
   'yaku.ton', 'yaku.shaa', 'yaku.nan', 'yaku.pei', 'yaku.haku', 'yaku.hatsu', 'yaku.chun',
   'yaku.pinfu', 'yaku.tanyao', 'yaku.iipeikou', 'yaku.chanta', 'yaku.honroutou', 'yaku.toitoi',
-  'yaku.sanankou', 'yaku.sanshoku', 'yaku.ittsu', 'yaku.sankantsu', 'yaku.honroutou_variant',
+  'yaku.sanankou', 'yaku.sanshoku', 'yaku.ittsu', 'yaku.sankantsu',
   'yaku.sanshoku_doukou', 'yaku.junchan', 'yaku.chinitsu', 'yaku.honitsu', 'yaku.chiitoitsu',
-  'yaku.shousangen', 'yaku.honroutou_duplicate', 'yaku.ryanpeikou',
+  'yaku.shousangen', 'yaku.ryanpeikou',
 ]);
 
 /** Derives a UI-only heading from the real VoiceLine identity; it never creates CSV rows. */

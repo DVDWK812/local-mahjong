@@ -14,6 +14,7 @@ import json
 import os
 import sys
 import time
+import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -315,9 +316,12 @@ def validate_csv_fields(frame: pd.DataFrame, detected_encoding: str, csv_path: P
 
 def save_csv_as_utf8_bom(frame: pd.DataFrame, csv_path: Path) -> None:
     """Normalize a successfully validated source CSV to UTF-8 with a BOM."""
-    temporary = csv_path.with_suffix(f"{csv_path.suffix}.utf8-bom.part")
-    frame.to_csv(temporary, index=False, encoding="utf-8-sig", lineterminator="\n")
-    temporary.replace(csv_path)
+    temporary = csv_path.with_name(f".{csv_path.name}.{os.getpid()}.{uuid.uuid4().hex}.utf8-bom.part")
+    try:
+        frame.to_csv(temporary, index=False, encoding="utf-8-sig", lineterminator="\n")
+        temporary.replace(csv_path)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def load_lines(csv_path: Path) -> tuple[list[dict[str, str]], str]:
@@ -684,7 +688,7 @@ def build_generation_plan(
             plan.append(GenerationPlanItem(key, line, tts_text, filename, "", "invalid", str(exc), fallback_settings, fallback_effective))
             continue
         fingerprint = effective_config_fingerprint(effective)
-        file_exists = (output / filename).is_file() and (output / filename).stat().st_size > 0
+        file_exists = is_valid_audio_file(output / filename)
         cached = cache.get(key)
         if force:
             status, reason = "changed", "forced regeneration"
@@ -763,9 +767,77 @@ def json_plan(summary: dict[str, int], plan: Iterable[GenerationPlanItem], pack:
 
 def write_json(path: Path, value: Any) -> None:
     """Write valid UTF-8 JSON atomically so an interrupted run keeps prior files usable."""
-    temporary = path.with_suffix(f"{path.suffix}.part")
-    temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    temporary.replace(path)
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.{uuid.uuid4().hex}.part")
+    try:
+        with temporary.open("w", encoding="utf-8", newline="") as stream:
+            stream.write(json.dumps(value, ensure_ascii=False, indent=2) + "\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def is_valid_mp3_bytes(audio: bytes) -> bool:
+    """Reject empty and obviously non-MP3 Fish responses before committing them."""
+    return len(audio) >= 3 and (audio.startswith(b"ID3") or (audio[0] == 0xFF and (audio[1] & 0xE0) == 0xE0))
+
+
+def is_valid_audio_file(path: Any) -> bool:
+    """Validate the MP3 invariant used by plans, manifests, and commits.
+
+    The lightweight fake Path used by offline planner tests has no ``open``
+    method.  Its positive size still models a previously validated fixture.
+    """
+    try:
+        if not path.is_file() or path.stat().st_size <= 0:
+            return False
+        if not isinstance(path, Path):
+            return True
+        with path.open("rb") as stream:
+            return is_valid_mp3_bytes(stream.read(3))
+    except OSError:
+        return False
+
+
+def commit_audio_file(destination: Path, audio: bytes) -> None:
+    """Atomically replace an MP3 only after the temporary file is valid.
+
+    If a final post-rename verification ever fails (for example an external
+    process alters the file), restore the previous MP3 rather than exposing a
+    broken replacement to the pack metadata.
+    """
+    if not is_valid_mp3_bytes(audio):
+        raise ValueError("Fish Audio returned an invalid MP3 response.")
+    temporary = destination.with_name(f".{destination.name}.tmp-{os.getpid()}-{uuid.uuid4().hex}")
+    backup = destination.with_name(f".{destination.name}.backup-{os.getpid()}-{uuid.uuid4().hex}")
+    moved_previous = False
+    try:
+        with temporary.open("xb") as stream:
+            stream.write(audio)
+            stream.flush()
+            os.fsync(stream.fileno())
+        if not is_valid_audio_file(temporary):
+            raise ValueError("Temporary MP3 validation failed.")
+        if destination.exists():
+            destination.replace(backup)
+            moved_previous = True
+        temporary.replace(destination)
+        if not is_valid_audio_file(destination):
+            raise OSError("Committed MP3 validation failed.")
+        if moved_previous:
+            backup.unlink(missing_ok=True)
+            moved_previous = False
+    except Exception:
+        if moved_previous:
+            destination.unlink(missing_ok=True)
+            backup.replace(destination)
+            moved_previous = False
+        raise
+    finally:
+        temporary.unlink(missing_ok=True)
+        if moved_previous:
+            backup.unlink(missing_ok=True)
 
 
 def load_api_keys(path: Path = DEFAULT_API_KEYS_FILE) -> list[str]:
@@ -809,9 +881,20 @@ def ignored_parameter_warnings(response: Response) -> list[str]:
     return [name.strip() for name in raw.split(",") if name.strip()]
 
 
+def generation_request_identity(voice_key: str, effective: EffectiveGenerationConfig) -> str:
+    """Keep Fish idempotency scoped to one logical VoiceLine generation.
+
+    Identical text is legitimate for different semantic keys (for example
+    action.riichi and yaku.riichi). Reusing an idempotency key across those
+    output files makes Fish v3 reject the latter request with HTTP 409.
+    """
+    fingerprint = effective_config_fingerprint(effective)
+    return fingerprint if not voice_key else hashlib.sha256(f"{voice_key}\0{fingerprint}".encode("utf-8")).hexdigest()
+
+
 def synthesize(
     session: requests.Session, config: FishAudioConfig, api_key: str,
-    effective: EffectiveGenerationConfig | None = None,
+    effective: EffectiveGenerationConfig | None = None, voice_key: str = "",
 ) -> tuple[bytes | None, int | None, str | None, list[str]]:
     """Call TTS, explicitly serializing Chinese JSON as UTF-8 bytes."""
     resolved = effective or EffectiveGenerationConfig("", config.voice_id, config.model_id, config.audio_format, DEFAULT_SPEED, DEFAULT_VOLUME, DEFAULT_STABILITY, DEFAULT_SIMILARITY, "", DEFAULT_TEXT_NORMALIZATION)
@@ -826,12 +909,13 @@ def synthesize(
     }
     payload.update({key: value for key, value in optional_controls.items() if value is not None})
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    request_identity = generation_request_identity(voice_key, resolved)
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json; charset=utf-8",
         "Accept": "audio/mpeg, application/octet-stream, application/json",
-        "X-Request-Id": effective_config_fingerprint(resolved),
-        "Idempotency-Key": effective_config_fingerprint(resolved),
+        "X-Request-Id": request_identity,
+        "Idempotency-Key": request_identity,
     }
 
     for attempt in range(config.retries + 1):
@@ -862,13 +946,18 @@ def synthesize(
 
 def synthesize_with_api_keys(
     session: requests.Session, config: FishAudioConfig, api_keys: Iterable[str],
-    effective: EffectiveGenerationConfig | None = None,
+    effective: EffectiveGenerationConfig | None = None, voice_key: str = "",
 ) -> tuple[bytes | None, int | None, str | None, list[str]]:
     """Try keys in file order, rotating only for authentication/rate-limit failures."""
     last_status: int | None = None
     errors: list[str] = []
     for key_index, api_key in enumerate(api_keys, start=1):
-        audio, status, error, warnings = synthesize(session, config, api_key, effective)
+        # Preserve the historical four-argument seam used by offline tests and
+        # third-party wrappers when no logical key was supplied.
+        audio, status, error, warnings = (
+            synthesize(session, config, api_key, effective, voice_key)
+            if voice_key else synthesize(session, config, api_key, effective)
+        )
         if audio is not None:
             return audio, status, None, warnings
         last_status = status
@@ -910,9 +999,19 @@ def build_manifest(character: str, config: FishAudioConfig, records: Iterable[di
     voices: dict[str, dict[str, str]] = {}
     for record in records:
         filename = record.get("file")
-        if record.get("status") in {"generated", "reused", "skipped"} and isinstance(filename, str) and (audio_dir / filename).is_file():
+        if record.get("status") in {"generated", "reused", "skipped"} and isinstance(filename, str) and is_valid_audio_file(audio_dir / filename):
             voices[str(record["key"])] = {"file": f"audio/{filename}"}
     return {"character": character, "voiceId": config.voice_id, "voices": voices}
+
+
+def build_manifest_from_cache(character: str, config: FishAudioConfig, cache: dict[str, dict[str, Any]], audio_dir: Path) -> dict[str, Any]:
+    """Build the playable manifest from verified cache entries, not log history."""
+    records = [
+        {"key": key, "file": entry.get("file"), "status": "generated"}
+        for key, entry in cache.items()
+        if isinstance(entry, dict)
+    ]
+    return build_manifest(character, config, records, audio_dir)
 
 
 def build_pack_metadata(
@@ -979,13 +1078,13 @@ def migrate_pack_metadata(
         previous.pop("text", None)
         records.append(previous)
 
-    write_json(output / ".voice_cache.json", refreshed_cache)
     write_json(output / "generation_log.json", records)
     write_json(output / "failed.json", [record for record in records if record.get("status") == "failed"])
     write_json(output / "voice_key_report.json", key_report)
     locale = rows[0].get("locale", "") if rows else ""
     write_json(output / "pack.json", build_pack_metadata(pack_metadata, character, locale, config))
-    write_json(output / "manifest.json", build_manifest(character, config, records, audio_dir))
+    write_json(output / "manifest.json", build_manifest_from_cache(character, config, refreshed_cache, audio_dir))
+    write_json(output / ".voice_cache.json", refreshed_cache)
 
 
 def main() -> int:
@@ -1098,28 +1197,34 @@ def main() -> int:
             continue
 
         destination = audio_dir / item.filename
-        audio, http_status, error, warnings = synthesize_with_api_keys(session, config, api_keys, item.effective)
+        audio, http_status, error, warnings = synthesize_with_api_keys(session, config, api_keys, item.effective, item.key)
         if audio is None:
             records_by_key[item.key] = asdict(make_record(item.key, item.line, item.tts_text, config, item.filename, "failed", item.settings, error, http_status))
             failed += 1
             print(f"Failed {item.key}: HTTP {http_status or '-'} {error}", file=sys.stderr)
             continue
-        temporary = destination.with_suffix(f"{destination.suffix}.part")
-        temporary.write_bytes(audio)
-        temporary.replace(destination)
+        try:
+            commit_audio_file(destination, audio)
+        except (OSError, ValueError) as exc:
+            records_by_key[item.key] = asdict(make_record(item.key, item.line, item.tts_text, config, item.filename, "failed", item.settings, str(exc)))
+            failed += 1
+            cli_log(args, f"Failed to commit {item.key}; keeping any prior MP3 intact.")
+            continue
         cache[item.key] = cache_entry(item.key, item.line, item.tts_text, item.filename, item.fingerprint, config, item.settings, item.effective)
         records_by_key[item.key] = asdict(make_record(item.key, item.line, item.tts_text, config, item.filename, "generated", item.settings, http_status=http_status, warnings=warnings))
         generated += 1
         cli_log(args, f"Generated {item.key} -> {destination.name}")
 
     records = list(records_by_key.values())
-    write_json(cache_path, cache)
     write_json(log_path, records)
     failures = [record for record in records if record.get("status") == "failed"]
     write_json(output / "failed.json", failures)
     locale = rows[0].get("locale", "") if rows else ""
     write_json(output / "pack.json", build_pack_metadata(pack_metadata, character or "default", locale, config))
-    write_json(output / "manifest.json", build_manifest(character or "default", config, records, audio_dir))
+    write_json(output / "manifest.json", build_manifest_from_cache(character or "default", config, cache, audio_dir))
+    # Cache is last: a failed metadata commit can make a valid MP3 appear
+    # missing, but can never make a missing MP3 appear generated.
+    write_json(cache_path, cache)
     cli_log(args, f"Complete: generated={generated}, skipped={skipped}, failed={failed}; output={output}")
     if args.json:
         result_items = []
@@ -1139,4 +1244,17 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except Exception:
+        # --json is a machine protocol: stdout remains exactly one JSON object
+        # even for unexpected local I/O errors.  No exception detail or secret
+        # material is exposed to the browser.
+        if "--json" in sys.argv:
+            print(json.dumps(json_result(
+                success=False, generated=0, failed=1, skipped=0, items=[],
+                error_code="GENERATOR_PROCESS_FAILED", error_message="语音生成进程异常结束。",
+            ), ensure_ascii=False))
+        else:
+            print("Voice generator stopped because of an unexpected local error.", file=sys.stderr)
+        raise SystemExit(1)

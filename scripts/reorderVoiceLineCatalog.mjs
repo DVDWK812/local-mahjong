@@ -11,8 +11,8 @@ const GROUP_KEY_ORDER = {
 };
 const PERSONAL_KEYS = new Set(['game.start', 'game.end', 'game.draw', 'result.second_place', 'result.third_place', 'result.fourth_place', 'yaku.tenpai', 'yaku.noten']);
 const SETTLEMENT_YAKU = new Set(['yaku.triple_yakuman', 'yaku.quadruple_yakuman', 'yaku.quintuple_yakuman', 'yaku.sextuple_yakuman']);
-const YAKUMAN_YAKU = new Set(['yaku.chinroutou', 'yaku.tenhou', 'yaku.chiihou', 'yaku.kokushi_13_wait', 'yaku.suukantsu', 'yaku.junsei_chuuren']);
-const REGULAR_YAKU = new Set(['yaku.riichi', 'yaku.ippatsu', 'yaku.chankan', 'yaku.rinshan_kaihou', 'yaku.haitei', 'yaku.houtei', 'yaku.ton', 'yaku.shaa', 'yaku.nan', 'yaku.pei', 'yaku.haku', 'yaku.hatsu', 'yaku.chun', 'yaku.pinfu', 'yaku.tanyao', 'yaku.iipeikou', 'yaku.chanta', 'yaku.honroutou', 'yaku.toitoi', 'yaku.sanankou', 'yaku.sanshoku', 'yaku.ittsu', 'yaku.sankantsu', 'yaku.honroutou_variant', 'yaku.sanshoku_doukou', 'yaku.junchan', 'yaku.chinitsu', 'yaku.honitsu', 'yaku.chiitoitsu', 'yaku.shousangen', 'yaku.honroutou_duplicate', 'yaku.ryanpeikou']);
+const YAKUMAN_YAKU = new Set(['yaku.tenhou', 'yaku.chiihou', 'yaku.kokushi_13_wait', 'yaku.suukantsu', 'yaku.junsei_chuuren']);
+const REGULAR_YAKU = new Set(['yaku.riichi', 'yaku.ippatsu', 'yaku.chankan', 'yaku.rinshan_kaihou', 'yaku.haitei', 'yaku.houtei', 'yaku.ton', 'yaku.shaa', 'yaku.nan', 'yaku.pei', 'yaku.haku', 'yaku.hatsu', 'yaku.chun', 'yaku.pinfu', 'yaku.tanyao', 'yaku.iipeikou', 'yaku.chanta', 'yaku.honroutou', 'yaku.toitoi', 'yaku.sanankou', 'yaku.sanshoku', 'yaku.ittsu', 'yaku.sankantsu', 'yaku.sanshoku_doukou', 'yaku.junchan', 'yaku.chinitsu', 'yaku.honitsu', 'yaku.chiitoitsu', 'yaku.shousangen', 'yaku.ryanpeikou']);
 
 export function parseCsv(text) {
   const rows = []; let row = []; let field = ''; let quoted = false;

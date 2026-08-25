@@ -144,21 +144,8 @@ export function AudioSettingsPanel({
         )
       ))}
 
-      <fieldset className="audio-settings__channel">
+      <fieldset className="audio-settings__channel audio-settings__channel--voice">
         <legend>语音</legend>
-        <AudioToggle
-          label="语音"
-          checked={settings.voiceEnabled}
-          onChange={(checked) => onChange({ ...settings, voiceEnabled: checked })}
-        />
-        <VolumeSlider
-          label="语音音量"
-          value={settings.voiceVolume}
-          disabled={!settings.voiceEnabled}
-          onChange={(value) => onChange({ ...settings, voiceVolume: Number(value) / 100 })}
-        />
-        <AudioToggle label="出牌报牌" checked={settings.discardVoiceEnabled} onChange={(discardVoiceEnabled) => onChange({ ...settings, discardVoiceEnabled })} />
-        <label className="audio-settings__field">报牌范围<select aria-label="出牌报牌范围" disabled={!settings.discardVoiceEnabled} value={settings.discardVoiceScope} onChange={(event) => onChange({ ...settings, discardVoiceScope: event.target.value === 'self' ? 'self' : 'all' })}><option value="all">全部玩家</option><option value="self">仅自己</option></select></label>
         <VoicePackSettings
           selectedVoicePackId={settings.selectedVoicePackId}
           onSelect={(selectedVoicePackId) => onChange({ ...settings, selectedVoicePackId })}
@@ -168,6 +155,16 @@ export function AudioSettingsPanel({
           playerCount={voicePlayerCount}
           onSeatAssignmentChange={(seatIndex, packId) => onChange({ ...settings, voicePackBySeat: replaceVoiceSeatAssignment(settings.voicePackBySeat, seatIndex, packId) })}
           onDeleted={onVoicePackDeleted}
+          controls={<><AudioToggle
+            label="语音"
+            checked={settings.voiceEnabled}
+            onChange={(checked) => onChange({ ...settings, voiceEnabled: checked })}
+          /><VolumeSlider
+            label="语音音量"
+            value={settings.voiceVolume}
+            disabled={!settings.voiceEnabled}
+            onChange={(value) => onChange({ ...settings, voiceVolume: Number(value) / 100 })}
+          /><AudioToggle label="出牌报牌" checked={settings.discardVoiceEnabled} onChange={(discardVoiceEnabled) => onChange({ ...settings, discardVoiceEnabled })} /><label className="audio-settings__field">报牌范围<select aria-label="出牌报牌范围" disabled={!settings.discardVoiceEnabled} value={settings.discardVoiceScope} onChange={(event) => onChange({ ...settings, discardVoiceScope: event.target.value === 'self' ? 'self' : 'all' })}><option value="all">全部玩家</option><option value="self">仅自己</option></select></label></>}
         />
       </fieldset>
     </section>

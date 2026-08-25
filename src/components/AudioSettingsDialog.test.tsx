@@ -294,6 +294,10 @@ describe('AudioSettingsDialog', () => {
 
   it('语音区域显示自动发现的角色，并提供管理入口', () => {
     const html = renderDialog();
+    expect(html).toContain('audio-settings__channel--voice');
+    expect(html).toContain('voice-pack-settings__configuration');
+    expect(html).toContain('voice-pack-settings__catalog');
+    expect(html).toContain('voice-pack-settings__list');
     expect(html).toContain('aria-label="语音开关"');
     expect(html).toContain('aria-label="出牌报牌开关"');
     expect(html).toContain('aria-label="出牌报牌范围"');

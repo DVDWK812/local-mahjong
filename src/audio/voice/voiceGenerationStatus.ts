@@ -11,6 +11,9 @@ export function getVoiceLineGenerationStatus(detail: VoicePackDetail, line: Voic
   if (detail.failedKeys.includes(line.key)) return 'failed';
   const cached = detail.generationCache[line.key];
   if (!cached) return 'not-generated';
+  // A cache merely proves that a generation once completed.  Playback and
+  // "generated" both require the manifest-authorized MP3 to be available now.
+  if (availability?.status !== 'available') return 'missing-audio';
   const effective = resolveEffectiveGenerationConfig(line, detail.meta, detail.synthesis, detail.meta.ttsControls ? { controls: detail.meta.ttsControls } : undefined);
   return isV2CacheCompatible(cached, effective) || isV1CacheCompatible(cached, effective)
     || isLegacyCacheCompatible(cached, effective, detail.synthesis, detail.meta.locale) ? 'generated' : 'changed';

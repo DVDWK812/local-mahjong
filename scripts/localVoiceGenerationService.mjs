@@ -101,9 +101,13 @@ export class LocalVoiceGenerationService {
     const packDirectory = safeChildPath(this.root, packId);
     const args = [this.generator, '--pack', packDirectory, ...(keys ? ['--keys', keys.join(',')] : []), ...(dryRun ? ['--dry-run'] : []), '--json'];
     const processResult = await this.runProcess(this.pythonCommand, args);
-    const payload = parseGeneratorJson(processResult, dryRun ? 'plan' : 'result');
-    if (processResult.code !== 0 && payload.kind === 'plan') throw generatorFailure('GENERATOR_EXIT_NONZERO', processResult);
-    if (processResult.code !== 0 && payload.result.success) throw generatorFailure('GENERATOR_EXIT_INCONSISTENT', processResult);
+    const expectedKind = dryRun ? 'plan' : 'result';
+    const payload = parseGeneratorJson(processResult, expectedKind, processResult.code !== 0 ? 'GENERATOR_PROCESS_FAILED' : 'GENERATOR_INVALID_RESPONSE');
+    // A non-zero generator may still return a valid partial result. Preserve
+    // it so callers can refresh the successful keys and retry only failures.
+    if (processResult.code !== 0 && (payload.kind === 'plan' || payload.result.success)) {
+      throw generatorFailure('GENERATOR_PROCESS_FAILED', processResult);
+    }
     return payload;
   }
 }
@@ -154,9 +158,11 @@ function validateGenerationPatch(patch) {
 async function writeCsvRows(file, rows) {
   const body = [rows.headers, ...rows.values.map((row) => rows.headers.map((header) => row[header] ?? ''))]
     .map((record) => record.map(escapeCsvCell).join(',')).join('\r\n');
-  const temporary = `${file}.tmp`;
-  await fs.writeFile(temporary, `\uFEFF${body}\r\n`, 'utf8');
-  await fs.rename(temporary, file);
+  const temporary = `${file}.${process.pid}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`;
+  try {
+    await fs.writeFile(temporary, `\uFEFF${body}\r\n`, 'utf8');
+    await fs.rename(temporary, file);
+  } finally { await fs.rm(temporary, { force: true }).catch(() => undefined); }
 }
 
 function parseCsv(text) {
@@ -176,16 +182,16 @@ function parseCsv(text) {
 function escapeCsvCell(value) { const text = String(value); return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text; }
 function isRecord(value) { return typeof value === 'object' && value !== null && !Array.isArray(value); }
 
-function parseGeneratorJson(processResult, expectedKind) {
+function parseGeneratorJson(processResult, expectedKind, failureCode = 'GENERATOR_INVALID_RESPONSE') {
   const stdout = processResult.stdout.replace(/^\uFEFF/, '').trim();
   let payload;
-  try { payload = JSON.parse(stdout); } catch { throw generatorFailure('GENERATOR_INVALID_RESPONSE', processResult); }
-  if (!isRecord(payload) || payload.kind !== expectedKind) throw generatorFailure('GENERATOR_INVALID_RESPONSE', processResult);
+  try { payload = JSON.parse(stdout); } catch { throw generatorFailure(failureCode, processResult); }
+  if (!isRecord(payload) || payload.kind !== expectedKind) throw generatorFailure(failureCode, processResult);
   if (expectedKind === 'plan') {
-    if (!isRecord(payload.plan) || !isValidPlan(payload.plan)) throw generatorFailure('GENERATOR_INVALID_RESPONSE', processResult);
+    if (!isRecord(payload.plan) || !isValidPlan(payload.plan)) throw generatorFailure(failureCode, processResult);
     return { kind: 'plan', plan: normalizePlan(payload.plan) };
   }
-  if (!isRecord(payload.result) || !isValidResult(payload.result)) throw generatorFailure('GENERATOR_INVALID_RESPONSE', processResult);
+  if (!isRecord(payload.result) || !isValidResult(payload.result)) throw generatorFailure(failureCode, processResult);
   return { kind: 'result', result: normalizeResult(payload.result) };
 }
 
@@ -210,7 +216,8 @@ function generatorFailure(code, processResult) {
   const diagnostic = { code, exitCode: processResult.code, stdoutBytes: Buffer.byteLength(processResult.stdout, 'utf8'), stderrBytes: Buffer.byteLength(processResult.stderr, 'utf8') };
   // Keep diagnostics server-side and structural: neither stream content nor credentials are logged.
   console.warn('Voice generator diagnostic', diagnostic);
-  return new VoicePackServiceError(502, `${code}: 语音生成器响应无效。`);
+  const message = code === 'GENERATOR_PROCESS_FAILED' ? '语音生成进程异常结束。' : '语音生成器响应无效。';
+  return new VoicePackServiceError(502, `${code}: ${message}`, code);
 }
 
 function runProcess(command, args) {
