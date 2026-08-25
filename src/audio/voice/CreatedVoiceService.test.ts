@@ -9,9 +9,10 @@ describe('CreatedVoiceService', () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ voice: { voiceId: 'voice-1', name: '克隆', source: 'clone', createdAt: '2026-08-25T00:00:00.000Z' } }), { status: 201 }));
     globalThis.fetch = fetchMock;
     const file = new File(['audio'], 'voice.mp3', { type: 'audio/mpeg' });
-    await new CreatedVoiceService().clone({ name: '克隆', audioFiles: [file] });
+    await new CreatedVoiceService().clone({ name: '克隆', audioFiles: [file], language: 'zh' });
     expect(fetchMock.mock.calls[0][0]).toBe('/api/generated-voices/clone');
     expect(fetchMock.mock.calls[0][1].headers.Authorization).toBeUndefined();
+    expect(fetchMock.mock.calls[0][1].body.get('languages')).toBe('["zh"]');
   });
 
   it('validates local files before the bridge request', () => {

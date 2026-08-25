@@ -10,12 +10,12 @@ it('generated voice registry is persistent, recovers from invalid JSON, and upse
     await writeFile(path.join(root, 'generated_voices.json'), '{not json', 'utf8');
     const registry = new LocalGeneratedVoiceRegistry({ root, now: () => new Date('2026-08-25T00:00:00.000Z') });
     expect(await registry.list()).toEqual([]);
-    await registry.upsert({ voiceId: 'voice-clone', name: '克隆', source: 'clone' });
+    await registry.upsert({ voiceId: 'voice-clone', name: '克隆', source: 'clone', language: 'zh' });
     await registry.upsert({ voiceId: 'voice-design', name: '设计', source: 'design' });
     await registry.upsert({ voiceId: 'voice-clone', name: '更新后的克隆', source: 'clone' });
     const reloaded = new LocalGeneratedVoiceRegistry({ root });
     expect((await reloaded.list())).toHaveLength(2);
-    expect((await reloaded.list()).find((voice) => voice.voiceId === 'voice-clone')?.name).toBe('更新后的克隆');
+    expect((await reloaded.list()).find((voice) => voice.voiceId === 'voice-clone')).toMatchObject({ name: '更新后的克隆', language: 'zh' });
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

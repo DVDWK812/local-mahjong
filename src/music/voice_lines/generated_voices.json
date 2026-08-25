@@ -11,21 +11,21 @@
       ]
     },
     {
-      "voiceId": "32294a57-23f7-4706-9762-eede78f57f41",
-      "name": "雅雅",
-      "source": "existing",
-      "createdAt": "2026-08-24T17:11:05.957Z",
-      "linkedPackIds": [
-        "voice-20260824-001"
-      ]
-    },
-    {
       "voiceId": "2721ed7b-1905-4a4c-bd1e-02f847f27161",
       "name": "校长",
       "source": "existing",
       "createdAt": "2026-08-24T17:11:05.957Z",
       "linkedPackIds": [
         "xiaozhang"
+      ]
+    },
+    {
+      "voiceId": "3cfac83f-efa7-46ce-ab23-5fc34a99d9f5",
+      "name": "yaya",
+      "source": "clone",
+      "createdAt": "2026-08-25T03:50:23.169Z",
+      "linkedPackIds": [
+        "yaya-001"
       ]
     }
   ]

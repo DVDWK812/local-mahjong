@@ -36,6 +36,8 @@ export class LocalGeneratedVoiceRegistry {
     return true;
   }
 
+  async get(voiceId) { return (await this.list()).find((entry) => entry.voiceId === voiceId); }
+
   /**
    * Imports metadata from local Packs only. `createdAt` means local registry
    * registration time for source=existing; it is never presented as Fish's
@@ -90,7 +92,7 @@ export function normalizeCreatedVoice(value, now) {
     ? value.createdAt : typeof now === 'function' ? now().toISOString() : undefined;
   if (!voiceId || !name || !source || !createdAt) return undefined;
   const optional = {};
-  for (const key of ['description', 'provider']) if (typeof value[key] === 'string' && value[key].trim()) optional[key] = value[key].trim();
+  for (const key of ['description', 'provider', 'language']) if (typeof value[key] === 'string' && value[key].trim()) optional[key] = value[key].trim();
   const linkedPackIds = Array.isArray(value.linkedPackIds) ? [...new Set(value.linkedPackIds.filter((id) => typeof id === 'string' && id.trim()).map((id) => id.trim()))].sort() : [];
   return { voiceId, name, source, createdAt, ...(linkedPackIds.length ? { linkedPackIds } : {}), ...optional };
 }

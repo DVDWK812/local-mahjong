@@ -20,6 +20,8 @@ describe('CreateVoicePackScreen', () => {
     expect(html).toContain('disabled=""');
     expect(html).toContain('已生成音色');
     expect(html).toContain('声音克隆');
+    expect(html).toContain('aria-label="Clone 音色语言"');
+    expect(html).toContain('value="zh"');
     expect(html).toContain('音色设计');
     expect(html).toContain('合法使用权');
   });

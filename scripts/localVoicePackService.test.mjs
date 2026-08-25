@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { LocalVoicePackService, VoicePackServiceError } from './localVoicePackService.mjs';
+import { LocalVoicePackService, VoicePackServiceError, renameWithWindowsRetries } from './localVoicePackService.mjs';
 
 const temporaryRoots = [];
 async function fixture() {
@@ -17,6 +17,12 @@ async function fixture() {
 afterEach(async () => { await Promise.all(temporaryRoots.splice(0).map((root) => fs.rm(root, { recursive: true, force: true }))); });
 
 describe('LocalVoicePackService', () => {
+  it('retries transient Windows EPERM locks before a pack deletion rename', async () => {
+    let attempts = 0; const delays = [];
+    await renameWithWindowsRetries({ rename: async () => { attempts += 1; if (attempts < 3) { const error = new Error('busy'); error.code = 'EPERM'; throw error; } } }, 'from', 'to', async (delay) => { delays.push(delay); });
+    expect(attempts).toBe(3); expect(delays).toEqual([100, 200]);
+  });
+
   it('原子创建标准 Pack，复制 148 条母版且生成可发现 index', async () => {
     const { root, master, service } = await fixture();
     const result = await service.createPack({ displayName: '冷静女声', voiceId: 'voice-id-2', modelId: 'fishaudio-s21pro-flash' });
@@ -79,6 +85,32 @@ describe('LocalVoicePackService', () => {
     await expect(fs.access(path.join(root, created.pack.id))).rejects.toThrow();
     expect(await service.listPacks()).not.toContainEqual(expect.objectContaining({ id: created.pack.id }));
     await expect(service.deletePack('xiaozhang')).rejects.toThrow('内置角色无法删除');
+  });
+
+  it('EPERM rename 重试后仍可完成 Pack 删除', async () => {
+    const { service, root, master } = await fixture();
+    const created = await service.createPack({ displayName: '重试删除', voiceId: 'voice-retry', modelId: 'model' });
+    let renames = 0; const retrying = new LocalVoicePackService({ root, masterCsv: master, sleep: async () => undefined, indexGenerator: async () => undefined, fileSystem: {
+      stat: fs.stat,
+      rename: async (...args) => { renames += 1; if (renames < 3) { const error = new Error('locked'); error.code = 'EPERM'; throw error; } return fs.rename(...args); },
+      rm: fs.rm,
+    } });
+    await expect(retrying.deletePack(created.pack.id)).resolves.toEqual({ deletedPackId: created.pack.id });
+    expect(renames).toBe(3);
+  });
+
+  it('EPERM rename 会 fallback 到 fs.rm；仍被占用时返回 PACK_IN_USE', async () => {
+    const { service, root, master } = await fixture();
+    const fallback = await service.createPack({ displayName: 'Fallback 删除', voiceId: 'voice-fallback', modelId: 'model' });
+    const lockedRename = async () => { const error = new Error('locked'); error.code = 'EPERM'; throw error; };
+    const fallbackService = new LocalVoicePackService({ root, masterCsv: master, sleep: async () => undefined, indexGenerator: async () => undefined, fileSystem: { stat: fs.stat, rename: lockedRename, rm: fs.rm } });
+    await expect(fallbackService.deletePack(fallback.pack.id)).resolves.toEqual({ deletedPackId: fallback.pack.id });
+    await expect(fs.access(path.join(root, fallback.pack.id))).rejects.toThrow();
+
+    const blocked = await service.createPack({ displayName: '占用删除', voiceId: 'voice-blocked', modelId: 'model' });
+    const blockedService = new LocalVoicePackService({ root, masterCsv: master, sleep: async () => undefined, indexGenerator: async () => undefined, fileSystem: { stat: fs.stat, rename: lockedRename, rm: async () => { const error = new Error('still locked'); error.code = 'EBUSY'; throw error; } } });
+    await expect(blockedService.deletePack(blocked.pack.id)).rejects.toMatchObject({ code: 'PACK_IN_USE', status: 423 });
+    await expect(fs.stat(path.join(root, blocked.pack.id))).resolves.toMatchObject({ isDirectory: expect.any(Function) });
   });
 
   it('删除不存在的 Pack 会明确失败，不会静默修改索引', async () => {

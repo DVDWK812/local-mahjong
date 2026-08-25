@@ -1,0 +1,9 @@
+{
+  "character": "yaya-001",
+  "voiceId": "3cfac83f-efa7-46ce-ab23-5fc34a99d9f5",
+  "voices": {
+    "flavor.close_game": {
+      "file": "audio/flavor_close_game.mp3"
+    }
+  }
+}

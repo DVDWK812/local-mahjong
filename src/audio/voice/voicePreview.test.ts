@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { VoicePreviewController, type VoicePreviewAudio } from './voicePreview';
 
-function audioFixture(play = vi.fn<() => Promise<void>>().mockResolvedValue(undefined)): VoicePreviewAudio & { readonly pause: ReturnType<typeof vi.fn> } {
-  return { volume: 0, currentTime: 5, onended: null, onerror: null, play, pause: vi.fn() };
+function audioFixture(play = vi.fn<() => Promise<void>>().mockResolvedValue(undefined)): VoicePreviewAudio & { readonly pause: ReturnType<typeof vi.fn>; readonly removeAttribute: ReturnType<typeof vi.fn>; readonly load: ReturnType<typeof vi.fn> } {
+  return { volume: 0, currentTime: 5, src: '/voice.mp3', onended: null, onerror: null, play, pause: vi.fn(), removeAttribute: vi.fn(), load: vi.fn() };
 }
 
 describe('Voice preview controller', () => {
@@ -26,6 +26,9 @@ describe('Voice preview controller', () => {
     expect(audio.volume).toBe(0.35);
     expect(audio.pause).toHaveBeenCalledOnce();
     expect(audio.onended).toBeNull();
+    expect(audio.removeAttribute).toHaveBeenCalledWith('src');
+    expect(audio.src).toBe('');
+    expect(audio.load).toHaveBeenCalledOnce();
   });
 
   it('浏览器播放失败仅反馈短暂错误，不抛出异常', async () => {

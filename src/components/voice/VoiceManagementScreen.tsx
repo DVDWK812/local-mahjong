@@ -266,6 +266,7 @@ function useVoicePreview(volume: number) {
   const [playingKey, setPlayingKey] = useState<string | null>(null); const [error, setError] = useState<string | null>(null); const controllerRef = useRef<VoicePreviewController | null>(null);
   if (!controllerRef.current) controllerRef.current = new VoicePreviewController((url) => new Audio(url), (key, nextError) => { setPlayingKey(key); setError(nextError); });
   useEffect(() => () => controllerRef.current?.dispose(), []); useEffect(() => { controllerRef.current?.setVolume(volume); }, [volume]);
+  useEffect(() => { const stop = () => controllerRef.current?.stop(); window.addEventListener('voice-pack-preview-stop', stop); return () => window.removeEventListener('voice-pack-preview-stop', stop); }, []);
   useEffect(() => { if (!error) return undefined; const timer = window.setTimeout(() => setError(null), 2500); return () => window.clearTimeout(timer); }, [error]);
   return { playingKey, error, playOrStop: (key: string, url: string) => controllerRef.current?.playOrStop(key, url, volume) };
 }

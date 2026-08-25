@@ -9,6 +9,7 @@ import { LocalVoiceGenerationService } from './scripts/localVoiceGenerationServi
 import { FishAudioModelDiscoveryService, FishDiscoveryError } from './scripts/fishAudioModelDiscovery.mjs';
 import { LocalGeneratedVoiceRegistry } from './scripts/localGeneratedVoiceRegistry.mjs';
 import { FishVoiceCreationError, FishVoiceCreationService } from './scripts/fishVoiceCreationService.mjs';
+import cloneLanguageMapping from './src/audio/voice/fishCloneLanguages.json';
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 const voiceRoot = path.join(projectRoot, 'src', 'music', 'voice_lines');
@@ -17,6 +18,7 @@ const voiceGenerationService = new LocalVoiceGenerationService({ root: voiceRoot
 const fishModelDiscovery = new FishAudioModelDiscoveryService({ projectRoot });
 const generatedVoiceRegistry = new LocalGeneratedVoiceRegistry({ root: voiceRoot });
 const fishVoiceCreation = new FishVoiceCreationService({ projectRoot, registry: generatedVoiceRegistry });
+const cloneLanguageCodes = new Set(cloneLanguageMapping.languages.map((entry) => entry.cloneLanguage));
 
 function localVoiceBridge(): Plugin {
   return {
@@ -30,8 +32,26 @@ function localVoiceBridge(): Plugin {
           if (!isLocalBridgeHost(request.headers.host)) return sendJson(response, 403, { error: '本地语音创建服务只允许本机访问。' });
           if (request.method === 'POST' && !isLocalSameOrigin(request.headers.origin, request.headers.host)) return sendJson(response, 403, { error: '本地语音创建服务拒绝非同源请求。' });
           if (request.method === 'GET' && pathname === '/') return sendJson(response, 200, { voices: await generatedVoiceRegistry.list() });
-          if (request.method === 'DELETE' && /^\/[A-Za-z0-9_-]+$/.test(pathname)) return sendJson(response, 200, { removed: await generatedVoiceRegistry.remove(decodeURIComponent(pathname.slice(1))) });
+          const cloudDelete = pathname.match(/^\/([A-Za-z0-9_-]+)\/cloud$/);
+          if (request.method === 'DELETE' && cloudDelete) {
+            const voiceId = decodeURIComponent(cloudDelete[1]); const entry = await generatedVoiceRegistry.get(voiceId);
+            if (!entry) return sendJson(response, 404, { code: 'VOICE_NOT_FOUND', error: '本地音色记录不存在。' });
+            if (entry.source === 'existing' || entry.linkedPackIds?.length) return sendJson(response, 409, { code: 'VOICE_IN_USE', error: '该音色正在被角色使用，不能删除。' });
+            await fishVoiceCreation.deleteVoice(voiceId); await generatedVoiceRegistry.remove(voiceId); return sendJson(response, 200, { removed: true });
+          }
+          if (request.method === 'DELETE' && /^\/[A-Za-z0-9_-]+$/.test(pathname)) {
+            const voiceId = decodeURIComponent(pathname.slice(1)); const entry = await generatedVoiceRegistry.get(voiceId);
+            if (entry?.source === 'existing' || entry?.linkedPackIds?.length) return sendJson(response, 409, { code: 'VOICE_IN_USE', error: '该音色正在被角色使用，不能移除。' });
+            return sendJson(response, 200, { removed: await generatedVoiceRegistry.remove(voiceId) });
+          }
           if (request.method === 'POST' && pathname === '/clone') return sendJson(response, 201, { voice: await fishVoiceCreation.cloneVoice(await readMultipartBody(request)) });
+          const clonePreview = pathname.match(/^\/([A-Za-z0-9_-]+)\/preview$/);
+          if (request.method === 'POST' && clonePreview) {
+            const body = await readJsonBody(request);
+            if (!isRecord(body)) throw new FishVoiceCreationError('INVALID_REQUEST', '试听请求无效。', 400);
+            const result = await fishVoiceCreation.previewVoice({ ...body, voiceId: decodeURIComponent(clonePreview[1]) });
+            response.statusCode = 200; response.setHeader('Content-Type', result.contentType); response.setHeader('Cache-Control', 'no-store'); response.end(result.bytes); return;
+          }
           if (request.method === 'POST' && pathname === '/designs') return sendJson(response, 201, { design: await fishVoiceCreation.createDesign(await readJsonBody(request)) });
           const audio = pathname.match(/^\/designs\/([^/]+)\/candidates\/([^/]+)\/audio$/);
           if (request.method === 'GET' && audio) {
@@ -43,8 +63,8 @@ function localVoiceBridge(): Plugin {
           return sendJson(response, 404, { error: '未找到音色创建接口。' });
         } catch (error) {
           if (error instanceof FishVoiceCreationError) return sendJson(response, error.status, { error: error.message, code: error.code });
-          if (error instanceof VoicePackServiceError) return sendJson(response, error.status, { error: error.message });
-          return next(error);
+          if (error instanceof VoicePackServiceError) return sendJson(response, error.status, { error: error.message, code: 'LOCAL_BRIDGE_REQUEST' });
+          return sendJson(response, 500, { error: '本地音色创建服务处理请求失败，请重试。', code: 'LOCAL_BRIDGE_ERROR' });
         }
       });
       server.middlewares.use('/api/voice-models', async (request, response, next) => {
@@ -105,9 +125,12 @@ function localVoiceBridge(): Plugin {
           }
           return sendJson(response, 404, { error: '未找到语音包接口。' });
         } catch (error) {
-          if (error instanceof VoicePackServiceError) return sendJson(response, error.status, { error: error.message });
+          if (error instanceof VoicePackServiceError) return sendJson(response, error.status, { error: error.message, ...(error.code ? { code: error.code } : {}) });
           if (error instanceof FishDiscoveryError) return sendJson(response, error.status, { error: error.message, code: error.code });
-          return next(error);
+          // The local filesystem can reject a Windows rename with an opaque
+          // error. Never pass that to Vite's error overlay: the UI needs a
+          // normal, recoverable API response and must keep the Pack listed.
+          return sendJson(response, 500, { code: 'PACK_DELETE_FAILED', error: '本地角色语音服务处理请求失败，请稍后重试。' });
         }
       });
     },
@@ -128,7 +151,7 @@ function readJsonBody(request: import('node:http').IncomingMessage): Promise<unk
 }
 
 /** Multipart is parsed in memory only; uploaded reference audio is never written to disk. */
-async function readMultipartBody(request: import('node:http').IncomingMessage): Promise<{ name?: string; description?: string; referenceText?: string; languages?: string[]; audioFiles: File[] }> {
+async function readMultipartBody(request: import('node:http').IncomingMessage): Promise<{ name?: string; description?: string; referenceText?: string; languages: string[]; audioFiles: File[] }> {
   const contentType = request.headers['content-type'] ?? '';
   if (!contentType.startsWith('multipart/form-data')) throw new VoicePackServiceError(400, '参考音频请求格式无效。');
   const length = Number(request.headers['content-length']);
@@ -142,8 +165,12 @@ async function readMultipartBody(request: import('node:http').IncomingMessage): 
   const webRequest = new Request('http://127.0.0.1/api/generated-voices/clone', { method: 'POST', headers: { 'Content-Type': contentType }, body, duplex: 'half' });
   const form = await webRequest.formData();
   const files = form.getAll('audioFiles').filter((value): value is File => value instanceof File);
-  const languages = form.getAll('languages').filter((value): value is string => typeof value === 'string');
-  return { name: form.get('name')?.toString(), description: form.get('description')?.toString(), referenceText: form.get('referenceText')?.toString(), ...(languages.length ? { languages } : {}), audioFiles: files };
+  const rawLanguages = form.get('languages'); let languages: unknown;
+  try { languages = typeof rawLanguages === 'string' ? JSON.parse(rawLanguages) : undefined; } catch { throw new VoicePackServiceError(400, '音色语言格式无效。'); }
+  if (!Array.isArray(languages) || languages.length !== 1 || typeof languages[0] !== 'string' || !cloneLanguageCodes.has(languages[0])) {
+    throw new VoicePackServiceError(400, '请明确选择一个受支持的音色语言。');
+  }
+  return { name: form.get('name')?.toString(), description: form.get('description')?.toString(), referenceText: form.get('referenceText')?.toString(), languages, audioFiles: files };
 }
 
 function sendJson(response: import('node:http').ServerResponse, status: number, value: unknown): void {

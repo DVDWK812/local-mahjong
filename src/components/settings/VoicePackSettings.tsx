@@ -52,6 +52,9 @@ export function VoicePackSettings({ selectedVoicePackId, onSelect, onManage, onC
     if (!pendingDeletion || BUILTIN_PACK_IDS.has(pendingDeletion.id)) return;
     setDeleting(true); setDeleteError(null);
     try {
+      // Give the management screen a chance to release its HTMLAudioElement
+      // before the local Bridge attempts the Windows filesystem rename.
+      window.dispatchEvent(new Event('voice-pack-preview-stop'));
       const result = await service.deletePack(pendingDeletion.id);
       const next = packs.filter((pack) => pack.id !== result.deletedPackId);
       setPacks(next); setPendingDeletion(null);

@@ -7,10 +7,13 @@ const SAFE_LOCALE = /^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/;
 const BUILTIN_PACK_IDS = new Set(['xiaozhang']);
 
 export class LocalVoicePackService {
-  constructor({ root, masterCsv, now = () => new Date() }) {
+  constructor({ root, masterCsv, now = () => new Date(), sleep = defaultSleep, fileSystem = fs, indexGenerator = generateVoicePackIndex }) {
     this.root = path.resolve(root);
     this.masterCsv = path.resolve(masterCsv);
     this.now = now;
+    this.sleep = sleep;
+    this.fileSystem = fileSystem;
+    this.indexGenerator = indexGenerator;
     this.creating = false;
   }
 
@@ -106,7 +109,7 @@ export class LocalVoicePackService {
     if (BUILTIN_PACK_IDS.has(packId)) throw new VoicePackServiceError(403, '内置角色无法删除。');
     const packDirectory = safeChildPath(this.root, packId);
     try {
-      const stat = await fs.stat(packDirectory);
+      const stat = await this.fileSystem.stat(packDirectory);
       if (!stat.isDirectory()) throw new Error('not directory');
     } catch {
       throw new VoicePackServiceError(404, '要删除的角色语音包不存在。');
@@ -114,14 +117,29 @@ export class LocalVoicePackService {
     // Keep the rollback directory adjacent to (but outside) voice_lines so the
     // index generator never treats it as a malformed Pack during the refresh.
     const temporaryDirectory = path.join(path.dirname(this.root), `.${path.basename(this.root)}-${packId}.deleting-${process.pid}-${Date.now()}`);
-    await fs.rename(packDirectory, temporaryDirectory);
     try {
-      await generateVoicePackIndex(this.root);
-      await fs.rm(temporaryDirectory, { recursive: true, force: true });
+      await renameWithWindowsRetries(this.fileSystem, packDirectory, temporaryDirectory, this.sleep);
+    } catch (error) {
+      if (!isWindowsFileLock(error)) throw new VoicePackServiceError(500, '删除角色文件失败，请稍后重试。', 'PACK_DELETE_FAILED');
+      // Explorer, antivirus, or a just-stopped Audio element can hold a handle
+      // briefly on Windows. Fall back to a retrying recursive remove only after
+      // the atomic rename has been given a fair chance.
+      try {
+        await this.fileSystem.rm(packDirectory, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+      } catch {
+        throw new VoicePackServiceError(423, '角色文件正在被系统或播放器占用，请停止试听后重试。', 'PACK_IN_USE');
+      }
+      try { await this.indexGenerator(this.root); }
+      catch { throw new VoicePackServiceError(500, '角色已删除，但语音包索引刷新失败。', 'PACK_INDEX_REFRESH_FAILED'); }
+      return { deletedPackId: packId };
+    }
+    try {
+      await this.indexGenerator(this.root);
+      await this.fileSystem.rm(temporaryDirectory, { recursive: true, force: true });
       return { deletedPackId: packId };
     } catch (error) {
-      await fs.rename(temporaryDirectory, packDirectory).catch(() => undefined);
-      await generateVoicePackIndex(this.root).catch(() => undefined);
+      await this.fileSystem.rename(temporaryDirectory, packDirectory).catch(() => undefined);
+      await this.indexGenerator(this.root).catch(() => undefined);
       throw error instanceof VoicePackServiceError
         ? error
         : new VoicePackServiceError(500, '删除角色后刷新索引失败，已恢复本地角色。');
@@ -133,7 +151,23 @@ async function readJson(file) { return JSON.parse(await fs.readFile(file, 'utf8'
 async function readOptionalJson(file, fallback) { try { return await readJson(file); } catch (error) { if (error?.code === 'ENOENT') return fallback; throw error; } }
 
 export class VoicePackServiceError extends Error {
-  constructor(status, message) { super(message); this.status = status; }
+  constructor(status, message, code) { super(message); this.status = status; this.code = code; }
+}
+
+const WINDOWS_RENAME_DELAYS = [100, 200, 400, 800, 1200];
+async function defaultSleep(delay) { await new Promise((resolve) => setTimeout(resolve, delay)); }
+function isWindowsFileLock(error) { return error?.code === 'EPERM' || error?.code === 'EBUSY'; }
+export async function renameWithWindowsRetries(fileSystem, from, to, sleep = defaultSleep) {
+  let lastError;
+  for (let attempt = 0; attempt <= WINDOWS_RENAME_DELAYS.length; attempt += 1) {
+    try { await fileSystem.rename(from, to); return; }
+    catch (error) {
+      lastError = error;
+      if (!isWindowsFileLock(error) || attempt === WINDOWS_RENAME_DELAYS.length) throw error;
+      await sleep(WINDOWS_RENAME_DELAYS[attempt]);
+    }
+  }
+  throw lastError;
 }
 
 function validateInput(input) {

@@ -1,0 +1,20 @@
+{
+  "flavor.close_game": {
+    "key": "flavor.close_game",
+    "fingerprint": "9e9217e5c240c03ed006de248fa02d03cb92e6832e4cef1fdea0feb32c0f01f2",
+    "fingerprintVersion": "voice-fingerprint-v2",
+    "line": "这局结束了",
+    "ttsText": "这局结束了",
+    "voiceId": "3cfac83f-efa7-46ce-ab23-5fc34a99d9f5",
+    "modelId": "fishaudio-s21pro",
+    "speed": 1.0,
+    "volume": 0.0,
+    "stability": 1.0,
+    "similarity": 1.0,
+    "language": "zh-CN",
+    "textNormalization": true,
+    "format": "mp3",
+    "file": "flavor_close_game.mp3",
+    "createdAt": "2026-08-25T03:50:42.712347Z"
+  }
+}

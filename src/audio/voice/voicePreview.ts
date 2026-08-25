@@ -3,6 +3,9 @@ export interface VoicePreviewAudio {
   currentTime: number;
   onended: ((event: Event) => unknown) | null;
   onerror: ((event: Event) => unknown) | null;
+  src?: string;
+  removeAttribute?(qualifiedName: string): void;
+  load?(): void;
   play(): Promise<void> | void;
   pause(): void;
 }
@@ -48,6 +51,11 @@ export class VoicePreviewController {
       audio.onerror = null;
       audio.pause();
       audio.currentTime = 0;
+      // Explicitly detach the source after pausing. This releases the Windows
+      // file handle before a local Pack directory is renamed or removed.
+      audio.removeAttribute?.('src');
+      if ('src' in audio) audio.src = '';
+      audio.load?.();
     }
     this.onStateChange(null, null);
   }

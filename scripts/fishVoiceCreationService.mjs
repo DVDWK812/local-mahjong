@@ -1,10 +1,13 @@
 import { loadFishAudioApiKeys } from './fishAudioModelDiscovery.mjs';
+import { readFileSync } from 'node:fs';
 
 const API_BASE = 'https://fishaudio.org/api/open/v1';
-const MAX_FILE_BYTES = 10 * 1024 * 1024;
+const TTS_API_BASE = 'https://fishaudio.org/api/open/v3/speech/tts';
+const MAX_FILE_BYTES = Math.floor(4.5 * 1024 * 1024);
 const MAX_FILES = 5;
 const EXTENSIONS = new Set(['.wav', '.mp3', '.m4a', '.ogg', '.flac']);
 const MIME_TYPES = new Set(['audio/wav', 'audio/x-wav', 'audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/ogg', 'audio/flac', 'audio/x-flac']);
+const CLONE_LANGUAGE_CODES = new Set(JSON.parse(readFileSync(new URL('../src/audio/voice/fishCloneLanguages.json', import.meta.url), 'utf8')).languages.map((entry) => entry.cloneLanguage));
 
 export class FishVoiceCreationError extends Error {
   constructor(code, message, status = 502, cause) { super(message, cause ? { cause } : undefined); this.code = code; this.status = status; }
@@ -19,10 +22,11 @@ export class FishVoiceCreationService {
 
   async cloneVoice(input) {
     const normalized = validateCloneInput(input);
+    await validateReliableCloneDurations(normalized.audioFiles);
     const result = await this.requestSideEffect('/voices', formForClone(normalized), 'clone');
     const voice = normalizePermanentVoice(result, normalized.name);
     if (!voice) throw new FishVoiceCreationError('FISH_INVALID_RESPONSE', 'Fish 未返回有效的永久音色。');
-    return this.registry.upsert({ ...voice, source: 'clone', ...(normalized.description ? { description: normalized.description } : {}) });
+    return this.registry.upsert({ ...voice, source: 'clone', language: normalized.language, ...(normalized.description ? { description: normalized.description } : {}) });
   }
 
   async createDesign(input) {
@@ -48,6 +52,32 @@ export class FishVoiceCreationService {
     const voice = normalizePermanentVoice(result, name);
     if (!voice) throw new FishVoiceCreationError('FISH_INVALID_RESPONSE', 'Fish 未返回有效的永久音色。');
     return this.registry.upsert({ ...voice, source: 'design', ...(stringField(input.description) ? { description: stringField(input.description) } : {}) });
+  }
+
+  async deleteVoice(voiceId) {
+    assertIdentifier(voiceId, '音色 ID 无效。');
+    const key = await this.firstKey(); let response;
+    try { response = await this.fetchImpl(`${this.apiBase}/voices/${encodeURIComponent(voiceId)}`, { method: 'DELETE', headers: { Authorization: `Bearer ${key}`, Accept: 'application/json' } }); }
+    catch (cause) { throw new FishVoiceCreationError('FISH_NETWORK_AMBIGUOUS', '删除结果不确定，请检查已生成音色列表后再重试。', 502, cause); }
+    if (!response.ok) throw fishResponseError(response.status);
+    return true;
+  }
+
+  /** Ordinary v3 TTS preview for a permanent cloned voice. Audio stays in the
+   * response only; it is never written to a Mahjong Voice Pack. */
+  async previewVoice(input) {
+    const voiceId = stringField(input?.voiceId); const modelId = stringField(input?.modelId); const text = stringField(input?.text);
+    if (!voiceId || !modelId || !text) throw new FishVoiceCreationError('INVALID_REQUEST', '请选择兼容模型并填写试听文本。', 400);
+    const key = await this.firstKey(); const requestId = this.randomId(); let response;
+    try {
+      response = await this.fetchImpl(TTS_API_BASE, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${key}`, Accept: 'audio/mpeg', 'Content-Type': 'application/json; charset=utf-8', 'Idempotency-Key': requestId, 'X-Request-Id': requestId },
+        body: JSON.stringify({ text, voiceId, modelId, format: 'mp3' }),
+      });
+    } catch (cause) { throw new FishVoiceCreationError('FISH_NETWORK', '试听请求失败，请稍后重试。', 502, cause); }
+    if (!response.ok) throw fishResponseError(response.status);
+    return { bytes: new Uint8Array(await response.arrayBuffer()), contentType: response.headers.get('content-type') || 'audio/mpeg' };
   }
 
   async requestSideEffect(pathname, body, action) {
@@ -83,23 +113,44 @@ export function validateCloneInput(input) {
     if (!filename || !Number.isFinite(bytes) || bytes <= 0) throw new FishVoiceCreationError('UPLOAD_INVALID', '参考音频为空或无效。', 400);
     if (!EXTENSIONS.has(extension)) throw new FishVoiceCreationError('UPLOAD_FORMAT', '参考音频格式不支持。请使用 WAV、MP3、M4A、OGG 或 FLAC。', 400);
     if (typeof file.type === 'string' && file.type && !MIME_TYPES.has(file.type.toLowerCase())) throw new FishVoiceCreationError('UPLOAD_FORMAT', '参考音频 MIME 类型不支持。', 400);
-    if (bytes > MAX_FILE_BYTES) throw new FishVoiceCreationError('UPLOAD_TOO_LARGE', '单个参考音频不能超过 10MB。', 413);
+    if (bytes > MAX_FILE_BYTES) throw new FishVoiceCreationError('UPLOAD_TOO_LARGE', '单个参考音频不能超过 4.5MB。', 413);
     if (seen.has(duplicate)) throw new FishVoiceCreationError('UPLOAD_DUPLICATE', '请移除重复的参考音频。', 400); seen.add(duplicate);
   }
   const languages = Array.isArray(input.languages) ? input.languages.filter((value) => typeof value === 'string' && value.trim()).map((value) => value.trim()) : [];
-  return { name, audioFiles: files, ...(stringField(input.description) ? { description: stringField(input.description) } : {}), ...(stringField(input.referenceText) ? { referenceText: stringField(input.referenceText) } : {}), ...(languages.length ? { languages } : {}) };
+  if (languages.length !== 1 || !CLONE_LANGUAGE_CODES.has(languages[0])) throw new FishVoiceCreationError('CLONE_LANGUAGE_INVALID', '请明确选择一个受支持的音色语言。', 400);
+  return { name, audioFiles: files, language: languages[0], ...(stringField(input.description) ? { description: stringField(input.description) } : {}), ...(stringField(input.referenceText) ? { referenceText: stringField(input.referenceText) } : {}) };
 }
 
 export function validateDesignInput(input) {
   const prompt = stringField(input?.prompt); const previewText = stringField(input?.previewText); const providers = Array.isArray(input?.providers) ? input.providers.filter((value) => value === 'fishaudio' || value === 'minimax') : [];
+  if (prompt.length > 2000) throw new FishVoiceCreationError('DESIGN_PROMPT_TOO_LONG', '音色描述最多 2000 个字符。', 400);
+  if (previewText.length > 150) throw new FishVoiceCreationError('DESIGN_PREVIEW_TEXT_TOO_LONG', '试听文本最多 150 个字符。', 400);
   if (!prompt || !previewText || !providers.length) throw new FishVoiceCreationError('INVALID_REQUEST', '请填写音色描述、试听文本，并选择至少一个提供方。', 400);
   return { prompt, previewText, providers: [...new Set(providers)] };
+}
+
+/** WAV headers are cheap and reliable to inspect in-memory. Other accepted
+ * formats are duration-validated in the browser where decoding support exists. */
+async function validateReliableCloneDurations(files) {
+  let totalSeconds = 0;
+  for (const file of files) {
+    if (!file?.name?.toLowerCase().endsWith('.wav') || typeof file.arrayBuffer !== 'function') continue;
+    const buffer = new Uint8Array(await file.arrayBuffer());
+    const seconds = wavDurationSeconds(buffer);
+    if (seconds !== undefined) totalSeconds += seconds;
+  }
+  if (totalSeconds > 60) throw new FishVoiceCreationError('UPLOAD_DURATION_TOO_LONG', '所有参考音频总时长不能超过 60 秒。', 413);
+}
+function wavDurationSeconds(bytes) {
+  if (bytes.length < 44 || String.fromCharCode(...bytes.slice(0, 4)) !== 'RIFF' || String.fromCharCode(...bytes.slice(8, 12)) !== 'WAVE') return undefined;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength); const byteRate = view.getUint32(28, true); const dataBytes = view.getUint32(40, true);
+  return byteRate > 0 ? dataBytes / byteRate : undefined;
 }
 
 function formForClone(input) {
   const form = new FormData(); form.append('name', input.name); form.append('visibility', 'private');
   if (input.description) form.append('description', input.description); if (input.referenceText) form.append('referenceText', input.referenceText);
-  for (const language of input.languages ?? []) form.append('languages', language);
+  form.append('languages', JSON.stringify([input.language]));
   for (const file of input.audioFiles) form.append('audioFiles', file, file.name);
   return form;
 }
@@ -125,4 +176,4 @@ function assertIdentifier(value, message) { if (typeof value !== 'string' || !va
 function stringField(value) { return typeof value === 'string' && value.trim() ? value.trim() : ''; }
 function firstString(...values) { return values.find((value) => typeof value === 'string' && value.trim())?.trim(); }
 function labelFor(action) { return action === 'clone' ? '创建音色' : action === 'design' ? '生成候选' : '保存音色'; }
-export { MAX_FILE_BYTES, MAX_FILES, normalizeDesign, normalizePermanentVoice };
+export { MAX_FILE_BYTES, MAX_FILES, normalizeDesign, normalizePermanentVoice, wavDurationSeconds };

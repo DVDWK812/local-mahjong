@@ -1,7 +1,7 @@
 ﻿key,category,action,line,tts_text,locale,character,emotion,action_cn,speed,volume,stability,similarity,language_override,text_normalization,pitch,tts_emotion,tts_instruction
 flavor.win,flavor,win,啊~死国一,<|phoneme_start|>a4<|phoneme_end|>~<|phoneme_start|>si3<|phoneme_end|><|phoneme_start|>guo4<|phoneme_end|>一,zh-CN,default,happy,胜利,1.15,0,1,1,,true,,,
 flavor.lose,flavor,lose,呃啊,,zh-CN,default,sad,失败,1,0,1,1,,true,,,
-flavor.close_game,flavor,close_game,这局结束了,这局结束了,zh-CN,default,neutral,这局结束了,1.05,0,1,1,,true,,,
+flavor.close_game,flavor,close_game,这局结束了,这局结束了,zh-CN,default,neutral,这局结束了,1,0,1,1,,true,,,
 game.start,game,start,对局开始,对局开始,zh-CN,default,neutral,对局开始,1,0,1,1,,true,,,
 game.end,game,first_place,曼波~~曼波~~欧码激励~~曼波！,曼波~~曼波~~欧码激励~~曼波！,zh-CN,default,neutral,第一名,1,0,1,1,,true,,,
 result.second_place,result,second_place,哦耶~,,zh-CN,default,neutral,第二名,1,0,1,1,,true,,,

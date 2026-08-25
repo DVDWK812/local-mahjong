@@ -24,14 +24,14 @@ describe('Voice generation status', () => {
     expect(generationStatusSummary(getVoicePackGenerationStatuses(detail, editor.getVoiceLines('xiaozhang')))).toMatchObject({ generated: 138, changed: 10, 'not-generated': 0, 'missing-audio': 0 });
   });
 
-  it('完整 Pack 保留真实增量状态：校长全量已生成，曼波只保留用户已编辑的一条待更新', () => {
+  it('完整 Pack 保留真实增量状态：校长与曼波均全量已生成', () => {
     const xiaozhang = VOICE_PACK_REPOSITORY.getPack('xiaozhang');
     const mambo = VOICE_PACK_REPOSITORY.getPack('voice-20260821-001');
     if (!xiaozhang || !mambo) throw new Error('Missing complete Pack fixture');
     expect(xiaozhang.voiceLines).toHaveLength(148); expect(mambo.voiceLines).toHaveLength(148);
     expect(generationStatusSummary(getVoicePackGenerationStatuses(xiaozhang, xiaozhang.voiceLines))).toMatchObject({ generated: 148, changed: 0, 'not-generated': 0, 'missing-audio': 0 });
-    expect(generationStatusSummary(getVoicePackGenerationStatuses(mambo, mambo.voiceLines))).toMatchObject({ generated: 147, changed: 1, 'not-generated': 0, 'missing-audio': 0 });
-    expect(getVoiceLineGenerationStatus(mambo, mambo.voiceLines.find((line) => line.key === 'flavor.close_game')!)).toBe('changed');
+    expect(generationStatusSummary(getVoicePackGenerationStatuses(mambo, mambo.voiceLines))).toMatchObject({ generated: 148, changed: 0, 'not-generated': 0, 'missing-audio': 0 });
+    expect(getVoiceLineGenerationStatus(mambo, mambo.voiceLines.find((line) => line.key === 'flavor.close_game')!)).toBe('generated');
   });
 
   it('只改 display line 而有效 tts_text 不变时保持已生成；tts_text 改变才需要更新', () => {
