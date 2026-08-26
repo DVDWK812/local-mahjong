@@ -227,7 +227,7 @@ describe('ReplayScreen 视角边界', () => {
     expect(html).toMatch(/data-player-zone="east"[^>]*data-player-index="3"/);
     expect(html).toMatch(/data-player-zone="north"[^>]*data-player-index="0"/);
     expect(html).toMatch(/data-player-zone="west"[^>]*data-player-index="1"/);
-    expect(html).toMatch(/class="local-hand-info"[\s\S]*title="丙"/);
+    expect(html).toMatch(/class="local-hand-info[^"]*"[\s\S]*title="丙"/);
   });
 
   it('普通玩家3视角只公开Player3手牌，顶部Player1显示牌背', () => {

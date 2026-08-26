@@ -10,13 +10,13 @@ import { PlayerZone } from './PlayerZone';
 describe('PlayerZone', () => {
   const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
 
-  it('对手区域显示牌背、头像、玩家名、红色庄家标记和当前行动者高亮', () => {
+  it('对家使用竖版大头像框，只保留玩家名和摸切并保持当前行动者高亮', () => {
     const state = createInitialGameState();
-    const player = state.players[1];
+    const player = state.players[2];
     const html = renderToStaticMarkup(
       <PlayerZone
-        playerIndex={1}
-        position="east"
+        playerIndex={2}
+        position="north"
         player={player}
         score={player.score}
         seatWind={player.seatWind}
@@ -24,10 +24,16 @@ describe('PlayerZone', () => {
         isCurrentPlayer
       />,
     );
-    expect(html).toContain('player-zone--east');
+    expect(html).toContain('player-zone--north');
     expect(html).toContain('player-zone--current');
+    expect(html).toContain('player-identity--compact player-identity--opposite');
+    expect(html).toContain('data-player-frame-layout="vertical"');
     expect(html).toContain('player-avatar');
-    expect(html).toContain('dealer-marker');
+    expect(html).toContain('tsumogiri-marker');
+    expect(html).not.toContain('player-identity-meta');
+    expect(html).not.toContain('dealer-marker');
+    expect(html).not.toContain('25,000');
+    expect(css).toMatch(/\.player-identity--compact \.player-identity-copy\s*\{[^}]*display: flex[^}]*align-items: center/s);
     expect(html).toContain('tile--hidden');
   });
 
@@ -55,7 +61,7 @@ describe('PlayerZone', () => {
     expect(css).toContain('linear-gradient');
   });
 
-  it('玩家信息、手牌、牌河和副露使用不同安全容器', () => {
+  it('左右竖版玩家框只保留头像、昵称和摸切，手牌、牌河与副露仍使用独立容器', () => {
     const state = createInitialGameState();
     const player = state.players[1];
     const html = renderToStaticMarkup(
@@ -69,12 +75,16 @@ describe('PlayerZone', () => {
         isCurrentPlayer={false}
       />,
     );
-    expect(html).toContain('player-identity player-zone-label');
+    expect(html).toContain('player-identity player-zone-label player-identity--compact player-identity--side');
+    expect(html).toContain('data-player-frame-layout="vertical"');
     expect(html).toContain('player-zone-hand-wrap');
     expect(html).toContain('player-zone-river-wrap');
     expect(html).toContain('player-zone-meld-wrap');
-    expect(html).toContain('player-identity-meta');
-    expect(html).toContain('25,000');
+    expect(html).toContain(player.name);
+    expect(html).toContain('tsumogiri-marker');
+    expect(html).not.toContain('player-identity-meta');
+    expect(html).not.toContain('25,000');
+    expect(html).not.toContain('dealer-marker');
   });
 
   it('左右家手牌完整显示13张牌背，并预留第14张空间', () => {

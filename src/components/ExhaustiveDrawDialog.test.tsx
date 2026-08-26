@@ -21,8 +21,9 @@ describe('ResultDialog exhaustive draw branch', () => {
     };
     const html = renderToStaticMarkup(<ResultDialog gameState={state} onReset={() => undefined} />);
     expect(html).toContain('荒牌流局');
-    expect(html).toContain('Player 1 手牌');
-    expect(html).toContain('Player 2 手牌');
+    expect(html).toContain('东家 Player 1');
+    expect(html).toContain('南家 Player 2');
+    expect((html.match(/公开手牌/g) ?? [])).toHaveLength(2);
     expect(html).toContain('Player 3');
     expect(html).toContain('+1,500');
     expect(html).toContain('-1,500');
@@ -45,7 +46,8 @@ describe('ResultDialog exhaustive draw branch', () => {
       },
     };
     const html = renderToStaticMarkup(<ResultDialog gameState={state} onReset={() => undefined} revealExhaustiveDrawPlayerIds={[1]} />);
-    expect(html).toContain('Player 1 手牌');
-    expect(html).toContain('Player 2 手牌');
+    expect(html).toContain('东家 Player 1');
+    expect(html).toContain('南家 Player 2');
+    expect((html.match(/公开手牌/g) ?? [])).toHaveLength(2);
   });
 });

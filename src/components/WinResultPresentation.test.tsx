@@ -79,8 +79,11 @@ describe('ResultDialog streamed win presentation', () => {
     });
     emit({ type: 'sequenceCompleted', sequence: win, packId: 'xiaozhang', status: 'completed' });
     const html = renderToStaticMarkup(<ResultDialog gameState={gameState()} onReset={() => undefined} winPresentationController={controller} />);
-    expect(html).toContain('1番30符');
-    expect(html).toContain('牌型得点：1,000点');
+    expect(html).toContain('总番');
+    expect(html).toContain('1番');
+    expect(html).toContain('30符');
+    expect(html).toContain('结果得点');
+    expect(html).toContain('1,000');
   });
 
   it('Stage 2 使用权威 delta 显示 before → delta → after，并仅显示 active players', () => {

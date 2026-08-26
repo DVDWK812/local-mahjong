@@ -10,7 +10,7 @@ import type { GameState, PendingCallOption, PlayerId, Tile as TileModel, TileId 
 import type { PlayerProfile } from '../profile/playerProfile';
 import { sortTiles, tileLabel } from '../game/tileUtils';
 import { useGamePresentationEvents } from '../presentation/gamePresentationEvents';
-import { ActionPrompt } from './ActionPrompt';
+import { ActionPrompt, OperationButton, operationButtonClassName, type OperationKind } from './ActionPrompt';
 import { GameScreen } from './game/GameScreen';
 import { Tile } from './Tile';
 import type { WinResultPresentationController } from '../audio/voice/WinResultPresentationController';
@@ -149,16 +149,17 @@ export function Board({
       {hasDrawPrompt ? (
         <ActionPrompt title="可执行操作">
           {drawActions.canTsumo && localPlayer.drawnTile ? (
-            <TileActionButton label="自摸" tile={localPlayer.drawnTile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onTsumo(controlledPlayerId)} />
+            <TileActionButton operation="win" label="自摸" tile={localPlayer.drawnTile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onTsumo(controlledPlayerId)} />
           ) : null}
           {drawActions.canRiichi ? (
-            <div className="prompt-group">
+            <div className="prompt-group operation-item operation-item--riichi">
               <span>{drawActions.canDoubleRiichi ? '双立直' : '立直'}</span>
               {drawActions.riichiDiscardCandidateGroups.map((candidate) => {
                 const discardInstanceId = candidate.instanceIds[0];
                 return (
                   <TileActionButton
                     key={candidate.key}
+                    operation="riichi"
                     label={drawActions.canDoubleRiichi ? '双立直' : '立直'}
                     ariaLabel={`${drawActions.canDoubleRiichi ? '双立直' : '立直'}并打出${tileLabel(candidate.tile.id)}`}
                     showLabel={false}
@@ -178,10 +179,11 @@ export function Board({
               })}
             </div>
           ) : null}
-          {drawActions.canKyuushuKyuuhai ? <button type="button" onClick={() => onDeclareKyuushuKyuuhai(controlledPlayerId)}>九种九牌</button> : null}
+          {drawActions.canKyuushuKyuuhai ? <OperationButton kind="abortive" onClick={() => onDeclareKyuushuKyuuhai(controlledPlayerId)}>九种九牌</OperationButton> : null}
           {drawActions.ankanCandidates.map((candidate) => (
             <CallOptionButton
               key={`ankan-${candidate.tileId}`}
+              operation="kan"
               label="暗杠"
               tiles={tilesForAnkan(gameState, controlledPlayerId, candidate.tileId)}
               doraIndicators={gameState.doraIndicators}
@@ -195,6 +197,7 @@ export function Board({
           {drawActions.kakanCandidates.map((candidate) => (
             <CallOptionButton
               key={`kakan-${candidate.tileId}`}
+              operation="kan"
               label="加杠"
               tiles={tilesForKakan(gameState, controlledPlayerId, candidate.tileId)}
               calledInstanceId={gameState.players[controlledPlayerId].hand.find((tile) => tile.id === candidate.tileId)?.instanceId}
@@ -206,16 +209,16 @@ export function Board({
               onClick={() => onKan(controlledPlayerId, 'kakan', candidate.tileId)}
             />
           ))}
-          <button type="button" onClick={skipDrawActions}>跳过</button>
+          <OperationButton kind="pass" onClick={skipDrawActions}>跳过</OperationButton>
         </ActionPrompt>
       ) : null}
 
       {canHumanRon ? (
         <ActionPrompt title={`可以荣和 ${gameState.pendingRon ? tileLabel(gameState.pendingRon.tile.id) : ''}`}>
           {gameState.pendingRon ? (
-            <TileActionButton label="荣和" tile={gameState.pendingRon.tile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onRon(controlledPlayerId)} />
+            <TileActionButton operation="win" label="荣和" tile={gameState.pendingRon.tile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onRon(controlledPlayerId)} />
           ) : null}
-          <button type="button" onClick={() => onPassRon(controlledPlayerId)}>跳过</button>
+          <OperationButton kind="pass" onClick={() => onPassRon(controlledPlayerId)}>跳过</OperationButton>
         </ActionPrompt>
       ) : null}
 
@@ -232,6 +235,7 @@ export function Board({
           {humanMinkanOptions.map((option, index) => (
             <CallOptionButton
               key={`kan-${option.player}-${index}`}
+              operation="kan"
               label="明杠"
               tiles={tilesForMinkan(gameState, option)}
               calledInstanceId={gameState.pendingCall?.tile.instanceId}
@@ -245,6 +249,7 @@ export function Board({
           ))}
           {canHumanPon ? (
             <CallOptionButton
+              operation="pon"
               label="碰"
               tiles={tilesForPon(gameState, controlledPlayerId)}
               calledInstanceId={gameState.pendingCall?.tile.instanceId}
@@ -259,6 +264,7 @@ export function Board({
           {humanChiOptions.map((option, index) => (
             <CallOptionButton
               key={option.sequence?.join('-') ?? index}
+              operation="chi"
               label="吃"
               tiles={tilesForChi(gameState, option)}
               calledInstanceId={gameState.pendingCall?.tile.instanceId}
@@ -270,16 +276,16 @@ export function Board({
               onClick={() => onChi(controlledPlayerId, index)}
             />
           ))}
-          <button type="button" onClick={onPassCall}>跳过</button>
+          <OperationButton kind="pass" onClick={onPassCall}>跳过</OperationButton>
         </ActionPrompt>
       ) : null}
 
       {gameState.phase === 'chankan-window' && canHumanChankan ? (
         <ActionPrompt title={`可以抢杠 ${gameState.pendingKakan ? tileLabel(gameState.pendingKakan.addedTile.id) : ''}`}>
           {gameState.pendingKakan ? (
-            <TileActionButton label="荣和" tile={gameState.pendingKakan.addedTile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onChankanRon(controlledPlayerId)} />
+            <TileActionButton operation="win" label="荣和" tile={gameState.pendingKakan.addedTile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onChankanRon(controlledPlayerId)} />
           ) : null}
-          <button type="button" onClick={() => onPassChankan(controlledPlayerId)}>跳过</button>
+          <OperationButton kind="pass" onClick={() => onPassChankan(controlledPlayerId)}>跳过</OperationButton>
         </ActionPrompt>
       ) : null}
     </>
@@ -323,6 +329,7 @@ export function Board({
 }
 
 export function TileActionButton({
+  operation,
   label,
   ariaLabel,
   showLabel = true,
@@ -335,6 +342,7 @@ export function TileActionButton({
   onPreviewChange,
   onClick,
 }: {
+  operation?: Extract<OperationKind, 'win' | 'riichi'>;
   label: string;
   ariaLabel?: string;
   showLabel?: boolean;
@@ -357,7 +365,8 @@ export function TileActionButton({
   return (
     <button
       type="button"
-      className="prompt-tile-action"
+      className={operation ? operationButtonClassName(operation, 'prompt-tile-action') : 'prompt-tile-action'}
+      data-operation={operation}
       onPointerEnter={() => onPreviewChange?.(true)}
       onPointerLeave={() => onPreviewChange?.(false)}
       onFocus={() => onPreviewChange?.(true)}
@@ -371,13 +380,14 @@ export function TileActionButton({
     >
       {showLabel ? <span className="prompt-tile-action-label">{label}</span> : null}
       <span className="prompt-tile-action-tile">
-        <Tile tile={tile} compact interactive={false} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
+        <Tile tile={tile} compact interactive={false} riichiCandidate={operation === 'riichi'} doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
       </span>
     </button>
   );
 }
 
 function CallOptionButton({
+  operation,
   label,
   tiles,
   calledInstanceId,
@@ -388,6 +398,7 @@ function CallOptionButton({
   onHoveredTileTypeChange,
   onClick,
 }: {
+  operation: Extract<OperationKind, 'kan' | 'pon' | 'chi'>;
   label: string;
   tiles: TileModel[];
   calledInstanceId?: string;
@@ -408,7 +419,8 @@ function CallOptionButton({
   return (
     <button
       type="button"
-      className="call-option-button"
+      className={operationButtonClassName(operation, 'call-option-button')}
+      data-operation={operation}
       aria-label={ariaLabel}
       onPointerDown={() => onHoveredTileTypeChange?.(null)}
       onClick={handleActivate}

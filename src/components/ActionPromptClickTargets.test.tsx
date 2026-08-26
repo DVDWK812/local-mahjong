@@ -56,15 +56,11 @@ function callWindowWithRedFive(): GameState {
 }
 
 function callOptionSegments(html: string): string[] {
-  const segments: string[] = [];
-  let cursor = 0;
-  while (true) {
-    const start = html.indexOf('<button type="button" class="call-option-button"', cursor);
-    if (start === -1) return segments;
+  return [...html.matchAll(/<button type="button" class="[^"]*\bcall-option-button\b[^"]*"/g)].map((match) => {
+    const start = match.index;
     const end = html.indexOf('</button>', start);
-    segments.push(html.slice(start, end + '</button>'.length));
-    cursor = end + '</button>'.length;
-  }
+    return html.slice(start, end + '</button>'.length);
+  });
 }
 
 describe('鸣牌提示点击范围', () => {

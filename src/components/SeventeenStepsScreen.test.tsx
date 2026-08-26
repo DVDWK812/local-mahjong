@@ -41,4 +41,10 @@ describe('17步正式游戏界面接入', () => {
     expect(css).toContain('.game-screen:not(.seventeen-steps-game) > .mahjong-table');
     expect(css).not.toMatch(/\.seventeen-steps-board-area > \.mahjong-table\s*\{[^}]*perspective/s);
   });
+
+  it('局结果通过 adapter 复用共享 ResultDialog，不保留第二套局结算组件', () => {
+    const source = readFileSync(resolve(process.cwd(), 'src/components/SeventeenStepsScreen.tsx'), 'utf8');
+    expect(source).toContain('<ResultDialog');
+    expect(source).not.toContain('function ResultPanel(');
+  });
 });

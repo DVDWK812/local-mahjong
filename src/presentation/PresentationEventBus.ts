@@ -51,6 +51,8 @@ export interface WinDeclaredPresentationEvent {
   readonly type: 'win_declared';
   readonly playerId: PlayerId;
   readonly winType: 'ron' | 'tsumo';
+  /** Links Ron to the already-confirmed discard without duplicating tile or river data. */
+  readonly sourceEventId?: string;
 }
 
 /** Structured scoring semantics; names intentionally remain outside this event contract. */
@@ -103,6 +105,22 @@ export type RoundSettledPresentationEvent =
       readonly triggeringPlayerId?: PlayerId;
     });
 
+/** Minimal visual-only round-end semantic, deliberately independent of voice catalogue coverage. */
+export type RoundEndAnnouncedPresentationEvent =
+  | {
+      readonly eventId: string;
+      readonly sequence: number;
+      readonly type: 'round_end_announced';
+      readonly settlementType: 'exhaustive-draw';
+    }
+  | {
+      readonly eventId: string;
+      readonly sequence: number;
+      readonly type: 'round_end_announced';
+      readonly settlementType: 'abortive-draw';
+      readonly reason: AbortiveDrawReason;
+    };
+
 export interface MatchStartedPresentationEvent {
   readonly eventId: string;
   readonly sequence: number;
@@ -122,7 +140,7 @@ export interface MatchResultPresentationEvent {
   readonly activePlayerIds: readonly PlayerId[];
 }
 
-export type PresentationEvent = TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | WinDeclaredPresentationEvent | WinScoredPresentationEvent | RoundSettledPresentationEvent | MatchStartedPresentationEvent | MatchResultPresentationEvent;
+export type PresentationEvent = TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | WinDeclaredPresentationEvent | WinScoredPresentationEvent | RoundSettledPresentationEvent | RoundEndAnnouncedPresentationEvent | MatchStartedPresentationEvent | MatchResultPresentationEvent;
 type WithoutPresentationMetadata<T> = T extends PresentationEvent ? Omit<T, 'eventId' | 'sequence'> : never;
 export type PresentationEventInput = WithoutPresentationMetadata<PresentationEvent>;
 export type PresentationEventListener = (event: PresentationEvent) => void;
@@ -143,6 +161,10 @@ export class PresentationEventBus {
   private sequence = 0;
 
   constructor(private readonly onListenerError?: PresentationEventListenerErrorHandler) {}
+
+  get latestSequence(): number {
+    return this.sequence;
+  }
 
   subscribe(listener: PresentationEventListener): () => void {
     this.listeners.add(listener);

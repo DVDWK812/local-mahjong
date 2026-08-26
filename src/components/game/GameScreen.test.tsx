@@ -6,7 +6,12 @@ import { createInitialGameState } from '../../game/engine';
 import { getDrawActionState } from '../../game/interaction';
 import { createTile } from '../../game/tileUtils';
 import type { GameState, TileId } from '../../game/types';
-import { GameScreen } from './GameScreen';
+import {
+  GameScreen,
+  buildRoundEndPresentationKey,
+  shouldBlockRoundEndResultPresentation,
+  shouldBlockWinResultPresentation,
+} from './GameScreen';
 
 function noop() {
   return undefined;
@@ -55,6 +60,90 @@ function minimumHanRiichiPreviewState(): { state: GameState; discardInstanceId: 
 }
 
 describe('GameScreen', () => {
+  it('Win presentation pending 时阻止 Result，完成或禁用后放行', () => {
+    expect(shouldBlockWinResultPresentation('round:ron:1', true, null)).toBe(true);
+    expect(shouldBlockWinResultPresentation('round:ron:1', true, 'round:ron:1')).toBe(false);
+    expect(shouldBlockWinResultPresentation('round:ron:1', false, null)).toBe(false);
+  });
+
+  it('流局和途中流局也使用同一个 Result presentation gate', () => {
+    const base = createInitialGameState();
+    const exhaustive: GameState = {
+      ...base,
+      phase: 'exhaustive-draw',
+      result: {
+        type: 'exhaustive-draw',
+        tenpaiPlayers: [0, 2],
+        notenPlayers: [1, 3],
+        scoreDeltas: [1500, -1500, 1500, -1500],
+        pointDeltas: [1500, -1500, 1500, -1500],
+        dealerContinues: true,
+        honbaIncrement: 1,
+        riichiSticksCarryOver: true,
+      },
+    };
+    const abortive: GameState = {
+      ...base,
+      phase: 'round-ended',
+      result: {
+        type: 'abortive-draw',
+        reason: 'kyuushu-kyuuhai',
+        declaredBy: 0,
+        dealerContinues: true,
+        honbaIncrement: 1,
+        riichiSticksCarryOver: true,
+        scoreDeltas: [0, 0, 0, 0],
+        pointDeltas: [0, 0, 0, 0],
+      },
+    };
+    const exhaustiveKey = buildRoundEndPresentationKey(exhaustive, 'east-1');
+    const abortiveKey = buildRoundEndPresentationKey(abortive, 'east-1');
+    expect(exhaustiveKey).toContain('exhaustive-draw');
+    expect(abortiveKey).toContain('abortive-draw:kyuushu-kyuuhai:0');
+    expect(shouldBlockRoundEndResultPresentation(exhaustiveKey, true, null)).toBe(true);
+    expect(shouldBlockRoundEndResultPresentation(abortiveKey, false, null)).toBe(false);
+  });
+
+  it('直接挂载已结束状态不会回放历史表现，ResultDialog 立即可见', () => {
+    const base = createInitialGameState();
+    const state: GameState = {
+      ...base,
+      phase: 'exhaustive-draw',
+      result: {
+        type: 'exhaustive-draw',
+        tenpaiPlayers: [],
+        notenPlayers: [0, 1, 2, 3],
+        scoreDeltas: [0, 0, 0, 0],
+        pointDeltas: [0, 0, 0, 0],
+        dealerContinues: false,
+        honbaIncrement: 1,
+        riichiSticksCarryOver: true,
+      },
+    };
+    const html = renderToStaticMarkup(
+      <GameScreen
+        gameState={state}
+        analysisOpen={false}
+        canDiscard={false}
+        handAnimationsEnabled={false}
+        onToggleAnalysis={noop}
+        onCloseAnalysis={noop}
+        onReturnMenu={noop}
+        onDiscard={noop}
+        onReset={noop}
+      />,
+    );
+    expect(html).toContain('result-dialog');
+    expect(html).toContain('流局');
+  });
+
+  it('局终等待复用 PresentationPacingGate 的活动注册与 fail-open，组件内没有第二套固定 Result timer', () => {
+    const source = readFileSync(resolve(process.cwd(), 'src/components/game/GameScreen.tsx'), 'utf8');
+    expect(source).toContain('presentationPacingGate.waitUntilActivityClearAfter');
+    expect(source).toContain("status === 'timed-out'");
+    expect(source).not.toContain('window.setTimeout');
+  });
+
   it('渲染顶部状态栏、中央牌桌和底部本家手牌三区', () => {
     const html = renderToStaticMarkup(
       <GameScreen
@@ -127,13 +216,33 @@ describe('GameScreen', () => {
     );
     const tableIndex = html.indexOf('class="mahjong-table"');
     const localHandIndex = html.indexOf('class="local-hand-area');
+    const eventOverlayIndex = html.indexOf('data-testid="game-event-overlay"');
     const promptIndex = html.indexOf('class="game-prompt-layer"');
     const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
     expect(tableIndex).toBeGreaterThan(-1);
     expect(localHandIndex).toBeGreaterThan(tableIndex);
+    expect(eventOverlayIndex).toBeGreaterThan(localHandIndex);
     expect(promptIndex).toBeGreaterThan(localHandIndex);
     expect(css).toContain('.game-screen:not(.seventeen-steps-game) > .mahjong-table');
     expect(css).toContain('perspective(var(--mahjong-table-perspective))');
+  });
+
+  it('Test Mode 关闭 handAnimations 时同步禁用实时 Event Overlay', () => {
+    const html = renderToStaticMarkup(
+      <GameScreen
+        gameState={createInitialGameState()}
+        analysisOpen={false}
+        canDiscard={false}
+        handAnimationsEnabled={false}
+        onToggleAnalysis={noop}
+        onCloseAnalysis={noop}
+        onReturnMenu={noop}
+        onDiscard={noop}
+        onReset={noop}
+      />,
+    );
+    expect(html).toContain('data-event-overlays-enabled="false"');
+    expect(html).not.toContain('game-event-overlay-stage');
   });
 
   it('听牌框使用独立右下固定层，不随立直操作栏出现而移动', () => {

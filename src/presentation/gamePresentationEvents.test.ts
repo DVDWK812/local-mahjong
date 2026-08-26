@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildAbortiveDrawResult } from '../game/abortiveDraw';
 import { createInitialGameState } from '../game/engine';
+import { createTile } from '../game/tileUtils';
 import { settleExhaustiveDraw } from '../game/exhaustiveDraw';
 import { ronResult, tsumoResult } from '../game/match/testUtils';
 import type { PresentationEvent } from './PresentationEventBus';
@@ -24,6 +25,49 @@ describe('confirmed win presentation events', () => {
       expect.objectContaining({ playerId: 1, winType: 'ron' }),
       expect.objectContaining({ playerId: 0, winType: 'tsumo' }),
     ]);
+  });
+
+  it('同一 confirmed transition 始终先发布 Discard/Draw，再发布 WinDeclared', () => {
+    const initial = createInitialGameState();
+    const ronBus = new PresentationEventBus(); const ronEvents: PresentationEvent[] = [];
+    ronBus.subscribe((event) => ronEvents.push(event));
+    const ronObserver = new GamePresentationEventObserver(initial, ronBus);
+    const discard = createTile(4, 9001);
+    const ronState = {
+      ...initial,
+      phase: 'round-ended' as const,
+      lastDiscard: { player: 0 as const, tile: discard },
+      players: initial.players.map((player) => player.id === 0 ? { ...player, river: [...player.river, discard] } : player),
+      result: ronResult(1, 0, [-8000, 8000, 0, 0]),
+    };
+    ronObserver.observe(ronState);
+    const ronDiscard = ronEvents.find((event) => event.type === 'tile_discarded');
+    const ronWin = ronEvents.find((event) => event.type === 'win_declared');
+    expect(ronEvents.findIndex((event) => event.type === 'tile_discarded')).toBeLessThan(ronEvents.findIndex((event) => event.type === 'win_declared'));
+    expect(ronWin).toEqual(expect.objectContaining({ sourceEventId: ronDiscard?.eventId }));
+
+    const tsumoBus = new PresentationEventBus(); const tsumoEvents: PresentationEvent[] = [];
+    tsumoBus.subscribe((event) => tsumoEvents.push(event));
+    const tsumoObserver = new GamePresentationEventObserver(initial, tsumoBus);
+    const drawn = createTile(8, 9002);
+    tsumoObserver.observe({
+      ...initial,
+      phase: 'round-ended',
+      lastDrawSource: 'live-wall',
+      players: initial.players.map((player) => player.id === 0 ? { ...player, hand: [...player.hand, drawn], drawnTile: drawn } : player),
+      result: tsumoResult(0, [12000, -4000, -4000, -4000]),
+    });
+    expect(tsumoEvents.findIndex((event) => event.type === 'tile_drawn')).toBeLessThan(tsumoEvents.findIndex((event) => event.type === 'win_declared'));
+  });
+
+  it('非法或未确认的和牌不会产生 WinDeclared', () => {
+    const initial = createInitialGameState();
+    const bus = new PresentationEventBus(); const events: PresentationEvent[] = [];
+    bus.subscribe((event) => events.push(event));
+    const observer = new GamePresentationEventObserver(initial, bus);
+    observer.observe({ ...initial, phase: 'ron-window', result: null });
+    observer.observe({ ...initial, phase: 'discard', result: null });
+    expect(events.filter((event) => event.type === 'win_declared')).toHaveLength(0);
   });
 
   it('每名赢家发布独立的 win_scored 语义事件，且不会直接映射为语音', () => {
@@ -77,14 +121,18 @@ describe('confirmed win presentation events', () => {
       expect.objectContaining({ settlementType: 'abortive-draw', reason: 'suucha-riichi', triggeringPlayerId: 2 }),
       expect.objectContaining({ settlementType: 'abortive-draw', reason: 'kyuushu-kyuuhai', triggeringPlayerId: 0 }),
     ]);
+    expect(events.filter((event) => event.type === 'round_end_announced')).toHaveLength(5);
   });
 
-  it('非目标中止流局不会冒充荒牌流局或本批的中止流局语义', () => {
+  it('三家和不冒充语音目录事件，但仍发布一次 authoritative 视觉局终事件', () => {
     const initial = createInitialGameState();
     const bus = new PresentationEventBus(); const events: PresentationEvent[] = [];
     bus.subscribe((event) => events.push(event));
     const observer = new GamePresentationEventObserver(initial, bus);
     observer.observe({ ...initial, phase: 'round-ended', result: buildAbortiveDrawResult('sanchahou', { triggeringPlayer: 1 }) });
     expect(events.filter((event) => event.type === 'round_settled')).toEqual([]);
+    expect(events.filter((event) => event.type === 'round_end_announced')).toEqual([
+      expect.objectContaining({ settlementType: 'abortive-draw', reason: 'sanchahou' }),
+    ]);
   });
 });

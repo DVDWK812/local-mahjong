@@ -11,7 +11,8 @@ describe('牌桌布局回归', () => {
   const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
 
   it('中央区使用较小方形尺寸且文本不换行', () => {
-    expect(css).toContain('--center-size: clamp(120px, 11vw, 180px)');
+    expect(css).toContain('--center-size: clamp(150px, 12vw, 220px)');
+    expect(css).toContain('--center-size: clamp(138px, 11vw, 156px)');
     expect(css).toContain('width: var(--center-size)');
     expect(css).toContain('height: var(--center-size)');
     expect(css).toContain('.center-round strong');
@@ -43,8 +44,12 @@ describe('牌桌布局回归', () => {
     expect(css).toContain('height: var(--river-area-height)');
   });
 
-  it('左右家手牌、副露与中央牌河使用独立容器和明确间距', () => {
-    expect(css).toContain('"hand info"');
+  it('左右竖版玩家框固定外缘，手牌、副露与中央牌河仍使用独立容器和明确间距', () => {
+    expect(css).toContain('--side-player-frame-width: clamp(50px, 6vw, 90px)');
+    expect(css).toContain('.player-identity--side');
+    expect(css).toMatch(/\.player-identity--side\s*\{[^}]*grid-area: auto/s);
+    expect(css).toMatch(/\.player-zone--west \.player-identity--side\s*\{[^}]*left: 0/s);
+    expect(css).toMatch(/\.player-zone--east \.player-identity--side\s*\{[^}]*right: 0/s);
     expect(css).toContain('table-center-cluster');
     expect(css).toContain('west-river west-stick center east-stick east-river');
     expect(css).toContain('column-gap: 10px');

@@ -67,6 +67,55 @@ describe('PresentationPacingGate', () => {
     expect(callerDiscard).toHaveBeenCalledOnce();
   });
 
+  it('同一 confirmed event 的手部动作与文字 overlay 作为两个参与者全部完成后才放行', async () => {
+    const gate = new PresentationPacingGate();
+    gate.begin({ eventId: 'meld-shared-107', sequence: 107 });
+    gate.begin({ eventId: 'meld-shared-107', sequence: 107 });
+    const waiting = gate.waitUntilClear({ timeoutMs: 2500 });
+
+    gate.complete('meld-shared-107');
+    await Promise.resolve();
+    expect(gate.pendingCount).toBe(1);
+
+    gate.complete('meld-shared-107');
+    await expect(waiting).resolves.toBe('cleared');
+    expect(gate.pendingCount).toBe(0);
+  });
+
+  it('多家 Ron 的全部手牌表现与文字提示完成后才放行唯一 ResultDialog', async () => {
+    const gate = new PresentationPacingGate();
+    ['ron-player-1', 'ron-player-2'].forEach((eventId, index) => {
+      gate.begin({ eventId, sequence: 121 + index });
+      gate.begin({ eventId, sequence: 121 + index });
+    });
+    const resultReady = vi.fn();
+    const waiting = gate.waitUntilClear({ timeoutMs: 6000 }).then(resultReady);
+
+    gate.complete('ron-player-1');
+    gate.complete('ron-player-1');
+    gate.complete('ron-player-2');
+    await Promise.resolve();
+    expect(resultReady).not.toHaveBeenCalled();
+
+    gate.complete('ron-player-2');
+    await waiting;
+    expect(resultReady).toHaveBeenCalledOnce();
+    expect(gate.pendingCount).toBe(0);
+  });
+
+  it('Win 只等待更早的 Draw/Discard presentation，不等待自身 identity', async () => {
+    const gate = new PresentationPacingGate();
+    gate.begin({ eventId: 'discard-120', sequence: 120 });
+    gate.begin({ eventId: 'win-121', sequence: 121 });
+    const waiting = gate.waitUntilClearBefore(121, { timeoutMs: 2500 });
+
+    gate.complete('discard-120');
+
+    await expect(waiting).resolves.toBe('cleared');
+    expect(gate.pendingCount).toBe(1);
+    gate.complete('win-121');
+  });
+
   it('cancel 单个 event 会释放 waiter', async () => {
     const gate = new PresentationPacingGate();
     gate.begin({ eventId: 'draw-cancel', sequence: 109 });
@@ -116,6 +165,31 @@ describe('PresentationPacingGate', () => {
 
     await expect(waiting).resolves.toBe('timed-out');
     expect(gate.pendingCount).toBe(0);
+  });
+
+  it('Result waiter 会等待同次提交稍后注册的 presentation，再等其清空', async () => {
+    const gate = new PresentationPacingGate();
+    const versionBeforeCommit = gate.version;
+    const waiting = gate.waitUntilActivityClearAfter(versionBeforeCommit, { timeoutMs: 2500 });
+    let settled = false;
+    void waiting.then(() => { settled = true; });
+
+    gate.begin({ eventId: 'round-end-draw', sequence: 115 });
+    await Promise.resolve();
+    expect(settled).toBe(false);
+
+    gate.complete('round-end-draw');
+    await expect(waiting).resolves.toBe('cleared');
+  });
+
+  it('Result waiter 在 presentation 未注册时有界 fail-open', async () => {
+    vi.useFakeTimers();
+    const gate = new PresentationPacingGate();
+    const waiting = gate.waitUntilActivityClearAfter(gate.version, { timeoutMs: 2500 });
+
+    await vi.advanceTimersByTimeAsync(2500);
+
+    await expect(waiting).resolves.toBe('timed-out');
   });
 
   it('navigation cancel 后即使 presentation 完成也不执行 state update', async () => {

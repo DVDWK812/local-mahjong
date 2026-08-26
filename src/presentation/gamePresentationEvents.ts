@@ -13,6 +13,7 @@ export class GamePresentationEventObserver {
   private meldSignatures: string[][];
   private winSignatures: string[];
   private roundSettlementSignature: string | null;
+  private lastDiscardPresentationEventId: string | null = null;
 
   constructor(
     initialState: GameState,
@@ -48,17 +49,6 @@ export class GamePresentationEventObserver {
       });
     });
 
-    const result = state.result;
-    if (presentationEventsEnabled && isWinResult(result)) {
-      result.winners.forEach((winner, index) => {
-        const signature = `${result.type}:${winner.winner}:${index}`;
-        if (!this.winSignatures.includes(signature)) {
-          this.eventBus.publish({ type: 'win_declared', playerId: winner.winner, winType: result.type });
-          this.eventBus.publish(winScoredEvent(winner, result.type));
-        }
-      });
-    }
-
     state.players.forEach((player) => {
       const previousInstanceId = this.drawnTileInstanceIds[player.id] ?? null;
       const nextInstanceId = nextDrawnTileInstanceIds[player.id];
@@ -76,15 +66,34 @@ export class GamePresentationEventObserver {
       if (player.river.length <= previousLength || !presentationEventsEnabled) return;
 
       player.river.slice(previousLength).forEach((tile, offset) => {
-        this.eventBus.publish({
+        const event = this.eventBus.publish({
           type: 'tile_discarded',
           playerId: player.id,
           tile: { id: tile.id, red: tile.red },
           riverIndex: previousLength + offset,
           isRiichiDiscard: tile.isRiichiDiscard === true,
         });
+        if (event.type === 'tile_discarded') this.lastDiscardPresentationEventId = event.eventId;
       });
     });
+
+    const result = state.result;
+    if (presentationEventsEnabled && isWinResult(result)) {
+      result.winners.forEach((winner, index) => {
+        const signature = `${result.type}:${winner.winner}:${index}`;
+        if (!this.winSignatures.includes(signature)) {
+          this.eventBus.publish({
+            type: 'win_declared',
+            playerId: winner.winner,
+            winType: result.type,
+            ...(result.type === 'ron' && this.lastDiscardPresentationEventId
+              ? { sourceEventId: this.lastDiscardPresentationEventId }
+              : {}),
+          });
+          this.eventBus.publish(winScoredEvent(winner, result.type));
+        }
+      });
+    }
 
     state.players.forEach((player) => {
       const wasDeclared = this.riichiDeclared[player.id] ?? player.riichi;
@@ -104,8 +113,10 @@ export class GamePresentationEventObserver {
     });
 
     const roundSettled = roundSettledEvent(state);
-    if (presentationEventsEnabled && roundSettled && nextRoundSettlementSignature !== this.roundSettlementSignature) {
-      this.eventBus.publish(roundSettled);
+    const roundEndAnnounced = roundEndAnnouncedEvent(state);
+    if (presentationEventsEnabled && roundEndAnnounced && nextRoundSettlementSignature !== this.roundSettlementSignature) {
+      if (roundSettled) this.eventBus.publish(roundSettled);
+      this.eventBus.publish(roundEndAnnounced);
     }
 
     this.riverLengths = nextRiverLengths;
@@ -114,6 +125,7 @@ export class GamePresentationEventObserver {
     this.meldSignatures = nextMeldSignatures;
     this.winSignatures = nextWinSignatures;
     this.roundSettlementSignature = nextRoundSettlementSignature;
+    if (!state.lastDiscard) this.lastDiscardPresentationEventId = null;
   }
 }
 
@@ -175,10 +187,17 @@ function roundSettledEvent(state: GameState): RoundSettledPresentationEventInput
 }
 
 function roundSettlementSignature(state: GameState): string | null {
-  const event = roundSettledEvent(state);
-  if (!event) return null;
-  if (event.settlementType === 'exhaustive-draw') return 'exhaustive-draw';
-  return `abortive-draw:${event.reason}:${event.triggeringPlayerId ?? 'none'}`;
+  const result = state.result;
+  if (result?.type === 'exhaustive-draw') return 'exhaustive-draw';
+  if (result?.type !== 'abortive-draw') return null;
+  return `abortive-draw:${result.reason}:${result.triggeringPlayer ?? result.declaredBy ?? 'none'}`;
+}
+
+function roundEndAnnouncedEvent(state: GameState): Extract<PresentationEventInput, { type: 'round_end_announced' }> | undefined {
+  const result = state.result;
+  if (result?.type === 'exhaustive-draw') return { type: 'round_end_announced', settlementType: 'exhaustive-draw' };
+  if (result?.type !== 'abortive-draw') return undefined;
+  return { type: 'round_end_announced', settlementType: 'abortive-draw', reason: result.reason };
 }
 
 function isExhaustiveDrawResult(result: GameState['result']): result is ExhaustiveDrawResult {

@@ -10,7 +10,9 @@ describe('TableCenter', () => {
   const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
 
   it('中央计分区使用紧凑方形尺寸', () => {
-    expect(css).toContain('--center-size: clamp(120px, 11vw, 180px)');
+    expect(css).toContain('--center-size: clamp(150px, 12vw, 220px)');
+    expect(css).toContain('@media (min-width: 901px) and (max-height: 800px)');
+    expect(css).toContain('--center-size: clamp(138px, 11vw, 156px)');
     expect(css).toContain('width: var(--center-size)');
     expect(css).toContain('height: var(--center-size)');
     expect(css).toContain('border-radius: 8px');

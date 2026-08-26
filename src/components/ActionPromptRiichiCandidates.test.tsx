@@ -74,12 +74,14 @@ describe('立直候选提示', () => {
     const actions = getDrawActionState(state, 0);
     const riichiCandidateCount = actions.riichiDiscardCandidateGroups.length;
     const html = renderToStaticMarkup(<Board gameState={state} {...handlers} />);
-    const tileActionButtonCount = (html.match(/class="prompt-tile-action"/g) ?? []).length;
+    const tileActionButtonCount = (html.match(/<button[^>]*class="[^"]*prompt-tile-action[^"]*"/g) ?? []).length;
     const visibleActionLabelCount = (html.match(/class="prompt-tile-action-label"/g) ?? []).length;
 
     expect(riichiCandidateCount).toBeGreaterThan(0);
     expect(tileActionButtonCount - visibleActionLabelCount).toBe(riichiCandidateCount);
     expect((html.match(/class="tile-image"/g) ?? []).length).toBeGreaterThanOrEqual(riichiCandidateCount);
+    expect((html.match(/data-operation="riichi"/g) ?? [])).toHaveLength(riichiCandidateCount);
+    expect((html.match(/data-riichi-candidate="true"/g) ?? [])).toHaveLength(riichiCandidateCount);
   });
 
   it('悬停、焦点、切换、移出、失焦、按下和点击候选时同步更新并清除听牌预览', () => {
@@ -88,6 +90,7 @@ describe('立直候选提示', () => {
     const previews: Array<string | null> = [];
     let clicked = '';
     const candidateButton = (candidate: (typeof candidates)[number]) => TileActionButton({
+      operation: 'riichi',
       label: '立直',
       tile: candidate.tile,
       onPreviewChange: (active) => previews.push(active ? candidate.instanceIds[0] : null),
@@ -128,6 +131,7 @@ describe('立直候选提示', () => {
     let clicked = '';
     const candidate = sixSouGroups[0];
     const button = TileActionButton({
+      operation: 'riichi',
       label: '立直',
       tile: candidate.tile,
       onClick: () => { clicked = candidate.instanceIds[0]; },

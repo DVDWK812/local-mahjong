@@ -1,6 +1,6 @@
 import { useCallback, useSyncExternalStore } from 'react';
 import type React from 'react';
-import type { AbortiveDrawReason, GameState, PlayerId, ResultYaku, Tile as TileModel, WinResultEntry, WinRoundResult } from '../game/types';
+import type { GameState, PlayerId, Tile as TileModel } from '../game/types';
 import type { WinResultPresentationController, WinResultPresentationState } from '../audio/voice/WinResultPresentationController';
 import type { SettlementPresentationCoordinator, SettlementPresentationState } from '../audio/voice/SettlementPresentationCoordinator';
 import type { WinPresentationItem } from '../audio/voice/winVoiceSequence';
@@ -8,7 +8,11 @@ import type { SeventeenStepsWaitAnalysis } from '../game/seventeenSteps';
 import { tileLabel, windLabel } from '../game/tileUtils';
 import { PlayerMelds } from './PlayerMelds';
 import { Tile as TileView } from './Tile';
-import { activeUraDoraIndicators } from '../game/wall';
+import {
+  buildResultViewModel,
+  type PlayerScoreChangeViewModel,
+  type WinnerResultViewModel,
+} from '../presentation/result/resultViewModel';
 
 interface ResultDialogProps {
   gameState: GameState;
@@ -35,14 +39,6 @@ interface ResultShellProps {
   children: React.ReactNode;
   onReset: () => void;
   continueLabel: string;
-}
-
-interface WinScoreBreakdown {
-  handPoints: number;
-  honbaBonus: number;
-  stickBonus: number;
-  total: number;
-  paymentNote?: string;
 }
 
 function ResultShell({ title, subtitle, children, onReset, continueLabel }: ResultShellProps) {
@@ -105,9 +101,7 @@ function SeventeenStepsDrawAnalysis({ waits, kazoeYakumanMode }: { waits: Sevent
   );
 }
 
-function WinHandPreview({ gameState, winner, win, doraGlowEnabled = true, showDoraIndicators = true }: { gameState: GameState; winner: GameState['players'][number]; win: WinResultEntry; doraGlowEnabled?: boolean; showDoraIndicators?: boolean }) {
-  const concealedTiles = removeWinTileForDisplay(winner.hand, win.winTile, win.winType);
-  const uraIndicators = winner.riichi ? activeUraDoraIndicators(gameState.deadWall, gameState.doraIndicators.length) : [];
+function WinHandPreview({ gameState, winner, doraGlowEnabled = true, showDoraIndicators = true }: { gameState: GameState; winner: WinnerResultViewModel; doraGlowEnabled?: boolean; showDoraIndicators?: boolean }) {
   return (
     <div className="result-tile-sections" aria-label="和牌牌组">
       {showDoraIndicators ? (
@@ -121,26 +115,26 @@ function WinHandPreview({ gameState, winner, win, doraGlowEnabled = true, showDo
       <section className="result-tile-section result-concealed-hand">
         <span>手牌</span>
         <div className="result-hand-row" aria-label="手牌">
-          {concealedTiles.map((tile) => <TileView key={tile.instanceId} tile={tile} compact doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />)}
+          {winner.concealedTiles.map((tile) => <TileView key={tile.instanceId} tile={tile} compact doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />)}
         </div>
       </section>
       <section className="result-tile-section result-winning-tile">
         <span>和牌张</span>
         <div className="result-win-tile" aria-label="和牌张">
-          <TileView tile={win.winTile} compact doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />
+          <TileView tile={winner.winningTile} compact doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />
         </div>
       </section>
-      {winner.calls.length > 0 ? (
+      {winner.player.calls.length > 0 ? (
         <section className="result-tile-section result-melds" aria-label="副露">
           <span>副露</span>
-          <PlayerMelds player={winner} seatClass="result-melds-seat" doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />
+          <PlayerMelds player={winner.player} seatClass="result-melds-seat" doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />
         </section>
       ) : null}
-      {uraIndicators.length > 0 ? (
+      {winner.uraDoraIndicators.length > 0 ? (
         <section className="result-tile-section result-ura-dora" aria-label="里宝牌">
           <span>里宝牌</span>
           <div className="result-hand-row">
-            {uraIndicators.map((tile) => <TileView key={tile.instanceId} tile={tile} compact doraGlowEnabled={false} />)}
+            {winner.uraDoraIndicators.map((tile) => <TileView key={tile.instanceId} tile={tile} compact doraGlowEnabled={false} />)}
           </div>
         </section>
       ) : null}
@@ -148,121 +142,36 @@ function WinHandPreview({ gameState, winner, win, doraGlowEnabled = true, showDo
   );
 }
 
-function removeWinTileForDisplay(hand: TileModel[], winTile: TileModel, winType: 'tsumo' | 'ron'): TileModel[] {
-  if (winType === 'ron') return hand;
-  const instanceIndex = hand.findIndex((tile) => tile.instanceId === winTile.instanceId);
-  if (instanceIndex !== -1) return hand.filter((_, index) => index !== instanceIndex);
-  const idIndex = hand.findIndex((tile) => tile.id === winTile.id);
-  return idIndex === -1 ? hand : hand.filter((_, index) => index !== idIndex);
-}
-
-function playerNames(gameState: GameState, ids: PlayerId[]): string {
-  return ids.length ? ids.map((id) => gameState.players[id].name).join('、') : '无人';
-}
-
-function drawReasonLabel(reason: AbortiveDrawReason): string {
-  const labels: Record<AbortiveDrawReason, string> = {
-    'kyuushu-kyuuhai': '九种九牌',
-    'suufon-renda': '四风连打',
-    'suucha-riichi': '四家立直',
-    'suukan-sanra': '四杠散了',
-    sanchahou: '三家和了',
-  };
-  return labels[reason] ?? '特殊流局';
-}
-
-function reconciledYakuRows(win: WinResultEntry): ResultYaku[] {
-  if (win.yaku.some((yaku) => yaku.yakuman)) return win.yaku;
-
-  const explicitDoraFields = win.dora !== undefined || win.uraDora !== undefined || win.redDora !== undefined;
-  if (!explicitDoraFields) return win.yaku;
-
-  const baseRows = win.yaku.filter((yaku) => !isDoraYakuName(yaku.name));
-  return [
-    ...baseRows,
-    ...doraYakuRows(win),
-  ];
-}
-
-function isDoraYakuName(name: string): boolean {
-  return name === '宝牌' || name === '里宝牌' || name === '赤宝牌';
-}
-
-function doraYakuRows(win: WinResultEntry): ResultYaku[] {
-  const rows: ResultYaku[] = [];
-  if ((win.dora ?? 0) > 0) rows.push({ name: '宝牌', han: win.dora ?? 0 });
-  if ((win.uraDora ?? 0) > 0) rows.push({ name: '里宝牌', han: win.uraDora ?? 0 });
-  if ((win.redDora ?? 0) > 0) rows.push({ name: '赤宝牌', han: win.redDora ?? 0 });
-  return rows;
-}
-
 function formatPoints(points: number): string {
   return points.toLocaleString();
 }
 
-function limitLabel(win: WinResultEntry): string | null {
-  // Batch 3 already computed these semantic fields. The UI must never infer a
-  // limit from han/fu, points, translated names, or the number of yaku.
-  if ((win.yakumanMultiplier ?? 0) > 0) {
-    return win.yakumanMultiplier === 1 ? '役满' : `${win.yakumanMultiplier}倍役满`;
-  }
-  const labels = {
-    mangan: '满贯', haneman: '跳满', baiman: '倍满', sanbaiman: '三倍满', 'counted-yakuman': '累计役满',
-  } as const;
-  if (win.limitTier !== undefined) {
-    return win.limitTier !== 'none' && win.limitTier !== 'yakuman' ? labels[win.limitTier] : null;
-  }
-  // Compatibility for legacy saved/replay results created before Batch 3 added
-  // semantic limit fields. Live engine results always take the branch above.
-  if (win.han >= 13) return '役满';
-  if (win.han >= 11) return '三倍满';
-  if (win.han >= 8) return '倍满';
-  if (win.han >= 6) return '跳满';
-  if (win.han >= 5 || (win.han === 4 && win.fu >= 40) || (win.han === 3 && win.fu >= 70)) return '满贯';
-  return null;
+function formatDelta(points: number): string {
+  if (points > 0) return `+${formatPoints(points)}`;
+  if (points < 0) return formatPoints(points);
+  return '±0';
 }
 
-function isStickRecipient(result: WinRoundResult, win: WinResultEntry): boolean {
-  return result.winners[0] === win;
-}
-
-function winScoreBreakdown(gameState: GameState, result: WinRoundResult, win: WinResultEntry, resultRiichiSticks: number): WinScoreBreakdown {
-  const total = win.pointDeltas[win.winner] ?? win.points;
-  const honbaBonus = gameState.honba * 300;
-  const stickBonus = isStickRecipient(result, win) ? resultRiichiSticks * 1000 : 0;
-  const handPoints = Math.max(0, total - honbaBonus - stickBonus);
-  const paymentNote = win.winType === 'tsumo' && gameState.honba > 0
-    ? `支付明细：每家额外支付${gameState.honba * 100}点`
-    : undefined;
-  return { handPoints, honbaBonus, stickBonus, total, paymentNote };
-}
-
-function ResultDeltas({ gameState, pointDeltas, visiblePlayerIds, scoreBefore, scoreAfter }: { gameState: GameState; pointDeltas: number[]; visiblePlayerIds?: PlayerId[]; scoreBefore?: number[]; scoreAfter?: number[] }) {
+function ResultDeltas({ rows }: { rows: readonly PlayerScoreChangeViewModel[] }) {
   return (
-    <section className="result-deltas">
+    <section className="result-deltas" aria-label="四家点数变化">
       <h3>点数变化</h3>
-      {(visiblePlayerIds ?? gameState.players.map((player) => player.id)).map((playerId) => {
-        const player = gameState.players[playerId];
-        const index = playerId;
-        const delta = pointDeltas[index] ?? 0;
+      <div className="result-delta-grid">
+      {rows.map((row) => {
+        const delta = row.delta;
         return (
-          <div key={player.id} className="result-delta-row">
-            <span>{windLabel(player.seatWind)}家 {player.name}</span>
-            <strong className={delta >= 0 ? 'delta-positive' : 'delta-negative'}>
-              {delta >= 0 ? '+' : ''}{formatPoints(delta)}
+          <div key={row.playerId} className="result-delta-row">
+            <span>{row.label}</span>
+            <strong className={delta > 0 ? 'delta-positive' : delta < 0 ? 'delta-negative' : 'delta-neutral'}>
+              {delta > 0 ? '+' : ''}{formatPoints(delta)}
             </strong>
-            {scoreBefore && scoreAfter ? <span className="result-score-after">{formatPoints(scoreBefore[index] ?? 0)} → {formatPoints(scoreAfter[index] ?? 0)}</span> : null}
+            {row.scoreBefore !== undefined && row.scoreAfter !== undefined ? <span className="result-score-after">{formatPoints(row.scoreBefore)} → {formatPoints(row.scoreAfter)}</span> : null}
           </div>
         );
       })}
+      </div>
     </section>
   );
-}
-
-function winDisplayDeltas(gameState: GameState, result: WinRoundResult): number[] {
-  return result.pointDeltas.map((delta, index) => (
-    gameState.players[index]?.riichi ? delta - 1000 : delta
-  ));
 }
 
 const EMPTY_WIN_PRESENTATION: WinResultPresentationState = { sequences: [], activeSequenceId: null };
@@ -343,6 +252,14 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
   const settlementPresentation = useSettlementPresentation(settlementPresentationCoordinator);
   const result = gameState.result;
   if (!result) return null;
+  const viewModel = buildResultViewModel(gameState, {
+    pointDeltas: displayPointDeltas,
+    visiblePlayerIds,
+    scoreBefore,
+    scoreAfter,
+    revealExhaustiveDrawPlayerIds,
+  });
+  if (!viewModel) return null;
 
   if (settlementPresentationCoordinator && settlementPresentation.phase === 'point-settlement') {
     return (
@@ -357,72 +274,80 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
 
   const continueStage = settlementPresentationCoordinator ? () => settlementPresentationCoordinator.continue() : onReset;
 
-  if (result.type === 'exhaustive-draw') {
-    const revealedPlayerIds = [...new Set([...result.tenpaiPlayers, ...revealExhaustiveDrawPlayerIds])];
+  if (viewModel.kind === 'draw') {
     return (
-      <ResultShell title="荒牌流局" subtitle="听牌罚符结算" onReset={continueStage} continueLabel={continueLabel}>
-        <div className="result-card">
-          <p>听牌：{playerNames(gameState, result.tenpaiPlayers)}</p>
-          <p>未听：{playerNames(gameState, result.notenPlayers)}</p>
-          <p>本场增加：{result.honbaIncrement}</p>
-          <p>供托保留：{result.riichiSticksCarryOver ? '是' : '否'}</p>
-          <p>庄家连庄：{result.dealerContinues ? '是' : '否'}</p>
-          {revealedPlayerIds.map((playerId) => (
-            <HandPreview key={playerId} title={`${gameState.players[playerId].name} 手牌`} tiles={gameState.players[playerId].hand} />
-          ))}
+      <ResultShell title={viewModel.title} subtitle={viewModel.subtitle} onReset={continueStage} continueLabel={continueLabel}>
+        <section className="result-draw-overview" aria-label="流局状态">
+          <div className="result-round-facts">
+            <span>本场增加 <strong>{viewModel.honbaIncrement}</strong></span>
+            <span>供托保留 <strong>{viewModel.riichiSticksCarryOver ? '是' : '否'}</strong></span>
+            <span>庄家连庄 <strong>{viewModel.dealerContinues ? '是' : '否'}</strong></span>
+          </div>
+          <div className="result-draw-players">
+            {viewModel.players.map((player) => (
+              <article key={player.playerId} className="result-draw-player">
+                <div className="result-draw-player-heading">
+                  <strong>{player.label}</strong>
+                  <span className={player.status === '听牌' ? 'result-tenpai' : 'result-noten'}>{player.status}</span>
+                  <b className={player.delta > 0 ? 'delta-positive' : player.delta < 0 ? 'delta-negative' : 'delta-neutral'}>{formatDelta(player.delta)}</b>
+                </div>
+                {player.revealedHand ? <HandPreview title="公开手牌" tiles={[...player.revealedHand]} /> : null}
+              </article>
+            ))}
+          </div>
           {seventeenStepsDrawAnalysis ? <SeventeenStepsDrawAnalysis waits={seventeenStepsDrawAnalysis} kazoeYakumanMode={seventeenStepsKazoeYakumanMode} /> : null}
-        </div>
-        {!settlementPresentationCoordinator ? <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? result.pointDeltas} visiblePlayerIds={visiblePlayerIds} scoreBefore={scoreBefore} scoreAfter={scoreAfter} /> : null}
+        </section>
+        {!settlementPresentationCoordinator ? <ResultDeltas rows={viewModel.scoreChanges} /> : null}
       </ResultShell>
     );
   }
 
-  if (result.type === 'abortive-draw') {
-    const actor = result.declaredBy ?? result.triggeringPlayer;
+  if (viewModel.kind === 'abortive-draw') {
     return (
       <ResultShell
-        title={`特殊流局：${drawReasonLabel(result.reason)}`}
-        subtitle={actor !== undefined ? `触发者：${gameState.players[actor].name}` : '本局途中流局'}
+        title={viewModel.title}
+        subtitle={viewModel.actorLabel ? `${viewModel.reasonLabel} · 触发者：${viewModel.actorLabel}` : viewModel.reasonLabel}
         onReset={continueStage}
         continueLabel={continueLabel}
       >
-        <div className="result-card">
-          <p>点数变化：通常无</p>
-          <p>供托保留：{result.riichiSticksCarryOver ? '是' : '否'}</p>
-          <p>本场增加：{result.honbaIncrement}</p>
-          <p>庄家连庄：{result.dealerContinues ? '是' : '否'}</p>
-        </div>
-        {!settlementPresentationCoordinator ? <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? result.pointDeltas} visiblePlayerIds={visiblePlayerIds} scoreBefore={scoreBefore} scoreAfter={scoreAfter} /> : null}
+        <section className="result-abortive-card" aria-label="特殊流局详情">
+          <strong>{viewModel.reasonLabel}</strong>
+          <div className="result-round-facts">
+            <span>本场增加 <strong>{viewModel.honbaIncrement}</strong></span>
+            <span>供托保留 <strong>{viewModel.riichiSticksCarryOver ? '是' : '否'}</strong></span>
+            <span>庄家连庄 <strong>{viewModel.dealerContinues ? '是' : '否'}</strong></span>
+          </div>
+        </section>
+        {!settlementPresentationCoordinator ? <ResultDeltas rows={viewModel.scoreChanges} /> : null}
       </ResultShell>
     );
   }
 
   return (
     <ResultShell
-      title={result.type === 'tsumo' ? '自摸' : '荣和'}
-      subtitle={result.winners.length > 1 ? `${result.winners.length} 人荣和` : '本局结束'}
+      title={viewModel.title}
+      subtitle={viewModel.subtitle}
       onReset={continueStage}
       continueLabel={continueLabel}
     >
       <div className="result-winners">
-        {result.winners.map((win) => {
+        {viewModel.winners.map((winner) => {
+          const win = winner.source;
           const sequence = winPresentation.sequences.find((candidate) => candidate.winnerId === win.winner);
-          const winner = gameState.players[win.winner];
-          const from = win.from === null ? null : gameState.players[win.from];
-          const hasYakuman = win.yaku.some((yaku) => yaku.yakuman);
-          const yakuRows = reconciledYakuRows(win);
-          const breakdown = winScoreBreakdown(gameState, result, win, resultRiichiSticks);
-          const limit = limitLabel(win);
+          const hasYakuman = win.yaku.some((yaku) => yaku.yakuman) || (win.yakumanMultiplier ?? 0) > 0;
           const sequenceComplete = winPresentationController ? sequence?.sequenceCompleted === true : true;
           const shouldShowWaiting = Boolean(sequence && !sequence.sequenceCompleted && !hasStreamedResultDetail(sequence.visibleItems));
           return (
-            <article key={`${win.winner}-${win.winType}`} className="result-card">
+            <article key={winner.key} className="result-card result-winner-card" data-result-winner={win.winner}>
               <div className="result-card-title">
-                <strong>{winner.name} · {windLabel(winner.seatWind)} · {gameState.dealer === winner.id ? '庄' : '闲'}</strong>
-                <span>{win.winType === 'tsumo' ? '自摸' : `荣和${from ? ` ${windLabel(from.seatWind)}家` : ''}`}</span>
+                <div>
+                  <span className="result-winner-action">{winner.actionLabel}</span>
+                  <strong>{winner.playerLabel} · {gameState.dealer === winner.player.id ? '庄' : '闲'}</strong>
+                </div>
+                <span>{winner.fromLabel ? `放铳：${winner.fromLabel}` : '自摸和牌'}</span>
               </div>
-              <WinHandPreview gameState={gameState} winner={winner} win={win} doraGlowEnabled={doraGlowEnabled} showDoraIndicators={showDoraIndicators} />
-              <p>和牌：{tileLabel(win.winTile)}</p>
+              <WinHandPreview gameState={gameState} winner={winner} doraGlowEnabled={doraGlowEnabled} showDoraIndicators={showDoraIndicators} />
+              <p className="result-winning-tile-label">和牌张：{tileLabel(winner.winningTile)}</p>
               {winPresentationController ? (
                 <div className="result-presentation-list" aria-label="和牌演出">
                   {sequence?.visibleItems.map((item, index) => (
@@ -434,30 +359,47 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
                   ))}
                 </div>
               ) : null}
-              {sequenceComplete ? <div className="result-yaku-list" aria-label="役种明细">
-                {yakuRows.length ? yakuRows.map((yaku, index) => (
-                  <div key={`${win.winner}-${yaku.name}-${index}`} className="result-yaku-row">
-                    <span>{yaku.name}</span>
-                    <strong>{yaku.yakuman ? (yaku.han > 1 ? `${yaku.han}倍役满` : '役满') : `${yaku.han}番`}</strong>
-                  </div>
-                )) : <p>无役</p>}
-              </div>
-              : shouldShowWaiting ? <p className="result-presentation-waiting">役种播报中…</p> : null}
-              {sequenceComplete ? <div className="result-score-summary">
-                {limit ? <p className="result-limit-label">{limit}</p> : null}
-                <p>合计：{hasYakuman ? '役满' : `${win.han}番${win.fu}符`}</p>
-                <p>牌型得点：{formatPoints(breakdown.handPoints)}点</p>
-                <p>本场奖励：{gameState.honba}本场 × 300点 = {formatPoints(breakdown.honbaBonus)}点</p>
-                <p>供托奖励：{resultRiichiSticks}根 × 1000点 = {formatPoints(breakdown.stickBonus)}点</p>
-                {breakdown.paymentNote ? <p>{breakdown.paymentNote}</p> : null}
-                <p>获得总计：{formatPoints(breakdown.total)}点</p>
-              </div> : null}
+              {sequenceComplete ? (
+                <div className="result-detail-grid">
+                  <section className="result-yaku-panel" aria-label="役种明细">
+                    <h3>役种</h3>
+                    <div className="result-yaku-list">
+                      {winner.yaku.length ? winner.yaku.map((yaku, index) => (
+                        <div key={`${win.winner}-${yaku.id ?? yaku.name}-${index}`} className="result-yaku-row">
+                          <span>{yaku.name}</span>
+                          <strong>{yaku.yakuman ? (yaku.han > 1 ? `${yaku.han}倍役满` : '役满') : `${yaku.han}番`}</strong>
+                        </div>
+                      )) : <p>无役种明细</p>}
+                    </div>
+                  </section>
+                  <section className="result-score-panel" aria-label="番符与得点">
+                    <h3>番符与得点</h3>
+                    {winner.limitLabel ? <p className="result-limit-label">{winner.limitLabel}</p> : null}
+                    <div className="result-score-metrics">
+                      <span><small>总番</small><strong>{hasYakuman ? '役满' : `${winner.han}番`}</strong></span>
+                      <span><small>符</small><strong>{hasYakuman || winner.fu <= 0 ? '—' : `${winner.fu}符`}</strong></span>
+                      <span><small>结果得点</small><strong>{formatPoints(winner.resultPoints)}</strong></span>
+                    </div>
+                    <div className="result-dora-summary" aria-label="宝牌信息">
+                      <span>宝牌 <strong>{winner.dora.available ? winner.dora.dora ?? 0 : '—'}</strong></span>
+                      <span>里宝牌 <strong>{winner.dora.available ? winner.dora.uraDora ?? 0 : '—'}</strong></span>
+                      <span>赤宝牌 <strong>{winner.dora.available ? winner.dora.redDora ?? 0 : '—'}</strong></span>
+                      <span>合计 <strong>{winner.dora.available ? winner.dora.totalDora ?? '—' : '未提供'}</strong></span>
+                    </div>
+                    <div className="result-authoritative-total">
+                      <span>本局点数变化</span>
+                      <strong className={winner.winnerDelta > 0 ? 'delta-positive' : winner.winnerDelta < 0 ? 'delta-negative' : 'delta-neutral'}>{formatDelta(winner.winnerDelta)}</strong>
+                    </div>
+                    <p className="result-round-context">本场 {gameState.honba} · 供托 {resultRiichiSticks} 根；最终支付以点数变化为准。</p>
+                  </section>
+                </div>
+              ) : shouldShowWaiting ? <p className="result-presentation-waiting">役种播报中…</p> : null}
             </article>
           );
         })}
       </div>
-      {!settlementPresentationCoordinator && (!winPresentationController || result.winners.every((win) => winPresentation.sequences.find((sequence) => sequence.winnerId === win.winner)?.sequenceCompleted === true))
-        ? <ResultDeltas gameState={gameState} pointDeltas={displayPointDeltas ?? winDisplayDeltas(gameState, result)} visiblePlayerIds={visiblePlayerIds} scoreBefore={scoreBefore} scoreAfter={scoreAfter} />
+      {!settlementPresentationCoordinator && (!winPresentationController || viewModel.winners.every((winner) => winPresentation.sequences.find((sequence) => sequence.winnerId === winner.source.winner)?.sequenceCompleted === true))
+        ? <ResultDeltas rows={viewModel.scoreChanges} />
         : null}
     </ResultShell>
   );

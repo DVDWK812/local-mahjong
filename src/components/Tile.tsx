@@ -12,6 +12,8 @@ interface TileProps {
   faceDown?: boolean;
   sideways?: boolean;
   selected?: boolean;
+  drawn?: boolean;
+  riichiCandidate?: boolean;
   disabled?: boolean;
   clickable?: boolean;
   interactive?: boolean;
@@ -35,6 +37,8 @@ export function Tile({
   faceDown = false,
   sideways = false,
   selected = false,
+  drawn = false,
+  riichiCandidate = false,
   disabled = false,
   clickable,
   interactive = true,
@@ -75,14 +79,29 @@ export function Tile({
   const doraGlowClass = isFaceDown ? null : getDoraGlowClass(tile, doraIndicators, doraGlowEnabled);
   const canReportHover = sameTileHoverEnabled && !isFaceDown && tileId !== undefined;
   const sameTileHoverClass = canReportHover && hoveredTileType === tileId ? 'tile--same-tile-match' : '';
-  const isDisabled = disabled || !onClick;
+  const isDisabled = disabled || (interactive && !onClick);
+  const isPlayable = interactive && !isDisabled && Boolean(clickable || onClick);
+  const tileState = selected
+    ? 'selected'
+    : riichiCandidate
+      ? 'riichi-candidate'
+      : drawn
+        ? 'drawn'
+        : isPlayable
+          ? 'playable'
+          : isDisabled
+            ? 'disabled'
+            : 'normal';
   const classNames = [
     'tile',
     compact ? 'tile--compact' : '',
     isFaceDown ? 'tile--hidden' : '',
     sideways ? 'tile--sideways' : '',
     selected ? 'tile--selected' : '',
-    clickable || onClick ? 'tile--clickable' : '',
+    drawn ? 'tile--drawn' : '',
+    riichiCandidate ? 'tile--riichi-candidate' : '',
+    isPlayable ? 'tile--clickable tile--playable' : '',
+    isDisabled ? 'tile--disabled' : '',
     tile ? suitClass(tile) : '',
     doraGlowClass ?? '',
     sameTileHoverClass,
@@ -130,14 +149,14 @@ export function Tile({
 
   if (!interactive) {
     return (
-      <span className={classNames} role="img" aria-label={alt}>
+      <span className={classNames} role="img" aria-label={alt} data-tile-state={tileState} data-drawn={drawn || undefined} data-riichi-candidate={riichiCandidate || undefined}>
         {content}
       </span>
     );
   }
 
   return (
-    <button className={classNames} type="button" onPointerDown={onPointerDown} onClick={onClick} disabled={isDisabled} aria-label={alt}>
+    <button className={classNames} type="button" onPointerDown={onPointerDown} onClick={onClick} disabled={isDisabled} aria-label={alt} aria-pressed={selected || undefined} data-tile-state={tileState} data-drawn={drawn || undefined} data-riichi-candidate={riichiCandidate || undefined}>
       {content}
     </button>
   );

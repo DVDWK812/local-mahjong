@@ -62,21 +62,15 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
   };
 
   return (
-    <section className={`local-hand-area ${isCurrent ? 'local-hand-area--active' : ''}`} aria-label="本家手牌" data-local-player={player.id}>
-      <div className="local-hand-info">
+    <section className={`local-hand-area ${isCurrent ? 'local-hand-area--active' : ''} ${isCurrent && canDiscard ? 'local-hand-area--interactive' : ''}`} aria-label="本家手牌" data-local-player={player.id}>
+      <div className="local-hand-info local-hand-info--vertical" data-player-frame-layout="vertical">
         {playerProfile
           ? <PlayerAvatar avatarId={playerProfile.avatarId} />
           : <span className="player-avatar" aria-hidden="true">{identityPlayer.name.trim().slice(0, 1) || windNames[identityPlayer.seatWind]}</span>}
         <span className="local-hand-info-copy">
           <strong title={displayName}>{displayName}</strong>
-          <span className="local-hand-meta"><b>{windNames[identityPlayer.seatWind]}</b><span>{identityPlayer.score.toLocaleString()}</span></span>
           <span className="local-hand-status">
             {tsumoGiriDisplayEnabled ? <TsumogiriMarker player={identityPlayer} /> : null}
-            <span className="player-badges">
-              {identityPlayer.seatWind === 'east' ? <em className="dealer-marker">庄</em> : null}
-              {identityPlayer.riichi ? <em>立直</em> : null}
-              {kuikaeForbiddenTileIds.length > 0 ? <em className="kuikae-warning">食替禁止</em> : null}
-            </span>
           </span>
         </span>
       </div>
@@ -94,7 +88,7 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
               hoveredTileType={hoveredTileType}
               sameTileHoverEnabled={sameTileHoverEnabled}
               onHoveredTileTypeChange={onHoveredTileTypeChange}
-              interactive={canClick(tile.instanceId)}
+              interactive
               className={isKuikaeForbidden(tile.id) ? 'tile--kuikae-forbidden' : undefined}
               onPointerEnter={canClick(tile.instanceId) ? () => onDiscardPreviewChange?.(tile.instanceId) : undefined}
               onPointerLeave={canClick(tile.instanceId) ? () => onDiscardPreviewChange?.(null) : undefined}
@@ -107,7 +101,7 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
               <Tile
                 tile={concealHand ? undefined : drawnTile}
                 faceDown={concealHand}
-                selected
+                drawn
                 clickable={canClick(drawnTile.instanceId)}
                 disabled={!canClick(drawnTile.instanceId)}
                 doraIndicators={doraIndicators}
@@ -115,7 +109,7 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
                 hoveredTileType={hoveredTileType}
                 sameTileHoverEnabled={sameTileHoverEnabled}
                 onHoveredTileTypeChange={onHoveredTileTypeChange}
-                interactive={canClick(drawnTile.instanceId)}
+                interactive
                 className={isKuikaeForbidden(drawnTile.id) ? 'tile--kuikae-forbidden' : undefined}
                 onPointerEnter={canClick(drawnTile.instanceId) ? () => onDiscardPreviewChange?.(drawnTile.instanceId) : undefined}
                 onPointerLeave={canClick(drawnTile.instanceId) ? () => onDiscardPreviewChange?.(null) : undefined}

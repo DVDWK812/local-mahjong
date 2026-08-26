@@ -38,11 +38,13 @@ describe('MahjongTable', () => {
     expect(html).toContain('data-riichi-position="west"');
   });
 
-  it('对手信息显示风位与点数，中央计分区继续保留四家点数', () => {
+  it('三家对手头像框统一为竖版并移除风位与点数，中央计分区继续保留四家点数', () => {
     const html = renderToStaticMarkup(<MahjongTable gameState={createInitialGameState()} matchState={createMatch()} />);
     expect((html.match(/25,000 点/g) ?? [])).toHaveLength(0);
-    expect((html.match(/class="player-identity-meta"/g) ?? [])).toHaveLength(3);
-    expect((html.match(/25,000/g) ?? [])).toHaveLength(7);
+    expect((html.match(/data-player-frame-layout="vertical"/g) ?? [])).toHaveLength(3);
+    expect((html.match(/data-player-frame-layout="horizontal"/g) ?? [])).toHaveLength(0);
+    expect((html.match(/class="player-identity-meta"/g) ?? [])).toHaveLength(0);
+    expect((html.match(/25,000/g) ?? [])).toHaveLength(4);
   });
 
   it('AI 玩家头像框正常显示摸切效果', () => {

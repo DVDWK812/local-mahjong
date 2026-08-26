@@ -47,7 +47,7 @@ describe('ResultDialog', () => {
     expect(html).toContain('继续');
   });
 
-  it('回放结果用整局净变化展示，同时保留毛收入与供托说明', () => {
+  it('回放结果直接展示权威得点与整局净变化，不在 UI 重算供托', () => {
     const base = createInitialGameState();
     const result: NonNullable<GameState['result']> = {
       type: 'tsumo',
@@ -82,9 +82,11 @@ describe('ResultDialog', () => {
         resultRiichiSticks={2}
       />,
     );
-    expect(html).toContain('牌型得点：2,000点');
-    expect(html).toContain('供托奖励：2根 × 1000点 = 2,000点');
-    expect(html).toContain('获得总计：4,000点');
+    expect(html).toContain('结果得点');
+    expect(html).toContain('本局点数变化');
+    expect(html).toContain('供托 2 根；最终支付以点数变化为准。');
+    expect(html).not.toContain('牌型得点：');
+    expect(html).not.toContain('供托奖励：');
     expect(html).toContain('+3,000');
     expect(html).toContain('-1,500');
   });

@@ -17,7 +17,7 @@ import {
 import { createSeventeenStepsAI, createSeventeenStepsAIGame } from '../game/seventeenStepsAI';
 import { tileLabel, windLabel } from '../game/tileUtils';
 import type { Tile as TileModel, TileId, GameState } from '../game/types';
-import { ActionPrompt } from './ActionPrompt';
+import { ActionPrompt, OperationButton } from './ActionPrompt';
 import { ResultDialog } from './ResultDialog';
 import { Tile } from './Tile';
 import { AnalysisDrawer } from './game/AnalysisDrawer';
@@ -150,8 +150,8 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
       {state.phase === 'ron-window' && state.pendingRon?.winnerId === 0 ? (
         <div className="game-prompt-layer">
           <ActionPrompt title={`可以荣和 ${tileLabel(state.pendingRon.tile)}`} ariaLabel="17步麻将荣和操作">
-            <button type="button" onClick={() => setState((current) => declareSeventeenStepsRon(current, 0))}>荣和</button>
-            <button type="button" onClick={() => setState((current) => passSeventeenStepsRon(current, 0))}>跳过</button>
+            <OperationButton kind="win" onClick={() => setState((current) => declareSeventeenStepsRon(current, 0))}>荣和</OperationButton>
+            <OperationButton kind="pass" onClick={() => setState((current) => passSeventeenStepsRon(current, 0))}>跳过</OperationButton>
           </ActionPrompt>
         </div>
       ) : null}
@@ -357,31 +357,6 @@ function DiscardPanel({ state, gameState, canDiscard, hoveredTileType, onHovered
   );
 }
 
-function ResultPanel({ state, onReset }: { state: SeventeenStepsState; onReset: () => void }) {
-  const result = state.result;
-  if (!result) return null;
-  return (
-    <div className="result-backdrop" role="presentation">
-      <section className="result-dialog" role="dialog" aria-modal="true" aria-label="17步麻将结果">
-      {result.type === 'ron' ? (
-        <>
-          <h2>{result.winnerId === 0 ? '荣和成立' : '对手荣和'}</h2>
-          <p>{result.winnerId === 0 ? '你' : '对手'} 荣和 {tileLabel(result.winningTile)}，{result.score.han} 番 {result.score.fu} 符，{result.score.points.limitName ?? '和牌'}。</p>
-          <p>役种：{result.score.yaku.map((yaku) => yaku.name).join('、') || '无'}。</p>
-        </>
-      ) : (
-        <>
-          <h2>流局结算</h2>
-          <p>有效听牌：玩家 {result.validTenpai[0] ? '是' : '否'}，对手 {result.validTenpai[1] ? '是' : '否'}。</p>
-          <p>点数变化：玩家 {formatDelta(result.pointDeltas[0])}，对手 {formatDelta(result.pointDeltas[1])}。</p>
-        </>
-      )}
-        <footer className="result-actions"><button type="button" onClick={onReset}>重新开始</button></footer>
-      </section>
-    </div>
-  );
-}
-
 function SeventeenStepsMatchResult({ state, playerProfile, onNewMatch, onBack }: { state: SeventeenStepsState; playerProfile: PlayerProfile; onNewMatch: () => void; onBack: () => void }) {
   const [first, second] = state.scores;
   const firstWins = first >= second;
@@ -432,8 +407,4 @@ function phaseLabel(state: SeventeenStepsState): string {
   if (state.phase === 'round-ended') return '本局结束';
   if (state.phase === 'ron-window') return state.pendingRon?.winnerId === 0 ? '响应荣和' : '等待对手处理';
   return state.currentPlayerId === 0 ? '你的回合' : '等待对手';
-}
-
-function formatDelta(delta: number): string {
-  return delta > 0 ? `+${delta}` : String(delta);
 }

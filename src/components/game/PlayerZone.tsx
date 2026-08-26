@@ -75,7 +75,7 @@ export function PlayerZone({
         ) : null}
 
         {showOpponentHand ? (
-          <PlayerIdentity player={player} score={score} seatWind={seatWind} isDealer={isDealer} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} />
+          <PlayerIdentity player={player} position={position} score={score} seatWind={seatWind} isDealer={isDealer} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} />
         ) : null}
 
         {showRiver ? (
@@ -96,21 +96,29 @@ export function PlayerZone({
   );
 }
 
-function PlayerIdentity({ player, score, seatWind, isDealer, tsumoGiriDisplayEnabled }: { player: PlayerState; score: number; seatWind: Wind; isDealer: boolean; tsumoGiriDisplayEnabled: boolean }) {
+function PlayerIdentity({ player, position, score, seatWind, isDealer, tsumoGiriDisplayEnabled }: { player: PlayerState; position: PlayerPosition; score: number; seatWind: Wind; isDealer: boolean; tsumoGiriDisplayEnabled: boolean }) {
   const initial = player.name.trim().slice(0, 1) || windNames[seatWind];
+  const isSideFrame = position === 'east' || position === 'west';
+  const isCompactFrame = position !== 'south';
   return (
-    <div className="player-identity player-zone-label">
+    <div className={`player-identity player-zone-label ${isCompactFrame ? 'player-identity--compact' : 'player-identity--horizontal'} ${isSideFrame ? 'player-identity--side' : position === 'north' ? 'player-identity--opposite' : ''}`} data-player-frame-layout={isCompactFrame ? 'vertical' : 'horizontal'}>
       <span className="player-avatar" aria-hidden="true">{initial}</span>
       <span className="player-identity-copy">
         <strong title={player.name}>{player.name}</strong>
-        <span className="player-identity-meta"><b>{windNames[seatWind]}</b><span>{score.toLocaleString()}</span></span>
-        <span className="player-identity-status">
-          {tsumoGiriDisplayEnabled ? <TsumogiriMarker player={player} /> : null}
-          <span className="player-badges">
-            {isDealer ? <em className="dealer-marker">庄</em> : null}
-            {player.riichi ? <em>立直</em> : null}
-          </span>
-        </span>
+        {isCompactFrame ? (
+          tsumoGiriDisplayEnabled ? <span className="player-identity-status"><TsumogiriMarker player={player} /></span> : null
+        ) : (
+          <>
+            <span className="player-identity-meta"><b>{windNames[seatWind]}</b><span>{score.toLocaleString()}</span></span>
+            <span className="player-identity-status">
+              {tsumoGiriDisplayEnabled ? <TsumogiriMarker player={player} /> : null}
+              <span className="player-badges">
+                {isDealer ? <em className="dealer-marker">庄</em> : null}
+                {player.riichi ? <em>立直</em> : null}
+              </span>
+            </span>
+          </>
+        )}
       </span>
     </div>
   );

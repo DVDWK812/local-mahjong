@@ -47,7 +47,7 @@ export function Hand({ player, isCurrent, isLocal, canDiscard, allowedDiscardIns
             <span className="drawn-tile-gap">
               <Tile
                 tile={drawnTile}
-                selected
+                drawn
                 onClick={canClick(drawnTile.instanceId) ? () => onDiscard(player.id, drawnTile.instanceId) : undefined}
               />
             </span>
