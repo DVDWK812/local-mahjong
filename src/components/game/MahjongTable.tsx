@@ -1,5 +1,6 @@
 import type { MatchState } from '../../game/match/types';
 import type { GameState, PlayerId, TileId } from '../../game/types';
+import type { DoraIndicatorSlot } from '../../presentation/table/TablePresentationContract';
 import { DiscardRiver } from './DiscardRiver';
 import { DoraIndicatorStack } from './DoraIndicatorStack';
 import { PlayerZone, type PlayerPosition } from './PlayerZone';
@@ -27,6 +28,7 @@ interface MahjongTableProps {
     bottomRight?: string;
   };
   riverColumns?: number;
+  doraIndicatorSlots?: readonly DoraIndicatorSlot[];
 }
 
 export interface TableSeatMapping {
@@ -36,7 +38,7 @@ export interface TableSeatMapping {
   leftPlayerId: PlayerId;
 }
 
-export function MahjongTable({ gameState, matchState, doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, bottomPlayerId = 0, seatMapping, revealOpponentHands = false, revealedPlayerId, activeSeats, centerRoundLabel, centerRemainingLabel, centerCornerLabels, riverColumns }: MahjongTableProps) {
+export function MahjongTable({ gameState, matchState, doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, bottomPlayerId = 0, seatMapping, revealOpponentHands = false, revealedPlayerId, activeSeats, centerRoundLabel, centerRemainingLabel, centerCornerLabels, riverColumns, doraIndicatorSlots }: MahjongTableProps) {
   const preserveClaimedDiscardGap = gameState.ruleConfig?.preserveClaimedDiscardGap ?? false;
   const mapping = seatMapping ?? getTableSeatMapping(bottomPlayerId);
   const seats = {
@@ -71,7 +73,7 @@ export function MahjongTable({ gameState, matchState, doraGlowEnabled = true, ho
 
   return (
     <section className="mahjong-table" aria-label="麻将牌桌">
-      <DoraIndicatorStack gameState={gameState} matchState={matchState} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
+      <DoraIndicatorStack gameState={gameState} matchState={matchState} slots={doraIndicatorSlots} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
       {positions.map(({ playerId, position, showHand }) => {
         const player = gameState.players[playerId];
         return (

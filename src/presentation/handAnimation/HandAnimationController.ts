@@ -23,9 +23,11 @@ export interface HandAnimationControllerOptions {
   readonly maxQueuedActions?: number;
   readonly onError?: (error: unknown, action: HandAnimationAction) => void;
   readonly onSettled?: (action: HandAnimationAction) => void;
+  /** Optional presentation-only cadence after the visual lifecycle; defaults to no hold. */
+  readonly postAnimationHoldMs?: number | ((action: HandAnimationAction) => number);
 }
 
-const PHASES: ReadonlyArray<{ phase: HandAnimationPhase; durationMs: number }> = [
+export const HAND_ANIMATION_PHASES: ReadonlyArray<{ phase: HandAnimationPhase; durationMs: number }> = [
   { phase: 'approach', durationMs: 150 },
   { phase: 'grasp', durationMs: 90 },
   { phase: 'travel', durationMs: 240 },
@@ -39,6 +41,7 @@ export class HandAnimationController {
   private readonly maxQueuedActions: number;
   private readonly onError: (error: unknown, action: HandAnimationAction) => void;
   private readonly onSettled: (action: HandAnimationAction) => void;
+  private readonly postAnimationHoldMs: (action: HandAnimationAction) => number;
   private draining = false;
   private disposed = false;
   private currentAction: HandAnimationAction | null = null;
@@ -51,6 +54,10 @@ export class HandAnimationController {
     this.maxQueuedActions = Math.max(1, options.maxQueuedActions ?? 6);
     this.onError = options.onError ?? (() => undefined);
     this.onSettled = options.onSettled ?? (() => undefined);
+    const postAnimationHoldMs = options.postAnimationHoldMs;
+    this.postAnimationHoldMs = typeof postAnimationHoldMs === 'function'
+      ? postAnimationHoldMs
+      : () => postAnimationHoldMs ?? 0;
   }
 
   get queuedActionCount(): number {
@@ -125,7 +132,13 @@ export class HandAnimationController {
       this.currentAction = action;
       try {
         const prepared = await this.target.prepare(action);
-        if (prepared) await this.scheduler.sequence(PHASES.map(({ phase, durationMs }) => this.phaseTask(action, phase, durationMs)));
+        if (prepared) {
+          const holdMs = this.postAnimationHoldMs(action);
+          await this.scheduler.sequence([
+            ...HAND_ANIMATION_PHASES.map(({ phase, durationMs }) => this.phaseTask(action, phase, durationMs)),
+            ...(holdMs > 0 ? [this.holdTask(holdMs)] : []),
+          ]);
+        }
       } catch (error) {
         this.onError(error, action);
       } finally {
@@ -142,6 +155,13 @@ export class HandAnimationController {
         await waitForAnimationTime(durationMs, context);
       },
       snapToEnd: () => this.target.setPhase(action, phase),
+    };
+  }
+
+  private holdTask(durationMs: number): AnimationTask {
+    return {
+      play: (context) => waitForAnimationTime(durationMs, context),
+      snapToEnd: () => undefined,
     };
   }
 

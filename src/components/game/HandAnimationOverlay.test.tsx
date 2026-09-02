@@ -142,10 +142,11 @@ describe('HandAnimationOverlay', () => {
     expect(html).not.toContain('data-river-index="0"');
   });
 
-  it('Test Mode 显式关闭实时动画，Replay 不挂载 realtime consumer', () => {
+  it('Test Mode 默认关闭实时动画，仅显式验收参数开启；Replay 不挂载 realtime consumer', () => {
     const testMode = readFileSync(resolve(process.cwd(), 'src/components/TestModeScreen.tsx'), 'utf8');
     const replay = readFileSync(resolve(process.cwd(), 'src/components/ReplayScreen.tsx'), 'utf8');
-    expect(testMode).toContain('handAnimationsEnabled={false}');
+    expect(testMode).toContain('handAnimationsEnabled={presentationAnimationsEnabled}');
+    expect(testMode).toContain("return new URLSearchParams(search).get('testAnimations') === '1';");
     expect(replay).not.toContain('HandAnimationOverlay');
     expect(replay).not.toContain('HandAnimationConsumer');
   });

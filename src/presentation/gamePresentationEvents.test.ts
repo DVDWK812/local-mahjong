@@ -83,10 +83,24 @@ describe('confirmed win presentation events', () => {
       ],
       pointDeltas: [-72000, 8000, 64000, 0],
     };
-    const settled = { ...initial, phase: 'round-ended' as const, result };
+    const ronDiscard = createTile(14, 9901);
+    const settled = {
+      ...initial,
+      phase: 'round-ended' as const,
+      lastDiscard: { player: 0 as const, tile: ronDiscard },
+      players: initial.players.map((player) => player.id === 0
+        ? { ...player, river: [...player.river, ronDiscard] }
+        : player),
+      result,
+    };
     observer.observe(settled); observer.observe(settled);
 
     const scored = events.filter((event) => event.type === 'win_scored');
+    const declared = events.filter((event) => event.type === 'win_declared');
+    expect(declared.map((event) => event.type === 'win_declared' ? event.playerId : -1)).toEqual([1, 2]);
+    const discardEventId = events.find((event) => event.type === 'tile_discarded')?.eventId;
+    expect(discardEventId).toBeDefined();
+    expect(declared.every((event) => event.type === 'win_declared' && event.sourceEventId === discardEventId)).toBe(true);
     expect(scored).toHaveLength(2);
     expect(scored).toEqual([
       expect.objectContaining({ winnerId: 1, yakuIds: ['riichi'], limitTier: 'mangan', totalDora: 2 }),

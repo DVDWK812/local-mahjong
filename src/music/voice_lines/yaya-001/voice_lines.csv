@@ -6,7 +6,7 @@ game.start,game,start,对局开始,对局开始,zh-CN,default,neutral,对局开�
 game.end,game,first_place,好耶！,好耶！[excited],zh-CN,default,neutral,第一名,1,0,1,1,,true,,,
 result.second_place,result,second_place,不错不错，第二名,,zh-CN,default,neutral,第二名,1,0,1,1,,true,,,
 result.third_place,result,third_place,一般一般，世界第三,一般一般，世界第三[emphasis],zh-CN,default,neutral,第三名,1,0,1,1,,true,,,
-result.fourth_place,result,fourth_place,哼，让你们一把,哼，让你们一把,zh-CN,default,sad,第四名,1,0,1,1,,true,,,
+result.fourth_place,result,fourth_place,哼，让你们一把,[angry]哼[pause]，让你们一把[laughing],zh-CN,default,sad,第四名,1,0,1,1,,true,,,
 yaku.tenpai,yaku,tenpai,听牌,听牌,zh-CN,default,dramatic,听牌,1,0,1,1,,true,,,
 yaku.noten,yaku,noten,没听,没听,zh-CN,default,dramatic,没听,1,0,1,1,,true,,,
 game.draw,game,draw,流局,流局,zh-CN,default,neutral,流局,1,0,1,1,,true,,,

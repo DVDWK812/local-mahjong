@@ -1,15 +1,12 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
-import { canPon } from '../game/callChecker';
-import { canChi } from '../game/chiChecker';
-import { isKuikaeEnabled, kuikaeForbiddenForPlayer, legalDiscardTiles } from '../game/kuikae';
-import { getDrawActionState } from '../game/interaction';
-import { canChankan, canMinkan, type KanType } from '../game/kanChecker';
+import { type KanType } from '../game/kanChecker';
 import type { MatchState } from '../game/match/types';
 import { getTileAlt } from '../game/tileAssets';
 import type { GameState, PendingCallOption, PlayerId, Tile as TileModel, TileId } from '../game/types';
 import type { PlayerProfile } from '../profile/playerProfile';
 import { sortTiles, tileLabel } from '../game/tileUtils';
 import { useGamePresentationEvents } from '../presentation/gamePresentationEvents';
+import { buildTablePresentationState } from '../presentation/table/TablePresentationContract';
 import { ActionPrompt, OperationButton, operationButtonClassName, type OperationKind } from './ActionPrompt';
 import { GameScreen } from './game/GameScreen';
 import { Tile } from './Tile';
@@ -102,32 +99,30 @@ export function Board({
     setRiichiPreviewDiscardInstanceId(null);
   }, [controlledPlayerId]);
 
-  const drawActions = useMemo(() => getDrawActionState(gameState, controlledPlayerId), [gameState, controlledPlayerId]);
-  const canHumanPon = canPon(gameState, controlledPlayerId);
-  const canHumanChi = canChi(gameState, controlledPlayerId);
-  const canHumanMinkan = canMinkan(gameState, controlledPlayerId);
-  const humanChiOptions = gameState.pendingCall?.options.filter((option) => option.type === 'chi' && option.player === controlledPlayerId) ?? [];
-  const humanMinkanOptions = gameState.pendingCall?.options.filter((option) => option.type === 'kan' && option.kanType === 'minkan' && option.player === controlledPlayerId) ?? [];
-  const canHumanChankan = canChankan(gameState, controlledPlayerId);
-  const canHumanRon = gameState.phase === 'ron-window' && !!gameState.pendingRon?.eligibleRonPlayers.includes(controlledPlayerId) && !gameState.pendingRon.passedPlayers.includes(controlledPlayerId);
-  const hasDrawPrompt = gameState.phase === 'discard'
-    && gameState.currentPlayer === controlledPlayerId
-    && dismissedPromptKey !== promptKey
-    && (drawActions.canTsumo || drawActions.canRiichi || drawActions.canKyuushuKyuuhai || drawActions.ankanCandidates.length > 0 || drawActions.kakanCandidates.length > 0);
-  const promptOpen = hasDrawPrompt
-    || canHumanRon
-    || (gameState.phase === 'call-window' && (canHumanPon || canHumanChi || canHumanMinkan))
-    || (gameState.phase === 'chankan-window' && canHumanChankan);
+  const tablePresentationState = useMemo(() => buildTablePresentationState(gameState, {
+    localPlayerId: controlledPlayerId,
+    bottomPlayerId: tableBottomPlayerId,
+    revealOpponentHands: revealAllHands,
+    drawPromptDismissed: dismissedPromptKey === promptKey,
+  }), [
+    controlledPlayerId,
+    dismissedPromptKey,
+    gameState,
+    promptKey,
+    revealAllHands,
+    tableBottomPlayerId,
+  ]);
+  const { drawActions, legalActions, prompt, callOptions } = tablePresentationState;
+  const canHumanPon = legalActions.canPon;
+  const humanChiOptions = callOptions.chi;
+  const humanMinkanOptions = callOptions.minkan;
+  const canHumanRon = prompt.ron;
+  const hasDrawPrompt = prompt.draw;
+  const promptOpen = prompt.open;
   const localPlayer = gameState.players[controlledPlayerId];
-  const riichiDrawnTile = localPlayer.riichi ? localPlayer.drawnTile?.instanceId : undefined;
-  const kuikaeForbiddenTileIds = isKuikaeEnabled(gameState) ? kuikaeForbiddenForPlayer(gameState, controlledPlayerId) : [];
-  const ruleAllowedDiscardIds = kuikaeForbiddenTileIds.length > 0
-    ? legalDiscardTiles(gameState, controlledPlayerId).map((tile) => tile.instanceId)
-    : undefined;
-  const allowedDiscardInstanceIds = riichiDrawnTile
-    ? ruleAllowedDiscardIds?.includes(riichiDrawnTile) === false ? [] : [riichiDrawnTile]
-    : ruleAllowedDiscardIds;
-  const canDiscard = gameState.phase === 'discard' && gameState.currentPlayer === controlledPlayerId && !promptOpen;
+  const allowedDiscardInstanceIds = tablePresentationState.localHand.playableTileInstanceIds;
+  const kuikaeForbiddenTileIds = tablePresentationState.localHand.kuikaeForbiddenTileIds;
+  const canDiscard = tablePresentationState.localHand.canDiscard;
 
   const skipDrawActions = () => {
     setRiichiPreviewDiscardInstanceId(null);
@@ -222,7 +217,7 @@ export function Board({
         </ActionPrompt>
       ) : null}
 
-      {gameState.phase === 'call-window' && (canHumanPon || canHumanChi || canHumanMinkan) ? (
+      {prompt.call ? (
         <ActionPrompt
           title={gameState.pendingCall ? (
             <span className="action-prompt-title-with-tile">
@@ -280,7 +275,7 @@ export function Board({
         </ActionPrompt>
       ) : null}
 
-      {gameState.phase === 'chankan-window' && canHumanChankan ? (
+      {prompt.chankan ? (
         <ActionPrompt title={`可以抢杠 ${gameState.pendingKakan ? tileLabel(gameState.pendingKakan.addedTile.id) : ''}`}>
           {gameState.pendingKakan ? (
             <TileActionButton operation="win" label="荣和" tile={gameState.pendingKakan.addedTile} doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={setHoveredTileType} onClick={() => onChankanRon(controlledPlayerId)} />
@@ -324,6 +319,7 @@ export function Board({
       playerProfile={playerProfile}
       winPresentationController={winPresentationController}
       settlementPresentationCoordinator={settlementPresentationCoordinator}
+      tablePresentationState={tablePresentationState}
     />
   );
 }

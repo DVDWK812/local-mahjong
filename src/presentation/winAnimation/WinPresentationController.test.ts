@@ -109,4 +109,31 @@ describe('WinPresentationController', () => {
     gate.cancel('earlier');
     await controller.whenIdle();
   });
+
+  it('Multi-Ron 按 authoritative enqueue 顺序串行且每名赢家恰好一次', async () => {
+    const gate = new PresentationPacingGate();
+    const prepared: number[] = [];
+    const finished: number[] = [];
+    const presentationTarget: WinPresentationTarget = {
+      prepare: (current) => { prepared.push(current.playerId); return true; },
+      setPhase: () => undefined,
+      finish: (current) => finished.push(current.playerId),
+      clear: () => undefined,
+    };
+    const controller = new WinPresentationController(presentationTarget, new AnimationScheduler(), gate, {
+      onSettled: (settled) => gate.complete(settled.eventId),
+    });
+    controller.setSkip(true);
+    const winners = [1, 2] as const;
+    winners.forEach((playerId, index) => {
+      const current = action({ eventId: `ron-${playerId}`, sequence: 20 + index, playerId, winType: 'ron' });
+      gate.begin(current);
+      controller.enqueue(current);
+    });
+
+    await controller.whenIdle();
+    expect(prepared).toEqual([1, 2]);
+    expect(finished).toEqual([1, 2]);
+    expect(gate.pendingCount).toBe(0);
+  });
 });

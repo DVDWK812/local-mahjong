@@ -5,6 +5,10 @@ import { describe, expect, it } from 'vitest';
 import { createInitialGameState } from '../../game/engine';
 import { createTile } from '../../game/tileUtils';
 import type { CallSet } from '../../game/types';
+import {
+  buildTablePresentationState,
+  createTableInteractionActions,
+} from '../../presentation/table/TablePresentationContract';
 import { LocalHandArea } from './LocalHandArea';
 
 describe('LocalHandArea', () => {
@@ -49,6 +53,147 @@ describe('LocalHandArea', () => {
     expect(pacingLocked).toContain('local-hand-area--active');
     expect(pacingLocked).not.toContain('local-hand-area--interactive');
     expect(interactive).toContain('local-hand-area--interactive');
+  });
+
+  it('2.5D hand consumes the shared playable/drawn model and interaction boundary', () => {
+    const state = createInitialGameState();
+    const allowed = state.players[0].hand[0].instanceId;
+    const presentation = buildTablePresentationState(state, {
+      canDiscardOverride: true,
+      allowedDiscardInstanceIdsOverride: [allowed],
+    });
+    const actions = createTableInteractionActions(0, () => undefined, () => undefined);
+    const html = renderToStaticMarkup(
+      <LocalHandArea
+        player={state.players[0]}
+        isCurrent
+        canDiscard
+        presentation={presentation.localHand}
+        interactionActions={actions}
+        onDiscard={() => undefined}
+      />,
+    );
+
+    expect(html).toContain('data-table-presentation="shared"');
+    expect((html.match(/data-tile-state="playable"/g) ?? [])).toHaveLength(1);
+    expect(html).toContain('data-tile-state="drawn"');
+  });
+
+  it('3D screen-space hand reuses shared state without mounting the 2.5D frame or meld area', () => {
+    const state = createInitialGameState();
+    const presentationState = buildTablePresentationState(state, { canDiscardOverride: true });
+    const firstId = presentationState.localHand.tiles[0].tile.instanceId;
+    const secondId = presentationState.localHand.tiles[1].tile.instanceId;
+    const presentation = {
+      ...presentationState.localHand,
+      selectedTileInstanceId: firstId,
+      riichiCandidateInstanceIds: [secondId],
+      tiles: presentationState.localHand.tiles.map((entry) => ({
+        ...entry,
+        selected: entry.tile.instanceId === firstId,
+        riichiCandidate: entry.tile.instanceId === secondId,
+      })),
+    };
+    const html = renderToStaticMarkup(
+      <LocalHandArea
+        player={state.players[0]}
+        isCurrent
+        canDiscard
+        presentation={presentation}
+        interactionActions={createTableInteractionActions(0, () => undefined, () => undefined)}
+        screenSpaceOverlay
+        onDiscard={() => undefined}
+      />,
+    );
+
+    expect(html).toContain('local-hand-area--screen-space');
+    expect(html).toContain('data-local-hand-space="screen"');
+    expect(html).toContain('--local-hand-tuning-x:0px');
+    expect(html).toContain('--local-hand-tuning-y:0px');
+    expect(html).toContain('tile--selected');
+    expect(html).toContain('tile--riichi-candidate');
+    expect(html).toContain('data-riichi-candidate="true"');
+    expect(html).toContain('drawn-tile-gap');
+    expect(html).toContain('data-drawn="true"');
+    expect(html).not.toContain('local-hand-info');
+    expect(html).not.toContain('local-meld-track');
+  });
+
+  it('3D screen-space hand mounts the shared Dora sweep for base and drawn tiles only when enabled', () => {
+    const state = createInitialGameState();
+    const baseDora = createTile(6, 901);
+    const drawnCombined = { ...createTile(4, 902), red: true };
+    const player = {
+      ...state.players[0],
+      hand: [baseDora, drawnCombined],
+      drawnTile: drawnCombined,
+    };
+    const indicators = [createTile(5, 903), createTile(3, 904)];
+    const renderHand = (screenSpaceOverlay: boolean, doraBreathingEnabled = true) => renderToStaticMarkup(
+      <LocalHandArea
+        player={player}
+        isCurrent
+        canDiscard
+        screenSpaceOverlay={screenSpaceOverlay}
+        doraIndicators={indicators}
+        doraBreathingEnabled={doraBreathingEnabled}
+        onDiscard={() => undefined}
+      />,
+    );
+
+    const enabled = renderHand(true);
+    expect((enabled.match(/local-hand-dora-sweep/g) ?? [])).toHaveLength(2);
+    expect(enabled).toContain('dora-breath-visual--combined');
+    expect(enabled).toContain('data-drawn="true"');
+    expect(renderHand(true, false)).not.toContain('local-hand-dora-sweep');
+    expect(renderHand(false)).not.toContain('local-hand-dora-sweep');
+  });
+
+  it('keeps the local discard snapshot visible until the 3D proxy-ready handoff', () => {
+    const state = createInitialGameState();
+    const tile = state.players[0].hand[0];
+    const html = renderToStaticMarkup(
+      <LocalHandArea
+        player={state.players[0]}
+        isCurrent
+        canDiscard
+        screenSpaceOverlay
+        retainDiscardSourceSnapshot
+        discardSnapshot={{
+          playerId: 0,
+          tileInstanceId: tile.instanceId,
+          tile: { id: tile.id, red: tile.red },
+          sourceTileRect: { left: 100, top: 600, width: 42, height: 64 },
+          sessionKey: 'east-1',
+          confirmedTurn: 1,
+        }}
+        localHandAnimation={{ eventId: 'discard-1', kind: 'discard', phase: 'proxy-ready' }}
+        onDiscard={() => undefined}
+      />,
+    );
+
+    expect(html).toContain(`data-local-discard-snapshot="${tile.instanceId}"`);
+    expect(html).toContain('data-local-hand-animation-kind="discard"');
+    expect(html).toContain('data-local-hand-animation-phase="proxy-ready"');
+  });
+
+  it('drives the authoritative drawn slot from the local DOM draw phase without a second hand', () => {
+    const state = createInitialGameState();
+    const html = renderToStaticMarkup(
+      <LocalHandArea
+        player={state.players[0]}
+        isCurrent
+        canDiscard
+        screenSpaceOverlay
+        localHandAnimation={{ eventId: 'draw-1', kind: 'draw', phase: 'travel' }}
+        onDiscard={() => undefined}
+      />,
+    );
+
+    expect(html).toContain('drawn-tile-gap--animating');
+    expect(html).toContain('data-local-draw-phase="travel"');
+    expect(html).toContain('data-drawn="true"');
+    expect((html.match(/data-drawn="true"/g) ?? [])).toHaveLength(1);
   });
 
   it('本家头像信息下方显示摸切标记，关闭后隐藏', () => {
@@ -128,10 +273,11 @@ describe('LocalHandArea', () => {
 
   it('只有可弃手牌接入听牌悬停预览，弃牌时先清除预览', () => {
     const source = readFileSync(resolve(process.cwd(), 'src/components/game/LocalHandArea.tsx'), 'utf8');
-    expect(source).toContain('onDiscardPreviewChange?.(tile.instanceId)');
-    expect(source).toContain('onDiscardPreviewChange?.(drawnTile.instanceId)');
-    expect(source).toContain('onDiscardPreviewChange?.(null)');
-    expect(source).toContain('canClick(tile.instanceId) ? () => onDiscardPreviewChange');
+    expect(source).toContain('interactionActions.selectTile(tileInstanceId)');
+    expect(source).toContain('interactionActions.discard(tileInstanceId)');
+    expect(source).toContain('selectTile(tile.instanceId)');
+    expect(source).toContain('selectTile(drawnTile.instanceId)');
+    expect(source).toContain('selectTile(null)');
   });
 
   it('本家区域高度比旧版更紧凑且动作提示使用绝对定位不推动布局', () => {

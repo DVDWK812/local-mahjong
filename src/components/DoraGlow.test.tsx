@@ -27,6 +27,37 @@ function cssRule(css: string, selector: string): string {
 }
 
 describe('宝牌与赤宝牌闪光', () => {
+  it('本家 DOM 手牌可复用 3D sweep 层且不复制牌面图片', () => {
+    const normal = renderToStaticMarkup(
+      <Tile tile={createTile(6, 0)} doraIndicators={[indicatorForSevenMan]} doraGlowEnabled doraSweepEnabled />,
+    );
+    const red = renderToStaticMarkup(
+      <Tile tile={redFiveMan()} doraIndicators={[]} doraGlowEnabled doraSweepEnabled />,
+    );
+    const combined = renderToStaticMarkup(
+      <Tile tile={redFiveMan()} doraIndicators={[indicatorForFiveMan]} doraGlowEnabled doraSweepEnabled />,
+    );
+
+    expect(normal).toContain('local-hand-dora-sweep dora-breath-visual');
+    expect(red).toContain('local-hand-dora-sweep dora-breath-visual');
+    expect(combined).toContain('dora-breath-visual--combined');
+    expect((normal.match(/<img/g) ?? [])).toHaveLength(1);
+    expect((red.match(/<img/g) ?? [])).toHaveLength(1);
+    expect((combined.match(/<img/g) ?? [])).toHaveLength(1);
+  });
+
+  it('DOM sweep 默认关闭且暗牌即使显式请求也不输出身份高亮', () => {
+    const legacy = renderToStaticMarkup(
+      <Tile tile={redFiveMan()} doraIndicators={[indicatorForFiveMan]} doraGlowEnabled />,
+    );
+    const hidden = renderToStaticMarkup(
+      <Tile tile={redFiveMan()} faceDown doraIndicators={[indicatorForFiveMan]} doraGlowEnabled doraSweepEnabled />,
+    );
+
+    expect(legacy).not.toContain('local-hand-dora-sweep');
+    expect(hidden).not.toContain('local-hand-dora-sweep');
+  });
+
   it('普通宝牌显示金色发光框且不显示文字角标', () => {
     const html = renderToStaticMarkup(
       <Tile tile={createTile(6, 0)} doraIndicators={[indicatorForSevenMan]} doraGlowEnabled />,

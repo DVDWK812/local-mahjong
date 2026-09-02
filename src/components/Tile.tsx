@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type MouseEventHandler, type PointerEventHandler } from 'react';
-import { getDoraGlowClass } from '../game/doraVisual';
 import { getTileAlt, getTileAltById, getTileBackImage, getTileImage, getTileImageById, getTilePlaceholderImage, isRedFive } from '../game/tileAssets';
 import type { Tile as TileModel, TileId } from '../game/types';
 import { suitClass } from '../game/tileUtils';
+import {
+  resolveTileDoraVisualKind,
+  resolveTileVisualSemantics,
+} from '../presentation/table/tileVisualSemantics';
 
 interface TileProps {
   tile?: TileModel;
@@ -19,6 +22,7 @@ interface TileProps {
   interactive?: boolean;
   doraIndicators?: TileModel[];
   doraGlowEnabled?: boolean;
+  doraSweepEnabled?: boolean;
   hoveredTileType?: TileId | null;
   sameTileHoverEnabled?: boolean;
   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
@@ -44,6 +48,7 @@ export function Tile({
   interactive = true,
   doraIndicators = [],
   doraGlowEnabled = false,
+  doraSweepEnabled = false,
   hoveredTileType = null,
   sameTileHoverEnabled = false,
   onHoveredTileTypeChange,
@@ -76,9 +81,26 @@ export function Tile({
         ? getTileAltById(tileId)
         : '缺失牌图';
   const showRedBadge = !!tile && !isFaceDown && isRedFive(tile);
-  const doraGlowClass = isFaceDown ? null : getDoraGlowClass(tile, doraIndicators, doraGlowEnabled);
+  const doraKind = isFaceDown ? null : resolveTileDoraVisualKind(tile, doraIndicators);
   const canReportHover = sameTileHoverEnabled && !isFaceDown && tileId !== undefined;
-  const sameTileHoverClass = canReportHover && hoveredTileType === tileId ? 'tile--same-tile-match' : '';
+  const visualSemantics = resolveTileVisualSemantics({
+    tileId,
+    faceUp: !isFaceDown,
+    doraKind,
+    context: { hoveredTileType, sameTileHoverEnabled, doraGlowEnabled },
+  });
+  const doraGlowClass = doraGlowEnabled ? doraKind : null;
+  const doraSweepClass = doraSweepEnabled && doraGlowClass
+    ? [
+        'local-hand-dora-sweep',
+        'dora-breath-visual',
+        visualSemantics.combinedHighlight ? 'dora-breath-visual--combined' : '',
+        visualSemantics.dimmedByHoveredMatch ? 'dora-breath-visual--dimmed' : '',
+      ].filter(Boolean).join(' ')
+    : null;
+  const sameTileHoverClass = canReportHover && visualSemantics.hoveredMatch
+    ? 'tile--same-tile-match'
+    : '';
   const isDisabled = disabled || (interactive && !onClick);
   const isPlayable = interactive && !isDisabled && Boolean(clickable || onClick);
   const tileState = selected
@@ -142,6 +164,7 @@ export function Tile({
         draggable={false}
         onError={() => setImageSource(getTilePlaceholderImage())}
       />
+      {doraSweepClass ? <span className={doraSweepClass} aria-hidden="true" /> : null}
       {showRedBadge ? <span className="tile-red-badge" aria-hidden="true" /> : null}
       {doraGlowClass ? <span className="tile-dora-frame" aria-hidden="true" /> : null}
     </span>

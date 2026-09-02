@@ -1,0 +1,33 @@
+import type { Table3DSeat } from '../coordinates/seatTransforms';
+import type { TableSceneState } from '../sceneState/tableSceneTypes';
+import { RiichiStick3D } from './RiichiStick3D';
+import type { RiichiStick3DAppearance } from './riichiStickAppearance';
+
+const SEATS: readonly Table3DSeat[] = ['bottom', 'right', 'top', 'left'];
+
+export function RiichiSticks3D({ sceneState, hiddenSeats, appearance }: Readonly<{
+  sceneState: TableSceneState;
+  hiddenSeats?: ReadonlySet<Table3DSeat>;
+  appearance?: RiichiStick3DAppearance;
+}>) {
+  return (
+    <group name="authoritative-riichi-sticks">
+      {resolveVisibleRiichiSeats(sceneState.seats, hiddenSeats)
+        .map((seat) => (
+          <RiichiStick3D
+            key={seat}
+            seat={seat}
+            appearance={appearance}
+            raycastDisabled
+          />
+        ))}
+    </group>
+  );
+}
+
+export function resolveVisibleRiichiSeats(
+  seats: Readonly<Record<Table3DSeat, Readonly<{ riichi: boolean }>>>,
+  hiddenSeats?: ReadonlySet<Table3DSeat>,
+): readonly Table3DSeat[] {
+  return SEATS.filter((seat) => seats[seat].riichi && !hiddenSeats?.has(seat));
+}

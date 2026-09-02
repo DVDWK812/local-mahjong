@@ -161,6 +161,25 @@ describe('HandAnimationController', () => {
     expect(controller.runningActionCount).toBe(0);
   });
 
+  it('可选 presentation hold 服从 speed，且 settle 前保持 pacing barrier', async () => {
+    vi.useFakeTimers();
+    const scheduler = new AnimationScheduler();
+    scheduler.setSpeed(2);
+    const target = new FakeTarget();
+    const settled = vi.fn();
+    const controller = new HandAnimationController(target, scheduler, {
+      postAnimationHoldMs: 110,
+      onSettled: settled,
+    });
+
+    controller.enqueue(discarded(1));
+    await vi.advanceTimersByTimeAsync(424);
+    expect(settled).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    await controller.whenIdle();
+    expect(settled).toHaveBeenCalledTimes(1);
+  });
+
   it('bottom discard → left draw → top discard → right draw 均先完成清理再启动下一事件', async () => {
     const scheduler = new AnimationScheduler();
     scheduler.setSkip(true);

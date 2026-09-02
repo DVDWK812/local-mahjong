@@ -112,7 +112,11 @@ export class EventOverlayController {
       if (!action) continue;
       this.currentAction = action;
       try {
-        await this.pacingGate.waitUntilClearBefore(action.sequence);
+        if (action.type === 'win_declared') {
+          await this.pacingGate.waitUntilOnlyParticipantRemains(action);
+        } else {
+          await this.pacingGate.waitUntilClearBefore(action.sequence);
+        }
         if (this.disposed) continue;
         const prepared = await this.target.prepare(action);
         if (prepared) {

@@ -41,6 +41,9 @@ const statusLabels: Record<TestCaseStatus, string> = {
 };
 
 export function TestModeScreen({ initialScenario = null, onExit, testResultStorage }: TestModeScreenProps) {
+  const presentationAnimationsEnabled = testModePresentationAnimationsEnabled(
+    typeof window === 'undefined' ? '' : window.location.search,
+  );
   const testCases = useMemo(getTestCaseCatalog, []);
   const chiihouExample = useMemo(getChiihouExampleScenario, []);
   const resultStore = useMemo(() => {
@@ -253,7 +256,7 @@ export function TestModeScreen({ initialScenario = null, onExit, testResultStora
         controlledPlayerId={session.controlPlayerId}
         tableBottomPlayerId={0}
         revealAllHands={allOpen}
-        handAnimationsEnabled={false}
+        handAnimationsEnabled={presentationAnimationsEnabled}
         onDiscard={(playerId, tileInstanceId) => applyAction('弃牌', { type: 'discard', playerId, tileInstanceId })}
         onTsumo={(playerId) => applyAction('自摸', { type: 'tsumo', playerId })}
         onRon={(playerId) => applyAction('荣和', { type: 'ron', playerId })}
@@ -315,6 +318,10 @@ export function TestModeScreen({ initialScenario = null, onExit, testResultStora
       <TestModeDebugPanel open={debugOpen} scenario={session.initialScenario} gameState={session.gameState} matchLog={session.matchLog} actionLog={session.actionLog} checks={checks} />
     </div>
   );
+}
+
+export function testModePresentationAnimationsEnabled(search: string): boolean {
+  return new URLSearchParams(search).get('testAnimations') === '1';
 }
 
 export function resolveTestModeControlPlayer(fullControlEnabled: boolean, currentControlPlayerId: PlayerId, nextGameState: GameState): PlayerId {

@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { MainMenu } from './MainMenu';
-import { resolveTestModeControlPlayer, TestModeScreen } from './TestModeScreen';
+import { resolveTestModeControlPlayer, TestModeScreen, testModePresentationAnimationsEnabled } from './TestModeScreen';
 import { TestModeDebugPanel } from './TestModeDebugPanel';
 import { ReplayScreen } from './ReplayScreen';
 import { getBuiltInTestScenario } from '../game/testMode/builtInScenarios';
@@ -117,6 +117,11 @@ describe('测试模式界面', () => {
     const nextState = { ...state, currentPlayer: 2 as const };
     expect(resolveTestModeControlPlayer(true, 0, nextState)).toBe(2);
     expect(resolveTestModeControlPlayer(false, 0, nextState)).toBe(0);
+  });
+
+  it('表现动画只在显式 Test Mode 验收参数下启用', () => {
+    expect(testModePresentationAnimationsEnabled('?testMode=1')).toBe(false);
+    expect(testModePresentationAnimationsEnabled('?testMode=1&testAnimations=1')).toBe(true);
   });
 
   it('测试模式分析抽屉避开顶部工具栏，关闭按钮不会被覆盖', () => {

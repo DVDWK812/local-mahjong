@@ -24,5 +24,8 @@ describe('WinPresentationOverlay geometry and semantics', () => {
     expect(css).toContain('@keyframes win-tile-slam');
     expect(css).toContain('pointer-events: none');
     expect(css).not.toContain('999999');
+    const source = readFileSync(resolve(process.cwd(), 'src/components/game/WinPresentationOverlay.tsx'), 'utf8');
+    expect(source).toContain('action.sourceDiscard');
+    expect(source).not.toContain('river.length - 1');
   });
 });

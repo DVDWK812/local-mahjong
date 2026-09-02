@@ -1,11 +1,21 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { getPresentationFeatures } from '../../config/presentationFeatures';
 import type { MatchState } from '../../game/match/types';
 import { buildTenpaiDisplay } from '../../game/tenpaiDisplay';
 import type { GameState, PlayerId, RiichiState, TileId } from '../../game/types';
 import type { PlayerProfile } from '../../profile/playerProfile';
-import { DiscardSourceSnapshotStore } from '../../presentation/handAnimation/DiscardSourceSnapshot';
+import {
+  DiscardSourceSnapshotStore,
+  type DiscardSourceCapture,
+  type DiscardSourceSnapshot,
+} from '../../presentation/handAnimation/DiscardSourceSnapshot';
 import { presentationPacingGate } from '../../presentation/pacing/PresentationPacingGate';
+import {
+  buildTablePresentationState,
+  createTableInteractionActions,
+  type TablePresentationState,
+  withLocalHandSelection,
+} from '../../presentation/table/TablePresentationContract';
 import { ResultDialog } from '../ResultDialog';
 import type { WinResultPresentationController } from '../../audio/voice/WinResultPresentationController';
 import type { SettlementPresentationCoordinator } from '../../audio/voice/SettlementPresentationCoordinator';
@@ -15,10 +25,14 @@ import { GameEventOverlay } from './GameEventOverlay';
 import { GameTopBar } from './GameTopBar';
 import { HandAnimationOverlay } from './HandAnimationOverlay';
 import { LocalHandArea } from './LocalHandArea';
-import { MahjongTable } from './MahjongTable';
+import { TableRenderer } from '../../presentation3d/TableRenderer';
+import type { TableRendererMode } from '../../presentation3d/rendererMode';
+import type { LocalHandAnimation3DState } from '../../presentation3d/animation/tableAnimation3D';
 import { WinPresentationOverlay } from './WinPresentationOverlay';
+import type { WinPresentation3DState } from '../../presentation3d/win/winPresentation3D';
+import { TABLE_PRESENTATION_TUNING } from '../../presentation3d/table/tablePresentationTuning';
 
-const ROUND_END_PRESENTATION_FAIL_OPEN_MS = 4500;
+const ROUND_END_PRESENTATION_FAIL_OPEN_MS = 15_000;
 
 interface GameScreenProps {
   gameState: GameState;
@@ -26,8 +40,8 @@ interface GameScreenProps {
   analysisOpen: boolean;
   actionPrompt?: ReactNode;
   canDiscard: boolean;
-  allowedDiscardInstanceIds?: string[];
-  kuikaeForbiddenTileIds?: TileId[];
+  allowedDiscardInstanceIds?: readonly string[];
+  kuikaeForbiddenTileIds?: readonly TileId[];
   onOpenRulesGuide?: () => void;
   onOpenAudioSettings?: () => void;
   onToggleAnalysis: () => void;
@@ -50,6 +64,7 @@ interface GameScreenProps {
   playerProfile?: PlayerProfile;
   winPresentationController?: WinResultPresentationController;
   settlementPresentationCoordinator?: SettlementPresentationCoordinator;
+  tablePresentationState?: TablePresentationState;
 }
 
 export function GameScreen({
@@ -82,14 +97,66 @@ export function GameScreen({
   playerProfile,
   winPresentationController,
   settlementPresentationCoordinator,
+  tablePresentationState,
 }: GameScreenProps) {
   const [handPreviewDiscardInstanceId, setHandPreviewDiscardInstanceId] = useState<string | null>(null);
+  const [activeTableRenderer, setActiveTableRenderer] = useState<TableRendererMode>('2d');
+  const [localHandAnimation, setLocalHandAnimation] = useState<LocalHandAnimation3DState | null>(null);
+  const [localDiscardSnapshot, setLocalDiscardSnapshot] = useState<DiscardSourceSnapshot | null>(null);
+  const [winPresentation3D, setWinPresentation3D] = useState<WinPresentation3DState | null>(null);
   const discardSourceSnapshotsRef = useRef<DiscardSourceSnapshotStore | null>(null);
   if (!discardSourceSnapshotsRef.current) discardSourceSnapshotsRef.current = new DiscardSourceSnapshotStore();
   const discardSourceSnapshots = discardSourceSnapshotsRef.current;
   const localPlayer = gameState.players[localPlayerId];
   const fixedBottomPlayer = gameState.players[tableBottomPlayerId];
+  const baseTablePresentationState = useMemo(() => tablePresentationState
+    ?? buildTablePresentationState(gameState, {
+      localPlayerId,
+      bottomPlayerId: tableBottomPlayerId,
+      revealOpponentHands: revealAllHands,
+      canDiscardOverride: canDiscard,
+      allowedDiscardInstanceIdsOverride: allowedDiscardInstanceIds,
+      kuikaeForbiddenTileIdsOverride: kuikaeForbiddenTileIds,
+    }), [
+    allowedDiscardInstanceIds,
+    canDiscard,
+    gameState,
+    kuikaeForbiddenTileIds,
+    localPlayerId,
+    revealAllHands,
+    tableBottomPlayerId,
+    tablePresentationState,
+  ]);
+  const sharedTablePresentationState = useMemo(
+    () => withLocalHandSelection(baseTablePresentationState, handPreviewDiscardInstanceId),
+    [baseTablePresentationState, handPreviewDiscardInstanceId],
+  );
+  const tableInteractionActions = useMemo(() => createTableInteractionActions(
+    localPlayerId,
+    setHandPreviewDiscardInstanceId,
+    onDiscard,
+  ), [localPlayerId, onDiscard]);
   const handAnimationSessionKey = `${gameState.roundWind}-${gameState.dealer}-${gameState.honba}-${matchState?.handNumber ?? 'single'}`;
+  const captureDiscardSource = useCallback((capture: DiscardSourceCapture) => {
+    const snapshot: DiscardSourceSnapshot = {
+      ...capture,
+      sessionKey: handAnimationSessionKey,
+      confirmedTurn: gameState.turn + 1,
+    };
+    const clearStoredSnapshot = discardSourceSnapshots.capture(snapshot);
+    if (activeTableRenderer === '3d') setLocalDiscardSnapshot(snapshot);
+    return () => {
+      clearStoredSnapshot();
+      setLocalDiscardSnapshot((current) => current?.tileInstanceId === snapshot.tileInstanceId ? null : current);
+    };
+  }, [activeTableRenderer, discardSourceSnapshots, gameState.turn, handAnimationSessionKey]);
+  const handleLocalHandAnimationChange = useCallback((next: LocalHandAnimation3DState | null) => {
+    setLocalHandAnimation(next);
+    if (next?.kind === 'discard' && next.phase === 'proxy-ready') setLocalDiscardSnapshot(null);
+  }, []);
+  const handleWinPresentation3DChange = useCallback((next: WinPresentation3DState | null) => {
+    setWinPresentation3D(activeTableRenderer === '3d' ? next : null);
+  }, [activeTableRenderer]);
   const winPresentationKey = buildWinPresentationKey(gameState, handAnimationSessionKey);
   const roundEndPresentationKey = buildRoundEndPresentationKey(gameState, handAnimationSessionKey);
   const presentationFeatures = getPresentationFeatures();
@@ -162,7 +229,17 @@ export function GameScreen({
 
   useEffect(() => {
     discardSourceSnapshots.clear();
+    setLocalDiscardSnapshot(null);
+    setLocalHandAnimation(null);
+    setWinPresentation3D(null);
   }, [discardSourceSnapshots, handAnimationSessionKey, realtimeHandAnimationsEnabled]);
+
+  useEffect(() => {
+    if (activeTableRenderer === '3d') return;
+    setLocalDiscardSnapshot(null);
+    setLocalHandAnimation(null);
+    setWinPresentation3D(null);
+  }, [activeTableRenderer]);
 
   useEffect(() => () => discardSourceSnapshots.clear(), [discardSourceSnapshots]);
 
@@ -181,7 +258,7 @@ export function GameScreen({
         onToggleAnalysis={onToggleAnalysis}
         onReturnMenu={onReturnMenu}
       />
-      <MahjongTable gameState={gameState} matchState={matchState} bottomPlayerId={tableBottomPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} />
+      <TableRenderer gameState={gameState} matchState={matchState} bottomPlayerId={tableBottomPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} presentationState={sharedTablePresentationState} interactionActions={tableInteractionActions} animationsEnabled={realtimeHandAnimationsEnabled} animationSessionKey={handAnimationSessionKey} animationTurn={gameState.turn} localDiscardSnapshots={discardSourceSnapshots} onLocalHandAnimationChange={handleLocalHandAnimationChange} winPresentation3D={winPresentation3D} onActiveRendererChange={setActiveTableRenderer} />
       <LocalHandArea
         player={localPlayer}
         identityPlayer={fixedBottomPlayer}
@@ -192,23 +269,26 @@ export function GameScreen({
         allowedDiscardInstanceIds={allowedDiscardInstanceIds}
         kuikaeForbiddenTileIds={kuikaeForbiddenTileIds}
         onDiscard={onDiscard}
-        onDiscardSourceCapture={realtimeHandAnimationsEnabled ? (capture) => discardSourceSnapshots.capture({
-          ...capture,
-          sessionKey: handAnimationSessionKey,
-          confirmedTurn: gameState.turn + 1,
-        }) : undefined}
+        presentation={sharedTablePresentationState.localHand}
+        interactionActions={tableInteractionActions}
+        onDiscardSourceCapture={realtimeHandAnimationsEnabled ? captureDiscardSource : undefined}
         doraIndicators={gameState.doraIndicators}
         doraGlowEnabled={doraGlowEnabled}
+        doraBorderEnabled={activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.borderEnabled === 1}
+        doraBreathingEnabled={activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.breathingEnabled === 1}
         hoveredTileType={hoveredTileType}
         sameTileHoverEnabled={sameTileHoverEnabled}
         onHoveredTileTypeChange={onHoveredTileTypeChange}
         tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled}
-        onDiscardPreviewChange={setHandPreviewDiscardInstanceId}
+        screenSpaceOverlay={activeTableRenderer === '3d'}
+        retainDiscardSourceSnapshot={activeTableRenderer === '3d'}
+        discardSnapshot={activeTableRenderer === '3d' ? localDiscardSnapshot : null}
+        localHandAnimation={activeTableRenderer === '3d' ? localHandAnimation : null}
       />
       <HandAnimationOverlay
         bottomPlayerId={tableBottomPlayerId}
         discardSourceSnapshots={discardSourceSnapshots}
-        enabled={realtimeHandAnimationsEnabled}
+        enabled={realtimeHandAnimationsEnabled && activeTableRenderer === '2d'}
         sessionKey={handAnimationSessionKey}
         turn={gameState.turn}
       />
@@ -216,6 +296,8 @@ export function GameScreen({
         gameState={gameState}
         bottomPlayerId={tableBottomPlayerId}
         enabled={winPresentationEnabled}
+        rendererMode={activeTableRenderer}
+        on3DPresentationChange={handleWinPresentation3DChange}
         onRoundEndSettled={settleRoundEndPresentation}
       />
       <GameEventOverlay bottomPlayerId={tableBottomPlayerId} enabled={eventOverlayEnabled} onRoundEndSettled={settleRoundEndPresentation} />

@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { createInitialGameState } from '../../game/engine';
 import { createMatch } from '../../game/match/matchEngine';
+import { buildDoraIndicatorSlots } from '../../presentation/table/TablePresentationContract';
 import { DoraIndicatorStack } from './DoraIndicatorStack';
 
 function cssRule(css: string, selector: string): string {
@@ -49,6 +50,16 @@ describe('DoraIndicatorStack', () => {
     const html = renderToStaticMarkup(<DoraIndicatorStack gameState={chankanCancelled} />);
     expect((html.match(/data-dora-open="true"/g) ?? [])).toHaveLength(1);
     expect((html.match(/data-dora-open="false"/g) ?? [])).toHaveLength(4);
+  });
+
+  it('consumes the shared renderer-neutral Dora slots without changing the 2.5D structure', () => {
+    const state = createInitialGameState();
+    const slots = buildDoraIndicatorSlots(state.doraIndicators);
+    const html = renderToStaticMarkup(<DoraIndicatorStack gameState={state} slots={slots} />);
+
+    expect((html.match(/data-dora-state="revealed"/g) ?? [])).toHaveLength(1);
+    expect((html.match(/data-dora-state="hidden"/g) ?? [])).toHaveLength(4);
+    expect((html.match(/class="dora-indicator-slot"/g) ?? [])).toHaveLength(5);
   });
   it('keeps dora face tiles and back tiles fully opaque', () => {
     const state = createInitialGameState();

@@ -1,5 +1,9 @@
 import type { MatchState } from '../../game/match/types';
 import type { GameState, TileId, Wind } from '../../game/types';
+import {
+  buildDoraIndicatorSlots,
+  type DoraIndicatorSlot,
+} from '../../presentation/table/TablePresentationContract';
 import { Tile } from '../Tile';
 
 interface DoraIndicatorStackProps {
@@ -8,9 +12,8 @@ interface DoraIndicatorStackProps {
   hoveredTileType?: TileId | null;
   sameTileHoverEnabled?: boolean;
   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
+  slots?: readonly DoraIndicatorSlot[];
 }
-
-const SLOT_COUNT = 5;
 
 const windNames: Record<Wind, string> = {
   east: '东',
@@ -25,17 +28,16 @@ function roundText(gameState: DoraIndicatorStackProps['gameState'], matchState?:
   return `${windNames[wind]}${handNumber}局`;
 }
 
-export function DoraIndicatorStack({ gameState, matchState, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange }: DoraIndicatorStackProps) {
-  const indicators = gameState.doraIndicators.slice(0, SLOT_COUNT);
-  const slots = Array.from({ length: SLOT_COUNT }, (_, index) => indicators[index] ?? null);
+export function DoraIndicatorStack({ gameState, matchState, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, slots }: DoraIndicatorStackProps) {
+  const indicatorSlots = slots ?? buildDoraIndicatorSlots(gameState.doraIndicators);
 
   return (
     <aside className="dora-indicator-stack" aria-label="宝牌指示牌">
       <span className="dora-indicator-title">宝牌指示牌</span>
       <div className="dora-indicator-slots">
-        {slots.map((tile, index) => (
-          <span key={tile?.instanceId ?? `dora-back-${index}`} className="dora-indicator-slot" data-dora-open={tile ? 'true' : 'false'}>
-            <Tile tile={tile ?? undefined} faceDown={!tile} compact doraGlowEnabled={false} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
+        {indicatorSlots.map((slot) => (
+          <span key={slot.state === 'revealed' ? slot.tile.instanceId : `dora-back-${slot.index}`} className="dora-indicator-slot" data-dora-open={slot.state === 'revealed' ? 'true' : 'false'} data-dora-state={slot.state}>
+            <Tile tile={slot.state === 'revealed' ? slot.tile : undefined} faceDown={slot.state === 'hidden'} compact doraGlowEnabled={false} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
           </span>
         ))}
       </div>

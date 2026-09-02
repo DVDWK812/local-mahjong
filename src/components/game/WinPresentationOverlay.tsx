@@ -14,6 +14,8 @@ import {
 import { Tile } from '../Tile';
 import { playersByPosition } from './MahjongTable';
 import type { VisualSeat } from './HandAnimationOverlay';
+import type { TableRendererMode } from '../../presentation3d/rendererMode';
+import type { WinPresentation3DState } from '../../presentation3d/win/winPresentation3D';
 import './winPresentationOverlay.css';
 
 type OverlayPhase = 'ready' | WinPresentationPhase;
@@ -34,22 +36,42 @@ interface WinPresentationOverlayProps {
   readonly gameState: GameState;
   readonly bottomPlayerId: PlayerId;
   readonly enabled: boolean;
+  readonly rendererMode?: TableRendererMode;
+  readonly on3DPresentationChange?: (presentation: WinPresentation3DState | null) => void;
   readonly onRoundEndSettled?: () => void;
 }
 
-export function WinPresentationOverlay({ gameState, bottomPlayerId, enabled, onRoundEndSettled }: WinPresentationOverlayProps) {
+export function WinPresentationOverlay({
+  gameState,
+  bottomPlayerId,
+  enabled,
+  rendererMode = '2d',
+  on3DPresentationChange,
+  onRoundEndSettled,
+}: WinPresentationOverlayProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const gameStateRef = useRef(gameState);
   const enabledRef = useRef(enabled);
+  const rendererModeRef = useRef(rendererMode);
+  const on3DPresentationChangeRef = useRef(on3DPresentationChange);
   const onRoundEndSettledRef = useRef(onRoundEndSettled);
   const controllerRef = useRef<WinPresentationController | null>(null);
   const [visual, setVisual] = useState<WinPresentationVisualState | null>(null);
   gameStateRef.current = gameState;
   enabledRef.current = enabled;
+  rendererModeRef.current = rendererMode;
+  on3DPresentationChangeRef.current = on3DPresentationChange;
   onRoundEndSettledRef.current = onRoundEndSettled;
 
   useEffect(() => {
-    const target = new DomWinPresentationTarget(overlayRef, setVisual, gameStateRef, bottomPlayerId);
+    const target = new DomWinPresentationTarget(
+      overlayRef,
+      setVisual,
+      gameStateRef,
+      bottomPlayerId,
+      () => rendererModeRef.current,
+      (presentation) => on3DPresentationChangeRef.current?.(presentation),
+    );
     const controller = new WinPresentationController(target, new AnimationScheduler(), presentationPacingGate, {
       onError: () => target.clear(),
       onSettled: (action) => {
@@ -113,12 +135,15 @@ export function WinPresentationOverlay({ gameState, bottomPlayerId, enabled, onR
 
 class DomWinPresentationTarget implements WinPresentationTarget {
   private highlightedDiscard: HTMLElement | null = null;
+  private readonly threeDActionIds = new Set<string>();
 
   constructor(
     private readonly overlayRef: RefObject<HTMLDivElement | null>,
     private readonly setVisual: Dispatch<SetStateAction<WinPresentationVisualState | null>>,
     private readonly gameStateRef: RefObject<GameState>,
     private readonly bottomPlayerId: PlayerId,
+    private readonly getRendererMode: () => TableRendererMode,
+    private readonly set3DPresentation: (presentation: WinPresentation3DState | null) => void,
   ) {}
 
   prepare(action: WinPresentationAction): boolean {
@@ -129,12 +154,31 @@ class DomWinPresentationTarget implements WinPresentationTarget {
     const winner = result && (result.type === 'ron' || result.type === 'tsumo')
       ? result.winners.find((candidate) => candidate.winner === action.playerId)
       : undefined;
-    if (!overlay || !scene || !winner) return false;
+    if (!winner) return false;
+
+    const isThreeD = this.getRendererMode() === '3d';
+    if (isThreeD) {
+      this.threeDActionIds.add(action.eventId);
+      this.set3DPresentation({ action, phase: 'ready' });
+    }
+    const usesDomHand = !isThreeD || action.playerId === this.bottomPlayerId;
+    if (!usesDomHand) {
+      this.removeHighlight();
+      this.setVisual(null);
+      return true;
+    }
+    if (!overlay || !scene) {
+      this.clear3DPresentation(action);
+      return false;
+    }
 
     const seat = seatForPlayer(action.playerId, this.bottomPlayerId);
     const handElement = scene.querySelector<HTMLElement>(`[data-local-player="${action.playerId}"] .local-hand-row`)
       ?? scene.querySelector<HTMLElement>(`[data-player-index="${action.playerId}"] .player-zone-hand-wrap`);
-    if (!handElement) return false;
+    if (!handElement) {
+      this.clear3DPresentation(action);
+      return false;
+    }
 
     const overlayRect = overlay.getBoundingClientRect();
     const handRect = handElement.getBoundingClientRect();
@@ -143,8 +187,8 @@ class DomWinPresentationTarget implements WinPresentationTarget {
     const push = inwardPushVector(seat, overlayRect, sourceX, sourceY);
 
     this.removeHighlight();
-    if (action.winType === 'ron') {
-      this.highlightedDiscard = resolveWinningDiscard(scene, action, winner.from, gameState);
+    if (action.winType === 'ron' && !isThreeD) {
+      this.highlightedDiscard = resolveWinningDiscard(scene, action);
       this.highlightedDiscard?.classList.add('win-presentation-winning-discard');
     }
 
@@ -165,15 +209,19 @@ class DomWinPresentationTarget implements WinPresentationTarget {
   }
 
   setPhase(action: WinPresentationAction, phase: WinPresentationPhase): void {
+    if (this.threeDActionIds.has(action.eventId)) this.set3DPresentation({ action, phase });
     this.setVisual((current) => current?.action.eventId === action.eventId ? { ...current, phase } : current);
   }
 
   finish(action: WinPresentationAction): void {
+    this.clear3DPresentation(action);
     this.removeHighlight();
     this.setVisual((current) => current?.action.eventId === action.eventId ? null : current);
   }
 
   clear(): void {
+    this.threeDActionIds.clear();
+    this.set3DPresentation(null);
     this.removeHighlight();
     this.setVisual(null);
   }
@@ -181,6 +229,11 @@ class DomWinPresentationTarget implements WinPresentationTarget {
   private removeHighlight(): void {
     this.highlightedDiscard?.classList.remove('win-presentation-winning-discard');
     this.highlightedDiscard = null;
+  }
+
+  private clear3DPresentation(action: WinPresentationAction): void {
+    if (!this.threeDActionIds.delete(action.eventId)) return;
+    this.set3DPresentation(null);
   }
 }
 
@@ -204,16 +257,9 @@ export function inwardPushVector(seat: VisualSeat, sceneRect: Pick<DOMRect, 'wid
 function resolveWinningDiscard(
   scene: HTMLElement,
   action: WinPresentationAction,
-  discarder: PlayerId | null,
-  gameState: GameState,
 ): HTMLElement | null {
   const source = action.sourceDiscard;
-  if (source) {
-    return scene.querySelector<HTMLElement>(`[data-river-player="${source.playerId}"] [data-river-index="${source.riverIndex}"]`);
-  }
-  if (discarder === null) return null;
-  const riverIndex = gameState.players[discarder].river.length - 1;
-  return riverIndex < 0
-    ? null
-    : scene.querySelector<HTMLElement>(`[data-river-player="${discarder}"] [data-river-index="${riverIndex}"]`);
+  return source
+    ? scene.querySelector<HTMLElement>(`[data-river-player="${source.playerId}"] [data-river-index="${source.riverIndex}"]`)
+    : null;
 }

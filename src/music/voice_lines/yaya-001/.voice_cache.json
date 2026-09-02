@@ -19,21 +19,21 @@
   },
   "result.fourth_place": {
     "key": "result.fourth_place",
-    "fingerprint": "71a2177b73b5c380eb0737f88b427d38d46cf469cd7f551c0326207da0ac1fcc",
+    "fingerprint": "dac553838d6e583382d6515856201227e348a587b77b022dfc27c938b84fe70c",
     "fingerprintVersion": "voice-fingerprint-v2",
     "line": "哼，让你们一把",
-    "ttsText": "哼，让你们一把",
+    "ttsText": "[angry]哼[pause]，让你们一把[laughing]",
     "voiceId": "3cfac83f-efa7-46ce-ab23-5fc34a99d9f5",
     "modelId": "fishaudio-s21pro",
-    "speed": 1,
-    "volume": 0,
-    "stability": 1,
-    "similarity": 1,
+    "speed": 1.0,
+    "volume": 0.0,
+    "stability": 1.0,
+    "similarity": 1.0,
     "language": "zh-CN",
     "textNormalization": true,
     "format": "mp3",
     "file": "result_fourth_place.mp3",
-    "createdAt": "2026-08-25T06:53:30.506490Z"
+    "createdAt": "2026-08-27T15:54:07.099507Z"
   },
   "result.third_place": {
     "key": "result.third_place",

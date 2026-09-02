@@ -23,10 +23,17 @@ interface ActivityWaiter {
   readonly timer: ReturnType<typeof setTimeout> | null;
 }
 
+interface ParticipantWaiter {
+  readonly eventId: string;
+  readonly resolve: (status: PresentationPacingWaitStatus) => void;
+  readonly timer: ReturnType<typeof setTimeout> | null;
+}
+
 export class PresentationPacingGate {
   private readonly pending = new Map<string, { sequence: number; participants: number }>();
   private readonly waiters = new Set<PacingWaiter>();
   private readonly activityWaiters = new Set<ActivityWaiter>();
+  private readonly participantWaiters = new Set<ParticipantWaiter>();
   private activityVersion = 0;
 
   get pendingCount(): number {
@@ -90,6 +97,28 @@ export class PresentationPacingGate {
     return this.waitThrough(throughSequence, options);
   }
 
+  async waitUntilOnlyParticipantRemains(
+    identity: PresentationPacingIdentity,
+    options: PresentationPacingWaitOptions = {},
+  ): Promise<PresentationPacingWaitStatus> {
+    const earlierStatus = await this.waitUntilClearBefore(identity.sequence, options);
+    if (earlierStatus === 'timed-out' || this.participantCount(identity.eventId) <= 1) return earlierStatus;
+
+    const timeoutMs = normalizeTimeout(options.timeoutMs);
+    return new Promise((resolve) => {
+      let waiter: ParticipantWaiter;
+      const settle = (status: PresentationPacingWaitStatus) => {
+        if (!this.participantWaiters.delete(waiter)) return;
+        if (waiter.timer) clearTimeout(waiter.timer);
+        resolve(status);
+      };
+      const timer = timeoutMs === null ? null : setTimeout(() => settle('timed-out'), timeoutMs);
+      waiter = { eventId: identity.eventId, resolve: settle, timer };
+      this.participantWaiters.add(waiter);
+      this.resolveParticipantWaiters();
+    });
+  }
+
   private waitThrough(throughSequence: number, options: PresentationPacingWaitOptions): Promise<PresentationPacingWaitStatus> {
     const timeoutMs = normalizeTimeout(options.timeoutMs);
     return new Promise((resolve) => {
@@ -114,16 +143,19 @@ export class PresentationPacingGate {
     if (!current) return;
     if (current.participants > 1) {
       this.pending.set(eventId, { ...current, participants: current.participants - 1 });
+      this.resolveParticipantWaiters();
       return;
     }
     this.pending.delete(eventId);
     this.resolveEligibleWaiters();
+    this.resolveParticipantWaiters();
   }
 
   private releaseThrough(sequence: number): void {
     [...this.pending].forEach(([eventId, pending]) => {
       if (pending.sequence <= sequence) this.pending.delete(eventId);
     });
+    this.resolveParticipantWaiters();
   }
 
   private resolveIfClear(): void {
@@ -146,6 +178,17 @@ export class PresentationPacingGate {
       this.activityWaiters.delete(waiter);
       if (waiter.timer) clearTimeout(waiter.timer);
       waiter.resolve(status);
+    });
+    [...this.participantWaiters].forEach((waiter) => waiter.resolve(status));
+  }
+
+  private participantCount(eventId: string): number {
+    return this.pending.get(eventId)?.participants ?? 0;
+  }
+
+  private resolveParticipantWaiters(): void {
+    [...this.participantWaiters].forEach((waiter) => {
+      if (this.participantCount(waiter.eventId) <= 1) waiter.resolve('cleared');
     });
   }
 

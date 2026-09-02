@@ -4122,7 +4122,7 @@ button {
 /* Single-screen table layout */
 .game-screen {
   --center-size: clamp(150px, 12vw, 220px);
-  --hand-tile-width: clamp(34px, 3.4vw, 56px);
+  --hand-tile-width: clamp(40px, 3.4vw, 56px);
   --hand-tile-height: calc(var(--hand-tile-width) * 1.405);
   --river-tile-width: clamp(28px, 2.65vw, 48px);
   --river-tile-height: calc(var(--river-tile-width) * 1.35);

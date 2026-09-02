@@ -116,6 +116,23 @@ describe('PresentationPacingGate', () => {
     gate.complete('win-121');
   });
 
+  it('Win EventOverlay 等同一事件的 winner presentation 完成后再开始', async () => {
+    const gate = new PresentationPacingGate();
+    gate.begin({ eventId: 'win-122', sequence: 122 });
+    gate.begin({ eventId: 'win-122', sequence: 122 });
+    const waiting = gate.waitUntilOnlyParticipantRemains({ eventId: 'win-122', sequence: 122 }, { timeoutMs: 2500 });
+    let ready = false;
+    void waiting.then(() => { ready = true; });
+
+    await Promise.resolve();
+    expect(ready).toBe(false);
+    gate.complete('win-122');
+
+    await expect(waiting).resolves.toBe('cleared');
+    expect(gate.pendingCount).toBe(1);
+    gate.complete('win-122');
+  });
+
   it('cancel 单个 event 会释放 waiter', async () => {
     const gate = new PresentationPacingGate();
     gate.begin({ eventId: 'draw-cancel', sequence: 109 });

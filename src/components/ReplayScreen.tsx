@@ -7,7 +7,8 @@ import type { PlayerId, RoundResult } from '../game/types';
 import { convertReplayStepToTestScenario } from '../game/testMode/scenario';
 import type { TestScenarioV1 } from '../game/testMode/types';
 import { LocalHandArea } from './game/LocalHandArea';
-import { MahjongTable, type TableSeatMapping } from './game/MahjongTable';
+import type { TableSeatMapping } from './game/MahjongTable';
+import { TableRenderer } from '../presentation3d/TableRenderer';
 import { ReplayBottomBar } from './ReplayBottomBar';
 import { ReplayTopBar } from './ReplayTopBar';
 import { ReplayWallDrawer } from './ReplayWallDrawer';
@@ -201,7 +202,7 @@ export function ReplayTable({ replayState, perspective }: { replayState: BuiltRe
       data-replay-view={`player-${perspective.cameraPlayerId + 1}`}
       data-open-hands={perspective.isOpenHands ? 'true' : 'false'}
     >
-      <MahjongTable
+      <TableRenderer
         gameState={state}
         matchState={{ roundWind: replayState.roundInfo.roundWind, handNumber: replayState.roundInfo.handNumber as 1 | 2 | 3 | 4 }}
         seatMapping={seatMapping}
