@@ -1,9 +1,10 @@
-import { Canvas } from '@react-three/fiber';
-import { memo, Suspense, useCallback, useRef, type ReactNode } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
+import { memo, Suspense, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import {
   ACESFilmicToneMapping,
   PCFShadowMap,
   SRGBColorSpace,
+  type Texture,
   WebGLRenderer,
 } from 'three';
 import { FixedTableCamera, TABLE_CAMERA } from './camera/FixedTableCamera';
@@ -34,6 +35,9 @@ import {
 } from './win/winPresentation3D';
 import { DoraSweep3DProvider } from './dora/DoraSweep3DProvider';
 import { resolveDoraSweep3DTrigger } from './dora/doraSweep3DTrigger';
+import { AppearanceResources3D } from './appearance/AppearanceResources3D';
+import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
+import { AvatarFrameTuningPanel } from './table/AvatarFrameTuningPanel';
 
 type Table3DSceneProps = Readonly<{
   sceneState: TableSceneState;
@@ -46,12 +50,19 @@ type Table3DSceneProps = Readonly<{
   tableVisualTheme?: TableVisualTheme;
   tileVisualContext?: TileVisualSemanticContext;
   riichiStickAppearance?: RiichiStick3DAppearance;
+  appearanceSettings?: AppearanceSettings;
   centralHud?: ReactNode;
   onReady?: () => void;
   onUnavailable?: (error: Error) => void;
 }>;
 
 const SEAT_ORDER: readonly Table3DSeat[] = ['bottom', 'right', 'top', 'left'];
+
+function isAvatarFrameTuningEnabled(): boolean {
+  return import.meta.env.DEV
+    && typeof window !== 'undefined'
+    && new URLSearchParams(window.location.search).get('avatarFrameTuning') === '1';
+}
 
 const StableTableScene = memo(function StableTableScene({
   sceneState,
@@ -63,6 +74,7 @@ const StableTableScene = memo(function StableTableScene({
   tableVisualTheme,
   tileVisualContext,
   riichiStickAppearance,
+  feltTexture,
   riichiVisibilityKey,
   centralHud,
 }: Readonly<{
@@ -75,6 +87,7 @@ const StableTableScene = memo(function StableTableScene({
   tableVisualTheme: TableVisualTheme;
   tileVisualContext?: TileVisualSemanticContext;
   riichiStickAppearance?: RiichiStick3DAppearance;
+  feltTexture?: Texture;
   riichiVisibilityKey: string;
   centralHud?: ReactNode;
 }>) {
@@ -86,7 +99,7 @@ const StableTableScene = memo(function StableTableScene({
       <fog attach="fog" args={['#071712', 42, 58]} />
       <FixedTableCamera />
       <TableLighting />
-      <TableMesh theme={tableVisualTheme} />
+      <TableMesh theme={tableVisualTheme} feltTexture={feltTexture} />
       {centralHud ? <CentralConsoleHudAnchor3D>{centralHud}</CentralConsoleHudAnchor3D> : null}
       <Suspense fallback={null}>
         <TileTextureWarmup />
@@ -133,6 +146,20 @@ const StableTableScene = memo(function StableTableScene({
   );
 });
 
+/** Safely hand control back to the legacy renderer instead of leaving a lost WebGL canvas black. */
+function WebglContextLossRecovery({ onUnavailable }: Readonly<{ onUnavailable?: (error: Error) => void }>) {
+  const gl = useThree((state) => state.gl);
+  useEffect(() => {
+    const onContextLost = (event: Event) => {
+      event.preventDefault();
+      onUnavailable?.(tagTableRendererError(new Error('WebGL context lost while rendering appearance assets.'), 'webgl-init-failure'));
+    };
+    gl.domElement.addEventListener('webglcontextlost', onContextLost);
+    return () => gl.domElement.removeEventListener('webglcontextlost', onContextLost);
+  }, [gl, onUnavailable]);
+  return null;
+}
+
 export function CanvasUnavailable() {
   return <div className="table-3d-unavailable">当前设备无法启动 3D 牌桌，正在恢复经典牌桌。</div>;
 }
@@ -148,6 +175,7 @@ export function Table3DScene({
   tableVisualTheme = DEFAULT_TABLE_VISUAL_THEME,
   tileVisualContext,
   riichiStickAppearance,
+  appearanceSettings = DEFAULT_APPEARANCE_SETTINGS,
   centralHud,
   onReady,
   onUnavailable,
@@ -273,6 +301,7 @@ export function Table3DScene({
           onReady?.();
         }}
       >
+        <WebglContextLossRecovery onUnavailable={onUnavailable} />
         <DoraSweep3DProvider
           trigger={doraSweepTrigger}
           sessionKey={animationSessionKey}
@@ -280,27 +309,35 @@ export function Table3DScene({
           onPulseStart={handleDoraSweepStart}
           onPulseComplete={handleDoraSweepComplete}
         >
-          <StableTableScene
-            sceneState={sceneState}
-            hiddenHandKeys={animation.hiddenHandKeys}
-            hiddenRiverKeys={animation.hiddenRiverKeys}
-            hiddenMeldTileKeys={animation.hiddenMeldTileKeys}
-            hiddenRiichiSeats={animation.hiddenRiichiSeats}
-            winPresentation3D={winPresentation3D}
-            tableVisualTheme={tableVisualTheme}
-            tileVisualContext={tileVisualContext}
-            riichiStickAppearance={riichiStickAppearance}
-            riichiVisibilityKey={visibleRiichiSeats.join(',')}
-            centralHud={centralHud}
-          />
-          <Suspense fallback={null}>
-            {animation.active ? (
-              <HandAction3D active={animation.active} riichiStickAppearance={riichiStickAppearance} />
-            ) : null}
-          </Suspense>
+          <AppearanceResources3D settings={appearanceSettings}>
+            {({ feltTexture, riichiStickAppearance: resolvedRiichiStickAppearance }) => (
+              <>
+                <StableTableScene
+                  sceneState={sceneState}
+                  hiddenHandKeys={animation.hiddenHandKeys}
+                  hiddenRiverKeys={animation.hiddenRiverKeys}
+                  hiddenMeldTileKeys={animation.hiddenMeldTileKeys}
+                  hiddenRiichiSeats={animation.hiddenRiichiSeats}
+                  winPresentation3D={winPresentation3D}
+                  tableVisualTheme={tableVisualTheme}
+                  tileVisualContext={tileVisualContext}
+                  riichiStickAppearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }}
+                  feltTexture={feltTexture}
+                  riichiVisibilityKey={visibleRiichiSeats.join(',')}
+                  centralHud={centralHud}
+                />
+                <Suspense fallback={null}>
+                  {animation.active ? (
+                    <HandAction3D active={animation.active} riichiStickAppearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }} />
+                  ) : null}
+                </Suspense>
+              </>
+            )}
+          </AppearanceResources3D>
         </DoraSweep3DProvider>
       </Canvas>
       <div className="table-3d-badge" aria-hidden="true">3D 技术样板</div>
+      {isAvatarFrameTuningEnabled() ? <AvatarFrameTuningPanel /> : null}
     </section>
   );
 }

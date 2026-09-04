@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getRiichiStickTransform, RIICHI_STICK_3D_LAYOUT } from './RiichiStick3D';
+import { getRiichiStickTransform, RIICHI_STICK_3D_LAYOUT, RiichiStick3D } from './RiichiStick3D';
 import { DEFAULT_RIICHI_STICK_3D_APPEARANCE } from './riichiStickAppearance';
 import {
   getCenterDecorationCenter,
@@ -8,6 +8,15 @@ import {
 import { TABLE_FELT_TOP_Y } from '../table/tableSurfaceSpec';
 
 describe('UI-5E.2 RiichiStick3D', () => {
+  it('shares the doubled-length geometry across every seat and animation proxy', () => {
+    expect(RIICHI_STICK_3D_LAYOUT).toEqual({ length: 3.16, width: 0.24, height: 0.065, epsilon: 0.006 });
+    const geometries = (['bottom', 'right', 'top', 'left'] as const).map(seat => RiichiStick3D({ seat }).props.children[0].props.geometry);
+    const proxy = RiichiStick3D({ seat: 'bottom', position: [0, 0, 0], rotationY: 0, objectName: 'table-animation-riichi-stick-proxy' });
+    for (const geometry of [...geometries, proxy.props.children[0].props.geometry]) {
+      expect(geometry).toBe(geometries[0]);
+      expect(geometry.parameters).toMatchObject({ width: 3.16, height: 0.065, depth: 0.24 });
+    }
+  });
   it('maps the shared center lane deterministically to all four seats', () => {
     const bottom = getRiichiStickTransform('bottom');
     const right = getRiichiStickTransform('right');

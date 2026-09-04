@@ -100,4 +100,10 @@ describe('AvatarPicker', () => {
     expect(animalHtml).toMatch(/aria-label="选择头像：熊猫"[^>]*aria-pressed="true"/);
     expect(selectedAvatarId).toBe('avatar-02');
   });
+
+  it('custom asset selection retains PlayerProfile ownership and shows its current preview state', () => {
+    const html = renderPicker('all', 'custom:appearance-avatar-1');
+    expect(html).toContain('已使用自定义头像');
+    expect(html).toContain('自定义头像');
+  });
 });

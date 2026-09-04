@@ -23,6 +23,7 @@ export function River3D({ seatState, hiddenTileKeys, winningRiverIndex, visualCo
           : transform.position;
         return (
           <Tile3D
+            ownerPlayerId={seatState.playerId}
             key={tile.key}
             tile={tile.tile}
             faceState={tile.faceState}

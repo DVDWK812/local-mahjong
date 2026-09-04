@@ -18,6 +18,7 @@ export function Meld3D({ seatState, hiddenTileKeys, visualContext }: Readonly<{
           const transform = transforms[meldIndex][tileIndex];
           return (
             <Tile3D
+              ownerPlayerId={seatState.playerId}
               key={tile.key}
               tile={tile.tile}
               faceState={tile.faceState}

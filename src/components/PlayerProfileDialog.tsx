@@ -1,14 +1,17 @@
 import { useEffect, useRef } from 'react';
 import type { PlayerProfile } from '../profile/playerProfile';
 import { PlayerProfileSettings } from './settings/PlayerProfileSettings';
+import type { AppearanceSettings } from '../presentation/appearance/appearanceSettings';
 
 interface PlayerProfileDialogProps {
+  appearanceSettings?: AppearanceSettings;
   profile: PlayerProfile;
   onChange: (profile: PlayerProfile) => void;
   onClose: () => void;
+  onDeleteAsset?: (assetId: string) => Promise<void>;
 }
 
-export function PlayerProfileDialog({ profile, onChange, onClose }: PlayerProfileDialogProps) {
+export function PlayerProfileDialog({ profile, onChange, onClose, onDeleteAsset, appearanceSettings }: PlayerProfileDialogProps) {
   const dialogRef = useRef<HTMLElement>(null);
   const onCloseRef = useRef(onClose);
 
@@ -37,7 +40,7 @@ export function PlayerProfileDialog({ profile, onChange, onClose }: PlayerProfil
     <div className="result-backdrop" role="presentation">
       <section
         ref={dialogRef}
-        className="result-dialog player-profile-dialog"
+        className="result-dialog player-profile-dialog appearance-scroll-dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby="player-profile-dialog-title"
@@ -48,8 +51,8 @@ export function PlayerProfileDialog({ profile, onChange, onClose }: PlayerProfil
             <p>修改会立即保存，并同步到本地麻将界面。</p>
           </div>
         </header>
-        <div className="player-profile-dialog__body">
-          <PlayerProfileSettings profile={profile} onChange={onChange} />
+        <div className="player-profile-dialog__body appearance-scroll-body">
+          <PlayerProfileSettings profile={profile} onChange={onChange} onDeleteAsset={onDeleteAsset} appearanceSettings={appearanceSettings} />
         </div>
         <footer className="result-actions">
           <button type="button" onClick={onClose}>完成</button>

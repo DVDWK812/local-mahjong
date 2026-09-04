@@ -10,12 +10,13 @@ interface MainMenuProps {
   onOnlineMode: () => void;
   onReplayStudy: () => void;
   onOpenPlayerSettings: () => void;
+  onOpenAppearanceSettings?: () => void;
   onOpenAudioSettings?: () => void;
   testModeEnabled?: boolean;
   onTestMode?: () => void;
 }
 
-export function MainMenu({ hasSave, playerProfile, notice, onContinue, onLocalMode, onOnlineMode, onReplayStudy, onOpenPlayerSettings, onOpenAudioSettings = () => undefined, testModeEnabled = false, onTestMode = () => undefined }: MainMenuProps) {
+export function MainMenu({ hasSave, playerProfile, notice, onContinue, onLocalMode, onOnlineMode, onReplayStudy, onOpenPlayerSettings, onOpenAppearanceSettings = () => undefined, onOpenAudioSettings = () => undefined, testModeEnabled = false, onTestMode = () => undefined }: MainMenuProps) {
   return (
     <main className="menu-page">
       <section className="menu-panel">
@@ -24,6 +25,7 @@ export function MainMenu({ hasSave, playerProfile, notice, onContinue, onLocalMo
         <PlayerProfileSummary
           profile={playerProfile}
           onOpenSettings={onOpenPlayerSettings}
+          onOpenAppearanceSettings={onOpenAppearanceSettings}
           onOpenAudioSettings={onOpenAudioSettings}
         />
         {notice ? <p className="menu-notice">{notice}</p> : null}

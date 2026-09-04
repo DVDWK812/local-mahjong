@@ -27,7 +27,7 @@ describe('PlayerProfile storage', () => {
     expect(loadPlayerProfile(storage)).toEqual({ nickname: '麻将玩家', avatarId: 'avatar-04' });
   });
 
-  it('新增头像沿用 v1 存储格式并可立即读回', () => {
+  it('新增 builtin 头像保持兼容并可立即读回', () => {
     const storage = memoryStorage();
     savePlayerProfile({ nickname: '水豚玩家', avatarId: 'animal-capybara' }, storage);
     expect(loadPlayerProfile(storage)).toEqual({ nickname: '水豚玩家', avatarId: 'animal-capybara' });
@@ -35,7 +35,7 @@ describe('PlayerProfile storage', () => {
 
   it('损坏 JSON、未知版本和任意对象不会阻止启动', () => {
     const storage = memoryStorage();
-    for (const value of ['{broken json', 'null', '[]', '{"version":2,"nickname":"旧数据","avatarId":"avatar-01"}']) {
+    for (const value of ['{broken json', 'null', '[]', '{"version":3,"nickname":"旧数据","avatarId":"avatar-01"}']) {
       storage.setItem(PLAYER_PROFILE_STORAGE_KEY, value);
       expect(loadPlayerProfile(storage)).toEqual(DEFAULT_PLAYER_PROFILE);
     }
@@ -51,5 +51,13 @@ describe('PlayerProfile storage', () => {
     expect(loadPlayerProfile(storage)).toEqual({ nickname: 'Wenkai', avatarId: DEFAULT_PLAYER_PROFILE.avatarId });
     expect(resetPlayerProfile(storage)).toEqual(DEFAULT_PLAYER_PROFILE);
     expect(storage.getItem(PLAYER_PROFILE_STORAGE_KEY)).toBeNull();
+  });
+
+  it('迁移 v1 builtin profile，并持久化 custom local asset reference', () => {
+    const storage = memoryStorage();
+    storage.setItem(PLAYER_PROFILE_STORAGE_KEY, JSON.stringify({ version: 1, nickname: '旧玩家', avatarId: 'avatar-04' }));
+    expect(loadPlayerProfile(storage)).toEqual({ nickname: '旧玩家', avatarId: 'avatar-04' });
+    savePlayerProfile({ nickname: '自定义', avatarId: 'custom:appearance-avatar-1' }, storage);
+    expect(loadPlayerProfile(storage)).toEqual({ nickname: '自定义', avatarId: 'custom:appearance-avatar-1' });
   });
 });

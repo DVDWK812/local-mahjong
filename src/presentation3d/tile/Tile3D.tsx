@@ -1,7 +1,12 @@
 import { useTexture } from '@react-three/drei';
 import { useThree, type ThreeEvent } from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
-import { PlaneGeometry, type MeshBasicMaterial } from 'three';
+import {
+  PlaneGeometry,
+  type ColorRepresentation,
+  type MeshBasicMaterial,
+  type Texture,
+} from 'three';
 import {
   resolveTileVisualSemantics,
   type TileVisualSemanticContext,
@@ -9,6 +14,7 @@ import {
 } from '../../presentation/table/tileVisualSemantics';
 import {
   MAHJONG_TILE_DIMENSIONS,
+  MAHJONG_TILE_ANATOMY,
   MAHJONG_TILE_FACE,
   sharedRedFiveMarkerGeometry,
   sharedStandingHandHitGeometry,
@@ -16,14 +22,16 @@ import {
   sharedTileFaceGeometry,
 } from './tileGeometry';
 import {
-  getSharedTileFaceMaterial,
+  getSharedTileBicolorBodyMaterial,
+  getSharedTileBackSurfaceMaterial,
+  getSharedTileFaceBaseMaterial,
+  getSharedTileFaceGlyphMaterial,
   sharedDoraHighlightMaterial,
   sharedHoveredMatchOverlayMaterial,
   sharedRedFiveMarkerMaterial,
   sharedRedDoraHighlightMaterial,
   sharedRiichiCandidateOverlayMaterial,
   sharedSelectedTileOverlayMaterial,
-  sharedTileBodyMaterial,
   sharedTileHitMaterial,
 } from './tileMaterials';
 import {
@@ -33,14 +41,17 @@ import {
 } from './tileOrientation';
 import {
   configureTileTexture,
-  resolveTileVisual,
+  resolveTile3DVisual,
   type TileDefinition,
 } from './tileTextures';
 import { getTileScaleGroundingLift } from './tileGrounding';
 import { TABLE_PRESENTATION_TUNING } from '../table/tablePresentationTuning';
 import { DoraHighlight3D } from '../dora/DoraHighlight3D';
+import { useTileAppearance3D } from '../appearance/TileAppearance3DContext';
+import { useTileFaceResources3D } from '../appearance/TileAppearance3DContext';
 
 export type Tile3DProps = Readonly<{
+  ownerPlayerId?: number;
   tile?: TileDefinition;
   faceState?: TileFaceState;
   orientation?: TileOrientation;
@@ -63,12 +74,16 @@ export type Tile3DProps = Readonly<{
   raycastDisabled?: boolean;
   tileScale?: number;
   doraSweepKey?: string;
+  faceTexture?: Texture;
+  backTexture?: Texture;
+  backColor?: ColorRepresentation;
   onPointerOver?: (event: ThreeEvent<PointerEvent>) => void;
   onPointerOut?: (event: ThreeEvent<PointerEvent>) => void;
   onClick?: (event: ThreeEvent<MouseEvent>) => void;
 }>;
 
 export function Tile3D({
+  ownerPlayerId,
   tile,
   faceState = 'face-up',
   orientation = 'upright',
@@ -86,24 +101,44 @@ export function Tile3D({
   raycastDisabled = false,
   tileScale = 1,
   doraSweepKey,
+  faceTexture,
+  backTexture,
+  backColor,
   onPointerOver,
   onPointerOut,
   onClick,
 }: Tile3DProps) {
+  const appearanceResources = useTileAppearance3D(ownerPlayerId);
   const transform = useMemo(
     () => resolveTileOrientation(faceState, orientation),
     [faceState, orientation],
   );
-  const visual = useMemo(
-    () => resolveTileVisual(tile, transform.faceState),
-    [tile?.id, tile?.red, transform.faceState],
+  const faceVisual = useMemo(
+    () => resolveTile3DVisual(tile, 'face-up'),
+    [tile?.id, tile?.red],
   );
-  const texture = useTexture(visual.textureSource);
+  const backVisual = useMemo(() => resolveTile3DVisual(undefined, 'face-down'), []);
+  const loadedTextures = useTexture([faceVisual.textureSource, backVisual.textureSource]);
+  const faceAppearance = useTileFaceResources3D(faceVisual.visualKey);
+  const resolvedFaceTexture = faceTexture ?? faceAppearance?.texture ?? loadedTextures[0];
+  const resolvedBackTexture = backTexture ?? appearanceResources.backTexture ?? loadedTextures[1];
   const maxAnisotropy = useThree((state) => state.gl.capabilities.getMaxAnisotropy());
   const invalidate = useThree((state) => state.invalidate);
-  const faceMaterial = useMemo(
-    () => getSharedTileFaceMaterial(visual, texture),
-    [texture, visual],
+  const faceBaseMaterial = useMemo(
+    () => getSharedTileFaceBaseMaterial(faceVisual),
+    [faceVisual],
+  );
+  const faceGlyphMaterial = useMemo(
+    () => getSharedTileFaceGlyphMaterial(faceVisual, resolvedFaceTexture),
+    [faceVisual, resolvedFaceTexture],
+  );
+  const backSurfaceMaterial = useMemo(
+    () => getSharedTileBackSurfaceMaterial(resolvedBackTexture),
+    [resolvedBackTexture],
+  );
+  const bodyMaterial = useMemo(
+    () => getSharedTileBicolorBodyMaterial(backColor ?? appearanceResources.backColor, faceAppearance?.sideColor),
+    [appearanceResources.backColor, backColor, faceAppearance?.sideColor],
   );
   const visualSemantics = providedVisualSemantics ?? resolveTileVisualSemantics({
     tileId: tile?.id,
@@ -125,9 +160,10 @@ export function Tile3D({
   const scaleGroundingLift = getTileScaleGroundingLift(rotationX, interactionScale);
 
   useEffect(() => {
-    configureTileTexture(texture, maxAnisotropy);
+    configureTileTexture(resolvedFaceTexture, maxAnisotropy);
+    configureTileTexture(resolvedBackTexture, maxAnisotropy);
     invalidate();
-  }, [invalidate, maxAnisotropy, texture]);
+  }, [invalidate, maxAnisotropy, resolvedBackTexture, resolvedFaceTexture]);
 
   return (
     <group
@@ -148,27 +184,43 @@ export function Tile3D({
       >
         <mesh
           geometry={sharedTileBodyGeometry}
-          material={sharedTileBodyMaterial}
+          material={bodyMaterial}
           raycast={stableHitTarget || raycastDisabled ? () => undefined : undefined}
           castShadow
           receiveShadow
         />
-        <mesh
-          geometry={sharedTileFaceGeometry}
-          material={faceMaterial}
-          position={[
-            0,
-            MAHJONG_TILE_DIMENSIONS.height / 2 + MAHJONG_TILE_FACE.surfaceOffset,
-            0,
-          ]}
-          rotation={[-Math.PI / 2, 0, 0]}
-          raycast={stableHitTarget || raycastDisabled ? () => undefined : undefined}
-          receiveShadow
-        />
+        {transform.faceState === 'face-up' ? (
+          <>
+            <mesh
+              geometry={sharedTileFaceGeometry}
+              material={faceBaseMaterial}
+              position={[0, MAHJONG_TILE_DIMENSIONS.height / 2 + MAHJONG_TILE_FACE.surfaceOffset, 0]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              raycast={stableHitTarget || raycastDisabled ? () => undefined : undefined}
+              receiveShadow
+            />
+            <mesh
+              geometry={sharedTileFaceGeometry}
+              material={faceGlyphMaterial}
+              position={[0, MAHJONG_TILE_DIMENSIONS.height / 2 + MAHJONG_TILE_FACE.surfaceOffset + TILE_GLYPH_DECAL_OFFSET, 0]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              raycast={stableHitTarget || raycastDisabled ? () => undefined : undefined}
+            />
+          </>
+        ) : (
+          <mesh
+            geometry={sharedTileFaceGeometry}
+            material={backSurfaceMaterial}
+            position={[0, MAHJONG_TILE_DIMENSIONS.height / 2 + MAHJONG_TILE_FACE.surfaceOffset, 0]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            raycast={stableHitTarget || raycastDisabled ? () => undefined : undefined}
+            receiveShadow
+          />
+        )}
         {showRearFace ? (
           <mesh
             geometry={sharedTileFaceGeometry}
-            material={faceMaterial}
+            material={backSurfaceMaterial}
             position={[
               0,
               -(MAHJONG_TILE_DIMENSIONS.height / 2 + MAHJONG_TILE_FACE.surfaceOffset),
@@ -179,13 +231,13 @@ export function Tile3D({
             receiveShadow
           />
         ) : null}
-        {visual.isRed ? (
+        {transform.faceState === 'face-up' && faceVisual.isRed ? (
           <mesh
             geometry={sharedRedFiveMarkerGeometry}
             material={sharedRedFiveMarkerMaterial}
             position={[
               0.3,
-              MAHJONG_TILE_DIMENSIONS.height / 2 + MAHJONG_TILE_FACE.markerOffset,
+              MAHJONG_TILE_DIMENSIONS.height / 2 + MAHJONG_TILE_FACE.markerOffset + TILE_GLYPH_DECAL_OFFSET * 2,
               0.48,
             ]}
             rotation={[-Math.PI / 2, 0, 0]}
@@ -246,6 +298,7 @@ export function Tile3D({
 }
 
 const TILE_HIGHLIGHT_FRAME_WIDTH = 0.12;
+const TILE_GLYPH_DECAL_OFFSET = 0.001;
 const sharedTileHighlightHorizontalGeometry = new PlaneGeometry(
   MAHJONG_TILE_FACE.width,
   TILE_HIGHLIGHT_FRAME_WIDTH,
@@ -264,7 +317,7 @@ function TileHighlightFrame3D({
   renderOrder: number;
   scale?: number;
 }>) {
-  const surfaceY = MAHJONG_TILE_DIMENSIONS.height / 2 + MAHJONG_TILE_FACE.markerOffset + 0.002;
+  const surfaceY = MAHJONG_TILE_DIMENSIONS.height / 2 + MAHJONG_TILE_FACE.markerOffset;
   const horizontalZ = MAHJONG_TILE_FACE.depth / 2 - TILE_HIGHLIGHT_FRAME_WIDTH / 2;
   const verticalX = MAHJONG_TILE_FACE.width / 2 - TILE_HIGHLIGHT_FRAME_WIDTH / 2;
   return (

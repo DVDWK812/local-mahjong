@@ -15,6 +15,7 @@ import type { VoicePackSummary } from './audio/voice/types';
 import { MusicLibrary, type MusicAddResult } from './audio/musicLibrary';
 import type { GameSfxGroup, MusicCategory, MusicTrackDefinition, MusicTrackId, PlaybackMode } from './audio/musicTypes';
 import { AudioSettingsDialog } from './components/AudioSettingsDialog';
+import { AppearanceSettingsDialog } from './components/AppearanceSettingsDialog';
 import { VoiceManagementScreen } from './components/voice/VoiceManagementScreen';
 import { CreateVoicePackScreen } from './components/voice/CreateVoicePackScreen';
 import type { CreateVoicePackResult } from './audio/voice/VoicePackService';
@@ -58,6 +59,9 @@ import type { SeventeenStepsMatchConfig } from './game/seventeenSteps';
 import type { TestScenarioV1 } from './game/testMode/types';
 import { normalizePlayerProfile, type PlayerProfile } from './profile/playerProfile';
 import { loadPlayerProfile, savePlayerProfile } from './profile/playerProfileStorage';
+import { loadAppearanceSettings, saveAppearanceSettings } from './presentation/appearance/appearanceSettingsStorage';
+import type { AppearanceSettings } from './presentation/appearance/appearanceSettings';
+import { adoptCurrentAppearanceAssets, collectCurrentAppearanceAssetIds, deleteAppearanceLibraryAsset, removeAppearanceAssetReferences } from './presentation/appearance/appearanceLibrary';
 import { presentationPacingGate } from './presentation/pacing/PresentationPacingGate';
 import { runPacedAutomaticAction } from './presentation/pacing/automaticActionPacing';
 import { useMatchPresentationEvents } from './presentation/matchPresentationEvents';
@@ -185,6 +189,7 @@ function createSavedMatch(activeGame: ActiveGame, ruleConfig: FullRuleConfig): S
 export default function App() {
   const testModeAvailability = currentTestModeAvailability();
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [appearanceDialogOpen, setAppearanceDialogOpen] = useState(false);
   const [audioDialogOpen, setAudioDialogOpen] = useState(() => typeof window !== 'undefined' && window.sessionStorage.getItem('local-mahjong.pending-voice-pack-manager') !== null);
   const [voiceManagementPackId, setVoiceManagementPackId] = useState<string | null>(() => typeof window === 'undefined' ? null : window.sessionStorage.getItem('local-mahjong.pending-voice-pack-manager'));
   const [voicePackCreationOpen, setVoicePackCreationOpen] = useState(false);
@@ -211,6 +216,16 @@ export default function App() {
     if (storage && (selectedVoicePackId !== loaded.selectedVoicePackId || voicePackBySeat.some((packId, seat) => packId !== loaded.voicePackBySeat[seat]))) saveAudioSettings(resolved, storage);
     return resolved;
   });
+  const [appearanceSettings, setAppearanceSettings] = useState<AppearanceSettings>(() => {
+    const storage = typeof window === 'undefined' ? undefined : window.localStorage;
+    const loaded = loadAppearanceSettings(storage);
+    if (storage) saveAppearanceSettings(loaded, storage);
+    return loaded;
+  });
+  const handleAppearanceSettingsChange = (next: AppearanceSettings) => {
+    setAppearanceSettings(next);
+    if (typeof window !== 'undefined') saveAppearanceSettings(next, window.localStorage);
+  };
   const [state, setState] = useState<AppState>(() => ({
     screen: testModeAvailability.requested ? 'test-mode' : 'main-menu',
     activeGame: null,
@@ -236,6 +251,20 @@ export default function App() {
   }));
 
   const mountedRef = useRef(false);
+  useEffect(() => {
+    // Adopt selected pre-library blobs without changing current selection.
+    // Failed/missing assets remain protected by current-reference cleanup.
+    void adoptCurrentAppearanceAssets(appearanceSettings, state.playerProfile.avatarId).catch(() => undefined);
+  }, [appearanceSettings, state.playerProfile.avatarId]);
+
+  const handleDeleteLibraryAsset = (assetId: string) => deleteAppearanceLibraryAsset(assetId, () => {
+    const next = removeAppearanceAssetReferences(appearanceSettings, state.playerProfile.avatarId, assetId);
+    handleAppearanceSettingsChange(next.settings);
+    handlePlayerProfileChange({ ...state.playerProfile, avatarId: next.avatarId });
+    if (typeof window !== 'undefined' && collectCurrentAppearanceAssetIds(
+      loadAppearanceSettings(window.localStorage), loadPlayerProfile(window.localStorage).avatarId,
+    ).has(assetId)) throw new Error('当前选择未能持久化，保留图像。');
+  });
   const exitSaveInProgressRef = useRef(false);
   const pendingExitSaveRef = useRef<SavedMatch | null>(null);
   const pendingExitReplayRef = useRef<ReplayRecord | null>(null);
@@ -889,7 +918,13 @@ export default function App() {
           onReplayStudy={() => void openReplayLibrary()}
           onOpenPlayerSettings={() => {
             setAudioDialogOpen(false);
+            setAppearanceDialogOpen(false);
             setProfileDialogOpen(true);
+          }}
+          onOpenAppearanceSettings={() => {
+            setAudioDialogOpen(false);
+            setProfileDialogOpen(false);
+            setAppearanceDialogOpen(true);
           }}
           onOpenAudioSettings={openAudioSettings}
           testModeEnabled={testModeAvailability.enabled}
@@ -897,10 +932,15 @@ export default function App() {
         />
         {profileDialogOpen ? (
           <PlayerProfileDialog
+            appearanceSettings={appearanceSettings}
             profile={state.playerProfile}
             onChange={handlePlayerProfileChange}
+            onDeleteAsset={handleDeleteLibraryAsset}
             onClose={() => setProfileDialogOpen(false)}
           />
+        ) : null}
+        {appearanceDialogOpen ? (
+          <AppearanceSettingsDialog settings={appearanceSettings} onChange={handleAppearanceSettingsChange} onDeleteAsset={handleDeleteLibraryAsset} onClose={() => setAppearanceDialogOpen(false)} />
         ) : null}
         {renderAudioSettingsDialog()}
       </>
@@ -1072,6 +1112,7 @@ export default function App() {
         gameState={gameState}
         winPresentationController={winPresentationController}
         settlementPresentationCoordinator={settlementPresentationCoordinator}
+        appearanceSettings={appearanceSettings}
         playerProfile={state.playerProfile}
         matchState={matchState}
         onTsumo={(playerId) => updateGame((current) => declareTsumo(current, playerId))}

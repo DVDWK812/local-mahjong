@@ -122,7 +122,7 @@ describe('3D table renderer selection', () => {
     const gameScreenSource = readFileSync(sourcePath('../components/game/GameScreen.tsx'), 'utf8');
     const css = readFileSync(sourcePath('./table3d.css'), 'utf8');
     expect(source).toContain('table-renderer-layer--3d');
-    expect(source).toContain('<Table3DHud {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />');
+    expect(source).toContain('<Table3DHud {...tableProps} doraIndicatorSlots={doraIndicatorSlots} playerProfile={playerProfile} />');
     expect(source).toContain('centralHud={centralHud}');
     expect(source).toContain('return <LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />');
     expect(source).not.toContain('hudOnly');

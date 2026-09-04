@@ -3,13 +3,33 @@ import type { Table3DSeat } from '../coordinates/seatTransforms';
 import { getHandTileTransform } from '../coordinates/sceneTransforms';
 import {
   getAvatarFrameTuning,
+  getAvatarFrameTuningRevision,
   getLocalHandScreenOffset,
+  getResponsiveLayoutScale,
+  resetAvatarFrameBaseSize,
+  setAvatarFrameBaseSize,
+  subscribeAvatarFrameTuning,
   TABLE_PRESENTATION_TUNING,
 } from './tablePresentationTuning';
 
 const SEATS: readonly Table3DSeat[] = ['bottom', 'right', 'top', 'left'];
 
 describe('UI-5F.3 hand and avatar manual tuning', () => {
+  it('resolves one clamped responsive scale from the tighter CSS viewport dimension', () => {
+    expect(TABLE_PRESENTATION_TUNING.responsiveLayout).toEqual({
+      referenceWidth: 1920,
+      referenceHeight: 1080,
+      minScale: 0.72,
+      maxScale: 1.3,
+    });
+    expect(getResponsiveLayoutScale(1280, 720)).toBeCloseTo(0.72);
+    expect(getResponsiveLayoutScale(1920, 1080)).toBeCloseTo(1);
+    expect(getResponsiveLayoutScale(2560, 1440)).toBeCloseTo(1.3);
+    expect(getResponsiveLayoutScale(3840, 2160)).toBeCloseTo(1.3);
+    expect(getResponsiveLayoutScale(1024, 768)).toBeCloseTo(0.72);
+    expect(getResponsiveLayoutScale.length).toBe(2);
+  });
+
   it('freezes every independent hand-seat offset', () => {
     expect(TABLE_PRESENTATION_TUNING.handSeatOffsets).toEqual({
       bottom: { inline: 0, radial: 0 },
@@ -83,6 +103,16 @@ describe('UI-5F.3 hand and avatar manual tuning', () => {
       ...frozen.seatOffsets[seat],
       size: frozen.size,
     }));
+    SEATS.forEach((seat) => expect(getAvatarFrameTuning(seat, 1280, 720)).toEqual({
+      ...frozen.seatOffsets[seat],
+      size: frozen.size * 0.72,
+    }));
+    SEATS.forEach((seat) => expect(getAvatarFrameTuning(seat, 2560, 1440).size)
+      .toBeCloseTo(frozen.size * 1.3));
+    SEATS.forEach((seat) => expect(getAvatarFrameTuning(seat, 3840, 2160).size)
+      .toBeCloseTo(frozen.size * 1.3));
+    SEATS.forEach((seat) => expect(getAvatarFrameTuning(seat, 1024, 768).size)
+      .toBeCloseTo(frozen.size * 0.72));
 
     try {
       avatarFrame.seatOffsets.bottom.x = frozen.seatOffsets.bottom.x + 12;
@@ -100,6 +130,24 @@ describe('UI-5F.3 hand and avatar manual tuning', () => {
       avatarFrame.size = frozen.size;
       avatarFrame.seatOffsets.bottom.x = frozen.seatOffsets.bottom.x;
       avatarFrame.seatOffsets.bottom.y = frozen.seatOffsets.bottom.y;
+    }
+  });
+
+  it('publishes one resettable avatar base-size authority to every seat', () => {
+    const initialRevision = getAvatarFrameTuningRevision();
+    let notifications = 0;
+    const unsubscribe = subscribeAvatarFrameTuning(() => { notifications += 1; });
+    try {
+      expect(setAvatarFrameBaseSize(1.32)).toBe(1.32);
+      expect(notifications).toBe(1);
+      expect(getAvatarFrameTuningRevision()).toBe(initialRevision + 1);
+      SEATS.forEach((seat) => {
+        expect(getAvatarFrameTuning(seat, 1280, 720).size).toBeCloseTo(1.32 * 0.72);
+      });
+      expect(getAvatarFrameTuning('bottom')).toMatchObject({ x: 500, y: -100 });
+    } finally {
+      unsubscribe();
+      resetAvatarFrameBaseSize();
     }
   });
 });

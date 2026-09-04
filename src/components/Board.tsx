@@ -12,6 +12,7 @@ import { GameScreen } from './game/GameScreen';
 import { Tile } from './Tile';
 import type { WinResultPresentationController } from '../audio/voice/WinResultPresentationController';
 import type { SettlementPresentationCoordinator } from '../audio/voice/SettlementPresentationCoordinator';
+import type { AppearanceSettings } from '../presentation/appearance/appearanceSettings';
 
 interface BoardProps {
   gameState: GameState;
@@ -44,6 +45,7 @@ interface BoardProps {
   playerProfile?: PlayerProfile;
   winPresentationController?: WinResultPresentationController;
   settlementPresentationCoordinator?: SettlementPresentationCoordinator;
+  appearanceSettings?: AppearanceSettings;
 }
 
 export function Board({
@@ -77,6 +79,7 @@ export function Board({
   playerProfile,
   winPresentationController,
   settlementPresentationCoordinator,
+  appearanceSettings,
 }: BoardProps) {
   useGamePresentationEvents(gameState);
   const [dismissedPromptKey, setDismissedPromptKey] = useState<string | null>(null);
@@ -319,6 +322,7 @@ export function Board({
       playerProfile={playerProfile}
       winPresentationController={winPresentationController}
       settlementPresentationCoordinator={settlementPresentationCoordinator}
+      appearanceSettings={appearanceSettings}
       tablePresentationState={tablePresentationState}
     />
   );

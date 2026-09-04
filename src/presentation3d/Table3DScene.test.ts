@@ -31,14 +31,30 @@ describe('UI-5A scene boundaries', () => {
     expect(fallbackSource).not.toContain('tagTableRendererError');
     expect(source).toContain('onReady?.();');
     expect(source).toContain("tagTableRendererError(cause, 'webgl-init-failure')");
+    expect(source).toContain("addEventListener('webglcontextlost', onContextLost)");
+    expect(source).toContain('WebglContextLossRecovery onUnavailable={onUnavailable}');
   });
 
-  it('uses shared tile geometry and material instead of per-tile bodies', () => {
+  it('keeps custom avatar identity in the PlayerProfile path through the 3D HUD', () => {
+    const gameScreenSource = readFileSync(sourcePath('../components/game/GameScreen.tsx'), 'utf8');
+    const rendererSource = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
+    const hudSource = readFileSync(sourcePath('./Table3DHud.tsx'), 'utf8');
+
+    expect(gameScreenSource).toContain('playerProfile={playerProfile}');
+    expect(rendererSource).toContain('playerProfile={playerProfile}');
+    expect(hudSource).toContain('<PlayerAvatar avatarId={avatarId} className="table-3d-player-avatar" />');
+  });
+
+  it('uses shared visual-anatomy geometry and materials instead of per-tile bodies', () => {
     const source = readFileSync(sourcePath('./tile/Tile3D.tsx'), 'utf8');
 
     expect(source).toContain('geometry={sharedTileBodyGeometry}');
-    expect(source).toContain('material={sharedTileBodyMaterial}');
-    expect(source).toContain('material={faceMaterial}');
+    expect(source).toContain('material={bodyMaterial}');
+    expect(source).not.toContain('sharedTileIvoryBodyGeometry');
+    expect(source).not.toContain('sharedTileBackBodyGeometry');
+    expect(source).toContain('material={faceBaseMaterial}');
+    expect(source).toContain('material={faceGlyphMaterial}');
+    expect(source).toContain('material={backSurfaceMaterial}');
   });
 
   it('renders the authoritative static table through bounded scene components', () => {
@@ -53,7 +69,8 @@ describe('UI-5A scene boundaries', () => {
     expect(source).toContain('winningRiverIndex={winningRiverTarget?.playerId === sceneState.seats[seat].playerId');
     expect(riverSource).toContain('const winning = tile.riverIndex === winningRiverIndex;');
     expect(riverSource).not.toContain('const winning = tile.layoutIndex === winningRiverIndex;');
-    expect(source).toContain('<HandAction3D active={animation.active} riichiStickAppearance={riichiStickAppearance} />');
+    expect(source).toContain('<AppearanceResources3D settings={appearanceSettings}>');
+    expect(source).toContain('riichiStickAppearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }}');
     expect(source).toContain('const StableTableScene = memo(function StableTableScene(');
     expect(source).toContain('<CentralConsoleHudAnchor3D>{centralHud}</CentralConsoleHudAnchor3D>');
     expect(source).toContain('hiddenTileKeys={hiddenMeldTileKeys}');
@@ -61,7 +78,7 @@ describe('UI-5A scene boundaries', () => {
     expect(source).toContain('<TileTextureWarmup />');
     expect(source.indexOf('</StableTableScene>')).toBe(-1);
     expect(source.match(/<Suspense fallback=\{null\}>/g)).toHaveLength(3);
-    expect(source.indexOf('<TableMesh />')).toBeLessThan(source.indexOf('<Suspense fallback={null}>'));
+    expect(source.indexOf('<TableMesh theme={tableVisualTheme} feltTexture={feltTexture} />')).toBeLessThan(source.indexOf('<Suspense fallback={null}>'));
     expect(source).not.toContain('<TileGallery />');
   });
 

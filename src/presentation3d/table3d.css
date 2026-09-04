@@ -103,9 +103,10 @@
 .table-3d-player-avatar {
   display: grid;
   width: var(--side-player-avatar-size);
-  height: var(--side-player-avatar-size);
+  height: calc(var(--side-player-avatar-size) * 4 / 3);
   place-items: center;
-  border-radius: 50%;
+  overflow: hidden;
+  border-radius: 10%;
   color: #eff8f1;
   background: #43564f;
   font-size: clamp(28px, 3.2vw, 42px);
@@ -375,6 +376,43 @@
   letter-spacing: 0.09em;
   pointer-events: none;
   backdrop-filter: blur(4px);
+}
+
+.avatar-frame-tuning-panel {
+  position: absolute;
+  z-index: calc(var(--z-table-ui, 5) + 2);
+  top: 0.75rem;
+  right: 0.75rem;
+  display: grid;
+  gap: 0.38rem;
+  width: min(15rem, calc(100% - 1.5rem));
+  padding: 0.68rem;
+  border: 1px solid rgb(225 202 130 / 40%);
+  border-radius: 0.65rem;
+  color: #f5ead0;
+  background: rgb(7 23 18 / 88%);
+  box-shadow: 0 0.5rem 1.25rem rgb(0 0 0 / 30%);
+  font-size: 0.74rem;
+}
+
+.avatar-frame-tuning-panel input {
+  width: 100%;
+}
+
+.avatar-frame-tuning-panel p {
+  margin: 0;
+  color: rgb(237 247 239 / 74%);
+  line-height: 1.35;
+}
+
+.avatar-frame-tuning-panel button {
+  justify-self: start;
+  border: 1px solid rgb(225 202 130 / 45%);
+  border-radius: 0.4rem;
+  padding: 0.28rem 0.45rem;
+  color: inherit;
+  background: rgb(31 76 62 / 82%);
+  cursor: pointer;
 }
 
 .table-3d-unavailable {

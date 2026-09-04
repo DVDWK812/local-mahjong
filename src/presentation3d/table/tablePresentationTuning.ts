@@ -38,6 +38,12 @@ const DECORATION_LINE_WIDTH = 0.06;
  * or tile identity.
  */
 export const TABLE_PRESENTATION_TUNING = {
+  responsiveLayout: {
+    referenceWidth: 1920,
+    referenceHeight: 1080,
+    minScale: 0.72,
+    maxScale: 1.3,
+  },
   doraVisual: {
     borderEnabled: 0 as 0 | 1,
     breathingEnabled: 1 as 0 | 1,
@@ -95,8 +101,8 @@ export const TABLE_PRESENTATION_TUNING = {
   },
   centralHud: {
     position: [0, CENTRAL_CONSOLE_DIMENSIONS.panelSurfaceY + 0.008, 0] as const,
-    hudOnlyOffsetX: 0.2,
-    hudOnlyOffsetZ: -0.3,
+    hudOnlyOffsetX: -0.1,
+    hudOnlyOffsetZ: 0.3,
     rotation: [-Math.PI / 2, 0, 0] as const,
     compactViewportMaxHeight: 800,
     compactScale: 0.96,
@@ -123,6 +129,37 @@ export const TABLE_PRESENTATION_TUNING = {
     } satisfies Readonly<Record<Table3DSeat, RiichiStickSeatOffset>>,
   },
 } as const;
+
+const AVATAR_FRAME_BASE_SIZE_DEFAULT = 1.1;
+const AVATAR_FRAME_BASE_SIZE_MIN = 0.6;
+const AVATAR_FRAME_BASE_SIZE_MAX = 1.8;
+let avatarFrameTuningRevision = 0;
+const avatarFrameTuningListeners = new Set<() => void>();
+
+/** Developer-only runtime hand-tuning; it never persists into player appearance. */
+export function setAvatarFrameBaseSize(nextSize: number): number {
+  if (!Number.isFinite(nextSize)) return TABLE_PRESENTATION_TUNING.avatarFrame.size;
+  const clamped = Math.min(AVATAR_FRAME_BASE_SIZE_MAX, Math.max(AVATAR_FRAME_BASE_SIZE_MIN, nextSize));
+  const avatarFrame = TABLE_PRESENTATION_TUNING.avatarFrame as unknown as { size: number };
+  if (avatarFrame.size === clamped) return clamped;
+  avatarFrame.size = clamped;
+  avatarFrameTuningRevision += 1;
+  avatarFrameTuningListeners.forEach((listener) => listener());
+  return clamped;
+}
+
+export function resetAvatarFrameBaseSize(): void {
+  setAvatarFrameBaseSize(AVATAR_FRAME_BASE_SIZE_DEFAULT);
+}
+
+export function subscribeAvatarFrameTuning(listener: () => void): () => void {
+  avatarFrameTuningListeners.add(listener);
+  return () => avatarFrameTuningListeners.delete(listener);
+}
+
+export function getAvatarFrameTuningRevision(): number {
+  return avatarFrameTuningRevision;
+}
 
 export function getEffectiveCentralHudPosition() {
   const { position } = TABLE_PRESENTATION_TUNING.centralHud;
@@ -154,7 +191,27 @@ export function getLocalHandScreenOffset() {
   } as const;
 }
 
-export function getAvatarFrameTuning(seat: Table3DSeat) {
+export function getResponsiveLayoutScale(viewportWidth: number, viewportHeight: number): number {
+  const {
+    referenceWidth,
+    referenceHeight,
+    minScale,
+    maxScale,
+  } = TABLE_PRESENTATION_TUNING.responsiveLayout;
+  const rawScale = Math.min(viewportWidth / referenceWidth, viewportHeight / referenceHeight);
+  return Math.min(maxScale, Math.max(minScale, rawScale));
+}
+
+export function getAvatarFrameTuning(
+  seat: Table3DSeat,
+  viewportWidth: number = TABLE_PRESENTATION_TUNING.responsiveLayout.referenceWidth,
+  viewportHeight: number = TABLE_PRESENTATION_TUNING.responsiveLayout.referenceHeight,
+) {
   const { x, y } = TABLE_PRESENTATION_TUNING.avatarFrame.seatOffsets[seat];
-  return { x, y, size: TABLE_PRESENTATION_TUNING.avatarFrame.size } as const;
+  return {
+    x,
+    y,
+    size: TABLE_PRESENTATION_TUNING.avatarFrame.size
+      * getResponsiveLayoutScale(viewportWidth, viewportHeight),
+  } as const;
 }

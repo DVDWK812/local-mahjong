@@ -1,7 +1,7 @@
 import { DEFAULT_PLAYER_PROFILE, normalizePlayerProfile, type PlayerProfile } from './playerProfile';
 
 export const PLAYER_PROFILE_STORAGE_KEY = 'local-mahjong.player-profile.v1';
-export const PLAYER_PROFILE_STORAGE_VERSION = 1;
+export const PLAYER_PROFILE_STORAGE_VERSION = 2;
 
 interface StoredPlayerProfile extends PlayerProfile {
   version: typeof PLAYER_PROFILE_STORAGE_VERSION;
@@ -13,7 +13,8 @@ export function loadPlayerProfile(storage?: Pick<Storage, 'getItem'>): PlayerPro
     const raw = storage.getItem(PLAYER_PROFILE_STORAGE_KEY);
     if (!raw) return { ...DEFAULT_PLAYER_PROFILE };
     const stored = JSON.parse(raw) as Partial<StoredPlayerProfile>;
-    if (!stored || typeof stored !== 'object' || Array.isArray(stored) || stored.version !== PLAYER_PROFILE_STORAGE_VERSION) {
+    const version = (stored as { version?: unknown } | null)?.version;
+    if (!stored || typeof stored !== 'object' || Array.isArray(stored) || (version !== 1 && version !== PLAYER_PROFILE_STORAGE_VERSION)) {
       return { ...DEFAULT_PLAYER_PROFILE };
     }
     return normalizePlayerProfile(stored);

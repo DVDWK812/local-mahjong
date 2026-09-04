@@ -11,6 +11,7 @@ interface GameTopBarProps {
   onReturnMenu: () => void;
   modeLabel?: string;
   phaseLabelOverride?: string;
+  currentPlayerDisplayName?: string;
 }
 
 const phaseLabels: Record<GameState['phase'], string> = {
@@ -32,13 +33,13 @@ const windNames: Record<Wind, string> = {
   north: '北',
 };
 
-export function GameTopBar({ gameState, analysisOpen, onOpenRulesGuide, onOpenAudioSettings, onToggleAnalysis, onReturnMenu, modeLabel, phaseLabelOverride }: GameTopBarProps) {
+export function GameTopBar({ gameState, analysisOpen, onOpenRulesGuide, onOpenAudioSettings, onToggleAnalysis, onReturnMenu, modeLabel, phaseLabelOverride, currentPlayerDisplayName }: GameTopBarProps) {
   const current = gameState.players[gameState.currentPlayer];
 
   return (
     <header className="game-top-bar" aria-label="对局状态栏">
       <div className="game-top-bar-section game-top-bar-section--turn">
-        <span>{modeLabel ? `模式：${modeLabel}　` : ''}轮到：{windNames[current.seatWind]}家 {current.name}</span>
+        <span>{modeLabel ? `模式：${modeLabel}　` : ''}轮到：{windNames[current.seatWind]}家 {currentPlayerDisplayName ?? current.name}</span>
         <span>{phaseLabelOverride ?? phaseLabels[gameState.phase]}</span>
       </div>
       <div className="game-top-bar-actions">

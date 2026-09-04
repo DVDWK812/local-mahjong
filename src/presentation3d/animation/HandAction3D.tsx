@@ -6,6 +6,7 @@ import {
   type HandAnimationPhase,
 } from '../../presentation/handAnimation/HandAnimationController';
 import { Tile3D } from '../tile/Tile3D';
+import { useTileAppearance3D } from '../appearance/TileAppearance3DContext';
 import { RiichiStick3D } from '../riichi/RiichiStick3D';
 import type { RiichiStick3DAppearance } from '../riichi/riichiStickAppearance';
 import { HandProxy3D } from './HandProxy3D';
@@ -29,6 +30,7 @@ export function HandAction3D({ active, riichiStickAppearance }: Readonly<{
   active: ActiveTableAnimation3D;
   riichiStickAppearance?: RiichiStick3DAppearance;
 }>) {
+  const ownerAppearance = useTileAppearance3D(active.plan.action.playerId);
   const handRef = useRef<Group>(null);
   const tileRef = useRef<Group>(null);
   const tilePitchRef = useRef<Group>(null);
@@ -98,6 +100,7 @@ export function HandAction3D({ active, riichiStickAppearance }: Readonly<{
         >
           <group ref={tilePitchRef} rotation={[initial.tileRotationX, 0, 0]}>
             <Tile3D
+              ownerPlayerId={active.plan.action.playerId}
               tile={active.plan.tile}
               faceState={active.plan.faceState}
               orientation="upright"
@@ -131,6 +134,7 @@ export function HandAction3D({ active, riichiStickAppearance }: Readonly<{
               rotation={[motion.rotationX, 0, 0]}
             >
               <Tile3D
+                ownerPlayerId={active.plan.action.playerId}
                 tile={tile.tile}
                 faceState={tile.faceState}
                 orientation={tile.orientation}
@@ -150,7 +154,7 @@ export function HandAction3D({ active, riichiStickAppearance }: Readonly<{
           rotation={[0, initial.tileRotationY, 0]}
           visible={active.phase !== 'approach' && active.phase !== 'retreat'}
         >
-          <RiichiStick3D seat={active.plan.seat} position={[0, 0, 0]} rotationY={0} objectName="table-animation-riichi-stick-proxy" raycastDisabled appearance={riichiStickAppearance} />
+          <RiichiStick3D seat={active.plan.seat} position={[0, 0, 0]} rotationY={0} objectName="table-animation-riichi-stick-proxy" raycastDisabled appearance={ownerAppearance.riichiStickAppearance ?? riichiStickAppearance} />
         </group>
       ) : null}
     </group>

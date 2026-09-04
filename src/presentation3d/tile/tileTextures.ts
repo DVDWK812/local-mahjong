@@ -2,12 +2,11 @@ import { LinearFilter, LinearMipmapLinearFilter, SRGBColorSpace, type Texture } 
 import {
   getTileAssetKeyById,
   getTileBackImage,
-  getTileImageById,
-  getTilePlaceholderImage,
   type TileAssetKey,
 } from '../../game/tileAssets';
 import type { Tile, TileId } from '../../game/types';
 import type { TileDoraVisualKind } from '../../presentation/table/tileVisualSemantics';
+import { getTile3DFaceFallbackTexture, getTile3DFaceTextureById } from './tileFaceTextures3d';
 import type { TileFaceState } from './tileOrientation';
 
 export type TileDefinition = Readonly<Pick<Tile, 'id' | 'red'> & {
@@ -42,13 +41,13 @@ const RED_FIVE_VISUALS: Partial<Record<TileId, RedFiveVisualKey>> = {
 
 const visualTextureSources = new Map<TileVisualKey, string>();
 for (const id of ALL_TILE_IDS) {
-  visualTextureSources.set(getTileAssetKeyById(id), getTileImageById(id));
+  visualTextureSources.set(getTileAssetKeyById(id), getTile3DFaceTextureById(id));
 }
-visualTextureSources.set('red5m', getTileImageById(4));
-visualTextureSources.set('red5p', getTileImageById(13));
-visualTextureSources.set('red5s', getTileImageById(22));
+visualTextureSources.set('red5m', getTile3DFaceTextureById(4));
+visualTextureSources.set('red5p', getTile3DFaceTextureById(13));
+visualTextureSources.set('red5s', getTile3DFaceTextureById(22));
 visualTextureSources.set('back', getTileBackImage());
-visualTextureSources.set('unknown', getTilePlaceholderImage());
+visualTextureSources.set('unknown', getTile3DFaceFallbackTexture());
 
 export const ALL_TILE_TEXTURE_SOURCES = Object.freeze([
   ...new Set(ALL_TILE_VISUAL_KEYS.map((visualKey) => getTileTextureSource(visualKey))),
@@ -59,10 +58,11 @@ function isTileId(value: number): value is TileId {
 }
 
 export function getTileTextureSource(visualKey: TileVisualKey): string {
-  return visualTextureSources.get(visualKey) ?? getTilePlaceholderImage();
+  return visualTextureSources.get(visualKey) ?? getTile3DFaceFallbackTexture();
 }
 
-export function resolveTileVisual(
+/** Resolves only the 3D Tile3D face layer; DOM/2.5D keeps game/tileAssets.ts. */
+export function resolveTile3DVisual(
   tile: TileDefinition | undefined,
   faceState: TileFaceState = 'face-up',
 ): TileVisualDefinition {
@@ -92,6 +92,14 @@ export function resolveTileVisual(
     kind: 'face',
     isRed: redVisualKey !== undefined,
   };
+}
+
+/** @deprecated Use resolveTile3DVisual to make the renderer boundary explicit. */
+export function resolveTileVisual(
+  tile: TileDefinition | undefined,
+  faceState: TileFaceState = 'face-up',
+): TileVisualDefinition {
+  return resolveTile3DVisual(tile, faceState);
 }
 
 export function configureTileTexture(texture: Texture, deviceMaxAnisotropy: number): Texture {

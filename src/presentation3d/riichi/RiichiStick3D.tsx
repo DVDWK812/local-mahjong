@@ -17,12 +17,8 @@ import {
 } from './riichiStickAppearance';
 import { getRiichiStickTransform as resolveRiichiStickTransform } from './riichiStickLayout';
 
-export const RIICHI_STICK_3D_LAYOUT = {
-  length: 1.58,
-  width: 0.24,
-  height: 0.065,
-  epsilon: 0.006,
-} as const;
+import { RIICHI_STICK_3D_LAYOUT, RIICHI_STICK_FACE_SIZE } from './riichiStickGeometry';
+export { RIICHI_STICK_3D_LAYOUT } from './riichiStickGeometry';
 
 const bodyGeometry = new BoxGeometry(
   RIICHI_STICK_3D_LAYOUT.length,
@@ -30,8 +26,8 @@ const bodyGeometry = new BoxGeometry(
   RIICHI_STICK_3D_LAYOUT.width,
 );
 const faceGeometry = new PlaneGeometry(
-  RIICHI_STICK_3D_LAYOUT.length - 0.035,
-  RIICHI_STICK_3D_LAYOUT.width - 0.012,
+  RIICHI_STICK_FACE_SIZE.length,
+  RIICHI_STICK_FACE_SIZE.width,
 );
 const dotGeometry = new CylinderGeometry(0.075, 0.075, 0.012, 20);
 
@@ -98,6 +94,7 @@ export function RiichiStick3D({
       <Suspense fallback={null}>
         <RiichiStickTextureFace3D
           textureSource={appearance.textureSource}
+          textureOverride={appearance.texture}
           raycastDisabled={raycastDisabled}
         />
       </Suspense>
@@ -107,12 +104,15 @@ export function RiichiStick3D({
 
 function RiichiStickTextureFace3D({
   textureSource,
+  textureOverride,
   raycastDisabled,
 }: Readonly<{
   textureSource: string;
+  textureOverride?: import('three').Texture;
   raycastDisabled: boolean;
 }>) {
-  const texture = useTexture(textureSource);
+  const loadedTexture = useTexture(textureSource);
+  const texture = textureOverride ?? loadedTexture;
   const invalidate = useThree((state) => state.invalidate);
 
   useEffect(() => {

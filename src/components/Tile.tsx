@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState, type MouseEventHandler, type Poin
 import { getTileAlt, getTileAltById, getTileBackImage, getTileImage, getTileImageById, getTilePlaceholderImage, isRedFive } from '../game/tileAssets';
 import type { Tile as TileModel, TileId } from '../game/types';
 import { suitClass } from '../game/tileUtils';
+import { useTileFaceDomAppearance } from '../presentation/appearance/TileFaceDomAppearance';
+import { DEFAULT_APPEARANCE_SETTINGS } from '../presentation/appearance/appearanceSettings';
 import {
   resolveTileDoraVisualKind,
   resolveTileVisualSemantics,
@@ -60,12 +62,14 @@ export function Tile({
 }: TileProps) {
   const isFaceDown = hidden || faceDown;
   const tileId = tile?.id ?? id;
-  const source = useMemo(() => {
+  const faceAppearance = useTileFaceDomAppearance(isFaceDown ? undefined : tileId, tile?.red);
+  const builtinSource = useMemo(() => {
     if (isFaceDown) return getTileBackImage();
     if (tile) return getTileImage(tile);
     if (tileId !== undefined) return getTileImageById(tileId);
     return getTilePlaceholderImage();
   }, [isFaceDown, tile, tileId]);
+  const source = faceAppearance?.source || builtinSource;
   const [imageSource, setImageSource] = useState(source);
   const isHoverSourceRef = useRef(false);
 
@@ -116,6 +120,7 @@ export function Tile({
             : 'normal';
   const classNames = [
     'tile',
+    faceAppearance?.source ? 'tile--custom-face-3d' : '',
     compact ? 'tile--compact' : '',
     isFaceDown ? 'tile--hidden' : '',
     sideways ? 'tile--sideways' : '',
@@ -156,13 +161,13 @@ export function Tile({
   };
 
   const content = (
-    <span className="tile-face" onPointerEnter={handlePointerEnter} onPointerLeave={handlePointerLeave}>
+    <span className="tile-face" style={faceAppearance && faceAppearance.sideColor !== DEFAULT_APPEARANCE_SETTINGS.tileFaces.m1.sideColor ? { borderColor: faceAppearance.sideColor } : undefined} onPointerEnter={handlePointerEnter} onPointerLeave={handlePointerLeave}>
       <img
         className="tile-image"
         src={imageSource}
         alt={alt}
         draggable={false}
-        onError={() => setImageSource(getTilePlaceholderImage())}
+        onError={() => setImageSource(imageSource === builtinSource ? getTilePlaceholderImage() : builtinSource)}
       />
       {doraSweepClass ? <span className={doraSweepClass} aria-hidden="true" /> : null}
       {showRedBadge ? <span className="tile-red-badge" aria-hidden="true" /> : null}

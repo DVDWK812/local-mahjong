@@ -2,6 +2,8 @@ import type { Table3DSeat } from '../coordinates/seatTransforms';
 import type { TableSceneState } from '../sceneState/tableSceneTypes';
 import { RiichiStick3D } from './RiichiStick3D';
 import type { RiichiStick3DAppearance } from './riichiStickAppearance';
+import { useContext } from 'react';
+import { TileAppearance3DContext, resolveOwnedAppearance3D } from '../appearance/TileAppearance3DContext';
 
 const SEATS: readonly Table3DSeat[] = ['bottom', 'right', 'top', 'left'];
 
@@ -10,6 +12,7 @@ export function RiichiSticks3D({ sceneState, hiddenSeats, appearance }: Readonly
   hiddenSeats?: ReadonlySet<Table3DSeat>;
   appearance?: RiichiStick3DAppearance;
 }>) {
+  const resources = useContext(TileAppearance3DContext);
   return (
     <group name="authoritative-riichi-sticks">
       {resolveVisibleRiichiSeats(sceneState.seats, hiddenSeats)
@@ -17,7 +20,7 @@ export function RiichiSticks3D({ sceneState, hiddenSeats, appearance }: Readonly
           <RiichiStick3D
             key={seat}
             seat={seat}
-            appearance={appearance}
+            appearance={resolveOwnedAppearance3D(resources, sceneState.seats[seat].playerId).riichiStickAppearance ?? appearance}
             raycastDisabled
           />
         ))}

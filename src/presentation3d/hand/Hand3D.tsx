@@ -106,6 +106,7 @@ export function Hand3D({
         if (hiddenTileKeys?.has(tile.key)) return null;
         return (
           <Tile3D
+            ownerPlayerId={seatState.playerId}
             key={tile.key}
             tile={tile.tile}
             faceState={tile.faceState}

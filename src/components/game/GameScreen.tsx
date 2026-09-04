@@ -25,12 +25,15 @@ import { GameEventOverlay } from './GameEventOverlay';
 import { GameTopBar } from './GameTopBar';
 import { HandAnimationOverlay } from './HandAnimationOverlay';
 import { LocalHandArea } from './LocalHandArea';
+import { TileFaceDomAppearance } from '../../presentation/appearance/TileFaceDomAppearance';
 import { TableRenderer } from '../../presentation3d/TableRenderer';
 import type { TableRendererMode } from '../../presentation3d/rendererMode';
 import type { LocalHandAnimation3DState } from '../../presentation3d/animation/tableAnimation3D';
 import { WinPresentationOverlay } from './WinPresentationOverlay';
 import type { WinPresentation3DState } from '../../presentation3d/win/winPresentation3D';
 import { TABLE_PRESENTATION_TUNING } from '../../presentation3d/table/tablePresentationTuning';
+import type { AppearanceSettings } from '../../presentation/appearance/appearanceSettings';
+import { resolvePlayerSlotNickname, usePlayerSlotNicknames } from '../../presentation/appearance/playerSlotAvatars';
 
 const ROUND_END_PRESENTATION_FAIL_OPEN_MS = 15_000;
 
@@ -65,6 +68,7 @@ interface GameScreenProps {
   winPresentationController?: WinResultPresentationController;
   settlementPresentationCoordinator?: SettlementPresentationCoordinator;
   tablePresentationState?: TablePresentationState;
+  appearanceSettings?: AppearanceSettings;
 }
 
 export function GameScreen({
@@ -98,7 +102,9 @@ export function GameScreen({
   winPresentationController,
   settlementPresentationCoordinator,
   tablePresentationState,
+  appearanceSettings,
 }: GameScreenProps) {
+  const slotNicknames = usePlayerSlotNicknames();
   const [handPreviewDiscardInstanceId, setHandPreviewDiscardInstanceId] = useState<string | null>(null);
   const [activeTableRenderer, setActiveTableRenderer] = useState<TableRendererMode>('2d');
   const [localHandAnimation, setLocalHandAnimation] = useState<LocalHandAnimation3DState | null>(null);
@@ -250,6 +256,7 @@ export function GameScreen({
       data-round-end-presentation-pending={roundEndPresentationPending ? 'true' : 'false'}
     >
       <GameTopBar
+        currentPlayerDisplayName={activeTableRenderer === '3d' ? resolvePlayerSlotNickname(gameState.currentPlayer, playerProfile?.nickname, slotNicknames, gameState.players[gameState.currentPlayer].name) : undefined}
         gameState={gameState}
         matchState={matchState}
         analysisOpen={analysisOpen}
@@ -258,7 +265,8 @@ export function GameScreen({
         onToggleAnalysis={onToggleAnalysis}
         onReturnMenu={onReturnMenu}
       />
-      <TableRenderer gameState={gameState} matchState={matchState} bottomPlayerId={tableBottomPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} presentationState={sharedTablePresentationState} interactionActions={tableInteractionActions} animationsEnabled={realtimeHandAnimationsEnabled} animationSessionKey={handAnimationSessionKey} animationTurn={gameState.turn} localDiscardSnapshots={discardSourceSnapshots} onLocalHandAnimationChange={handleLocalHandAnimationChange} winPresentation3D={winPresentation3D} onActiveRendererChange={setActiveTableRenderer} />
+      <TableRenderer gameState={gameState} matchState={matchState} bottomPlayerId={tableBottomPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} presentationState={sharedTablePresentationState} interactionActions={tableInteractionActions} animationsEnabled={realtimeHandAnimationsEnabled} animationSessionKey={handAnimationSessionKey} animationTurn={gameState.turn} localDiscardSnapshots={discardSourceSnapshots} onLocalHandAnimationChange={handleLocalHandAnimationChange} winPresentation3D={winPresentation3D} appearanceSettings={appearanceSettings} playerProfile={playerProfile} onActiveRendererChange={setActiveTableRenderer} />
+      <TileFaceDomAppearance settings={activeTableRenderer === '3d' ? appearanceSettings : undefined}>
       <LocalHandArea
         player={localPlayer}
         identityPlayer={fixedBottomPlayer}
@@ -285,6 +293,7 @@ export function GameScreen({
         discardSnapshot={activeTableRenderer === '3d' ? localDiscardSnapshot : null}
         localHandAnimation={activeTableRenderer === '3d' ? localHandAnimation : null}
       />
+      </TileFaceDomAppearance>
       <HandAnimationOverlay
         bottomPlayerId={tableBottomPlayerId}
         discardSourceSnapshots={discardSourceSnapshots}

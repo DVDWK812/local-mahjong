@@ -34,6 +34,9 @@ import type { DiscardSourceSnapshotStore } from '../presentation/handAnimation/D
 import type { LocalHandAnimation3DState } from './animation/tableAnimation3D';
 import type { TableVisualTheme } from './table/tableVisualTheme';
 import type { RiichiStick3DAppearance } from './riichi/riichiStickAppearance';
+import type { AppearanceSettings } from '../presentation/appearance/appearanceSettings';
+import { TileFaceDomAppearance } from '../presentation/appearance/TileFaceDomAppearance';
+import type { PlayerProfile } from '../profile/playerProfile';
 import { buildTableSceneState } from './sceneState/buildTableSceneState';
 import type { TileVisualSemanticContext } from '../presentation/table/tileVisualSemantics';
 import {
@@ -88,6 +91,8 @@ type TableRendererProps = MahjongTableProps & Readonly<{
   winPresentation3D?: WinPresentation3DState | null;
   tableVisualTheme?: TableVisualTheme;
   riichiStickAppearance?: RiichiStick3DAppearance;
+  appearanceSettings?: AppearanceSettings;
+  playerProfile?: PlayerProfile;
   onActiveRendererChange?: (renderer: TableRendererMode) => void;
 }>;
 
@@ -103,6 +108,8 @@ export function TableRenderer({
   winPresentation3D = null,
   tableVisualTheme,
   riichiStickAppearance,
+  appearanceSettings,
+  playerProfile,
   onActiveRendererChange,
   ...tableProps
 }: TableRendererProps) {
@@ -282,12 +289,15 @@ export function TableRenderer({
               winPresentation3D={winPresentation3D}
               tableVisualTheme={tableVisualTheme}
               riichiStickAppearance={riichiStickAppearance}
+              appearanceSettings={appearanceSettings}
               tileVisualContext={tileVisualContext}
               centralHud={centralHud}
               onReady={handleSceneReady}
               onUnavailable={handleSceneUnavailable}
             />
-            <Table3DHud {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />
+            <TileFaceDomAppearance settings={appearanceSettings}>
+              <Table3DHud {...tableProps} doraIndicatorSlots={doraIndicatorSlots} playerProfile={playerProfile} />
+            </TileFaceDomAppearance>
           </div>
         </Suspense>
       </SceneErrorBoundary>

@@ -1,5 +1,9 @@
+import type { Texture } from 'three';
+
 export type RiichiStick3DAppearance = Readonly<{
   textureSource: string;
+  /** Canvas-scoped shared texture for local appearance assets. */
+  texture?: Texture;
   bodyColor: string;
   bodyRoughness: number;
   bodyMetalness: number;

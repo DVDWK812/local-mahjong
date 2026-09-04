@@ -30,7 +30,7 @@ const boardHandlers = {
 };
 
 describe('PlayerProfile 表现层接入', () => {
-  it('主菜单展示当前玩家，并提供独立玩家设置入口', () => {
+  it('主菜单以纵向头像身份区展示昵称，并提供独立设置入口', () => {
     const html = renderToStaticMarkup(
       <MainMenu
         hasSave={false}
@@ -42,9 +42,11 @@ describe('PlayerProfile 表现层接入', () => {
         onReplayStudy={() => undefined}
       />,
     );
-    expect(html).toContain('当前玩家');
+    expect(html).not.toContain('当前玩家');
     expect(html).toContain(profile.nickname);
     expect(html).toContain('🦊');
+    expect(html).toContain('home-player-profile__avatar');
+    expect(html).toContain('home-player-profile__identity');
     expect(html).toContain('aria-label="玩家设置"');
     expect(html).toContain('aria-label="音频设置"');
   });
@@ -55,7 +57,9 @@ describe('PlayerProfile 表现层接入', () => {
     );
     expect(html).toContain('role="dialog"');
     expect(html).toContain('aria-label="玩家昵称"');
-    expect((html.match(/role="tab"/g) ?? [])).toHaveLength(5);
+    expect((html.match(/id="avatar-category-tab-/g) ?? [])).toHaveLength(5);
+    expect((html.match(/id="player-settings-tab-/g) ?? [])).toHaveLength(4);
+    for (const label of ['玩家资料', 'Player 2', 'Player 3', 'Player 4']) expect(html).toContain(label);
     expect((html.match(/选择头像：/g) ?? [])).toHaveLength(77);
     expect(html).toContain('aria-pressed="true"');
     expect(html).toContain('修改会立即保存');

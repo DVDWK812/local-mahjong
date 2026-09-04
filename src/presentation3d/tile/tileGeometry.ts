@@ -12,8 +12,16 @@ export const MAHJONG_TILE_FACE = {
   width: 0.9,
   depth: 1.28,
   cornerRadius: 0.075,
-  surfaceOffset: 0.002,
-  markerOffset: 0.003,
+  surfaceOffset: 0,
+  markerOffset: 0,
+} as const;
+
+export const MAHJONG_TILE_ANATOMY = {
+  ivoryHeight: 0.45,
+  ivoryCenterY: 0.075,
+  backHeight: 0.15,
+  backCenterY: -0.225,
+  seamY: -0.15,
 } as const;
 
 export const MAHJONG_TILE_FACE_SURFACE_Y =

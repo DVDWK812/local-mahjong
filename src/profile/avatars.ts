@@ -116,10 +116,13 @@ export const AVATAR_REGISTRY = [
 ] as const satisfies readonly AvatarDefinitionInput[];
 
 export type AvatarDefinition = (typeof AVATAR_REGISTRY)[number];
-export type AvatarId = AvatarDefinition['id'];
+export type BuiltinAvatarId = AvatarDefinition['id'];
+export type CustomAvatarId = `custom:${string}`;
+/** PlayerProfile remains the sole avatar-selection authority. */
+export type AvatarId = BuiltinAvatarId | CustomAvatarId;
 
-export const AVATAR_IDS: readonly AvatarId[] = AVATAR_REGISTRY.map((avatar) => avatar.id);
-export const DEFAULT_AVATAR_ID: AvatarId = 'avatar-01';
+export const AVATAR_IDS: readonly BuiltinAvatarId[] = AVATAR_REGISTRY.map((avatar) => avatar.id);
+export const DEFAULT_AVATAR_ID: BuiltinAvatarId = 'avatar-01';
 
 export function avatarsForCategory(category: AvatarCategoryFilter): readonly AvatarDefinition[] {
   return category === 'all'
@@ -127,11 +130,25 @@ export function avatarsForCategory(category: AvatarCategoryFilter): readonly Ava
     : AVATAR_REGISTRY.filter((avatar) => avatar.category === category);
 }
 
-export function isAvatarId(value: unknown): value is AvatarId {
-  return typeof value === 'string' && AVATAR_IDS.includes(value as AvatarId);
+export function isBuiltinAvatarId(value: unknown): value is BuiltinAvatarId {
+  return typeof value === 'string' && AVATAR_IDS.includes(value as BuiltinAvatarId);
 }
 
-export function getAvatarDefinition(id: AvatarId): AvatarDefinition {
+export function createCustomAvatarId(assetId: string): CustomAvatarId {
+  return `custom:${assetId}`;
+}
+
+export function getCustomAvatarAssetId(value: unknown): string | null {
+  if (typeof value !== 'string' || !value.startsWith('custom:')) return null;
+  const assetId = value.slice('custom:'.length);
+  return /^[a-z0-9][a-z0-9._-]{0,127}$/i.test(assetId) ? assetId : null;
+}
+
+export function isAvatarId(value: unknown): value is AvatarId {
+  return isBuiltinAvatarId(value) || getCustomAvatarAssetId(value) !== null;
+}
+
+export function getAvatarDefinition(id: BuiltinAvatarId): AvatarDefinition {
   return AVATAR_REGISTRY.find((avatar) => avatar.id === id)
     ?? AVATAR_REGISTRY.find((avatar) => avatar.id === DEFAULT_AVATAR_ID)!;
 }

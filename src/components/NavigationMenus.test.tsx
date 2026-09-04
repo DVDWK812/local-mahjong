@@ -32,6 +32,7 @@ describe('菜单和页面导航', () => {
     expect(html).toContain('联机模式');
     expect(html).toContain('牌谱研习');
     expect(html).toContain('玩家设置');
+    expect(html).toContain('图像设置');
     expect(html).toContain('音频设置');
     expect(html).not.toContain('river-board');
   });
@@ -41,9 +42,10 @@ describe('菜单和页面导航', () => {
     expect(html).toContain('继续对局');
   });
 
-  it('主菜单玩家设置与音频设置入口同层级且都有明确 accessible name', () => {
+  it('主菜单玩家、图像、音频设置入口同层级且都有明确 accessible name', () => {
     const html = renderToStaticMarkup(<MainMenu hasSave={false} playerProfile={DEFAULT_PLAYER_PROFILE} onOpenPlayerSettings={() => undefined} onOpenAudioSettings={() => undefined} onContinue={() => undefined} onLocalMode={() => undefined} onOnlineMode={() => undefined} onReplayStudy={() => undefined} />);
     expect(html).toContain('aria-label="玩家设置"');
+    expect(html).toContain('aria-label="图像设置"');
     expect(html).toContain('aria-label="音频设置"');
   });
 
