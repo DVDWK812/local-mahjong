@@ -31,24 +31,26 @@ export interface AppearanceLibraryGridProps {
   onSelect: (ref: AppearanceAssetRef) => void;
   onDelete: (entry: AppearanceLibraryEntry) => void;
   disabled?: boolean;
+  thumbnailOverlay?: ReactNode;
+  imageFit?: 'contain';
 }
 
 /** Builtins are virtual locked cards; custom thumbnails lease the saved crop. */
-export function AppearanceLibraryGrid({ entries, selected, onInherit, defaultRef, defaultPreview, label, aspectRatio, onSelect, onDelete, disabled }: AppearanceLibraryGridProps) {
-  return <div className="appearance-library-grid" style={{ '--library-aspect': aspectRatio } as CSSProperties} aria-label={`${label}图库`}>
+export function AppearanceLibraryGrid({ entries, selected, onInherit, defaultRef, defaultPreview, label, aspectRatio, onSelect, onDelete, disabled, thumbnailOverlay, imageFit }: AppearanceLibraryGridProps) {
+  return <div className="appearance-library-grid" style={{ '--library-aspect': aspectRatio, '--library-image-fit': imageFit } as CSSProperties} aria-label={`${label}图库`}>
     {onInherit ? <article className="appearance-library-card"><button type="button" aria-label={`${label}跟随全局`} aria-pressed={selected === null} disabled={disabled} onClick={onInherit}>
       <span className="appearance-library-thumbnail">跟随全局</span><span>跟随全局</span>
     </button></article> : null}
     <article className="appearance-library-card" data-library-default>
       <button type="button" aria-label={`选择${label}：默认`} aria-pressed={sameRef(selected, defaultRef)} disabled={disabled} onClick={() => onSelect(defaultRef)}>
-        <span className="appearance-library-thumbnail">{defaultPreview}</span><span>默认{label}</span>
+        <span className="appearance-library-thumbnail">{defaultPreview}{thumbnailOverlay}</span><span>默认{label}</span>
       </button>
     </article>
     {entries.map((entry, index) => {
       const ref: AppearanceAssetRef = { kind: 'local', assetId: entry.assetId };
       return <article key={entry.assetId} className="appearance-library-card" data-library-asset-id={entry.assetId}>
         <button type="button" aria-label={`选择${label}：自定义 ${index + 1}`} aria-pressed={sameRef(selected, ref)} disabled={disabled} onClick={() => onSelect(ref)}>
-          <span className="appearance-library-thumbnail"><LibraryThumbnail assetId={entry.assetId} /></span><span>自定义 {index + 1}</span>
+          <span className="appearance-library-thumbnail"><LibraryThumbnail assetId={entry.assetId} />{thumbnailOverlay}</span><span>自定义 {index + 1}</span>
         </button>
         <button type="button" className="appearance-library-delete" aria-label={`删除${label}：自定义 ${index + 1}`} disabled={disabled} onClick={() => onDelete(entry)}>删除</button>
       </article>;

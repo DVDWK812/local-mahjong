@@ -1,11 +1,17 @@
 import { useState, type CSSProperties } from 'react';
 import { getTileTextureSource } from '../../presentation3d/tile/tileTextures';
-import { MAHJONG_TILE_FACE } from '../../presentation3d/tile/tileGeometry';
+import { MAHJONG_TILE_FACE, TILE_FACE_VIEW } from '../../presentation3d/tile/tileGeometry';
 import { DEFAULT_APPEARANCE_SETTINGS, TILE_APPEARANCE_IDS, type AppearanceSettings, type TileAppearanceId } from '../../presentation/appearance/appearanceSettings';
 import { useAppearanceAssetSource } from '../../presentation/appearance/appearanceAssetResolver';
 import { AppearanceImageLibrary } from './AppearanceImageLibrary';
 
-export const TILE_FACE_CROP_ASPECT = MAHJONG_TILE_FACE.width / MAHJONG_TILE_FACE.depth;
+export const TILE_FACE_CROP_ASPECT = TILE_FACE_VIEW.aspect;
+export function TileFaceAkaMarker() {
+  return <span className="tile-face-settings-aka" aria-label="赤牌" style={{
+    left: `${TILE_FACE_VIEW.aka.u * 100}%`, top: `${TILE_FACE_VIEW.aka.v * 100}%`,
+    width: `${TILE_FACE_VIEW.aka.radius * 2 / MAHJONG_TILE_FACE.width * 100}%`,
+  }} />;
+}
 export const TILE_FACE_GROUPS = [
   { label: '万子', keys: [...TILE_APPEARANCE_IDS.filter(key => key.startsWith('m')), 'red5m'] },
   { label: '筒子', keys: [...TILE_APPEARANCE_IDS.filter(key => key.startsWith('p')), 'red5p'] },
@@ -22,9 +28,9 @@ function FacePreview({ tileKey, settings }: { tileKey: TileAppearanceId; setting
   const fallback = getTileTextureSource(tileKey);
   const source = useAppearanceAssetSource(settings.tileFaces[tileKey].face, fallback);
   const [failed, setFailed] = useState('');
-  return <span className="tile-face-settings-preview" style={{ borderColor: settings.tileFaces[tileKey].sideColor }}>
+  return <span className="tile-face-settings-preview" style={{ borderColor: settings.tileFaces[tileKey].sideColor, aspectRatio: TILE_FACE_VIEW.aspect }}>
     <img src={source === failed ? fallback : source} alt="" onError={() => setFailed(source)} />
-    {tileKey.startsWith('red') ? <span className="tile-face-settings-aka" aria-label="赤牌">●</span> : null}
+    {tileKey.startsWith('red') ? <TileFaceAkaMarker /> : null}
   </span>;
 }
 
@@ -56,6 +62,8 @@ export function TileFaceSettings({ settings, onChange, onBack, onDeleteAsset }: 
     <AppearanceImageLibrary scope={{ kind: 'tileFace', tileKey: selected }} selected={current.face}
       defaultRef={DEFAULT_APPEARANCE_SETTINGS.tileFaces[selected].face} label={`${tileFaceLabel(selected)}牌面`}
       aspectRatio={TILE_FACE_CROP_ASPECT} defaultPreview={<img src={getTileTextureSource(selected)} alt="" />}
+      thumbnailOverlay={selected.startsWith('red') ? <TileFaceAkaMarker /> : undefined}
+      imageFit="contain"
       onSelect={face => update({ face })} onDeleteAsset={onDeleteAsset} />
     <div className="appearance-settings-color-field">
       <label className="settings-field"><span>侧方颜色</span><input type="color" aria-label="牌面侧方颜色" value={current.sideColor} onChange={event => update({ sideColor: event.target.value })} /></label>

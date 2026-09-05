@@ -6,6 +6,31 @@ import { DEFAULT_RIICHI_STICK_3D_APPEARANCE } from '../riichi/riichiStickAppeara
 import { getSharedTileBackSurfaceMaterial } from '../tile/tileMaterials';
 
 describe('shared player appearance GPU resources', () => {
+  it('shares felt decoding, survives consumer switching, and falls back for a failed replacement', async () => {
+    const texture = new Texture({ width: 512, height: 406 });
+    const dispose = vi.spyOn(texture, 'dispose');
+    const release = vi.fn();
+    const decode = vi.fn(async (url: string) => {
+      if (url === 'blob:bad') throw new Error('corrupt image');
+      return texture;
+    });
+    const cache = new AppearanceTextureCache(t => t, {
+      acquire: ref => ({ promise: Promise.resolve(ref.kind === 'local' ? `blob:${ref.assetId}` : ''), release }),
+    }, decode);
+    const ref = { kind: 'local' as const, assetId: 'felt' };
+    const a = cache.acquire(ref, 'felt'); const b = cache.acquire(ref, 'felt');
+    expect(await a.promise).toBe(await b.promise);
+    expect(decode).toHaveBeenCalledTimes(1);
+    a.release(); b.release();
+    const remount = cache.acquire(ref, 'felt'); await remount.promise;
+    expect(dispose).not.toHaveBeenCalled();
+    const bad = cache.acquire({ kind: 'local', assetId: 'bad' }, 'felt');
+    expect(await bad.promise).toBeUndefined();
+    expect(await cache.acquire({ kind: 'builtin', id: 'classic-green' }, 'felt').promise).toBeUndefined();
+    remount.release(); bad.release(); await Promise.resolve(); await Promise.resolve();
+    expect(dispose).toHaveBeenCalledTimes(1);
+    expect(release).toHaveBeenCalledTimes(2);
+  });
   it('releases the cached back material when the final texture lease is disposed', () => {
     const texture = new Texture();
     const material = getSharedTileBackSurfaceMaterial(texture);

@@ -2,7 +2,7 @@ import { TextureLoader, type Texture } from 'three';
 import { appearanceAssetUrlCache, type AppearanceAssetUrlCache } from '../../presentation/appearance/appearanceAssetResolver';
 import type { AppearanceAssetRef } from '../../presentation/appearance/appearanceSettings';
 
-export type AppearanceTextureKind = 'tile-back' | 'riichi-stick' | 'tile-face';
+export type AppearanceTextureKind = 'tile-back' | 'riichi-stick' | 'tile-face' | 'felt';
 type Entry = { users: number; promise: Promise<Texture | undefined>; releaseUrl: () => void };
 /** One decode/Texture per asset + UV convention, shared by all player and global slots. */
 export class AppearanceTextureCache {

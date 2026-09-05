@@ -7,6 +7,8 @@ import {
   inspectTileGlyph,
   outputDirectory,
   TILE_GLYPH_PRINT_REGION,
+  TILE_GLYPH_SOURCE_REGION,
+  extractTileGlyph,
 } from './generateTransparentTileFaces.mjs';
 
 const glyphFiles = readdirSync(resolve(outputDirectory))
@@ -25,6 +27,31 @@ function hasInk(fileName, predicate) {
 }
 
 describe('ink-only transparent 3D tile glyph generation', () => {
+  it.each(['p1', 'p2', 'p3', 'p7', 'p8', 'p9', 's7', 's9'])('%s preserves ink beyond the old hard mask, fitting rather than clipping', (key) => {
+    const source = decodeRgbaPng(readFileSync(join('src/assets/tiles', `${key}.png`)));
+    const result = extractTileGlyph(source.pixels, source.width, source.height);
+    expect(result.fit).toBeDefined();
+    const actual = readGlyph(`${key}.png`);
+    expect(actual.pixels.equals(result.pixels)).toBe(true);
+    let recovered = 0;
+    const region = TILE_GLYPH_SOURCE_REGION;
+    for (let y = region.top; y < region.bottom; y++) for (let x = region.left; x < region.right; x++) {
+      const i = (y * source.width + x) * 4;
+      if (Math.hypot(...[0, 1, 2].map(c => source.pixels[i + c] - result.paper[c])) < 100) continue;
+      if (x < 8 || x >= 66 || y < 10 || y >= 94) recovered++;
+      const { scale, cx, cy, tx, ty } = result.fit;
+      const px = Math.round((x - cx) * scale + tx), py = Math.round((y - cy) * scale + ty);
+      // Every strong source ink pixel must still have visible support after fit.
+      expect(actual.pixels[(py * actual.width + px) * 4 + 3]).toBeGreaterThan(0);
+    }
+    expect(recovered).toBeGreaterThan(0);
+  });
+  it('regenerates all 35 PNGs deterministically without touching original DOM resources', () => {
+    for (const file of glyphFiles) {
+      const source = decodeRgbaPng(readFileSync(join('src/assets/tiles', file)));
+      expect(readGlyph(file).pixels.equals(extractTileGlyph(source.pixels, source.width, source.height).pixels)).toBe(true);
+    }
+  });
   it('keeps every generated asset inside the audited print region with no card silhouette', () => {
     expect(glyphFiles).toHaveLength(35);
     for (const fileName of glyphFiles) {

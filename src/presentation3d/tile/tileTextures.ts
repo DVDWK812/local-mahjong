@@ -8,6 +8,16 @@ import type { Tile, TileId } from '../../game/types';
 import type { TileDoraVisualKind } from '../../presentation/table/tileVisualSemantics';
 import { getTile3DFaceFallbackTexture, getTile3DFaceTextureById } from './tileFaceTextures3d';
 import type { TileFaceState } from './tileOrientation';
+import { getTileFaceImageFit } from './tileGeometry';
+
+/** Contain the complete builtin bitmap without stretching it to the surface ratio. */
+export function configureBuiltinFaceFit(texture: Texture): void {
+  const image = texture.image as { width?: number; height?: number } | undefined;
+  const fit = getTileFaceImageFit(image?.width ?? 0, image?.height ?? 0);
+  texture.repeat.set(1 / fit.width, 1 / fit.height);
+  texture.offset.set((1 - texture.repeat.x) / 2, (1 - texture.repeat.y) / 2);
+  texture.needsUpdate = true;
+}
 
 export type TileDefinition = Readonly<Pick<Tile, 'id' | 'red'> & {
   doraKind?: TileDoraVisualKind | null;

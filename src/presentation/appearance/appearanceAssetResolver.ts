@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { AppearanceAssetRef } from './appearanceSettings';
 import type { AppearanceAssetStore } from './appearanceAssetStorage';
 import { appearanceAssetStorage } from './appearanceAssetStorage';
+import { reportMissingAppearanceAsset } from './missingAppearanceAssets';
 
 type CachedAsset = {
   promise: Promise<string | null>;
@@ -22,7 +23,10 @@ export type AppearanceAssetLease = Readonly<{
 export class AppearanceAssetUrlCache {
   private readonly entries = new Map<string, CachedAsset>();
 
-  constructor(private readonly store: Pick<AppearanceAssetStore, 'get'> = appearanceAssetStorage) {}
+  constructor(
+    private readonly store: Pick<AppearanceAssetStore, 'get'> = appearanceAssetStorage,
+    private readonly onMissing: (assetId: string) => void = () => undefined,
+  ) {}
 
   resolve(reference: AppearanceAssetRef, fallbackSource: string): Promise<string> {
     if (reference.kind !== 'local') return Promise.resolve(fallbackSource);
@@ -33,7 +37,11 @@ export class AppearanceAssetUrlCache {
     const existing = this.entries.get(assetId);
     if (existing) return existing;
     const entry: CachedAsset = {
-      promise: this.store.get(assetId).then((blob) => blob ? URL.createObjectURL(blob) : null).catch(() => null),
+      promise: this.store.get(assetId).then((blob) => {
+        if (blob) return URL.createObjectURL(blob);
+        this.onMissing(assetId);
+        return null;
+      }).catch(() => null),
       consumers: 0, retired: false, reclaimed: false,
     };
     this.entries.set(assetId, entry);
@@ -60,6 +68,13 @@ export class AppearanceAssetUrlCache {
         released = true;
         entry.consumers -= 1;
         this.reclaimIfUnused(entry);
+        // Give a same-commit/StrictMode consumer a chance to reacquire. Saved
+        // library membership retains the Blob, not an unused in-memory URL.
+        queueMicrotask(() => {
+          if (entry.consumers === 0 && this.entries.get(reference.assetId) === entry) {
+            this.invalidate(reference.assetId);
+          }
+        });
       },
     };
   }
@@ -85,7 +100,7 @@ export class AppearanceAssetUrlCache {
   }
 }
 
-export const appearanceAssetUrlCache = new AppearanceAssetUrlCache();
+export const appearanceAssetUrlCache = new AppearanceAssetUrlCache(appearanceAssetStorage, reportMissingAppearanceAsset);
 
 /** Resolves a persisted asset ref safely; missing/corrupt blobs retain the builtin. */
 export function useAppearanceAssetSource(reference: AppearanceAssetRef, fallbackSource: string): string {

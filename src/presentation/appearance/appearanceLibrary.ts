@@ -13,6 +13,16 @@ type LibraryDependencies = {
 };
 const defaults: LibraryDependencies = { store: appearanceAssetStorage, catalog: appearanceAssetCatalog, cache: appearanceAssetUrlCache };
 
+/** Missing Blob repair uses the same selection authorities as explicit delete,
+ * but never deletes binary data (nor any other saved library entry). */
+export function repairMissingAppearanceAsset(assetId: string, repairCurrent: (assetId: string) => void, dependencies = defaults) {
+  playerSlotAvatarStore.removeAsset(assetId);
+  playerSlotAppearanceStore.removeAsset(assetId);
+  repairCurrent(assetId);
+  if (dependencies.catalog.getSnapshot().some(entry => entry.assetId === assetId)) dependencies.catalog.remove(assetId);
+  dependencies.cache.invalidate(assetId);
+}
+
 /** Dimensions come from the saved crop, never a second thumbnail payload. */
 export async function inspectAppearanceImage(blob: Blob): Promise<{ width: number; height: number }> {
   if (!['image/png', 'image/jpeg', 'image/webp'].includes(blob.type)) throw new Error('不支持的图片格式。');

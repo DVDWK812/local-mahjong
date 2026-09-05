@@ -8,9 +8,12 @@ export const outputDirectory = 'src/presentation3d/assets/tiles/faces-transparen
 const tileFileName = /^(?:[mps][1-9]|z[1-7]|placeholder)\.png$/;
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
-// Audited from the common 74 × 104 source artwork. The old tile body, border,
-// corners, and drop shadow all live outside this physical print area.
+// Output safe margin on the common 74 × 104 canvas, not a source clipping mask.
+// Complete extracted ink is fitted here without the old body/border/shadow.
 export const TILE_GLYPH_PRINT_REGION = Object.freeze({ left: 8, top: 10, right: 66, bottom: 94 });
+// Extraction and output margins are different: dense pips/bamboo reach x=4
+// and y=99 in the originals. Never use the output safe margin as an ink mask.
+export const TILE_GLYPH_SOURCE_REGION = Object.freeze({ left: 3, top: 4, right: 71, bottom: 100 });
 const MATTE_DISTANCE_START = 9;
 const MATTE_DISTANCE_END = 18;
 const FULL_INK_DISTANCE = 300;
@@ -119,7 +122,8 @@ export function extractTileGlyph(pixels, width, height) {
   const paper = paperColorFor(pixels, width, height);
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
-      if (!isInsidePrintRegion(x, y)) continue;
+      const region = TILE_GLYPH_SOURCE_REGION;
+      if (x < region.left || x >= region.right || y < region.top || y >= region.bottom) continue;
       const offset = (y * width + x) * 4;
       const sourceAlpha = pixels[offset + 3] / 255;
       const red = pixels[offset];
@@ -140,7 +144,60 @@ export function extractTileGlyph(pixels, width, height) {
       output[offset + 3] = alphaByte;
     }
   }
-  return { pixels: output, paper };
+  // Reject isolated residual paper/border antialiasing, while keeping soft ink
+  // edges connected to a dark or saturated print core (including black honors).
+  const visited = new Uint8Array(width * height);
+  for (let start = 0; start < visited.length; start++) {
+    if (visited[start] || !output[start * 4 + 3]) continue;
+    const component = [start];
+    visited[start] = 1;
+    let hasInkCore = false;
+    for (let cursor = 0; cursor < component.length; cursor++) {
+      const current = component[cursor];
+      const i = current * 4;
+      if (Math.hypot(pixels[i] - paper[0], pixels[i + 1] - paper[1], pixels[i + 2] - paper[2]) >= 100) hasInkCore = true;
+      const x = current % width, y = Math.floor(current / width);
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+        const nx = x + dx, ny = y + dy, next = ny * width + nx;
+        if (nx < 0 || nx >= width || ny < 0 || ny >= height || visited[next] || !output[next * 4 + 3]) continue;
+        visited[next] = 1;
+        component.push(next);
+      }
+    }
+    if (!hasInkCore) for (const i of component) output.fill(0, i * 4, i * 4 + 4);
+  }
+  let left = width, top = height, right = -1, bottom = -1;
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    if (!output[(y * width + x) * 4 + 3]) continue;
+    left = Math.min(left, x); right = Math.max(right, x);
+    top = Math.min(top, y); bottom = Math.max(bottom, y);
+  }
+  const region = TILE_GLYPH_PRINT_REGION;
+  // Unaffected artwork stays byte-for-byte at its original size/position.
+  if (right < 0 || (left >= region.left && right < region.right && top >= region.top && bottom < region.bottom)) return { pixels: output, paper };
+  const scale = Math.min(1, (region.right - region.left - 2) / (right - left + 1), (region.bottom - region.top - 2) / (bottom - top + 1));
+  const cx = (left + right) / 2, cy = (top + bottom) / 2;
+  const tx = (region.left + region.right - 1) / 2, ty = (region.top + region.bottom - 1) / 2;
+  const fitted = Buffer.alloc(output.length);
+  // Bilinear filtering in premultiplied alpha: no white fringe from resampling.
+  for (let y = region.top; y < region.bottom; y++) for (let x = region.left; x < region.right; x++) {
+    const sx = (x - tx) / scale + cx, sy = (y - ty) / scale + cy;
+    const x0 = Math.floor(sx), y0 = Math.floor(sy);
+    const sum = [0, 0, 0, 0];
+    for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+      const px = x0 + dx, py = y0 + dy;
+      if (px < 0 || py < 0 || px >= width || py >= height) continue;
+      const i = (py * width + px) * 4;
+      const weight = (dx ? sx - x0 : 1 - sx + x0) * (dy ? sy - y0 : 1 - sy + y0);
+      const a = output[i + 3] * weight;
+      sum[3] += a;
+      for (let c = 0; c < 3; c++) sum[c] += output[i + c] * a;
+    }
+    const i = (y * width + x) * 4;
+    fitted[i + 3] = Math.round(sum[3]);
+    if (fitted[i + 3]) for (let c = 0; c < 3; c++) fitted[i + c] = clampChannel(sum[c] / sum[3]);
+  }
+  return { pixels: fitted, paper, fit: { scale, cx, cy, tx, ty }, sourceBounds: { left, top, right, bottom } };
 }
 
 export function inspectTileGlyph({ width, height, pixels }) {

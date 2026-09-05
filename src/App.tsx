@@ -61,7 +61,8 @@ import { normalizePlayerProfile, type PlayerProfile } from './profile/playerProf
 import { loadPlayerProfile, savePlayerProfile } from './profile/playerProfileStorage';
 import { loadAppearanceSettings, saveAppearanceSettings } from './presentation/appearance/appearanceSettingsStorage';
 import type { AppearanceSettings } from './presentation/appearance/appearanceSettings';
-import { adoptCurrentAppearanceAssets, collectCurrentAppearanceAssetIds, deleteAppearanceLibraryAsset, removeAppearanceAssetReferences } from './presentation/appearance/appearanceLibrary';
+import { adoptCurrentAppearanceAssets, collectCurrentAppearanceAssetIds, deleteAppearanceLibraryAsset, removeAppearanceAssetReferences, repairMissingAppearanceAsset } from './presentation/appearance/appearanceLibrary';
+import { subscribeMissingAppearanceAssets } from './presentation/appearance/missingAppearanceAssets';
 import { presentationPacingGate } from './presentation/pacing/PresentationPacingGate';
 import { runPacedAutomaticAction } from './presentation/pacing/automaticActionPacing';
 import { useMatchPresentationEvents } from './presentation/matchPresentationEvents';
@@ -251,6 +252,20 @@ export default function App() {
   }));
 
   const mountedRef = useRef(false);
+  const appearanceRepairState = useRef({ settings: appearanceSettings, profile: state.playerProfile });
+  appearanceRepairState.current = { settings: appearanceSettings, profile: state.playerProfile };
+  const missingAppearanceRepair = useRef<(assetId: string) => void>(() => undefined);
+  missingAppearanceRepair.current = assetId => repairMissingAppearanceAsset(assetId, id => {
+    const { settings, profile } = appearanceRepairState.current;
+    if (!collectCurrentAppearanceAssetIds(settings, profile.avatarId).has(id)) return;
+    const next = removeAppearanceAssetReferences(settings, profile.avatarId, id);
+    const nextProfile = { ...profile, avatarId: next.avatarId };
+    // Several missing images can finish in one React batch; accumulate repairs.
+    appearanceRepairState.current = { settings: next.settings, profile: nextProfile };
+    handleAppearanceSettingsChange(next.settings);
+    handlePlayerProfileChange(nextProfile);
+  });
+  useEffect(() => subscribeMissingAppearanceAssets(assetId => missingAppearanceRepair.current(assetId)), []);
   useEffect(() => {
     // Adopt selected pre-library blobs without changing current selection.
     // Failed/missing assets remain protected by current-reference cleanup.

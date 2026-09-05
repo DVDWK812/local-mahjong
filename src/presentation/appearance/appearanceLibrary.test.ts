@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { AppearanceAssetCatalog, APPEARANCE_CATALOG_KEY, type AppearanceLibraryEntry } from './appearanceAssetCatalog';
 import { createAppearanceAssetStorage } from './appearanceAssetStorage';
-import { addAppearanceLibraryImage, cleanupAppearanceLibraryOrphans, collectCurrentAppearanceAssetIds, deleteAppearanceLibraryAsset, removeAppearanceAssetReferences, selectLibraryAppearance } from './appearanceLibrary';
+import { addAppearanceLibraryImage, cleanupAppearanceLibraryOrphans, collectCurrentAppearanceAssetIds, deleteAppearanceLibraryAsset, removeAppearanceAssetReferences, selectLibraryAppearance, repairMissingAppearanceAsset } from './appearanceLibrary';
 import { createDefaultAppearanceSettings } from './appearanceSettings';
 import { DEFAULT_AVATAR_ID } from '../../profile/avatars';
 import { playerSlotAvatarStore } from './playerSlotAvatars';
@@ -67,6 +67,21 @@ describe('appearance catalog', () => {
 });
 
 describe('saved appearance library lifecycle', () => {
+  it('repairs missing current/catalog refs without deleting any binary or unrelated tile library', () => {
+    const d = dependencies();
+    d.catalog.add({ ...entry('missing'), kind: 'tileFace', tileKey: 'm1' });
+    d.catalog.add({ ...entry('keep'), kind: 'tileFace', tileKey: 'm2' });
+    const remove = vi.spyOn(d.store, 'delete');
+    let settings = selectLibraryAppearance(createDefaultAppearanceSettings(), { kind: 'tileFace', tileKey: 'm1' }, { kind: 'local', assetId: 'missing' });
+    repairMissingAppearanceAsset('missing', id => {
+      settings = removeAppearanceAssetReferences(settings, DEFAULT_AVATAR_ID, id).settings;
+    }, d);
+    expect(settings.tileFaces.m1.face.kind).toBe('builtin');
+    expect(d.catalog.list({ kind: 'tileFace', tileKey: 'm1' })).toEqual([]);
+    expect(d.catalog.list({ kind: 'tileFace', tileKey: 'm2' })).toHaveLength(1);
+    expect(remove).not.toHaveBeenCalled();
+    expect(d.cache.invalidate).toHaveBeenCalledWith('missing');
+  });
   it('protects uncatalogued player refs from cleanup and clears every player before deleting a shared Blob', async () => {
     const d = dependencies();
     const record = await d.store.put(new Blob(['shared'], { type: 'image/png' }));

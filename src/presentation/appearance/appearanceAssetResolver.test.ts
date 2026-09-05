@@ -10,6 +10,25 @@ describe('AppearanceAssetUrlCache', () => {
     Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: originalRevoke });
   });
 
+  it('reclaims unused URLs without deleting saved Blobs, but permits same-commit reacquisition', async () => {
+    const revoke = vi.fn();
+    const get = vi.fn(async () => new Blob(['saved']));
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: () => 'blob:saved' });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revoke });
+    const cache = new AppearanceAssetUrlCache({ get });
+    const ref = { kind: 'local' as const, assetId: 'saved' };
+    const first = cache.acquire(ref, ''); await first.promise;
+    first.release();
+    const remount = cache.acquire(ref, ''); await remount.promise;
+    expect(revoke).not.toHaveBeenCalled();
+    expect(get).toHaveBeenCalledTimes(1);
+    remount.release(); await Promise.resolve(); await Promise.resolve();
+    expect(revoke).toHaveBeenCalledTimes(1);
+    const later = cache.acquire(ref, ''); await later.promise;
+    expect(get).toHaveBeenCalledTimes(2);
+    later.release();
+  });
+
   it('reads one local asset once, shares its URL, and revokes it on replacement cleanup', async () => {
     const get = vi.fn(async () => new Blob(['image'], { type: 'image/png' }));
     const create = vi.fn(() => 'blob:appearance-a');
@@ -35,6 +54,17 @@ describe('AppearanceAssetUrlCache', () => {
     const cache = new AppearanceAssetUrlCache({ get: async () => null });
     await expect(cache.resolve({ kind: 'local', assetId: 'missing' }, '/default.png')).resolves.toBe('/default.png');
     await expect(cache.resolve({ kind: 'local', assetId: 'missing' }, '/other-default.png')).resolves.toBe('/other-default.png');
+  });
+
+  it('reports confirmed missing binaries once, never transient IndexedDB failures', async () => {
+    const missing = vi.fn();
+    const cache = new AppearanceAssetUrlCache({ get: async () => null }, missing);
+    await cache.resolve({ kind: 'local', assetId: 'missing' }, 'default');
+    await cache.resolve({ kind: 'local', assetId: 'missing' }, 'default');
+    expect(missing.mock.calls).toEqual([['missing']]);
+    const unavailable = new AppearanceAssetUrlCache({ get: async () => { throw new Error('IDB unavailable'); } }, missing);
+    expect(await unavailable.resolve({ kind: 'local', assetId: 'keep' }, 'default')).toBe('default');
+    expect(missing).toHaveBeenCalledTimes(1);
   });
 
   it('shares thumbnail/avatar leases and cannot revoke a replacement through an old lease', async () => {

@@ -1,17 +1,15 @@
 import { useThree } from '@react-three/fiber';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   ClampToEdgeWrapping,
   LinearFilter,
   SRGBColorSpace,
-  TextureLoader,
   type Texture,
 } from 'three';
 import { TILE_APPEARANCE_IDS, type AppearanceAssetRef, type AppearanceSettings } from '../../presentation/appearance/appearanceSettings';
 import { usePlayerSlotAppearances, type PlayerSlotAppearance } from '../../presentation/appearance/playerSlotAppearance';
 import { AppearanceTextureCache, type AppearanceTextureKind } from './AppearanceTextureCache';
 import type { PlayerAppearance3DResources } from './TileAppearance3DContext';
-import { useAppearanceAssetSource } from '../../presentation/appearance/appearanceAssetResolver';
 import { DEFAULT_RIICHI_STICK_3D_APPEARANCE, type RiichiStick3DAppearance } from '../riichi/riichiStickAppearance';
 import { TileAppearance3DContext, resolveLoadedPlayerAppearance3D } from './TileAppearance3DContext';
 import { TileFaceResources3DContext, type FaceResources3D } from './TileAppearance3DContext';
@@ -35,7 +33,7 @@ export function getRiichiStickCropAspectRatio(): number {
   return RIICHI_STICK_3D_LAYOUT.length / RIICHI_STICK_3D_LAYOUT.width;
 }
 
-export function configureLocalAppearanceTexture(texture: Texture, kind: AppearanceTextureKind | 'felt'): Texture {
+export function configureLocalAppearanceTexture(texture: Texture, kind: AppearanceTextureKind): Texture {
   texture.colorSpace = SRGBColorSpace;
   texture.wrapS = ClampToEdgeWrapping;
   texture.wrapT = ClampToEdgeWrapping;
@@ -96,63 +94,6 @@ function usePlayerResources(player: PlayerSlotAppearance, global: PlayerAppearan
     [player, global.backTexture, global.backColor, global.riichiStickAppearance, back, stick]);
 }
 
-/**
- * Loads one local texture per appearance slot without a Suspense boundary.
- * A replacement keeps the previously committed texture visible while its Blob
- * decodes, so a new image cannot blank the entire table.
- */
-function useLocalAppearanceTexture(source: string, kind: 'tile-back' | 'felt' | 'riichi-stick'): Texture | undefined {
-  const invalidate = useThree((state) => state.invalidate);
-  const textureRef = useRef<Texture | undefined>(undefined);
-  const [texture, setTexture] = useState<Texture | undefined>(undefined);
-
-  useEffect(() => {
-    let active = true;
-    if (!source.startsWith('blob:')) {
-      const previous = textureRef.current;
-      textureRef.current = undefined;
-      setTexture(undefined);
-      previous?.dispose();
-      invalidate();
-      return () => { active = false; };
-    }
-
-    const loader = new TextureLoader();
-    loader.load(
-      source,
-      (loaded) => {
-        configureLocalAppearanceTexture(loaded, kind);
-        if (!active) {
-          loaded.dispose();
-          return;
-        }
-        const previous = textureRef.current;
-        textureRef.current = loaded;
-        setTexture(loaded);
-        previous?.dispose();
-        invalidate();
-      },
-      undefined,
-      () => {
-        // A corrupt/revoked Blob falls back safely instead of throwing through
-        // the Canvas. Retain a previous valid texture when one exists.
-        if (active && !textureRef.current) {
-          setTexture(undefined);
-          invalidate();
-        }
-      },
-    );
-    return () => { active = false; };
-  }, [invalidate, kind, source]);
-
-  useEffect(() => () => {
-    textureRef.current?.dispose();
-    textureRef.current = undefined;
-  }, []);
-
-  return texture;
-}
-
 export function AppearanceResources3D({
   settings,
   children,
@@ -163,10 +104,9 @@ export function AppearanceResources3D({
     riichiStickAppearance: RiichiStick3DAppearance;
   }>) => ReactNode;
 }>) {
-  const feltSource = useAppearanceAssetSource(settings.tableFelt.asset, DEFAULT_FELT_TEXTURE_SOURCE);
   const faces = useFaceResources(settings);
   const backTexture = useSharedAppearanceTexture(settings.tileBack.texture, 'tile-back');
-  const feltTexture = useLocalAppearanceTexture(feltSource, 'felt');
+  const feltTexture = useSharedAppearanceTexture(settings.tableFelt.asset, 'felt');
   const stickTexture = useSharedAppearanceTexture(settings.riichiStick.asset, 'riichi-stick');
 
   const tileResources = useMemo(() => ({

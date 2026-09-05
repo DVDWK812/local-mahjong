@@ -16,6 +16,7 @@ import {
   MAHJONG_TILE_DIMENSIONS,
   MAHJONG_TILE_ANATOMY,
   MAHJONG_TILE_FACE,
+  TILE_FACE_VIEW,
   sharedRedFiveMarkerGeometry,
   sharedStandingHandHitGeometry,
   sharedTileBodyGeometry,
@@ -41,6 +42,7 @@ import {
 } from './tileOrientation';
 import {
   configureTileTexture,
+  configureBuiltinFaceFit,
   resolveTile3DVisual,
   type TileDefinition,
 } from './tileTextures';
@@ -161,6 +163,7 @@ export function Tile3D({
 
   useEffect(() => {
     configureTileTexture(resolvedFaceTexture, maxAnisotropy);
+    if (resolvedFaceTexture === loadedTextures[0]) configureBuiltinFaceFit(resolvedFaceTexture);
     configureTileTexture(resolvedBackTexture, maxAnisotropy);
     invalidate();
   }, [invalidate, maxAnisotropy, resolvedBackTexture, resolvedFaceTexture]);
@@ -236,9 +239,9 @@ export function Tile3D({
             geometry={sharedRedFiveMarkerGeometry}
             material={sharedRedFiveMarkerMaterial}
             position={[
-              0.3,
+              (TILE_FACE_VIEW.aka.u - 0.5) * MAHJONG_TILE_FACE.width,
               MAHJONG_TILE_DIMENSIONS.height / 2 + MAHJONG_TILE_FACE.markerOffset + TILE_GLYPH_DECAL_OFFSET * 2,
-              0.48,
+              (TILE_FACE_VIEW.aka.v - 0.5) * MAHJONG_TILE_FACE.depth,
             ]}
             rotation={[-Math.PI / 2, 0, 0]}
             raycast={stableHitTarget || raycastDisabled ? () => undefined : undefined}

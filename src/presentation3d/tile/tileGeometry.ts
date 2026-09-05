@@ -16,6 +16,18 @@ export const MAHJONG_TILE_FACE = {
   markerOffset: 0,
 } as const;
 
+/** Top-left origin on the face, shared with settings thumbnails (not local DOM hand). */
+export const TILE_FACE_VIEW = {
+  aspect: MAHJONG_TILE_FACE.width / MAHJONG_TILE_FACE.depth,
+  // Fits wholly in the generated glyph's top safe margin, not over a pip.
+  aka: { u: 0.07, v: 0.05, radius: 0.04 },
+} as const;
+
+export function getTileFaceImageFit(width: number, height: number) {
+  const aspect = width > 0 && height > 0 ? width / height : TILE_FACE_VIEW.aspect;
+  return { width: Math.min(1, aspect / TILE_FACE_VIEW.aspect), height: Math.min(1, TILE_FACE_VIEW.aspect / aspect) };
+}
+
 export const MAHJONG_TILE_ANATOMY = {
   ivoryHeight: 0.45,
   ivoryCenterY: 0.075,
@@ -69,5 +81,5 @@ export const sharedTileFaceGeometry = new PlaneGeometry(
 );
 sharedTileFaceGeometry.name = 'shared-mahjong-tile-face';
 
-export const sharedRedFiveMarkerGeometry = new CircleGeometry(0.075, 20);
+export const sharedRedFiveMarkerGeometry = new CircleGeometry(TILE_FACE_VIEW.aka.radius, 20);
 sharedRedFiveMarkerGeometry.name = 'shared-red-five-marker';
