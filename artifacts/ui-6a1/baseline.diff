@@ -1,0 +1,584 @@
+diff --git a/src/components/game/GameScreen.tsx b/src/components/game/GameScreen.tsx
+index 87a0cda..50dab27 100644
+--- a/src/components/game/GameScreen.tsx
++++ b/src/components/game/GameScreen.tsx
+@@ -144,6 +144,8 @@ export function GameScreen({
+   ), [localPlayerId, onDiscard]);
+   const handAnimationSessionKey = `${gameState.roundWind}-${gameState.dealer}-${gameState.honba}-${matchState?.handNumber ?? 'single'}`;
+   const captureDiscardSource = useCallback((capture: DiscardSourceCapture) => {
++    const features = getPresentationFeatures();
++    if (!handAnimationsEnabled || !features.presentationEvents || !features.handAnimations) return;
+     const snapshot: DiscardSourceSnapshot = {
+       ...capture,
+       sessionKey: handAnimationSessionKey,
+@@ -155,10 +157,10 @@ export function GameScreen({
+       clearStoredSnapshot();
+       setLocalDiscardSnapshot((current) => current?.tileInstanceId === snapshot.tileInstanceId ? null : current);
+     };
+-  }, [activeTableRenderer, discardSourceSnapshots, gameState.turn, handAnimationSessionKey]);
++  }, [activeTableRenderer, discardSourceSnapshots, gameState.turn, handAnimationSessionKey, handAnimationsEnabled]);
+   const handleLocalHandAnimationChange = useCallback((next: LocalHandAnimation3DState | null) => {
+     setLocalHandAnimation(next);
+-    if (next?.kind === 'discard' && next.phase === 'proxy-ready') setLocalDiscardSnapshot(null);
++    if (!next || next.handPresentation || (next.kind === 'discard' && next.phase === 'proxy-ready')) setLocalDiscardSnapshot(null);
+   }, []);
+   const handleWinPresentation3DChange = useCallback((next: WinPresentation3DState | null) => {
+     setWinPresentation3D(activeTableRenderer === '3d' ? next : null);
+diff --git a/src/components/game/LocalHandArea.tsx b/src/components/game/LocalHandArea.tsx
+index db5cd54..13397c7 100644
+--- a/src/components/game/LocalHandArea.tsx
++++ b/src/components/game/LocalHandArea.tsx
+@@ -12,6 +12,7 @@ import { getLocalHandScreenOffset } from '../../presentation3d/table/tablePresen
+ import { PlayerMelds } from '../PlayerMelds';
+ import { PlayerAvatar } from '../PlayerAvatar';
+ import { Tile } from '../Tile';
++import { LocalHandSnapshot, LocalDiscardProxy } from './LocalHandSnapshot';
+ 
+ interface LocalHandAreaProps {
+   player: PlayerState;
+@@ -93,6 +94,7 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
+   };
+ 
+   const localDrawPhase = localHandAnimation?.kind === 'draw' ? localHandAnimation.phase : null;
++  const handFrame = screenSpaceOverlay ? localHandAnimation?.handPresentation : undefined;
+   const snapshotTile = discardSnapshot
+     ? { ...createTile(discardSnapshot.tile.id, -1), red: discardSnapshot.tile.red, instanceId: discardSnapshot.tileInstanceId }
+     : null;
+@@ -116,7 +118,8 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
+         </span>
+       </div>}
+       <div className="local-hand-track hand-slot hand-slot--bottom" data-hand-slot="bottom">
+-        <div className="local-hand-row">
++        {handFrame ? <LocalHandSnapshot frame={handFrame} concealed={concealHand} doraIndicators={doraIndicators}
++          doraGlowEnabled={doraGlowEnabled} doraSweepEnabled={doraBreathingEnabled} /> : <div className="local-hand-row">
+           {baseTiles.map((tile) => (
+             <Tile
+               key={tile.instanceId}
+@@ -165,13 +168,14 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
+               />
+             </span>
+           ) : null}
+-        </div>
++        </div>}
+       </div>
+       {screenSpaceOverlay ? null : <div className="local-meld-track" data-meld-player={meldPlayer.id} data-table-meld-zone="south">
+         <PlayerMelds player={meldPlayer} seatClass="seat-bottom local-melds" doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
+       </div>}
+     </section>
+-    {screenSpaceOverlay && discardSnapshot && snapshotTile ? (
++    {handFrame && localHandAnimation?.discardMotion ? <LocalDiscardProxy frame={handFrame} motion={localHandAnimation.discardMotion} /> : null}
++    {!handFrame && screenSpaceOverlay && discardSnapshot && snapshotTile ? (
+       <div
+         className="local-hand-discard-snapshot"
+         data-local-discard-snapshot={discardSnapshot.tileInstanceId}
+diff --git a/src/presentation/PresentationEventBus.ts b/src/presentation/PresentationEventBus.ts
+index 7fd6e6b..5d3e2b4 100644
+--- a/src/presentation/PresentationEventBus.ts
++++ b/src/presentation/PresentationEventBus.ts
+@@ -2,6 +2,7 @@ import type { AbortiveDrawReason, PlayerId, TileId } from '../game/types';
+ import type { LimitTier } from '../game/score/pointCalculator';
+ import type { YakuhaiSource, YakuId } from '../game/score/yaku/types';
+ import type { MatchResult } from '../game/match/types';
++import type { HandDiscardHistory } from './handAnimation/HandPresentationSnapshot';
+ 
+ export interface PresentationTile {
+   readonly id: TileId;
+@@ -9,6 +10,7 @@ export interface PresentationTile {
+ }
+ 
+ export interface TileDiscardedPresentationEvent {
++  readonly handHistory?: HandDiscardHistory;
+   readonly eventId: string;
+   readonly sequence: number;
+   readonly type: 'tile_discarded';
+diff --git a/src/presentation/animation/AnimationScheduler.ts b/src/presentation/animation/AnimationScheduler.ts
+index c164d66..0c1bbd9 100644
+--- a/src/presentation/animation/AnimationScheduler.ts
++++ b/src/presentation/animation/AnimationScheduler.ts
+@@ -12,6 +12,43 @@ export interface AnimationTask {
+   cleanup?(): void;
+ }
+ 
++/** Finite frame task owned by AnimationScheduler; no consumer timer or permanent RAF. */
++export function animationFrameTask(durationMs: number, update: (progress: number) => void): AnimationTask {
++  return {
++    snapToEnd: () => update(1),
++    play: async (context) => {
++      if (context.signal.aborted) return;
++      update(0);
++      if (typeof requestAnimationFrame !== 'function') {
++        await waitForAnimationTime(durationMs, context);
++        if (!context.signal.aborted) update(1);
++        return;
++      }
++      const duration = effectiveAnimationDuration(durationMs, context.speed);
++      if (duration === 0) { update(1); return; }
++      await new Promise<void>((resolve, reject) => {
++        const start = performance.now();
++        let handle = 0;
++        const cleanup = () => {
++          cancelAnimationFrame(handle);
++          context.signal.removeEventListener('abort', finish);
++        };
++        const finish = () => { cleanup(); resolve(); };
++        const tick = (now: number) => {
++          if (context.signal.aborted) { finish(); return; }
++          const progress = Math.min(1, (now - start) / duration);
++          try { update(progress); }
++          catch (error) { cleanup(); reject(error); return; }
++          if (progress === 1) finish();
++          else handle = requestAnimationFrame(tick);
++        };
++        context.signal.addEventListener('abort', finish, { once: true });
++        handle = requestAnimationFrame(tick);
++      });
++    },
++  };
++}
++
+ export class AnimationCancelledError extends Error {
+   constructor() {
+     super('Animation cancelled');
+diff --git a/src/presentation/gamePresentationEvents.ts b/src/presentation/gamePresentationEvents.ts
+index a7fe876..7b606ab 100644
+--- a/src/presentation/gamePresentationEvents.ts
++++ b/src/presentation/gamePresentationEvents.ts
+@@ -3,10 +3,12 @@ import { getPresentationFeatures, type PresentationFeatureFlagsSource } from '..
+ import type { AbortiveDrawResult, ExhaustiveDrawResult, GameState, WinResultEntry, WinRoundResult } from '../game/types';
+ import type { YakuId } from '../game/score/yaku/types';
+ import { PresentationEventBus, type PresentationEventInput, presentationEventBus } from './PresentationEventBus';
++import { freezeHandDiscardHistory } from './handAnimation/HandPresentationSnapshot';
+ 
+ const usePresentationCommitEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
+ 
+ export class GamePresentationEventObserver {
++  private previousHands: Array<Pick<GameState['players'][number], 'hand' | 'drawnTile'>>;
+   private riverLengths: number[];
+   private drawnTileInstanceIds: Array<string | null>;
+   private riichiDeclared: boolean[];
+@@ -20,6 +22,7 @@ export class GamePresentationEventObserver {
+     private readonly eventBus: PresentationEventBus = presentationEventBus,
+     private readonly featureFlagsSource: PresentationFeatureFlagsSource = getPresentationFeatures,
+   ) {
++    this.previousHands = copyPresentationHands(initialState);
+     this.riverLengths = initialState.players.map((player) => player.river.length);
+     this.drawnTileInstanceIds = initialState.players.map((player) => player.drawnTile?.instanceId ?? null);
+     this.riichiDeclared = initialState.players.map((player) => player.riichi);
+@@ -72,6 +75,13 @@ export class GamePresentationEventObserver {
+           tile: { id: tile.id, red: tile.red },
+           riverIndex: previousLength + offset,
+           isRiichiDiscard: tile.isRiichiDiscard === true,
++          handHistory: freezeHandDiscardHistory({
++            preDiscardHand: this.previousHands[player.id].hand,
++            drawnTile: this.previousHands[player.id].drawnTile ?? null,
++            discardedTile: tile,
++            finalHand: player.hand,
++            isTsumogiri: tile.isTsumogiri === true,
++          }),
+         });
+         if (event.type === 'tile_discarded') this.lastDiscardPresentationEventId = event.eventId;
+       });
+@@ -120,6 +130,7 @@ export class GamePresentationEventObserver {
+     }
+ 
+     this.riverLengths = nextRiverLengths;
++    this.previousHands = copyPresentationHands(state);
+     this.drawnTileInstanceIds = nextDrawnTileInstanceIds;
+     this.riichiDeclared = nextRiichiDeclared;
+     this.meldSignatures = nextMeldSignatures;
+@@ -129,6 +140,13 @@ export class GamePresentationEventObserver {
+   }
+ }
+ 
++function copyPresentationHands(state: GameState): Array<Pick<GameState['players'][number], 'hand' | 'drawnTile'>> {
++  return state.players.map((player) => ({
++    hand: player.hand.map((tile) => ({ ...tile })),
++    drawnTile: player.drawnTile ? { ...player.drawnTile } : null,
++  }));
++}
++
+ function meldSignature(call: GameState['players'][number]['calls'][number]): string {
+   return call.type === 'kan' ? `kan:${call.kanType ?? 'unknown'}` : call.type;
+ }
+diff --git a/src/presentation/handAnimation/HandAnimationController.ts b/src/presentation/handAnimation/HandAnimationController.ts
+index b1314f2..032ea0c 100644
+--- a/src/presentation/handAnimation/HandAnimationController.ts
++++ b/src/presentation/handAnimation/HandAnimationController.ts
+@@ -12,6 +12,7 @@ export type HandAnimationAction = TileDrawnPresentationEvent | RiichiDeclaredPre
+ export type HandAnimationPhase = 'approach' | 'grasp' | 'travel' | 'release' | 'retreat';
+ 
+ export interface HandAnimationTarget {
++  animationTasks?(action: HandAnimationAction): readonly AnimationTask[] | undefined;
+   beforeEnqueue?(action: HandAnimationAction): boolean | void;
+   prepare(action: HandAnimationAction): boolean | Promise<boolean>;
+   setPhase(action: HandAnimationAction, phase: HandAnimationPhase): void;
+@@ -20,6 +21,7 @@ export interface HandAnimationTarget {
+ }
+ 
+ export interface HandAnimationControllerOptions {
++  readonly snapOnPlaybackChange?: boolean;
+   readonly maxQueuedActions?: number;
+   readonly onError?: (error: unknown, action: HandAnimationAction) => void;
+   readonly onSettled?: (action: HandAnimationAction) => void;
+@@ -45,11 +47,12 @@ export class HandAnimationController {
+   private draining = false;
+   private disposed = false;
+   private currentAction: HandAnimationAction | null = null;
++  private generation = 0;
+ 
+   constructor(
+     private readonly target: HandAnimationTarget,
+     private readonly scheduler: AnimationScheduler = new AnimationScheduler(),
+-    options: HandAnimationControllerOptions = {},
++    private readonly options: HandAnimationControllerOptions = {},
+   ) {
+     this.maxQueuedActions = Math.max(1, options.maxQueuedActions ?? 6);
+     this.onError = options.onError ?? (() => undefined);
+@@ -91,13 +94,16 @@ export class HandAnimationController {
+ 
+   setSpeed(speed: number): void {
+     this.scheduler.setSpeed(speed);
++    if (this.options.snapOnPlaybackChange) this.cancelAll();
+   }
+ 
+   setSkip(skip: boolean): void {
+     this.scheduler.setSkip(skip);
++    if (skip && this.options.snapOnPlaybackChange) this.cancelAll();
+   }
+ 
+   cancelAll(): void {
++    this.generation += 1;
+     this.queue.splice(0).forEach((action) => this.safeFinish(action));
+     this.scheduler.cancelAll();
+     this.target.clear();
+@@ -130,12 +136,14 @@ export class HandAnimationController {
+       const action = this.queue.shift();
+       if (!action) continue;
+       this.currentAction = action;
++      const generation = this.generation;
+       try {
+         const prepared = await this.target.prepare(action);
+-        if (prepared) {
++        if (prepared && generation === this.generation && !this.disposed) {
+           const holdMs = this.postAnimationHoldMs(action);
+           await this.scheduler.sequence([
+-            ...HAND_ANIMATION_PHASES.map(({ phase, durationMs }) => this.phaseTask(action, phase, durationMs)),
++            ...(this.target.animationTasks?.(action)
++              ?? HAND_ANIMATION_PHASES.map(({ phase, durationMs }) => this.phaseTask(action, phase, durationMs))),
+             ...(holdMs > 0 ? [this.holdTask(holdMs)] : []),
+           ]);
+         }
+diff --git a/src/presentation3d/Table3DScene.tsx b/src/presentation3d/Table3DScene.tsx
+index 34070f7..ee6e595 100644
+--- a/src/presentation3d/Table3DScene.tsx
++++ b/src/presentation3d/Table3DScene.tsx
+@@ -29,6 +29,7 @@ import { TileTextureWarmup } from './tile/TileTextureWarmup';
+ import { resolveVisibleRiichiSeats, RiichiSticks3D } from './riichi/RiichiSticks3D';
+ import type { RiichiStick3DAppearance } from './riichi/riichiStickAppearance';
+ import './table3d.css';
++import './hand/handSnapshot.css';
+ import {
+   resolveWinningRiverTarget3D,
+   type WinPresentation3DState,
+@@ -67,6 +68,7 @@ function isAvatarFrameTuningEnabled(): boolean {
+ const StableTableScene = memo(function StableTableScene({
+   sceneState,
+   hiddenHandKeys,
++  handPresentation,
+   hiddenRiverKeys,
+   hiddenMeldTileKeys,
+   hiddenRiichiSeats,
+@@ -80,6 +82,7 @@ const StableTableScene = memo(function StableTableScene({
+ }: Readonly<{
+   sceneState: TableSceneState;
+   hiddenHandKeys: TableAnimation3DRenderState['hiddenHandKeys'];
++  handPresentation?: import('../presentation/handAnimation/HandPresentationSnapshot').HandPresentationFrame;
+   hiddenRiverKeys: TableAnimation3DRenderState['hiddenRiverKeys'];
+   hiddenMeldTileKeys: TableAnimation3DRenderState['hiddenMeldTileKeys'];
+   hiddenRiichiSeats: TableAnimation3DRenderState['hiddenRiichiSeats'];
+@@ -108,6 +111,7 @@ const StableTableScene = memo(function StableTableScene({
+             {seat === 'bottom' ? null : (
+               <Hand3D
+                 seatState={sceneState.seats[seat]}
++                handPresentation={handPresentation?.snapshot.playerId === sceneState.seats[seat].playerId ? handPresentation : undefined}
+                 hiddenTileKeys={hiddenHandKeys}
+                 winPresentation={winPresentation3D?.action.playerId === sceneState.seats[seat].playerId
+                   ? winPresentation3D
+@@ -242,6 +246,9 @@ export function Table3DScene({
+       data-table-animation-kind={animation.active?.plan.action.type}
+       data-table-animation-seat={animation.active?.plan.seat}
+       data-table-animation-phase={animation.active?.phase}
++      data-hand-presentation-phase={animation.active?.handPresentation?.phase ?? 'idle'}
++      data-hand-discard-slot={animation.active?.handPresentation?.snapshot.discardVisualSlot}
++      data-hand-tsumogiri={animation.active?.handPresentation?.snapshot.isTsumogiri}
+       data-win-presentation-event={winPresentation3D?.action.eventId}
+       data-win-presentation-player={winPresentation3D?.action.playerId}
+       data-win-presentation-phase={winPresentation3D?.phase}
+@@ -315,6 +322,7 @@ export function Table3DScene({
+                 <StableTableScene
+                   sceneState={sceneState}
+                   hiddenHandKeys={animation.hiddenHandKeys}
++                  handPresentation={animation.active?.handPresentation}
+                   hiddenRiverKeys={animation.hiddenRiverKeys}
+                   hiddenMeldTileKeys={animation.hiddenMeldTileKeys}
+                   hiddenRiichiSeats={animation.hiddenRiichiSeats}
+diff --git a/src/presentation3d/animation/HandAction3D.tsx b/src/presentation3d/animation/HandAction3D.tsx
+index cab4fa0..f93d790 100644
+--- a/src/presentation3d/animation/HandAction3D.tsx
++++ b/src/presentation3d/animation/HandAction3D.tsx
+@@ -10,6 +10,7 @@ import { useTileAppearance3D } from '../appearance/TileAppearance3DContext';
+ import { RiichiStick3D } from '../riichi/RiichiStick3D';
+ import type { RiichiStick3DAppearance } from '../riichi/riichiStickAppearance';
+ import { HandProxy3D } from './HandProxy3D';
++import type { HandPresentationFrame } from '../../presentation/handAnimation/HandPresentationSnapshot';
+ import { DemandFrameInvalidator } from './DemandFrameInvalidator';
+ import {
+   resolveTableAnimation3DMotion,
+@@ -18,6 +19,7 @@ import {
+ } from './tableAnimation3D';
+ 
+ export type ActiveTableAnimation3D = Readonly<{
++  handPresentation?: HandPresentationFrame;
+   plan: TableAnimation3DPlan;
+   phase: HandAnimationPhase;
+ }>;
+@@ -29,6 +31,31 @@ const PHASE_DURATION = Object.fromEntries(
+ export function HandAction3D({ active, riichiStickAppearance }: Readonly<{
+   active: ActiveTableAnimation3D;
+   riichiStickAppearance?: RiichiStick3DAppearance;
++}>) {
++  if (active.handPresentation) return <SnapshotDiscardProxy3D active={active} />;
++  return <LegacyHandAction3D active={active} riichiStickAppearance={riichiStickAppearance} />;
++}
++
++/** Discard frames come from the shared scheduler, including the DOM consumer. */
++function SnapshotDiscardProxy3D({ active }: { active: ActiveTableAnimation3D }) {
++  const frame = active.handPresentation!;
++  const motion = resolveTableAnimation3DMotion(active.plan, active.phase, frame.progress);
++  const invalidate = useThree((state) => state.invalidate);
++  useLayoutEffect(() => { invalidate(); }, [frame, invalidate]);
++  return <group name="table-animation-3d" userData={{ eventId: frame.snapshot.eventId, phase: frame.phase }}>
++    {motion.tileVisible && active.plan.showPrimaryTile ? <group position={motion.tilePosition} rotation={[0, motion.tileRotationY, 0]} scale={motion.tileScale}>
++      <group rotation={[motion.tileRotationX, 0, 0]}>
++        <Tile3D ownerPlayerId={active.plan.action.playerId} tile={active.plan.tile}
++          faceState={active.plan.faceState} orientation="upright" showRearFace
++          objectName="table-animation-tile-proxy" raycastDisabled />
++      </group>
++    </group> : null}
++  </group>;
++}
++
++function LegacyHandAction3D({ active, riichiStickAppearance }: Readonly<{
++  active: ActiveTableAnimation3D;
++  riichiStickAppearance?: RiichiStick3DAppearance;
+ }>) {
+   const ownerAppearance = useTileAppearance3D(active.plan.action.playerId);
+   const handRef = useRef<Group>(null);
+diff --git a/src/presentation3d/animation/tableAnimation3D.ts b/src/presentation3d/animation/tableAnimation3D.ts
+index 8913a26..ec4ac77 100644
+--- a/src/presentation3d/animation/tableAnimation3D.ts
++++ b/src/presentation3d/animation/tableAnimation3D.ts
+@@ -22,6 +22,7 @@ import {
+   TABLE_PRESENTATION_TUNING,
+ } from '../table/tablePresentationTuning';
+ import type { DiscardSource3DStore, WorldPoint3D } from './DiscardSource3D';
++import { createHandPresentationSnapshot, type HandPresentationFrame, type HandPresentationSnapshot } from '../../presentation/handAnimation/HandPresentationSnapshot';
+ 
+ export type TableAnimation3DAction =
+   | TileDrawnPresentationEvent
+@@ -45,6 +46,8 @@ export type TransientTile3DPlan = Readonly<{
+ }>; 
+ 
+ export type TableAnimation3DPlan = Readonly<{
++  localDiscardMotion?: import('./localDiscardMotion').LocalDiscardMotion;
++  handSnapshot?: HandPresentationSnapshot;
+   action: TableAnimation3DAction;
+   seat: Table3DSeat;
+   entry: WorldPoint3D;
+@@ -75,6 +78,8 @@ export type TableAnimation3DPlan = Readonly<{
+ }>;
+ 
+ export type LocalHandAnimation3DState = Readonly<{
++  discardMotion?: import('./localDiscardMotion').LocalDiscardMotion;
++  handPresentation?: HandPresentationFrame;
+   eventId: string;
+   kind: 'draw' | 'discard';
+   phase: 'enter' | 'proxy-ready' | HandAnimationPhase;
+@@ -239,12 +244,16 @@ export function resolveTableAnimation3DPlan(
+     .get(riverTile.layoutIndex);
+   if (!destinationTransform) return null;
+   const captured = sourceStore.consume(action, sessionKey);
+-  const fallback = getFallbackHandSource(seat, seatState.hand.length);
++  const handSnapshot = createHandPresentationSnapshot(action, seat === 'bottom');
++  const fallback = handSnapshot ? getHandTileTransform(seat, handSnapshot.discardVisualSlot,
++    handSnapshot.visualHand.length, handSnapshot.drawnTile !== null)
++    : getFallbackHandSource(seat, seatState.hand.length);
+   const source = captured?.position ?? fallback.position;
+   return {
+     action,
+     seat,
+     entry: outwardPoint(seat, source, ENTRY_DISTANCE),
++    handSnapshot: handSnapshot ?? undefined,
+     source,
+     destination: destinationTransform.position,
+     sourceRotationX: captured?.rotationX ?? fallback.rotationX,
+@@ -326,7 +335,8 @@ export function resolveTableAnimation3DMotion(
+     tileScale = lerp(plan.sourceScale, plan.destinationScale, t);
+   } else if (phase === 'release') {
+     handPosition = addY(plan.destination, TILE_LIFT * (1 - t));
+-    tilePosition = addY(plan.destination, TILE_LIFT * (1 - t));
++    // Snapshot carry already reaches the river; settle must not lift it a second time.
++    tilePosition = plan.handSnapshot ? plan.destination : addY(plan.destination, TILE_LIFT * (1 - t));
+     tileRotationX = plan.destinationRotationX;
+     tileRotationY = plan.destinationRotationY;
+     tileScale = plan.destinationScale;
+diff --git a/src/presentation3d/animation/useTableAnimation3D.ts b/src/presentation3d/animation/useTableAnimation3D.ts
+index 9735fa9..7576c88 100644
+--- a/src/presentation3d/animation/useTableAnimation3D.ts
++++ b/src/presentation3d/animation/useTableAnimation3D.ts
+@@ -1,5 +1,6 @@
+ import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+-import { AnimationScheduler } from '../../presentation/animation/AnimationScheduler';
++import { AnimationScheduler, animationFrameTask } from '../../presentation/animation/AnimationScheduler';
++import { handPresentationPhases, riverOwnsDiscard, type HandPresentationFrame } from '../../presentation/handAnimation/HandPresentationSnapshot';
+ import { HandAnimationConsumer } from '../../presentation/handAnimation/HandAnimationConsumer';
+ import {
+   HandAnimationController,
+@@ -15,6 +16,7 @@ import type { Table3DSeat } from '../coordinates/seatTransforms';
+ import type { ActiveTableAnimation3D } from './HandAction3D';
+ import type { DiscardSource3DStore } from './DiscardSource3D';
+ import { PaintCommitBarrier } from './PaintCommitBarrier';
++import { captureLocalDiscardMotion } from './localDiscardMotion';
+ import {
+   resolveTableAnimation3DPlan,
+   getTableAnimation3DHoldMs,
+@@ -84,6 +86,7 @@ export function useTableAnimation3D({
+     const scheduler = new AnimationScheduler();
+     const controller = new HandAnimationController(target, scheduler, {
+       maxQueuedActions: 6,
++      snapOnPlaybackChange: true,
+       onError: () => target.clear(),
+       onSettled: (action) => presentationPacingGate.complete(action.eventId),
+       postAnimationHoldMs: (action) => isTableAnimation3DAction(action)
+@@ -163,9 +166,13 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
+         confirmedTurn: this.getAnimationTurn(),
+       })
+       : null;
+-    const plan = localDiscardSnapshot
++    let plan = localDiscardSnapshot
+       ? { ...resolvedPlan, localDiscardSnapshotReady: true }
+       : resolvedPlan;
++    if (plan.handSnapshot && plan.seat === 'bottom') {
++      const localDiscardMotion = captureLocalDiscardMotion(plan, localDiscardSnapshot?.sourceTileRect);
++      plan = { ...plan, localDiscardMotion, showPrimaryTile: !localDiscardMotion };
++    }
+     this.plans.set(action.eventId, plan);
+     return true;
+   }
+@@ -174,7 +181,9 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
+     const plan = this.plans.get(action.eventId);
+     if (!plan) return false;
+     this.setRenderState((current) => prepareTableAnimation3DRenderState(current, plan));
+-    if (plan.localDomDraw) {
++    if (plan.handSnapshot) {
++      this.updateHandPresentation(plan, { snapshot: plan.handSnapshot, phase: 'lift', progress: 0 });
++    } else if (plan.localDomDraw) {
+       this.onLocalHandAnimationChange({ eventId: action.eventId, kind: 'draw', phase: 'enter' });
+       return nextPaint().then(() => true);
+     } else if (plan.localDiscardSnapshotReady) {
+@@ -186,6 +195,30 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
+     return true;
+   }
+ 
++  animationTasks(action: HandAnimationAction) {
++    const plan = this.plans.get(action.eventId);
++    if (!plan?.handSnapshot) return undefined;
++    const snapshot = plan.handSnapshot;
++    return handPresentationPhases(snapshot).map(({ phase, durationMs }) => animationFrameTask(durationMs, (progress) => {
++      if (this.plans.get(action.eventId) !== plan) return;
++      this.updateHandPresentation(plan, { snapshot, phase, progress });
++    }));
++  }
++
++  private updateHandPresentation(plan: TableAnimation3DPlan, frame: HandPresentationFrame): void {
++    const phase: HandAnimationPhase = frame.phase === 'lift' ? 'grasp'
++      : frame.phase === 'carry' ? 'travel' : frame.phase === 'river-settle' ? 'release' : 'retreat';
++    this.setRenderState((current) => ({ ...current,
++      active: { plan, phase, handPresentation: frame },
++      hiddenRiverKeys: riverOwnsDiscard(frame.phase)
++        ? removeKey(current.hiddenRiverKeys, plan.hiddenRiverKey)
++        : addKey(current.hiddenRiverKeys, plan.hiddenRiverKey),
++    }));
++    if (plan.seat === 'bottom') this.onLocalHandAnimationChange({
++      eventId: plan.action.eventId, kind: 'discard', phase, handPresentation: frame, discardMotion: plan.localDiscardMotion,
++    });
++  }
++
+   setPhase(action: HandAnimationAction, phase: HandAnimationPhase): void {
+     const plan = this.plans.get(action.eventId);
+     if (!plan) return;
+@@ -213,7 +246,7 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
+       hiddenMeldTileKeys: removeKeys(current.hiddenMeldTileKeys, plan.hiddenMeldTileKeys),
+       hiddenRiichiSeats: removeKey(current.hiddenRiichiSeats, plan.hiddenRiichiSeat),
+     }));
+-    if (plan.localDomDraw || plan.localDiscardSnapshotReady) {
++    if (plan.localDomDraw || plan.localDiscardSnapshotReady || (plan.handSnapshot && plan.seat === 'bottom')) {
+       this.onLocalHandAnimationChange(null);
+     }
+   }
+diff --git a/src/presentation3d/coordinates/sceneTransforms.ts b/src/presentation3d/coordinates/sceneTransforms.ts
+index 985b66a..9c2d8e3 100644
+--- a/src/presentation3d/coordinates/sceneTransforms.ts
++++ b/src/presentation3d/coordinates/sceneTransforms.ts
+@@ -60,8 +60,8 @@ export function getHandTileTransform(
+   const tileScale = getHandTileScale(seat);
+   const handSpacing = TABLE_SCENE_LAYOUT.handSpacing * tileScale;
+   const drawnGap = TABLE_SCENE_LAYOUT.drawnGap * tileScale;
+-  const totalSpan = Math.max(0, tileCount - 1) * handSpacing
+-    + (hasDrawnTile ? drawnGap : 0);
++  // The drawn slot is independent: adding/removing it must not recenter the base hand.
++  const totalSpan = Math.max(0, tileCount - (hasDrawnTile ? 2 : 1)) * handSpacing;
+   const drawnOffset = hasDrawnTile && index === tileCount - 1
+     ? drawnGap
+     : 0;
+diff --git a/src/presentation3d/hand/Hand3D.tsx b/src/presentation3d/hand/Hand3D.tsx
+index 1a484b9..a3fbb46 100644
+--- a/src/presentation3d/hand/Hand3D.tsx
++++ b/src/presentation3d/hand/Hand3D.tsx
+@@ -23,8 +23,11 @@ import {
+ } from '../win/winPresentation3D';
+ import { getHandTileScale } from '../table/tablePresentationTuning';
+ import type { TileVisualSemanticContext } from '../../presentation/table/tileVisualSemantics';
++import type { HandPresentationFrame } from '../../presentation/handAnimation/HandPresentationSnapshot';
++import { resolveHandSnapshotLayout } from './handSnapshotLayout';
+ 
+ type Hand3DProps = Readonly<{
++  handPresentation?: HandPresentationFrame;
+   seatState: SeatSceneState;
+   presentation?: LocalHandPresentation;
+   interactionActions?: TableInteractionActions;
+@@ -38,6 +41,7 @@ type Hand3DProps = Readonly<{
+ 
+ export function Hand3D({
+   seatState,
++  handPresentation,
+   presentation,
+   interactionActions,
+   hiddenTileKeys,
+@@ -84,7 +88,15 @@ export function Hand3D({
+ 
+   return (
+     <group name={`hand-${seatState.seat}`}>
+-      {seatState.hand.map((tile, index) => {
++      {handPresentation ? resolveHandSnapshotLayout(seatState, handPresentation).map((entry) => entry.hidden ? null : (
++        <Tile3D key={entry.key} ownerPlayerId={seatState.playerId} tile={entry.definition}
++          faceState={entry.faceState} orientation="upright" position={entry.transform.position}
++          rotationX={entry.transform.rotationX} rotationY={entry.transform.rotationY}
++          tileScale={getHandTileScale(seatState.seat)} showRearFace={entry.faceState === 'face-down'}
++          visualContext={visualContext} doraSweepKey={entry.key}
++          objectName={`hand-tile-${seatState.seat}-${entry.index}`}
++          metadata={{ region: 'hand', seat: seatState.seat, index: entry.index, phase: handPresentation.phase }} raycastDisabled />
++      )) : seatState.hand.map((tile, index) => {
+         const transform = getHandTileTransform(
+           seatState.seat,
+           index,

@@ -1,0 +1,10 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation3d/animation/handPresentation.test.tsx (18 tests) 47ms
+
+ Test Files  1 passed (1)
+      Tests  18 passed (18)
+   Start at  11:10:26
+   Duration  4.65s (transform 279ms, setup 0ms, collect 4.01s, tests 47ms, environment 0ms, prepare 332ms)
+

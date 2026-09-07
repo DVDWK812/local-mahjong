@@ -29,6 +29,7 @@ import { TileTextureWarmup } from './tile/TileTextureWarmup';
 import { resolveVisibleRiichiSeats, RiichiSticks3D } from './riichi/RiichiSticks3D';
 import type { RiichiStick3DAppearance } from './riichi/riichiStickAppearance';
 import './table3d.css';
+import './hand/handSnapshot.css';
 import {
   resolveWinningRiverTarget3D,
   type WinPresentation3DState,
@@ -67,6 +68,7 @@ function isAvatarFrameTuningEnabled(): boolean {
 const StableTableScene = memo(function StableTableScene({
   sceneState,
   hiddenHandKeys,
+  handPresentation,
   hiddenRiverKeys,
   hiddenMeldTileKeys,
   hiddenRiichiSeats,
@@ -80,6 +82,7 @@ const StableTableScene = memo(function StableTableScene({
 }: Readonly<{
   sceneState: TableSceneState;
   hiddenHandKeys: TableAnimation3DRenderState['hiddenHandKeys'];
+  handPresentation?: import('../presentation/handAnimation/HandPresentationSnapshot').HandPresentationFrame;
   hiddenRiverKeys: TableAnimation3DRenderState['hiddenRiverKeys'];
   hiddenMeldTileKeys: TableAnimation3DRenderState['hiddenMeldTileKeys'];
   hiddenRiichiSeats: TableAnimation3DRenderState['hiddenRiichiSeats'];
@@ -108,6 +111,7 @@ const StableTableScene = memo(function StableTableScene({
             {seat === 'bottom' ? null : (
               <Hand3D
                 seatState={sceneState.seats[seat]}
+                handPresentation={handPresentation?.snapshot.playerId === sceneState.seats[seat].playerId ? handPresentation : undefined}
                 hiddenTileKeys={hiddenHandKeys}
                 winPresentation={winPresentation3D?.action.playerId === sceneState.seats[seat].playerId
                   ? winPresentation3D
@@ -242,6 +246,9 @@ export function Table3DScene({
       data-table-animation-kind={animation.active?.plan.action.type}
       data-table-animation-seat={animation.active?.plan.seat}
       data-table-animation-phase={animation.active?.phase}
+      data-hand-presentation-phase={animation.active?.handPresentation?.phase ?? 'idle'}
+      data-hand-discard-slot={animation.active?.handPresentation?.snapshot.discardVisualSlot}
+      data-hand-tsumogiri={animation.active?.handPresentation?.snapshot.isTsumogiri}
       data-win-presentation-event={winPresentation3D?.action.eventId}
       data-win-presentation-player={winPresentation3D?.action.playerId}
       data-win-presentation-phase={winPresentation3D?.phase}
@@ -315,6 +322,7 @@ export function Table3DScene({
                 <StableTableScene
                   sceneState={sceneState}
                   hiddenHandKeys={animation.hiddenHandKeys}
+                  handPresentation={animation.active?.handPresentation}
                   hiddenRiverKeys={animation.hiddenRiverKeys}
                   hiddenMeldTileKeys={animation.hiddenMeldTileKeys}
                   hiddenRiichiSeats={animation.hiddenRiichiSeats}

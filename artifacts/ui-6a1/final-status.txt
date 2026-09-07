@@ -1,0 +1,26 @@
+ M src/components/game/GameScreen.tsx
+ M src/components/game/HandAnimationOverlay.tsx
+ M src/components/game/LocalHandArea.tsx
+ M src/presentation/PresentationEventBus.ts
+ M src/presentation/animation/AnimationScheduler.ts
+ M src/presentation/gamePresentationEvents.ts
+ M src/presentation/handAnimation/HandAnimationController.ts
+ M src/presentation3d/Table3DScene.tsx
+ M src/presentation3d/animation/HandAction3D.tsx
+ M src/presentation3d/animation/tableAnimation3D.ts
+ M src/presentation3d/animation/useTableAnimation3D.ts
+ M src/presentation3d/coordinates/sceneTransforms.ts
+ M src/presentation3d/hand/Hand3D.tsx
+ M src/presentation3d/tile/TileTextureWarmup.tsx
+?? artifacts/ui-6a/
+?? artifacts/ui-6a1/
+?? src/components/game/LocalAnimationHand.tsx
+?? src/components/game/LocalHandSnapshot.tsx
+?? src/presentation/animation/animationFrameTask.test.ts
+?? src/presentation/handAnimation/HandPresentationSnapshot.ts
+?? src/presentation3d/animation/discardHandLifecycle.ts
+?? src/presentation3d/animation/flashLifecycle.test.tsx
+?? src/presentation3d/animation/handPresentation.test.tsx
+?? src/presentation3d/animation/localDiscardMotion.ts
+?? src/presentation3d/hand/handSnapshot.css
+?? src/presentation3d/hand/handSnapshotLayout.ts

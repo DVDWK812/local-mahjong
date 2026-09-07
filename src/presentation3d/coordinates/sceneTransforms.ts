@@ -60,8 +60,8 @@ export function getHandTileTransform(
   const tileScale = getHandTileScale(seat);
   const handSpacing = TABLE_SCENE_LAYOUT.handSpacing * tileScale;
   const drawnGap = TABLE_SCENE_LAYOUT.drawnGap * tileScale;
-  const totalSpan = Math.max(0, tileCount - 1) * handSpacing
-    + (hasDrawnTile ? drawnGap : 0);
+  // The drawn slot is independent: adding/removing it must not recenter the base hand.
+  const totalSpan = Math.max(0, tileCount - (hasDrawnTile ? 2 : 1)) * handSpacing;
   const drawnOffset = hasDrawnTile && index === tileCount - 1
     ? drawnGap
     : 0;

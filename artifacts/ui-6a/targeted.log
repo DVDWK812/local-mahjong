@@ -1,0 +1,13 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation/animation/animationFrameTask.test.ts (3 tests) 6ms
+ ✓ src/presentation/handAnimation/HandAnimationController.test.ts (14 tests) 11ms
+ ✓ src/components/game/LocalHandArea.test.tsx (14 tests) 64ms
+ ✓ src/presentation3d/animation/handPresentation.test.tsx (17 tests) 67ms
+
+ Test Files  4 passed (4)
+      Tests  48 passed (48)
+   Start at  02:37:06
+   Duration  1.42s (transform 491ms, setup 0ms, collect 1.93s, tests 148ms, environment 1ms, prepare 395ms)
+

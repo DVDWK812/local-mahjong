@@ -20,7 +20,7 @@ Review only. Do not modify files, silently fix findings, create commits, push, d
 1. Rules / GameState / Scoring authority violations and variant leakage.
 2. Shared presentation violations, renderer-specific legality, or duplicated sources of truth.
 3. State identity, stale cache, async races, proxy-to-authoritative handoff, and unmount cleanup.
-4. Stable 2.5D regressions caused by 3D work; WebGL fallback, interaction, or animation risks.
+4. Legacy Compatibility Mode regressions when shared GameScreen, Local Hand/shared DOM tiles, PresentationEvent/pacing, renderer switch/fallback, shared CSS/layout, shared audio, Rules/GameState, or an explicitly reported 2.5D bug is involved; WebGL fallback, interaction, or animation risks. New 3D presentation work does not require 2.5D feature or visual parity.
 5. Illegal or nondeterministic AI behavior and hidden-information leakage.
 6. Data loss, destructive operations, paid / external API side effects, and unsafe asset cleanup.
 7. Dirty-work contamination, missing regression coverage, and material performance regressions.

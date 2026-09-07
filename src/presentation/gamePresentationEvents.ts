@@ -3,10 +3,12 @@ import { getPresentationFeatures, type PresentationFeatureFlagsSource } from '..
 import type { AbortiveDrawResult, ExhaustiveDrawResult, GameState, WinResultEntry, WinRoundResult } from '../game/types';
 import type { YakuId } from '../game/score/yaku/types';
 import { PresentationEventBus, type PresentationEventInput, presentationEventBus } from './PresentationEventBus';
+import { freezeHandDiscardHistory } from './handAnimation/HandPresentationSnapshot';
 
 const usePresentationCommitEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 export class GamePresentationEventObserver {
+  private previousHands: Array<Pick<GameState['players'][number], 'hand' | 'drawnTile'>>;
   private riverLengths: number[];
   private drawnTileInstanceIds: Array<string | null>;
   private riichiDeclared: boolean[];
@@ -20,6 +22,7 @@ export class GamePresentationEventObserver {
     private readonly eventBus: PresentationEventBus = presentationEventBus,
     private readonly featureFlagsSource: PresentationFeatureFlagsSource = getPresentationFeatures,
   ) {
+    this.previousHands = copyPresentationHands(initialState);
     this.riverLengths = initialState.players.map((player) => player.river.length);
     this.drawnTileInstanceIds = initialState.players.map((player) => player.drawnTile?.instanceId ?? null);
     this.riichiDeclared = initialState.players.map((player) => player.riichi);
@@ -72,6 +75,13 @@ export class GamePresentationEventObserver {
           tile: { id: tile.id, red: tile.red },
           riverIndex: previousLength + offset,
           isRiichiDiscard: tile.isRiichiDiscard === true,
+          handHistory: freezeHandDiscardHistory({
+            preDiscardHand: this.previousHands[player.id].hand,
+            drawnTile: this.previousHands[player.id].drawnTile ?? null,
+            discardedTile: tile,
+            finalHand: player.hand,
+            isTsumogiri: tile.isTsumogiri === true,
+          }),
         });
         if (event.type === 'tile_discarded') this.lastDiscardPresentationEventId = event.eventId;
       });
@@ -120,6 +130,7 @@ export class GamePresentationEventObserver {
     }
 
     this.riverLengths = nextRiverLengths;
+    this.previousHands = copyPresentationHands(state);
     this.drawnTileInstanceIds = nextDrawnTileInstanceIds;
     this.riichiDeclared = nextRiichiDeclared;
     this.meldSignatures = nextMeldSignatures;
@@ -127,6 +138,13 @@ export class GamePresentationEventObserver {
     this.roundSettlementSignature = nextRoundSettlementSignature;
     if (!state.lastDiscard) this.lastDiscardPresentationEventId = null;
   }
+}
+
+function copyPresentationHands(state: GameState): Array<Pick<GameState['players'][number], 'hand' | 'drawnTile'>> {
+  return state.players.map((player) => ({
+    hand: player.hand.map((tile) => ({ ...tile })),
+    drawnTile: player.drawnTile ? { ...player.drawnTile } : null,
+  }));
 }
 
 function meldSignature(call: GameState['players'][number]['calls'][number]): string {

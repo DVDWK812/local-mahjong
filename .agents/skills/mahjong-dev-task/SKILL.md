@@ -24,7 +24,7 @@ Load a domain QA Skill only when the change actually affects that domain. Develo
 
 - Rules / GameState / Scoring remain authoritative; presentation and renderers do not infer legality.
 - Shared functional semantics flow through shared presentation state / actions; renderer-specific coordinates stay in the renderer.
-- Preserve stable 2.5D behavior while implementing 3D changes.
+- 3D is the primary/default renderer. 2.5D is frozen Legacy Compatibility Mode: do not add 2.5D feature or visual parity for new 3D presentation work. Run a lightweight legacy smoke, and expand 2.5D regression only when shared GameScreen, Local Hand/shared DOM tiles, PresentationEvent/pacing, renderer switch/fallback, shared CSS/layout, shared audio, Rules/GameState, or a reported 2.5D bug is in scope.
 - Use fixed fixtures or seeds for random and rule-sensitive behavior.
 - Use `PresentationEvent`, `AnimationScheduler`, and `PresentationPacing` for presentation animation; do not substitute fixed AI timers.
 

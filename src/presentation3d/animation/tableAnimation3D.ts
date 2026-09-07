@@ -22,6 +22,7 @@ import {
   TABLE_PRESENTATION_TUNING,
 } from '../table/tablePresentationTuning';
 import type { DiscardSource3DStore, WorldPoint3D } from './DiscardSource3D';
+import { createHandPresentationSnapshot, type HandPresentationFrame, type HandPresentationSnapshot } from '../../presentation/handAnimation/HandPresentationSnapshot';
 
 export type TableAnimation3DAction =
   | TileDrawnPresentationEvent
@@ -45,6 +46,8 @@ export type TransientTile3DPlan = Readonly<{
 }>; 
 
 export type TableAnimation3DPlan = Readonly<{
+  localDiscardMotion?: import('./localDiscardMotion').LocalDiscardMotion;
+  handSnapshot?: HandPresentationSnapshot;
   action: TableAnimation3DAction;
   seat: Table3DSeat;
   entry: WorldPoint3D;
@@ -75,6 +78,9 @@ export type TableAnimation3DPlan = Readonly<{
 }>;
 
 export type LocalHandAnimation3DState = Readonly<{
+  progress?: number;
+  discardMotion?: import('./localDiscardMotion').LocalDiscardMotion;
+  handPresentation?: HandPresentationFrame;
   eventId: string;
   kind: 'draw' | 'discard';
   phase: 'enter' | 'proxy-ready' | HandAnimationPhase;
@@ -239,12 +245,16 @@ export function resolveTableAnimation3DPlan(
     .get(riverTile.layoutIndex);
   if (!destinationTransform) return null;
   const captured = sourceStore.consume(action, sessionKey);
-  const fallback = getFallbackHandSource(seat, seatState.hand.length);
+  const handSnapshot = createHandPresentationSnapshot(action, seat === 'bottom');
+  const fallback = handSnapshot ? getHandTileTransform(seat, handSnapshot.discardVisualSlot,
+    handSnapshot.visualHand.length, handSnapshot.drawnTile !== null)
+    : getFallbackHandSource(seat, seatState.hand.length);
   const source = captured?.position ?? fallback.position;
   return {
     action,
     seat,
     entry: outwardPoint(seat, source, ENTRY_DISTANCE),
+    handSnapshot: handSnapshot ?? undefined,
     source,
     destination: destinationTransform.position,
     sourceRotationX: captured?.rotationX ?? fallback.rotationX,
@@ -326,7 +336,8 @@ export function resolveTableAnimation3DMotion(
     tileScale = lerp(plan.sourceScale, plan.destinationScale, t);
   } else if (phase === 'release') {
     handPosition = addY(plan.destination, TILE_LIFT * (1 - t));
-    tilePosition = addY(plan.destination, TILE_LIFT * (1 - t));
+    // Snapshot carry already reaches the river; settle must not lift it a second time.
+    tilePosition = plan.handSnapshot ? plan.destination : addY(plan.destination, TILE_LIFT * (1 - t));
     tileRotationX = plan.destinationRotationX;
     tileRotationY = plan.destinationRotationY;
     tileScale = plan.destinationScale;

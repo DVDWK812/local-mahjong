@@ -11,6 +11,7 @@ import {
   useState,
 } from 'react';
 import { LegacyTable2D, type LegacyTable2DProps } from '../components/game/LegacyTable2D';
+import { preloadHandAssets } from '../hand/handAssets';
 import {
   buildDoraIndicatorSlots,
   buildTablePresentationState,
@@ -117,6 +118,7 @@ export function TableRenderer({
   const [mode, setMode] = useState<TableRendererMode>(resolveCurrentMode);
   const [runtimeFailure, setRuntimeFailure] = useState<Exclude<TableRendererFallbackReason, 'none'> | null>(null);
   const [sceneReady, setSceneReady] = useState(false);
+  useEffect(() => { if (mode === '3d') void preloadHandAssets(); }, [mode]);
   const standardFourPlayer = useMemo(
     () => inspectStandardFourPlayerState(tableProps.gameState),
     [tableProps.gameState.players],

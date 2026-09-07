@@ -25,6 +25,7 @@ Read a routed Skill only when its domain changed or the user explicitly requests
 2. Check unrelated changes, dirty-work contamination, temporary artifacts, debug instrumentation, skipped tests, and generated junk.
 3. Reconcile targeted tests, broader `npm test` / `npm run build` requirements, `git diff --check`, and applicable manual acceptance.
 4. Execute missing domain checks; do not infer UI, rules, AI, asset, or WebGL PASS without the required evidence.
+   For 3D presentation releases, retain one Legacy Compatibility smoke: it must enter with `Canvas=0` and no 3D layer, avoid crashing, and run a basic hand. Do not require new 3D presentation feature or visual parity in 2.5D unless the change crosses a shared renderer boundary or the task explicitly requires it.
 5. Review the final diff defect-first and classify unresolved items as blocking or non-blocking.
 6. List every required check not performed and why.
 

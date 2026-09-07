@@ -12,6 +12,43 @@ export interface AnimationTask {
   cleanup?(): void;
 }
 
+/** Finite frame task owned by AnimationScheduler; no consumer timer or permanent RAF. */
+export function animationFrameTask(durationMs: number, update: (progress: number) => void): AnimationTask {
+  return {
+    snapToEnd: () => update(1),
+    play: async (context) => {
+      if (context.signal.aborted) return;
+      update(0);
+      if (typeof requestAnimationFrame !== 'function') {
+        await waitForAnimationTime(durationMs, context);
+        if (!context.signal.aborted) update(1);
+        return;
+      }
+      const duration = effectiveAnimationDuration(durationMs, context.speed);
+      if (duration === 0) { update(1); return; }
+      await new Promise<void>((resolve, reject) => {
+        const start = performance.now();
+        let handle = 0;
+        const cleanup = () => {
+          cancelAnimationFrame(handle);
+          context.signal.removeEventListener('abort', finish);
+        };
+        const finish = () => { cleanup(); resolve(); };
+        const tick = (now: number) => {
+          if (context.signal.aborted) { finish(); return; }
+          const progress = Math.min(1, (now - start) / duration);
+          try { update(progress); }
+          catch (error) { cleanup(); reject(error); return; }
+          if (progress === 1) finish();
+          else handle = requestAnimationFrame(tick);
+        };
+        context.signal.addEventListener('abort', finish, { once: true });
+        handle = requestAnimationFrame(tick);
+      });
+    },
+  };
+}
+
 export class AnimationCancelledError extends Error {
   constructor() {
     super('Animation cancelled');

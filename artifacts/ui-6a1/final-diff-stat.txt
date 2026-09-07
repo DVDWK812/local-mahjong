@@ -1,0 +1,15 @@
+ src/components/game/GameScreen.tsx                 |  6 ++-
+ src/components/game/HandAnimationOverlay.tsx       |  2 +-
+ src/components/game/LocalHandArea.tsx              | 13 ++++--
+ src/presentation/PresentationEventBus.ts           |  2 +
+ src/presentation/animation/AnimationScheduler.ts   | 37 ++++++++++++++++
+ src/presentation/gamePresentationEvents.ts         | 18 ++++++++
+ .../handAnimation/HandAnimationController.ts       | 14 ++++--
+ src/presentation3d/Table3DScene.tsx                |  8 ++++
+ src/presentation3d/animation/HandAction3D.tsx      | 33 +++++++++++++-
+ src/presentation3d/animation/tableAnimation3D.ts   | 15 ++++++-
+ .../animation/useTableAnimation3D.ts               | 50 +++++++++++++++++++---
+ src/presentation3d/coordinates/sceneTransforms.ts  |  4 +-
+ src/presentation3d/hand/Hand3D.tsx                 | 14 +++++-
+ src/presentation3d/tile/TileTextureWarmup.tsx      | 12 +++++-
+ 14 files changed, 206 insertions(+), 22 deletions(-)

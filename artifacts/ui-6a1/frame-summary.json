@@ -1,0 +1,274 @@
+[
+  {
+    "File": "draw-720.json",
+    "Frames": 13,
+    "Hidden": 0,
+    "CanvasSame": true,
+    "ContactMax": 0.012880140456041392,
+    "PhaseHands": null
+  },
+  {
+    "File": "opponent-1-discard-720.json",
+    "Frames": 27,
+    "Hidden": 0,
+    "CanvasSame": true,
+    "ContactMax": null,
+    "PhaseHands": [
+      {
+        "phase": "lift",
+        "hands": 1,
+        "seat": "right"
+      },
+      {
+        "phase": "carry",
+        "hands": 1,
+        "seat": "right"
+      },
+      {
+        "phase": "river-settle",
+        "hands": 1,
+        "seat": "right"
+      }
+    ]
+  },
+  {
+    "File": "opponent-2-discard-720.json",
+    "Frames": 218,
+    "Hidden": 0,
+    "CanvasSame": true,
+    "ContactMax": null,
+    "PhaseHands": [
+      {
+        "phase": "lift",
+        "hands": 1,
+        "seat": "top"
+      },
+      {
+        "phase": "carry",
+        "hands": 1,
+        "seat": "top"
+      },
+      {
+        "phase": "river-settle",
+        "hands": 1,
+        "seat": "top"
+      }
+    ]
+  },
+  {
+    "File": "opponent-3-discard-720.json",
+    "Frames": 51,
+    "Hidden": 0,
+    "CanvasSame": true,
+    "ContactMax": null,
+    "PhaseHands": [
+      {
+        "phase": "lift",
+        "hands": 1,
+        "seat": "left"
+      },
+      {
+        "phase": "carry",
+        "hands": 1,
+        "seat": "left"
+      },
+      {
+        "phase": "river-settle",
+        "hands": 1,
+        "seat": "left"
+      }
+    ]
+  },
+  {
+    "File": "tedashi-720.json",
+    "Frames": 379,
+    "Hidden": 0,
+    "CanvasSame": true,
+    "ContactMax": null,
+    "PhaseHands": [
+      {
+        "phase": "lift",
+        "hands": 0,
+        "seat": "bottom"
+      },
+      {
+        "phase": "carry",
+        "hands": 0,
+        "seat": "bottom"
+      },
+      {
+        "phase": "river-settle",
+        "hands": 0,
+        "seat": "bottom"
+      }
+    ]
+  },
+  {
+    "File": "tsumo-720.json",
+    "Frames": 8,
+    "Hidden": 0,
+    "CanvasSame": true,
+    "ContactMax": null,
+    "PhaseHands": null
+  },
+  {
+    "File": "tsumogiri-and-opponent-ron-720.json",
+    "Frames": 27,
+    "Hidden": 0,
+    "CanvasSame": true,
+    "ContactMax": null,
+    "PhaseHands": [
+      {
+        "phase": "lift",
+        "hands": 0,
+        "seat": "bottom"
+      },
+      {
+        "phase": "carry",
+        "hands": 0,
+        "seat": "bottom"
+      },
+      {
+        "phase": "river-settle",
+        "hands": 0,
+        "seat": "bottom"
+      }
+    ]
+  },
+  {
+    "File": "draw-1080.json",
+    "Frames": 8,
+    "Hidden": 0,
+    "CanvasSame": true,
+    "ContactMax": 0.008588171607692523,
+    "PhaseHands": null
+  },
+  {
+    "File": "opponent-1-discard-1080.json",
+    "Frames": 120,
+    "Hidden": 0,
+    "CanvasSame": true,
+    "ContactMax": null,
+    "PhaseHands": [
+      {
+        "phase": "lift",
+        "hands": 1,
+        "seat": "right"
+      },
+      {
+        "phase": "carry",
+        "hands": 1,
+        "seat": "right"
+      },
+      {
+        "phase": "river-settle",
+        "hands": 1,
+        "seat": "right"
+      }
+    ]
+  },
+  {
+    "File": "opponent-2-discard-1080.json",
+    "Frames": 24,
+    "Hidden": 0,
+    "CanvasSame": true,
+    "ContactMax": null,
+    "PhaseHands": [
+      {
+        "phase": "lift",
+        "hands": 1,
+        "seat": "top"
+      },
+      {
+        "phase": "carry",
+        "hands": 1,
+        "seat": "top"
+      },
+      {
+        "phase": "river-settle",
+        "hands": 1,
+        "seat": "top"
+      }
+    ]
+  },
+  {
+    "File": "opponent-3-discard-1080.json",
+    "Frames": 18,
+    "Hidden": 0,
+    "CanvasSame": true,
+    "ContactMax": null,
+    "PhaseHands": [
+      {
+        "phase": "lift",
+        "hands": 1,
+        "seat": "left"
+      },
+      {
+        "phase": "carry",
+        "hands": 1,
+        "seat": "left"
+      },
+      {
+        "phase": "river-settle",
+        "hands": 1,
+        "seat": "left"
+      }
+    ]
+  },
+  {
+    "File": "tedashi-1080.json",
+    "Frames": 24,
+    "Hidden": 0,
+    "CanvasSame": true,
+    "ContactMax": null,
+    "PhaseHands": [
+      {
+        "phase": "lift",
+        "hands": 0,
+        "seat": "bottom"
+      },
+      {
+        "phase": "carry",
+        "hands": 0,
+        "seat": "bottom"
+      },
+      {
+        "phase": "river-settle",
+        "hands": 0,
+        "seat": "bottom"
+      }
+    ]
+  },
+  {
+    "File": "tsumo-1080.json",
+    "Frames": 4,
+    "Hidden": 0,
+    "CanvasSame": true,
+    "ContactMax": null,
+    "PhaseHands": null
+  },
+  {
+    "File": "tsumogiri-and-opponent-ron-1080.json",
+    "Frames": 13,
+    "Hidden": 0,
+    "CanvasSame": true,
+    "ContactMax": 0.004971897428743598,
+    "PhaseHands": [
+      {
+        "phase": "lift",
+        "hands": 0,
+        "seat": "bottom"
+      },
+      {
+        "phase": "carry",
+        "hands": 0,
+        "seat": "bottom"
+      },
+      {
+        "phase": "river-settle",
+        "hands": 0,
+        "seat": "bottom"
+      }
+    ]
+  }
+]

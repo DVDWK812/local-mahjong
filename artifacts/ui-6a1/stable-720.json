@@ -1,0 +1,13 @@
+{
+  "counts": {
+    "clear": 0,
+    "drawArrays": 0,
+    "drawArraysInstanced": 0,
+    "drawElements": 0,
+    "drawElementsInstanced": 0
+  },
+  "size": [
+    1280,
+    720
+  ]
+}

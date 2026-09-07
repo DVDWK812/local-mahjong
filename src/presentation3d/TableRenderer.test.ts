@@ -11,20 +11,35 @@ import {
   resolveTableRendererDiagnostics,
   tagTableRendererError,
 } from './rendererDiagnostics';
-import { resolveTableRenderer, shouldRender3DTable } from './rendererMode';
+import {
+  resolveTableRenderer,
+  TABLE_RENDERER_PREFERENCE_KEY,
+  shouldRender3DTable,
+} from './rendererMode';
 
 function sourcePath(relativePath: string): string {
   return decodeURIComponent(new URL(relativePath, import.meta.url).pathname).replace(/^\/([A-Za-z]:)/, '$1');
 }
 
 describe('3D table renderer selection', () => {
-  it('keeps the stable 2.5D table as the default', () => {
-    expect(resolveTableRenderer()).toBe('2d');
+  it('uses 3D by default and keeps the explicit Legacy Compatibility URL', () => {
+    expect(resolveTableRenderer('', null)).toBe('3d');
     expect(resolveTableRenderer('?table3d=0')).toBe('2d');
-    expect(resolveTableRenderer('?presentationEvents=1')).toBe('2d');
+    expect(resolveTableRenderer('?presentationEvents=1', null)).toBe('3d');
   });
 
-  it('enables the isolated prototype only with the explicit developer query', () => {
+  it('honors a saved renderer preference unless an explicit URL overrides it', () => {
+    const legacyStorage = { getItem: (key: string) => key === TABLE_RENDERER_PREFERENCE_KEY ? '2d' : null };
+    const threeDStorage = { getItem: (key: string) => key === TABLE_RENDERER_PREFERENCE_KEY ? '3d' : null };
+    expect(resolveTableRenderer('', legacyStorage)).toBe('2d');
+    expect(resolveTableRenderer('', threeDStorage)).toBe('3d');
+    expect(resolveTableRenderer('?table3d=1', legacyStorage)).toBe('3d');
+    expect(resolveTableRenderer('?table3d=0', threeDStorage)).toBe('2d');
+  });
+
+  it('supports 3D → Legacy → 3D URL transitions and existing 3D links', () => {
+    expect(resolveTableRenderer('?table3d=1')).toBe('3d');
+    expect(resolveTableRenderer('?table3d=0')).toBe('2d');
     expect(resolveTableRenderer('?table3d=1')).toBe('3d');
     expect(resolveTableRenderer('?foo=bar&table3d=1')).toBe('3d');
     expect(shouldRender3DTable('3d', false)).toBe(true);
@@ -97,7 +112,7 @@ describe('3D table renderer selection', () => {
     expect(nonStandard).not.toContain('table-renderer-diagnostics');
   });
 
-  it('does not claim 3D active before the WebGL scene reports ready', () => {
+  it('does not claim 3D active before readiness and falls back after WebGL failure', () => {
     expect(resolveTableRendererDiagnostics('3d', true, true, false, null)).toEqual({
       requested: '3d',
       active: '2d',
@@ -106,7 +121,13 @@ describe('3D table renderer selection', () => {
       fallbackReason: 'none',
     });
     expect(resolveTableRendererDiagnostics('3d', true, false, false, 'webgl-init-failure'))
-      .toMatchObject({ active: '2d', fallbackReason: 'webgl-init-failure' });
+      .toEqual({
+        requested: '3d',
+        active: '2d',
+        standardFourPlayer: true,
+        attempted3dMount: false,
+        fallbackReason: 'webgl-init-failure',
+      });
     expect(resolveTableRendererDiagnostics('3d', true, true, true, null))
       .toMatchObject({ active: '3d', fallbackReason: 'none' });
   });

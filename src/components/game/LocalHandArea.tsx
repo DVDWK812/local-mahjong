@@ -12,6 +12,8 @@ import { getLocalHandScreenOffset } from '../../presentation3d/table/tablePresen
 import { PlayerMelds } from '../PlayerMelds';
 import { PlayerAvatar } from '../PlayerAvatar';
 import { Tile } from '../Tile';
+import { LocalHandSnapshot, LocalDiscardProxy } from './LocalHandSnapshot';
+import { LocalAnimationHand } from './LocalAnimationHand';
 
 interface LocalHandAreaProps {
   player: PlayerState;
@@ -93,6 +95,7 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
   };
 
   const localDrawPhase = localHandAnimation?.kind === 'draw' ? localHandAnimation.phase : null;
+  const handFrame = screenSpaceOverlay ? localHandAnimation?.handPresentation : undefined;
   const snapshotTile = discardSnapshot
     ? { ...createTile(discardSnapshot.tile.id, -1), red: discardSnapshot.tile.red, instanceId: discardSnapshot.tileInstanceId }
     : null;
@@ -116,7 +119,8 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
         </span>
       </div>}
       <div className="local-hand-track hand-slot hand-slot--bottom" data-hand-slot="bottom">
-        <div className="local-hand-row">
+        {handFrame ? <LocalHandSnapshot frame={handFrame} concealed={concealHand} doraIndicators={doraIndicators}
+          doraGlowEnabled={doraGlowEnabled} doraSweepEnabled={doraBreathingEnabled} /> : <div className="local-hand-row">
           {baseTiles.map((tile) => (
             <Tile
               key={tile.instanceId}
@@ -165,13 +169,16 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
               />
             </span>
           ) : null}
-        </div>
+        </div>}
       </div>
       {screenSpaceOverlay ? null : <div className="local-meld-track" data-meld-player={meldPlayer.id} data-table-meld-zone="south">
         <PlayerMelds player={meldPlayer} seatClass="seat-bottom local-melds" doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
       </div>}
     </section>
-    {screenSpaceOverlay && discardSnapshot && snapshotTile ? (
+    {handFrame && localHandAnimation?.discardMotion ? <LocalDiscardProxy frame={handFrame} motion={localHandAnimation.discardMotion} /> : null}
+    {screenSpaceOverlay && localHandAnimation && (localHandAnimation.kind === 'draw' || localHandAnimation.discardMotion)
+      ? <LocalAnimationHand animation={localHandAnimation} /> : null}
+    {!handFrame && screenSpaceOverlay && discardSnapshot && snapshotTile ? (
       <div
         className="local-hand-discard-snapshot"
         data-local-discard-snapshot={discardSnapshot.tileInstanceId}

@@ -23,8 +23,11 @@ import {
 } from '../win/winPresentation3D';
 import { getHandTileScale } from '../table/tablePresentationTuning';
 import type { TileVisualSemanticContext } from '../../presentation/table/tileVisualSemantics';
+import type { HandPresentationFrame } from '../../presentation/handAnimation/HandPresentationSnapshot';
+import { resolveHandSnapshotLayout } from './handSnapshotLayout';
 
 type Hand3DProps = Readonly<{
+  handPresentation?: HandPresentationFrame;
   seatState: SeatSceneState;
   presentation?: LocalHandPresentation;
   interactionActions?: TableInteractionActions;
@@ -38,6 +41,7 @@ type Hand3DProps = Readonly<{
 
 export function Hand3D({
   seatState,
+  handPresentation,
   presentation,
   interactionActions,
   hiddenTileKeys,
@@ -84,7 +88,15 @@ export function Hand3D({
 
   return (
     <group name={`hand-${seatState.seat}`}>
-      {seatState.hand.map((tile, index) => {
+      {handPresentation ? resolveHandSnapshotLayout(seatState, handPresentation).map((entry) => entry.hidden ? null : (
+        <Tile3D key={entry.key} ownerPlayerId={seatState.playerId} tile={entry.definition}
+          faceState={entry.faceState} orientation="upright" position={entry.transform.position}
+          rotationX={entry.transform.rotationX} rotationY={entry.transform.rotationY}
+          tileScale={getHandTileScale(seatState.seat)} showRearFace={entry.faceState === 'face-down'}
+          visualContext={visualContext} doraSweepKey={entry.key}
+          objectName={`hand-tile-${seatState.seat}-${entry.index}`}
+          metadata={{ region: 'hand', seat: seatState.seat, index: entry.index, phase: handPresentation.phase }} raycastDisabled />
+      )) : seatState.hand.map((tile, index) => {
         const transform = getHandTileTransform(
           seatState.seat,
           index,

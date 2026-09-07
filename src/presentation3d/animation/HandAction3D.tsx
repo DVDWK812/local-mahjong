@@ -9,7 +9,11 @@ import { Tile3D } from '../tile/Tile3D';
 import { useTileAppearance3D } from '../appearance/TileAppearance3DContext';
 import { RiichiStick3D } from '../riichi/RiichiStick3D';
 import type { RiichiStick3DAppearance } from '../riichi/riichiStickAppearance';
-import { HandProxy3D } from './HandProxy3D';
+import { HandVisualController } from '../../hand/HandVisualController';
+import { projectHandContact } from '../../hand/handProjection';
+import { resolveHandSnapshotLayout } from '../hand/handSnapshotLayout';
+import type { HandPresentationFrame } from '../../presentation/handAnimation/HandPresentationSnapshot';
+import { resolveSnapshotDiscardMotion } from './discardHandLifecycle';
 import { DemandFrameInvalidator } from './DemandFrameInvalidator';
 import {
   resolveTableAnimation3DMotion,
@@ -18,6 +22,7 @@ import {
 } from './tableAnimation3D';
 
 export type ActiveTableAnimation3D = Readonly<{
+  handPresentation?: HandPresentationFrame;
   plan: TableAnimation3DPlan;
   phase: HandAnimationPhase;
 }>;
@@ -30,8 +35,66 @@ export function HandAction3D({ active, riichiStickAppearance }: Readonly<{
   active: ActiveTableAnimation3D;
   riichiStickAppearance?: RiichiStick3DAppearance;
 }>) {
+  if (active.handPresentation) return <SnapshotDiscardProxy3D active={active} />;
+  return <LegacyHandAction3D active={active} riichiStickAppearance={riichiStickAppearance} />;
+}
+
+/** Discard frames come from the shared scheduler, including the DOM consumer. */
+function SnapshotDiscardProxy3D({ active }: { active: ActiveTableAnimation3D }) {
+  const frame = active.handPresentation!;
+  const motion = resolveSnapshotDiscardMotion(active.plan, frame);
+  const invalidate = useThree((state) => state.invalidate);
+  const { camera, gl } = useThree((state) => state);
+  const hand = useVisualHand(active);
+  useLayoutEffect(() => {
+    const update = () => {
+      let position = motion.tilePosition;
+      if (!frame.snapshot.isTsumogiri && ['insert', 'reorder', 'complete'].includes(frame.phase)) {
+        // Consume the very same slot resolver as Hand3D, including insertion lift.
+        const slots = resolveHandSnapshotLayout({ seat: active.plan.seat, playerId: frame.snapshot.playerId,
+          hand: [], river: [], melds: [], riichi: false }, frame);
+        const entry = slots.find(slot => !slot.hidden && slot.tile.instanceId === frame.snapshot.drawnTile?.instanceId)
+          ?? slots.find(slot => !slot.hidden);
+        if (entry) position = entry.transform.position;
+      }
+      hand.current?.update(projectHandContact(position, camera, gl.domElement.getBoundingClientRect()),
+        frame.phase, frame.progress, frame.snapshot.isTsumogiri);
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [active.plan.seat, frame, camera, gl, hand, motion.tilePosition]);
+  useLayoutEffect(() => { invalidate(); }, [frame, invalidate]);
+  return <group name="table-animation-3d" userData={{ eventId: frame.snapshot.eventId, phase: frame.phase }}>
+    {motion.tileVisible && active.plan.showPrimaryTile ? <group position={motion.tilePosition} rotation={[0, motion.tileRotationY, 0]} scale={motion.tileScale}>
+      <group rotation={[motion.tileRotationX, 0, 0]}>
+        <Tile3D ownerPlayerId={active.plan.action.playerId} tile={active.plan.tile}
+          faceState={active.plan.faceState} orientation="upright" showRearFace
+          objectName="table-animation-tile-proxy" raycastDisabled />
+      </group>
+    </group> : null}
+  </group>;
+}
+
+function useVisualHand(active: ActiveTableAnimation3D) {
+  const hand = useRef<HandVisualController | null>(null);
+  const domOwned = active.plan.localDomDraw || Boolean(active.plan.localDiscardMotion);
+  useLayoutEffect(() => {
+    if (domOwned) return;
+    const controller = new HandVisualController(active.plan.action.eventId, active.plan.seat);
+    hand.current = controller;
+    return () => { controller.dispose(); hand.current = null; };
+  }, [active.plan.action.eventId, active.plan.seat, domOwned]);
+  return hand;
+}
+
+function LegacyHandAction3D({ active, riichiStickAppearance }: Readonly<{
+  active: ActiveTableAnimation3D;
+  riichiStickAppearance?: RiichiStick3DAppearance;
+}>) {
   const ownerAppearance = useTileAppearance3D(active.plan.action.playerId);
-  const handRef = useRef<Group>(null);
+  const hand = useVisualHand(active);
+  const { camera, gl } = useThree((state) => state);
   const tileRef = useRef<Group>(null);
   const tilePitchRef = useRef<Group>(null);
   const transientRefs = useRef(new Map<string, Group>());
@@ -53,7 +116,8 @@ export function HandAction3D({ active, riichiStickAppearance }: Readonly<{
     const duration = PHASE_DURATION[active.phase];
     const progress = duration <= 0 ? 1 : Math.min(1, (performance.now() - phaseStartRef.current) / duration);
     const motion = resolveTableAnimation3DMotion(active.plan, active.phase, progress);
-    if (handRef.current) handRef.current.position.set(...motion.handPosition);
+    hand.current?.update(projectHandContact(motion.tilePosition, camera, gl.domElement.getBoundingClientRect()),
+      active.phase, progress);
     if (tileRef.current) {
       tileRef.current.position.set(...motion.tilePosition);
       tileRef.current.rotation.set(0, motion.tileRotationY, 0);
@@ -87,9 +151,6 @@ export function HandAction3D({ active, riichiStickAppearance }: Readonly<{
       name="table-animation-3d"
       userData={{ eventId: active.plan.action.eventId, phase: active.phase }}
     >
-      <group ref={handRef} position={initial.handPosition as [number, number, number]}>
-        <HandProxy3D seat={active.plan.seat} position={[0, 0, 0]} />
-      </group>
       {active.plan.showPrimaryTile ? (
         <group
           ref={tileRef}

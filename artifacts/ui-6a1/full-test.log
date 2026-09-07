@@ -1,0 +1,335 @@
+
+> local-mahjong-trainer@0.1.0 pretest
+> npm run generate:voice-packs && npm run test:voice-pack-index
+
+
+> local-mahjong-trainer@0.1.0 generate:voice-packs
+> node scripts/generateVoicePackIndex.mjs
+
+Generated Voice Pack index: 3 valid pack(s), 0 skipped.
+
+> local-mahjong-trainer@0.1.0 test:voice-pack-index
+> node scripts/verifyVoicePackIndex.mjs
+
+Voice Pack index lifecycle test passed.
+
+> local-mahjong-trainer@0.1.0 test
+> vitest run
+
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/game/replay/roundReplay.test.ts (12 tests) 17ms
+ ✓ src/presentation/PresentationEventBus.test.ts (21 tests) 42ms
+ ✓ src/presentation3d/coordinates/sceneTransforms.test.ts (16 tests) 20ms
+ ✓ src/game/seventeenSteps.test.ts (22 tests) 39ms
+ ✓ src/game/testMode/testMode.test.ts (16 tests) 192ms
+ ✓ src/game/ai.test.ts (23 tests) 659ms
+ ✓ src/presentation3d/sceneState/buildTableSceneState.test.ts (14 tests) 31ms
+ ✓ src/components/MatchSettings.test.tsx (27 tests) 273ms
+ ✓ src/presentation/handAnimation/HandAnimationController.test.ts (14 tests) 13ms
+ ✓ src/presentation3d/animation/tableAnimation3D.test.ts (35 tests) 81ms
+ ✓ src/components/game/DiscardRiver.test.tsx (21 tests) 56ms
+ ✓ src/components/ReplayScreen.test.tsx (25 tests) 226ms
+ ✓ src/audio/musicLibrary.test.ts (19 tests) 17ms
+ ✓ src/audio/voice/VoiceDirector.test.ts (18 tests) 17ms
+ ✓ src/components/voice/VoiceManagementScreen.test.tsx (18 tests) 156ms
+ ✓ src/presentation3d/animation/handPresentation.test.tsx (18 tests) 101ms
+ ✓ src/components/game/LocalHandArea.test.tsx (14 tests) 108ms
+ ✓ src/components/game/HandAnimationOverlay.test.tsx (27 tests) 95ms
+ ✓ src/components/AudioSettingsDialog.test.tsx (18 tests) 306ms
+ ✓ src/presentation/appearance/appearanceLibrary.test.ts (14 tests) 28ms
+ ✓ src/game/tenpaiDisplay.test.tsx (20 tests) 138ms
+ ✓ src/game/kanChecker.test.ts (7 tests) 26ms
+ ✓ src/game/score/yakuChecker.test.ts (23 tests) 16ms
+ ✓ src/game/score/fu/fuCalculator.test.ts (31 tests) 11ms
+stderr | scripts/localVoiceGenerationService.test.mjs > LocalVoiceGenerationService > 接受 BOM 包裹的纯 JSON，并拒绝日志污染、缺字段和异常退出的响应
+Voice generator diagnostic {
+  code: 'GENERATOR_INVALID_RESPONSE',
+  exitCode: 0,
+  stdoutBytes: 244,
+  stderrBytes: 0
+}
+
+stderr | scripts/localVoiceGenerationService.test.mjs > LocalVoiceGenerationService > 接受 BOM 包裹的纯 JSON，并拒绝日志污染、缺字段和异常退出的响应
+Voice generator diagnostic {
+  code: 'GENERATOR_INVALID_RESPONSE',
+  exitCode: 0,
+  stdoutBytes: 80,
+  stderrBytes: 0
+}
+
+stderr | scripts/localVoiceGenerationService.test.mjs > LocalVoiceGenerationService > 接受 BOM 包裹的纯 JSON，并拒绝日志污染、缺字段和异常退出的响应
+Voice generator diagnostic {
+  code: 'GENERATOR_PROCESS_FAILED',
+  exitCode: 2,
+  stdoutBytes: 0,
+  stderrBytes: 13
+}
+
+ ✓ src/audio/AudioManager.test.ts (43 tests) 919ms
+ ✓ scripts/localVoiceGenerationService.test.mjs (11 tests) 135ms
+ ✓ src/game/score/ancientYaku.test.ts (16 tests) 19ms
+ ✓ src/game/persistence/saveManager.test.ts (13 tests) 43ms
+ ✓ src/game/interactionFlow.test.ts (11 tests) 103ms
+ ✓ src/presentation/animation/AnimationScheduler.test.ts (14 tests) 17ms
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 原子创建标准 Pack，复制 145 条母版且生成可发现 index
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 只生成安全 ASCII ID，重复创建使用安全后缀
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+ ✓ src/presentation/gamePresentationEvents.test.ts (6 tests) 22ms
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 只生成安全 ASCII ID，重复创建使用安全后缀
+Generated Voice Pack index: 2 valid pack(s), 0 skipped.
+
+ ✓ src/components/rulesGuide/RulesGuideScreen.test.tsx (14 tests) 752ms
+ ✓ src/game/winChecker.test.ts (9 tests) 32ms
+ ✓ src/audio/voice/voiceGenerationStatus.test.ts (11 tests) 63ms
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 索引拒绝无效母版时回滚已原子移动的 Pack
+Generated Voice Pack index: 0 valid pack(s), 1 skipped.
+
+stderr | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 索引拒绝无效母版时回滚已原子移动的 Pack
+Skipped Voice Pack voice-20260822-001: CSV is missing required column(s): category, action, tts_text, locale, character, emotion
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 只解析 manifest 明确声明的 MP3，拒绝路径穿越和未声明文件
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 删除用户 Pack 后立即重建索引；内置校长角色始终受服务端保护
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 删除用户 Pack 后立即重建索引；内置校长角色始终受服务端保护
+Generated Voice Pack index: 0 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > EPERM rename 重试后仍可完成 Pack 删除
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > EPERM rename 会 fallback 到 fs.rm；仍被占用时返回 PACK_IN_USE
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+ ✓ src/presentation3d/Table3DScene.test.ts (10 tests) 9ms
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > EPERM rename 会 fallback 到 fs.rm；仍被占用时返回 PACK_IN_USE
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+ ✓ scripts/localVoicePackService.test.mjs (10 tests) 433ms
+ ✓ src/presentation/pacing/PresentationPacingGate.test.ts (16 tests) 11ms
+ ✓ src/components/game/GameScreen.test.tsx (13 tests) 1065ms
+ ✓ src/audio/voice/VoicePresentationRuntime.integration.test.tsx (3 tests) 37ms
+ ✓ src/components/WinResultDialog.test.tsx (11 tests) 103ms
+ ✓ src/components/DoraGlow.test.tsx (11 tests) 30ms
+ ✓ src/components/game/PlayerZone.test.tsx (7 tests) 53ms
+ ✓ src/game/scoreCalculator.test.ts (18 tests) 13ms
+ ✓ src/components/WinResultPresentation.test.tsx (6 tests) 80ms
+ ✓ src/game/match/matchEngine.test.ts (12 tests) 22ms
+ ✓ src/presentation3d/appearance/AppearanceTextureCache.test.ts (7 tests) 8ms
+ ✓ src/presentation/eventOverlay/EventOverlayController.test.ts (5 tests) 11ms
+ ✓ src/game/riichiClaimedDiscard.test.ts (6 tests) 24ms
+ ✓ src/components/TestMode.test.tsx (13 tests) 741ms
+ ✓ src/presentation3d/TableRenderer.test.ts (11 tests) 116ms
+ ✓ src/presentation3d/dora/DoraSweep3DController.test.ts (10 tests) 11ms
+ ✓ src/components/ResultDialog.test.tsx (5 tests) 54ms
+ ✓ src/presentation3d/tile/tileMaterials.test.ts (9 tests) 8ms
+ ✓ src/game/shanten.test.ts (21 tests) 292ms
+ ✓ src/game/riichiDiscardLegality.test.ts (5 tests) 54ms
+ ✓ src/presentation/appearance/tileFaceIntegration.test.tsx (8 tests) 26ms
+ ✓ src/audio/voice/winVoiceSequence.test.ts (6 tests) 6ms
+ ✓ src/audio/voice/WinResultPresentationController.test.ts (6 tests) 10ms
+ ✓ scripts/fishVoiceCreationService.test.mjs (7 tests) 14ms
+ ✓ src/components/SameTileHover.test.tsx (11 tests) 27ms
+ ✓ src/game/persistence/storageValidation.test.ts (17 tests) 29ms
+ ✓ src/components/voice/CreateVoicePackScreen.test.tsx (9 tests) 23ms
+ ✓ src/presentation/handAnimation/HandAnimationConsumer.test.ts (7 tests) 9ms
+ ✓ src/components/ActionPromptCallOptions.test.tsx (7 tests) 401ms
+ ✓ src/presentation/appearance/appearanceAssetResolver.test.ts (6 tests) 8ms
+ ✓ src/audio/voice/SettlementPresentationCoordinator.test.ts (5 tests) 10ms
+ ✓ src/audio/audioSettingsStorage.test.ts (8 tests) 6ms
+ ✓ src/presentation3d/table/tablePresentationTuning.test.ts (5 tests) 6ms
+ ✓ src/components/NavigationMenus.test.tsx (19 tests) 67ms
+ ✓ src/game/kuikae.test.ts (8 tests) 30ms
+ ✓ src/audio/voice/effectiveGenerationConfig.test.ts (6 tests) 7ms
+ ✓ src/audio/voice/VoicePackRepository.test.ts (8 tests) 7ms
+ ✓ src/components/game/TableLayoutRegression.test.tsx (10 tests) 155ms
+ ✓ src/presentation/winAnimation/WinPresentationController.test.ts (5 tests) 9ms
+ ✓ src/presentation/result/resultViewModel.test.ts (6 tests) 20ms
+ ✓ src/audio/voice/VoicePresentationConsumer.test.ts (5 tests) 7ms
+ ✓ src/game/furiten.test.ts (6 tests) 26ms
+ ✓ src/components/InteractionFlow.test.tsx (9 tests) 506ms
+ ✓ src/presentation3d/table/FeltDecoration3D.test.ts (7 tests) 7ms
+ ✓ src/game/score/scoringContextIntegration.test.ts (6 tests) 21ms
+ ✓ src/game/score/yaku/remainingModernYaku.test.ts (10 tests) 12ms
+ ↓ src/game/seventeenStepsAI.pressure.test.ts (1 test | 1 skipped)
+ ✓ src/game/abortiveDraw.test.ts (9 tests) 23ms
+ ✓ src/presentation/table/TablePresentationContract.test.ts (7 tests) 130ms
+ ✓ src/game/match/matchRules.test.ts (10 tests) 6ms
+ ✓ src/components/ReplayLayout.test.tsx (8 tests) 84ms
+ ✓ src/components/settings/AvatarPicker.test.tsx (7 tests) 72ms
+ ✓ src/components/ActionPromptRiichiCandidates.test.tsx (3 tests) 293ms
+ ✓ src/game/callChecker.test.ts (5 tests) 21ms
+ ✓ src/presentation3d/dora/doraSweep3DTrigger.test.ts (5 tests) 18ms
+ ✓ src/audio/voice/VoicePackEditingService.test.ts (7 tests) 19ms
+ ✓ src/presentation/appearance/playerSlotAppearance.test.ts (4 tests) 6ms
+ ✓ src/game/riichiCallRestrictions.test.ts (4 tests) 20ms
+ ✓ src/presentation3d/hand/handInteraction.test.ts (7 tests) 7ms
+ ✓ src/presentation/appearance/appearanceSettings.test.ts (5 tests) 8ms
+ ✓ src/game/riichiFlowRegression.test.tsx (5 tests) 96ms
+ ✓ src/audio/musicRegistry.test.ts (10 tests) 6ms
+ ✓ src/game/score/scoringIntegration.test.ts (5 tests) 22ms
+ ✓ src/presentation3d/tile/doraBreathingVisual.test.ts (5 tests) 6ms
+stderr | src/presentation3d/appearance/playerAppearanceConsumers.test.tsx > real 3D consumer owner contracts > riichi animation/release and static sticks consume the same actor texture for all four players
+React does not recognize the `userData` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `userdata` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
+Received `true` for a non-boolean attribute `visible`.
+
+If you want to write it to the DOM, pass a string instead: visible="true" or visible={value.toString()}.
+
+ ✓ src/presentation3d/appearance/playerAppearanceConsumers.test.tsx (2 tests) 66ms
+ ✓ scripts/fishAudioModelDiscovery.test.mjs (4 tests) 36ms
+ ✓ src/components/settings/VoicePackSettings.test.tsx (4 tests) 17ms
+ ✓ src/game/score/sanankouProvenance.test.ts (5 tests) 5ms
+ ✓ scripts/generateTransparentTileFaces.test.mjs (12 tests) 635ms
+ ✓ src/audio/musicPreferences.test.ts (5 tests) 4ms
+ ✓ src/components/game/DoraIndicatorStack.test.tsx (6 tests) 36ms
+ ✓ src/game/score/pointCalculator.test.ts (20 tests) 8ms
+ ✓ src/game/match/endConditions.test.ts (6 tests) 19ms
+ ✓ src/components/TileImageRendering.test.tsx (5 tests) 29ms
+ ✓ src/game/exhaustiveDraw.test.ts (6 tests) 20ms
+ ✓ src/app/automaticGameProgression.test.ts (3 tests) 22ms
+ ✓ src/game/suukanSanraSettlement.test.ts (3 tests) 22ms
+ ✓ src/game/abortiveDrawIntegration.test.ts (5 tests) 24ms
+ ✓ src/presentation/appearance/playerSlotAvatars.test.ts (5 tests) 5ms
+ ✓ src/game/chiChecker.test.ts (6 tests) 21ms
+ ✓ scripts/removeDeprecatedVoiceLines.test.mjs (1 test) 40ms
+ ✓ src/game/chankan.test.ts (4 tests) 26ms
+ ✓ src/presentation/eventOverlay/EventOverlayConsumer.test.ts (4 tests) 6ms
+ ✓ src/presentation3d/tile/tileFaceVisibility.test.tsx (4 tests) 15ms
+ ✓ src/presentation3d/tile/tileTextures.test.ts (6 tests) 6ms
+ ✓ src/audio/voice/voicePreferences.test.ts (7 tests) 5ms
+ ✓ src/components/PlayerProfileIntegration.test.tsx (5 tests) 1105ms
+   ✓ PlayerProfile 表现层接入 > 17 步使用同一个 Profile 展示昵称和头像 912ms
+ ✓ src/components/game/MahjongTable.test.tsx (5 tests) 142ms
+stderr | src/presentation3d/animation/flashLifecycle.test.tsx > local discard / ron / tsumo frames keep the same scene and visible seats without loading fresh textures
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+
+ ✓ src/game/testMode/resultsStorage.test.ts (4 tests) 26ms
+ ✓ src/presentation3d/animation/flashLifecycle.test.tsx (1 test) 73ms
+ ✓ src/game/exhaustiveDrawIntegration.test.ts (4 tests) 22ms
+ ✓ src/presentation3d/riichi/RiichiStick3D.test.ts (5 tests) 6ms
+ ✓ src/presentation/handAnimation/DiscardSourceSnapshot.test.ts (4 tests) 7ms
+ ✓ src/audio/musicLibraryStorage.test.ts (2 tests) 4ms
+ ✓ src/game/replay/eventRecorder.test.ts (3 tests) 20ms
+ ✓ src/presentation3d/win/winPresentation3D.test.ts (3 tests) 16ms
+ ✓ src/components/AppearanceSettingsDialog.test.tsx (4 tests) 28ms
+ ✓ src/components/TileOperationStates.test.tsx (3 tests) 13ms
+ ✓ src/components/ActionPromptClickTargets.test.tsx (3 tests) 207ms
+ ✓ src/game/northPlayerRiichi.test.ts (3 tests) 70ms
+ ✓ src/components/PlayerMelds.test.tsx (4 tests) 26ms
+ ✓ src/presentation3d/animation/animationRuntime.test.ts (3 tests) 5ms
+ ✓ src/game/riichi.test.ts (5 tests) 30ms
+ ✓ src/presentation/table/tileVisualSemantics.test.ts (4 tests) 4ms
+ ✓ src/audio/AudioPresentationConsumer.test.ts (5 tests) 6ms
+ ✓ src/audio/voice/voiceSynthesisSettings.test.ts (5 tests) 5ms
+ ✓ src/presentation3d/table/feltSurfaceUv.test.ts (2 tests) 7ms
+ ✓ src/profile/playerProfileStorage.test.ts (5 tests) 4ms
+ ✓ src/game/match/matchIntegration.test.ts (4 tests) 18ms
+ ✓ src/game/tileAssets.test.ts (4 tests) 5ms
+ ✓ src/presentation3d/tile/tileVisualAnatomy.test.ts (3 tests) 4ms
+ ✓ src/game/nextRoundReset.test.ts (1 test) 15ms
+ ✓ scripts/reorderVoiceLineCatalog.test.mjs (2 tests) 30ms
+ ✓ src/presentation3d/appearance/AppearanceResources3D.test.ts (5 tests) 5ms
+ ✓ scripts/localGeneratedVoiceRegistry.test.mjs (2 tests) 92ms
+ ✓ src/presentation3d/table/CentralConsoleHudAnchor3D.test.ts (4 tests) 4ms
+ ✓ src/game/meldDisplayAdapter.test.ts (5 tests) 16ms
+ ✓ src/game/match/endChoice.test.ts (4 tests) 17ms
+ ✓ src/presentation3d/tile/tileGrounding.test.ts (3 tests) 3ms
+ ✓ src/game/match/finalRanking.test.ts (5 tests) 4ms
+ ✓ src/components/TestModePerspective.test.tsx (1 test) 342ms
+   ✓ 测试模式固定牌桌视角 > 四家视角依次切换时桌面公开元素不旋转，切回原视角后DOM与状态一致 341ms
+ ✓ src/game/riichiVisualState.test.ts (4 tests) 92ms
+ ✓ src/components/game/TableCenter.test.tsx (4 tests) 31ms
+ ✓ src/components/game/GameEventOverlay.test.tsx (4 tests) 9ms
+ ✓ src/presentation/winAnimation/WinPresentationConsumer.test.ts (2 tests) 5ms
+ ✓ src/presentation/animation/animationFrameTask.test.ts (3 tests) 6ms
+ ✓ src/audio/voice/voicePreview.test.ts (3 tests) 5ms
+ ✓ src/components/game/DiscardRiverRiichiClaimed.test.tsx (2 tests) 21ms
+ ✓ src/game/score/yakuhaiNames.test.ts (3 tests) 7ms
+ ✓ src/presentation/matchPresentationEvents.test.ts (2 tests) 15ms
+ ✓ src/presentation3d/camera/FixedTableCamera.test.ts (3 tests) 5ms
+ ✓ src/components/ExhaustiveDrawDialog.test.tsx (2 tests) 40ms
+ ✓ src/game/match/roundTransition.test.ts (5 tests) 4ms
+ ✓ src/presentation3d/Table3DHud.test.tsx (2 tests) 52ms
+ ✓ src/presentation3d/tile/tileFootprintPacking.test.ts (3 tests) 3ms
+ ✓ src/profile/playerProfile.test.ts (4 tests) 4ms
+ ✓ src/presentation3d/dora/doraLayout.test.ts (3 tests) 4ms
+ ✓ src/audio/voice/CreatedVoiceService.test.ts (3 tests) 9ms
+ ✓ src/styles/designTokens.test.ts (3 tests) 5ms
+ ✓ src/game/score/scoringAdapter.test.ts (4 tests) 4ms
+ ✓ scripts/syncVoiceLineCatalog.test.mjs (1 test) 22ms
+ ✓ src/components/settings/AppearanceImageLibrary.test.tsx (2 tests) 11ms
+ ✓ src/components/MeldDisplay.test.tsx (3 tests) 23ms
+ ✓ src/audio/voice/matchVoiceSequence.test.ts (3 tests) 4ms
+ ✓ src/game/persistence/migration.test.ts (3 tests) 17ms
+ ✓ src/components/game/RiichiStick.test.tsx (3 tests) 10ms
+ ✓ src/components/SeventeenStepsScreen.test.tsx (4 tests) 1344ms
+   ✓ 17步正式游戏界面接入 > 进入正式 game-screen，并且只显示上下两个有效座位 1004ms
+   ✓ 17步正式游戏界面接入 > 构筑阶段显示比赛摘要和全宽构筑内容 338ms
+ ✓ src/audio/voice/drawVoiceSequence.test.ts (3 tests) 4ms
+ ✓ src/components/game/WinPresentationOverlay.test.tsx (3 tests) 4ms
+ ✓ src/components/game/GameResponsiveLayout.test.tsx (4 tests) 3ms
+ ✓ src/game/replay/replayPlayback.test.ts (3 tests) 6ms
+ ✓ src/audio/voice/VoicePackService.test.ts (3 tests) 9ms
+ ✓ src/audio/voice/ttsTextSynchronization.test.ts (4 tests) 5ms
+ ✓ src/components/game/HandTrack.test.tsx (4 tests) 26ms
+ ✓ src/presentation3d/animation/DiscardSource3D.test.ts (2 tests) 3ms
+ ✓ src/components/MatchResultDialog.test.tsx (1 test) 27ms
+ ✓ scripts/tableRendererUrlBanner.test.ts (2 tests) 4ms
+ ✓ src/audio/voice/voiceLineGroups.test.ts (3 tests) 4ms
+ ✓ src/presentation/appearance/appearanceAssetStorage.test.ts (2 tests) 5ms
+ ✓ src/presentation3d/tile/tileFaceTextures3d.test.ts (2 tests) 4ms
+ ✓ src/presentation3d/tile/tileGalleryData.test.ts (4 tests) 3ms
+ ✓ src/components/MatchSettingsExtraRoundDefaults.test.tsx (3 tests) 18ms
+ ✓ src/game/replay/replayIntegration.test.ts (2 tests) 6ms
+ ✓ src/presentation3d/coordinates/seatTransforms.test.ts (3 tests) 3ms
+ ✓ src/presentation3d/Table3DHudAvatar.test.tsx (1 test) 47ms
+ ✓ src/components/settings/ImagePickerCropDialog.test.ts (2 tests) 12ms
+ ✓ src/presentation3d/lighting/TableLighting.test.tsx (2 tests) 3ms
+ ✓ src/components/ReplayControls.test.tsx (1 test) 9ms
+ ✓ src/app/navigation.test.ts (4 tests) 3ms
+ ✓ src/components/SeventeenStepsMatchSettings.test.tsx (1 test) 13ms
+ ✓ src/game/replay/eventReducer.test.ts (2 tests) 5ms
+ ✓ src/game/replay/replayEngine.test.ts (2 tests) 5ms
+ ✓ src/game/seventeenStepsMatch.test.ts (1 test) 3ms
+ ✓ src/audio/voice/tileVoice.test.ts (2 tests) 3ms
+ ✓ src/components/game/AnalysisDrawer.test.tsx (2 tests) 71ms
+ ✓ src/audio/voice/fishAudioLanguages.test.ts (1 test) 3ms
+ ✓ src/components/AnalysisTileImages.test.tsx (2 tests) 42ms
+ ✓ src/presentation3d/tile/tileSpacing.test.ts (1 test) 2ms
+ ✓ src/components/ContinueMatchDialog.test.tsx (2 tests) 20ms
+ ✓ src/presentation3d/table/feltMainViewMapping.test.ts (3 tests) 4ms
+ ✓ src/audio/voice/textControlProfiles.test.ts (1 test) 3ms
+ ✓ src/presentation3d/tile/tileOrientation.test.ts (3 tests) 4ms
+ ✓ src/components/AbortiveDrawDialog.test.tsx (1 test) 30ms
+ ✓ src/presentation3d/table/TableMesh.test.ts (1 test) 2ms
+ ✓ src/audio/voice/fishCloneLanguages.test.ts (1 test) 2ms
+ ✓ src/components/SaveStatusIndicator.test.tsx (1 test) 8ms
+ ✓ src/presentation3d/riichi/RiichiSticks3D.test.ts (2 tests) 2ms
+ ✓ src/components/ReplayDetail.test.tsx (1 test) 24ms
+stdout | src/game/seventeenStepsAI.test.ts > 17步麻将 Default AI V2 pressure smoke test > runs a bounded batch without unbounded search
+17-step AI V2 pressure: V2 tenpai=200/200, han=171/200, no-furiten=171/200, complete17=171/200, avgWaitKinds=4.90, avgMs=198.67; Legacy tenpai=200/200, han=200/200, no-furiten=100/200
+
+ ✓ src/game/seventeenStepsAI.test.ts (12 tests) 54645ms
+   ✓ 17步麻将 Default AI V2 > maps 筑根 to Legacy and all newer shared difficulties to V2.1 2428ms
+   ✓ 17步麻将 Default AI V2 > exposes separate structural/legal waits and the V2.1 forced-discard metrics 1183ms
+   ✓ 17步麻将 Default AI V2 > uses the match han restriction and never reads legacy manganRestriction 1880ms
+   ✓ 17步麻将 Default AI V2 > prioritizes a no-furiten tenpai build and caps wait entities in the discard pool 1340ms
+   ✓ 17步麻将 Default AI V2 > is deterministic for the same state and seed 2522ms
+   ✓ 17步麻将 Default AI V2 > does not use the opponent hidden build when constructing or discarding 2133ms
+   ✓ 17步麻将 Default AI V2 > filters structural waits before choosing a discard and prefers public safe duplicates 739ms
+   ✓ 17步麻将 Default AI V2 > does not deadlock when every remaining candidate is a structural wait 1307ms
+   ✓ 17步麻将 Default AI V2 > can simulate all 17 AI discards without discarding a structural wait or entering permanent furiten 603ms
+   ✓ 17步麻将 Default AI V2 > keeps Legacy available while the default game uses V2 construction 775ms
+   ✓ 17步麻将 Default AI V2 pressure smoke test > runs a bounded batch without unbounded search 39735ms
+
+ Test Files  223 passed | 1 skipped (224)
+      Tests  1569 passed | 1 skipped (1570)
+   Start at  11:36:22
+   Duration  56.64s (transform 9.11s, setup 0ms, collect 69.02s, tests 70.53s, environment 42ms, prepare 23.77s)
+

@@ -320,7 +320,7 @@ class DomHandAnimationTarget implements HandAnimationTarget {
   }
 }
 
-function HandPlaceholder() {
+export function HandPlaceholder() {
   return (
     <svg className="hand-animation-hand" viewBox="0 0 120 96" role="presentation">
       <path d="M20 89c-7-12-7-28 2-39l24-31c4-5 12-4 14 2l1 3 9-15c4-6 13-4 14 3l1 5 6-7c5-5 13-1 12 6l-2 13 4-2c8-4 15 4 11 12L96 77c-6 11-18 18-31 18H31c-5 0-9-2-11-6Z" />

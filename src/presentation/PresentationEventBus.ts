@@ -2,6 +2,7 @@ import type { AbortiveDrawReason, PlayerId, TileId } from '../game/types';
 import type { LimitTier } from '../game/score/pointCalculator';
 import type { YakuhaiSource, YakuId } from '../game/score/yaku/types';
 import type { MatchResult } from '../game/match/types';
+import type { HandDiscardHistory } from './handAnimation/HandPresentationSnapshot';
 
 export interface PresentationTile {
   readonly id: TileId;
@@ -9,6 +10,7 @@ export interface PresentationTile {
 }
 
 export interface TileDiscardedPresentationEvent {
+  readonly handHistory?: HandDiscardHistory;
   readonly eventId: string;
   readonly sequence: number;
   readonly type: 'tile_discarded';

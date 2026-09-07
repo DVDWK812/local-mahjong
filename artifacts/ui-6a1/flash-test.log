@@ -1,0 +1,13 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+stderr | src/presentation3d/animation/flashLifecycle.test.tsx > local discard / ron / tsumo frames keep the same scene and visible seats without loading fresh textures
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+
+ ✓ src/presentation3d/animation/flashLifecycle.test.tsx (1 test) 29ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  11:24:33
+   Duration  821ms (transform 117ms, setup 0ms, collect 541ms, tests 29ms, environment 0ms, prepare 77ms)
+

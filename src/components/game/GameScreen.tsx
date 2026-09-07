@@ -144,6 +144,8 @@ export function GameScreen({
   ), [localPlayerId, onDiscard]);
   const handAnimationSessionKey = `${gameState.roundWind}-${gameState.dealer}-${gameState.honba}-${matchState?.handNumber ?? 'single'}`;
   const captureDiscardSource = useCallback((capture: DiscardSourceCapture) => {
+    const features = getPresentationFeatures();
+    if (!handAnimationsEnabled || !features.presentationEvents || !features.handAnimations) return;
     const snapshot: DiscardSourceSnapshot = {
       ...capture,
       sessionKey: handAnimationSessionKey,
@@ -155,10 +157,10 @@ export function GameScreen({
       clearStoredSnapshot();
       setLocalDiscardSnapshot((current) => current?.tileInstanceId === snapshot.tileInstanceId ? null : current);
     };
-  }, [activeTableRenderer, discardSourceSnapshots, gameState.turn, handAnimationSessionKey]);
+  }, [activeTableRenderer, discardSourceSnapshots, gameState.turn, handAnimationSessionKey, handAnimationsEnabled]);
   const handleLocalHandAnimationChange = useCallback((next: LocalHandAnimation3DState | null) => {
     setLocalHandAnimation(next);
-    if (next?.kind === 'discard' && next.phase === 'proxy-ready') setLocalDiscardSnapshot(null);
+    if (!next || next.handPresentation || (next.kind === 'discard' && next.phase === 'proxy-ready')) setLocalDiscardSnapshot(null);
   }, []);
   const handleWinPresentation3DChange = useCallback((next: WinPresentation3DState | null) => {
     setWinPresentation3D(activeTableRenderer === '3d' ? next : null);

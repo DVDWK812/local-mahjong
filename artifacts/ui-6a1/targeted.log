@@ -1,0 +1,17 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/components/game/WinPresentationOverlay.test.tsx (3 tests) 3ms
+stderr | src/presentation3d/animation/flashLifecycle.test.tsx > local discard / ron / tsumo frames keep the same scene and visible seats without loading fresh textures
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+
+ ✓ src/presentation3d/animation/flashLifecycle.test.tsx (1 test) 48ms
+ ✓ src/presentation3d/animation/tableAnimation3D.test.ts (35 tests) 72ms
+ ✓ src/components/game/LocalHandArea.test.tsx (14 tests) 63ms
+ ✓ src/presentation3d/animation/handPresentation.test.tsx (18 tests) 71ms
+
+ Test Files  5 passed (5)
+      Tests  71 passed (71)
+   Start at  11:13:01
+   Duration  1.21s (transform 733ms, setup 0ms, collect 3.57s, tests 258ms, environment 1ms, prepare 471ms)
+

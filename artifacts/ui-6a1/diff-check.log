@@ -1,0 +1,14 @@
+warning: in the working copy of 'src/components/game/GameScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/game/HandAnimationOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/game/LocalHandArea.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/presentation/PresentationEventBus.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/presentation/animation/AnimationScheduler.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/presentation/gamePresentationEvents.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/presentation/handAnimation/HandAnimationController.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/presentation3d/Table3DScene.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/presentation3d/animation/HandAction3D.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/presentation3d/animation/tableAnimation3D.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/presentation3d/animation/useTableAnimation3D.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/presentation3d/coordinates/sceneTransforms.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/presentation3d/hand/Hand3D.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/presentation3d/tile/TileTextureWarmup.tsx', LF will be replaced by CRLF the next time Git touches it

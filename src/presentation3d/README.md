@@ -71,7 +71,7 @@ Tile3D
 
 ## Renderer and performance baseline
 
-- `?table3d=1` lazy-loads the 3D chunk; default rendering remains the existing 2.5D table and WebGL failure returns to it.
+- 3D is the default renderer and lazy-loads its chunk; `?table3d=1` remains compatible. `?table3d=0` explicitly opens frozen Legacy Compatibility Mode. WebGL failure safely returns to 2.5D.
 - A normal initial four-player state renders 136 physical scene tiles: 53 hand tiles, 69 live-wall tiles and 14 dead-wall tiles, before rivers and melds grow.
 - `InstancedMesh` is not used in UI-5C. Stable individual `Tile3D` meshes keep future extraction for UI-5E straightforward, but the initial color pass is roughly 272 tile mesh submissions before table meshes, markers and shadow passes. Static wall and concealed opponent backs are the first measured optimization candidates.
 - A texture atlas is deferred until measured loading, memory, or draw-call pressure justifies it.

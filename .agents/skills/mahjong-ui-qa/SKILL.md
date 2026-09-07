@@ -9,7 +9,7 @@ Validate observable user-facing behavior in the running application.
 
 Do not infer a browser-visible `PASS` from source inspection, unit tests, snapshots, or build success alone.
 
-This Skill covers both the stable 2.5D renderer and the Three.js/R3F 3D renderer.
+3D is the primary/default renderer. 2.5D is frozen Legacy Compatibility Mode and is bugfix-only. New presentation work targets 3D unless the task explicitly says otherwise.
 
 ## Browser policy
 
@@ -67,7 +67,7 @@ Before browser acceptance:
 
 1. Read the applicable `AGENTS.md`.
 2. Read the task scope.
-3. Identify whether the change affects 2.5D, 3D, both renderers, shared presentation state, or only DOM UI.
+3. Identify whether the change affects 3D, shared presentation state, legacy isolation, or only DOM UI. Expand 2.5D regression only for GameScreen, Local Hand/shared DOM tiles, PresentationEvent/pacing, renderer switch/fallback, shared CSS/layout, shared audio, Rules/GameState, or an explicitly reported 2.5D bug.
 4. Preserve existing dirty/untracked work.
 5. Do not modify product code while performing acceptance unless the task explicitly asks for a fix.
 
@@ -110,34 +110,42 @@ At each viewport check:
 - text remains readable;
 - pointer targets remain aligned with visuals.
 
-# Default 2.5D acceptance
+# Default 3D acceptance
 
 The default URL is:
 
 `http://127.0.0.1:5173/`
 
-For tasks that may affect renderer integration, shared state, gameplay interaction, HUD, overlays, or routing, verify the stable 2.5D path.
+For 3D presentation, renderer integration, shared state, gameplay interaction, HUD, overlays, or routing, verify the primary 3D path at both required viewports.
 
 Required checks:
 
-- Canvas count is `0`;
-- no 3D renderer is mounted;
-- affected 2.5D layout remains unchanged unless the task explicitly modifies it;
-- affected 2.5D interactions still work;
-- shared state changes do not introduce duplicate controls or missing state;
-- affected HUD, Dora, ActionPrompt, River, Hand, Meld, Result UI, or overlays have no regression;
+- exactly one Canvas is present;
+- requested and active renderer are `3d`;
+- fallback reason is `none`;
+- the 3D scene, shared HUD, local hand, and affected interaction are visible and usable;
 - Console contains no relevant errors;
 - required Network requests do not fail.
 
-If the task is 3D-only, 2.5D acceptance is still required for renderer isolation when shared presentation or integration code changed.
+# Legacy Compatibility smoke
+
+Use `http://127.0.0.1:5173/?table3d=0` for one lightweight legacy smoke after 3D presentation work:
+
+- Canvas count is `0` and no 3D layer is mounted;
+- the table enters without a crash;
+- a basic hand can run.
+
+Do not require 2.5D feature or visual parity for new 3D presentation work. Run the broader 2.5D regression only when the shared-boundary conditions above apply.
 
 # Mandatory 3D / WebGL acceptance
 
 Use this section for any change involving 3D runtime, 3D layout, camera, table dimensions, tile geometry, grounding, hand/river/meld coordinates, Dora 3D integration, scene-anchored DOM, pointer/hit targets, 3D interaction, renderer animation, texture loading, Suspense, renderer selection, fallback, or shared 2D/3D presentation contracts.
 
-The 3D URL is normally:
+The default 3D URL is:
 
-`http://127.0.0.1:5173/?table3d=1`
+`http://127.0.0.1:5173/`
+
+`?table3d=1` remains a compatible explicit 3D URL; `?table3d=0` explicitly selects Legacy Compatibility Mode.
 
 Use the Codex built-in browser.
 
@@ -483,18 +491,18 @@ If acceptance finds a defect:
 
 Do not broaden the task into unrelated cleanup.
 
-# 2.5D / 3D isolation
+# Legacy / 3D isolation
 
 For shared renderer changes, explicitly verify isolation.
 
-A 3D fix must not alter stable 2.5D behavior unless the task explicitly requires both.
+A 3D fix must retain Legacy Compatibility smoke viability. It does not require 2.5D feature or visual parity.
 
 A 2.5D fix must not accidentally mount or alter the 3D renderer.
 
 For standard acceptance:
 
-- default URL → `Canvas=0`
-- `?table3d=1` → one active 3D Canvas
+- default URL → one active 3D Canvas
+- `?table3d=0` → `Canvas=0`, no 3D layer
 
 # Output format
 
@@ -527,7 +535,7 @@ Include:
 - screenshots;
 - notable visual observations.
 
-## 2.5D regression
+## Legacy Compatibility smoke
 
 State what was actually verified.
 
@@ -553,7 +561,7 @@ For 3D/WebGL work, `PASS` requires at minimum:
 - changed layout/interaction/animation verified in the browser;
 - Console clean of relevant errors;
 - Network clean of failed required resources;
-- affected 2.5D regression checked when applicable.
+- Legacy Compatibility smoke checked; broader 2.5D regression checked only when applicable.
 
 If any mandatory browser criterion is not observed, report `NOT VERIFIED` or `MANUAL BLOCKED`, not `PASS`.
 

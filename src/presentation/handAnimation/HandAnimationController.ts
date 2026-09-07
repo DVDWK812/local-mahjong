@@ -12,6 +12,7 @@ export type HandAnimationAction = TileDrawnPresentationEvent | RiichiDeclaredPre
 export type HandAnimationPhase = 'approach' | 'grasp' | 'travel' | 'release' | 'retreat';
 
 export interface HandAnimationTarget {
+  animationTasks?(action: HandAnimationAction): readonly AnimationTask[] | undefined;
   beforeEnqueue?(action: HandAnimationAction): boolean | void;
   prepare(action: HandAnimationAction): boolean | Promise<boolean>;
   setPhase(action: HandAnimationAction, phase: HandAnimationPhase): void;
@@ -20,6 +21,7 @@ export interface HandAnimationTarget {
 }
 
 export interface HandAnimationControllerOptions {
+  readonly snapOnPlaybackChange?: boolean;
   readonly maxQueuedActions?: number;
   readonly onError?: (error: unknown, action: HandAnimationAction) => void;
   readonly onSettled?: (action: HandAnimationAction) => void;
@@ -45,11 +47,12 @@ export class HandAnimationController {
   private draining = false;
   private disposed = false;
   private currentAction: HandAnimationAction | null = null;
+  private generation = 0;
 
   constructor(
     private readonly target: HandAnimationTarget,
     private readonly scheduler: AnimationScheduler = new AnimationScheduler(),
-    options: HandAnimationControllerOptions = {},
+    private readonly options: HandAnimationControllerOptions = {},
   ) {
     this.maxQueuedActions = Math.max(1, options.maxQueuedActions ?? 6);
     this.onError = options.onError ?? (() => undefined);
@@ -91,13 +94,16 @@ export class HandAnimationController {
 
   setSpeed(speed: number): void {
     this.scheduler.setSpeed(speed);
+    if (this.options.snapOnPlaybackChange) this.cancelAll();
   }
 
   setSkip(skip: boolean): void {
     this.scheduler.setSkip(skip);
+    if (skip && this.options.snapOnPlaybackChange) this.cancelAll();
   }
 
   cancelAll(): void {
+    this.generation += 1;
     this.queue.splice(0).forEach((action) => this.safeFinish(action));
     this.scheduler.cancelAll();
     this.target.clear();
@@ -130,12 +136,14 @@ export class HandAnimationController {
       const action = this.queue.shift();
       if (!action) continue;
       this.currentAction = action;
+      const generation = this.generation;
       try {
         const prepared = await this.target.prepare(action);
-        if (prepared) {
+        if (prepared && generation === this.generation && !this.disposed) {
           const holdMs = this.postAnimationHoldMs(action);
           await this.scheduler.sequence([
-            ...HAND_ANIMATION_PHASES.map(({ phase, durationMs }) => this.phaseTask(action, phase, durationMs)),
+            ...(this.target.animationTasks?.(action)
+              ?? HAND_ANIMATION_PHASES.map(({ phase, durationMs }) => this.phaseTask(action, phase, durationMs))),
             ...(holdMs > 0 ? [this.holdTask(holdMs)] : []),
           ]);
         }

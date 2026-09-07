@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
-import { AnimationScheduler } from '../../presentation/animation/AnimationScheduler';
+import { AnimationScheduler, animationFrameTask } from '../../presentation/animation/AnimationScheduler';
+import { handPresentationPhases, riverOwnsDiscard, type HandPresentationFrame } from '../../presentation/handAnimation/HandPresentationSnapshot';
 import { HandAnimationConsumer } from '../../presentation/handAnimation/HandAnimationConsumer';
 import {
   HandAnimationController,
+  HAND_ANIMATION_PHASES,
   type HandAnimationAction,
   type HandAnimationPhase,
   type HandAnimationTarget,
@@ -15,6 +17,7 @@ import type { Table3DSeat } from '../coordinates/seatTransforms';
 import type { ActiveTableAnimation3D } from './HandAction3D';
 import type { DiscardSource3DStore } from './DiscardSource3D';
 import { PaintCommitBarrier } from './PaintCommitBarrier';
+import { captureLocalDiscardMotion } from './localDiscardMotion';
 import {
   resolveTableAnimation3DPlan,
   getTableAnimation3DHoldMs,
@@ -84,9 +87,10 @@ export function useTableAnimation3D({
     const scheduler = new AnimationScheduler();
     const controller = new HandAnimationController(target, scheduler, {
       maxQueuedActions: 6,
+      snapOnPlaybackChange: true,
       onError: () => target.clear(),
       onSettled: (action) => presentationPacingGate.complete(action.eventId),
-      postAnimationHoldMs: (action) => isTableAnimation3DAction(action)
+      postAnimationHoldMs: (action) => action.type === 'tile_discarded' && action.handHistory ? 0 : isTableAnimation3DAction(action)
         ? getTableAnimation3DHoldMs(action)
         : 0,
     });
@@ -163,9 +167,13 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
         confirmedTurn: this.getAnimationTurn(),
       })
       : null;
-    const plan = localDiscardSnapshot
+    let plan = localDiscardSnapshot
       ? { ...resolvedPlan, localDiscardSnapshotReady: true }
       : resolvedPlan;
+    if (plan.handSnapshot && plan.seat === 'bottom') {
+      const localDiscardMotion = captureLocalDiscardMotion(plan, localDiscardSnapshot?.sourceTileRect);
+      plan = { ...plan, localDiscardMotion, showPrimaryTile: !localDiscardMotion };
+    }
     this.plans.set(action.eventId, plan);
     return true;
   }
@@ -174,7 +182,9 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
     const plan = this.plans.get(action.eventId);
     if (!plan) return false;
     this.setRenderState((current) => prepareTableAnimation3DRenderState(current, plan));
-    if (plan.localDomDraw) {
+    if (plan.handSnapshot) {
+      this.updateHandPresentation(plan, { snapshot: plan.handSnapshot, phase: 'lift', progress: 0 });
+    } else if (plan.localDomDraw) {
       this.onLocalHandAnimationChange({ eventId: action.eventId, kind: 'draw', phase: 'enter' });
       return nextPaint().then(() => true);
     } else if (plan.localDiscardSnapshotReady) {
@@ -184,6 +194,36 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
       });
     }
     return true;
+  }
+
+  animationTasks(action: HandAnimationAction) {
+    const plan = this.plans.get(action.eventId);
+    if (plan?.localDomDraw) return HAND_ANIMATION_PHASES.map(({ phase, durationMs }) => animationFrameTask(durationMs, (progress) => {
+      if (this.plans.get(action.eventId) !== plan) return;
+      if (progress === 0) this.setPhase(action, phase);
+      this.onLocalHandAnimationChange({ eventId: action.eventId, kind: 'draw', phase, progress });
+    }));
+    if (!plan?.handSnapshot) return undefined;
+    const snapshot = plan.handSnapshot;
+    return handPresentationPhases(snapshot).map(({ phase, durationMs }) => animationFrameTask(
+      phase === 'complete' ? getTableAnimation3DHoldMs(plan.action) : durationMs, (progress) => {
+      if (this.plans.get(action.eventId) !== plan) return;
+      this.updateHandPresentation(plan, { snapshot, phase, progress });
+    }));
+  }
+
+  private updateHandPresentation(plan: TableAnimation3DPlan, frame: HandPresentationFrame): void {
+    const phase: HandAnimationPhase = frame.phase === 'lift' ? 'grasp'
+      : frame.phase === 'carry' ? 'travel' : frame.phase === 'river-settle' ? 'release' : 'retreat';
+    this.setRenderState((current) => ({ ...current,
+      active: { plan, phase, handPresentation: frame },
+      hiddenRiverKeys: riverOwnsDiscard(frame.phase)
+        ? removeKey(current.hiddenRiverKeys, plan.hiddenRiverKey)
+        : addKey(current.hiddenRiverKeys, plan.hiddenRiverKey),
+    }));
+    if (plan.seat === 'bottom') this.onLocalHandAnimationChange({
+      eventId: plan.action.eventId, kind: 'discard', phase, handPresentation: frame, discardMotion: plan.localDiscardMotion,
+    });
   }
 
   setPhase(action: HandAnimationAction, phase: HandAnimationPhase): void {
@@ -213,7 +253,7 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
       hiddenMeldTileKeys: removeKeys(current.hiddenMeldTileKeys, plan.hiddenMeldTileKeys),
       hiddenRiichiSeats: removeKey(current.hiddenRiichiSeats, plan.hiddenRiichiSeat),
     }));
-    if (plan.localDomDraw || plan.localDiscardSnapshotReady) {
+    if (plan.localDomDraw || plan.localDiscardSnapshotReady || (plan.handSnapshot && plan.seat === 'bottom')) {
       this.onLocalHandAnimationChange(null);
     }
   }

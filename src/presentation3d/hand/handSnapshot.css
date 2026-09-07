@@ -1,0 +1,37 @@
+/* UI-6A: independent drawn slot, scoped to the 3D screen-space DOM hand. */
+.local-hand-area--screen-space .local-hand-row {
+  position: relative;
+  width: max-content;
+  margin-inline: auto;
+}
+.local-hand-area--screen-space .local-hand-row > .drawn-tile-gap {
+  position: absolute;
+  left: calc(100% + 2px);
+}
+.local-hand-area--screen-space .local-hand-snapshot-row {
+  position: relative;
+  width: calc(var(--snapshot-count) * (var(--hand-tile-width) + 2px) - 2px);
+  height: var(--hand-tile-height);
+  margin-inline: auto;
+  pointer-events: none;
+}
+.local-hand-area--screen-space .local-hand-snapshot-slot {
+  position: absolute;
+  top: 0;
+  display: inline-flex;
+}
+
+.local-animation-hand {
+  position: fixed;
+  z-index: calc(var(--z-hand) + 2);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  visibility: hidden;
+}
+.local-animation-hand .hand-animation-hand {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: none;
+  pointer-events: none;
+}

@@ -1,6 +1,6 @@
 # 项目说明
 
-这是 React + TypeScript + Vite 的本地麻将项目，包含稳定的 2.5D renderer 与正在迁移的 Three.js / R3F 3D renderer。
+这是 React + TypeScript + Vite 的本地麻将项目。Three.js / R3F 3D 是主 renderer；2.5D 是冻结的 Legacy Compatibility Mode。
 
 ## Startup
 
@@ -51,7 +51,11 @@ Presentation / DOM / Three.js 不得：
 
 ### 2.5D / 3D
 
-2.5D 已稳定。除非任务明确要求，不修改 legacy 2.5D layout、CSS geometry 或交互，也不为方便 3D 开发而改变 2.5D 行为。
+3D is the primary/default renderer. 2.5D is frozen Legacy Compatibility Mode. New presentation work targets 3D unless the task explicitly says otherwise.
+
+2.5D 是冻结的 Legacy Compatibility Mode，只接受 bugfix。不得为新 3D Presentation 功能新增 2.5D 功能或要求 feature / visual parity；2.5D 视觉差异不阻塞新的 3D Presentation PASS。保留可进入、`Canvas=0`、3D layer=0、无 crash 且基础牌局可运行的 legacy smoke。
+
+只有任务涉及 GameScreen、Local Hand / shared DOM tile UI、PresentationEvent / pacing、renderer switch / fallback、shared CSS/layout、Audio shared consumer、Rules / GameState，或用户明确报告 2.5D Bug 时，才扩大 2.5D regression。
 
 Three.js / R3F 只负责 world layout、geometry、materials、camera、hit targets 与 renderer animation。3D pointer 必须沿 `Tile → authoritative tile id → Shared Actions` 路由，不得直接调用 Rules 或 mutate `GameState`。
 
