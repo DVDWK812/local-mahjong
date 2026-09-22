@@ -11,11 +11,12 @@ export const MUSIC_CATEGORIES: readonly MusicCategory[] = Object.freeze([
   'voice_lines',
 ]);
 
-export const GAME_SFX_GROUPS: readonly GameSfxGroup[] = Object.freeze(['draw', 'discard', 'meld']);
+export const GAME_SFX_GROUPS: readonly GameSfxGroup[] = Object.freeze(['draw', 'discard', 'meld', 'riichi', 'dora', 'rong']);
 
 export const PLAYBACK_MODES: readonly PlaybackMode[] = Object.freeze(['shuffle', 'sequential', 'repeat-one']);
 
 export interface MusicPreferences {
+  readonly sfxAssetIds?: Readonly<Partial<Record<GameSfxGroup, readonly MusicTrackId[]>>>;
   readonly disabledBuiltinTrackIds: readonly MusicTrackId[];
   readonly order: Readonly<Partial<Record<MusicCategory, readonly MusicTrackId[]>>>;
   readonly playbackMode: Readonly<Partial<Record<MusicCategory, PlaybackMode>>>;
@@ -46,12 +47,18 @@ export const DEFAULT_MUSIC_PREFERENCES: Readonly<MusicPreferences> = Object.free
     draw: null,
     discard: null,
     meld: null,
+    riichi: null,
+    dora: null,
+    rong: null,
   }),
   sfxOrder: Object.freeze({}),
   sfxPlaybackMode: Object.freeze({
     draw: 'sequential',
     discard: 'sequential',
     meld: 'sequential',
+    riichi: 'sequential',
+    dora: 'sequential',
+    rong: 'sequential',
   }),
 });
 
@@ -123,6 +130,7 @@ export function normalizeMusicPreferences(value: unknown): MusicPreferences {
   });
   return {
     disabledBuiltinTrackIds: normalizeTrackIdList(input.disabledBuiltinTrackIds),
+    ...(input.sfxAssetIds ? { sfxAssetIds: normalizeSfxMap(input.sfxAssetIds, normalizeTrackIdList) } : {}),
     order: normalizeCategoryMap(input.order, (item) => {
       const ids = normalizeTrackIdList(item);
       return ids.length > 0 ? ids : null;

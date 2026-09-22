@@ -1,0 +1,16 @@
+[
+  "src/main.tsx",
+  "src/audio/AudioPresentationConsumer.ts",
+  "src/components/SeventeenStepsScreen.tsx",
+  "src/components/TestModeScreen.tsx",
+  "src/components/game/WinPresentationOverlay.tsx",
+  "src/presentation3d/animation/useTableAnimation3D.ts",
+  "src/presentation3d/participants/useCandidateAnimation.ts",
+  "src/dev/finalGate/finalGate.css",
+  "src/dev/finalGate/FinalGate.test.tsx",
+  "src/dev/finalGate/FinalGate.tsx",
+  "src/dev/finalGate/route.ts",
+  "src/dev/finalGate/scenarios.test.ts",
+  "src/dev/finalGate/scenarios.ts",
+  "src/presentation/animation/QaMotionContext.ts"
+]

@@ -1,0 +1,1650 @@
+--- start/src/App.tsx
++++ src/App.tsx
+@@ -187,7 +187,7 @@
+   };
+ }
+ 
+-export default function App() {
++export default function App({ initialSeventeenGate }: { initialSeventeenGate?: import('./game/seventeenSteps').SeventeenStepsState } = {}) {
+   const testModeAvailability = currentTestModeAvailability();
+   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+   const [appearanceDialogOpen, setAppearanceDialogOpen] = useState(false);
+@@ -228,7 +228,7 @@
+     if (typeof window !== 'undefined') saveAppearanceSettings(next, window.localStorage);
+   };
+   const [state, setState] = useState<AppState>(() => ({
+-    screen: testModeAvailability.requested ? 'test-mode' : 'main-menu',
++    screen: import.meta.env.DEV && initialSeventeenGate ? 'riichi-17-steps' : testModeAvailability.requested ? 'test-mode' : 'main-menu',
+     activeGame: null,
+     ruleConfig: loadInitialRuleConfig(),
+     presetId: 'east-round',
+@@ -1015,7 +1015,7 @@
+   if (state.screen === 'riichi-17-steps') {
+     return (
+       <>
+-        <SeventeenStepsScreen matchConfig={state.seventeenStepsConfig} ruleConfig={state.ruleConfig} playerProfile={state.playerProfile} appearanceSettings={appearanceSettings} onBack={() => setScreen('riichi-17-steps-settings')} onOpenAudioSettings={openAudioSettings} />
++        <SeventeenStepsScreen initialState={import.meta.env.DEV ? initialSeventeenGate : undefined} matchConfig={state.seventeenStepsConfig} ruleConfig={state.ruleConfig} playerProfile={state.playerProfile} appearanceSettings={appearanceSettings} onBack={() => setScreen('riichi-17-steps-settings')} onOpenAudioSettings={openAudioSettings} />
+         {renderAudioSettingsDialog()}
+       </>
+     );
+--- start/src/audio/audioBackend.test.ts
++++ src/audio/audioBackend.test.ts
+@@ -1,5 +1,5 @@
+ import {afterEach,expect,it,vi} from 'vitest';
+-import {BrowserAudioBackend} from './audioBackend';
++import {BrowserAudioBackend,createDefaultAudioBackend,isAutomationMuteEnabled} from './audioBackend';
+ 
+ afterEach(()=>vi.unstubAllGlobals());
+ it('media error listeners are delivered and removed with the owned audio element', async ()=>{
+@@ -17,4 +17,35 @@
+   expect(failed).toHaveBeenCalledOnce();
+   handle.dispose();element.dispatchEvent(new Event('error'));
+   expect(failed).toHaveBeenCalledOnce();backend.dispose();
+-});
++});
++
++it('only mute=1 enables automation silence',()=>{
++  expect(isAutomationMuteEnabled('?mute=1')).toBe(true);
++  expect(isAutomationMuteEnabled('?table3d=1&mute=1')).toBe(true);
++  expect(isAutomationMuteEnabled('')).toBe(false);
++  expect(isAutomationMuteEnabled('?mute=0')).toBe(false);
++  expect(isAutomationMuteEnabled('?mute=10')).toBe(false);
++});
++
++it.each([['?mute=1',true],['',false]])('keeps playback and asset loading active for %s',async(search,muted)=>{
++  const created: Media[]=[];
++  class Media extends EventTarget {
++    loop=false; preload=''; volume=1; muted=false; playCount=0; loadCount=0;
++    constructor(public src:string){super();created.push(this);}
++    async play(){this.playCount+=1;} pause(){} removeAttribute(){} load(){this.loadCount+=1;}
++  }
++  vi.stubGlobal('Audio',Media);
++  vi.stubGlobal('window',{location:{search}});
++  const backend=createDefaultAudioBackend();
++  const handles=[
++    backend.createPlayback({id:'bgm',src:'/bgm.wav',channel:'bgm',loop:true,source:'project-local'}),
++    backend.createPlayback({id:'sfx',src:'/sfx.wav',channel:'sfx',loop:false,source:'project-local'}),
++    backend.createPlayback({id:'voice',src:'/voice.wav',channel:'voice',loop:false,source:'project-local'}),
++  ];
++  handles.forEach(handle=>handle.setVolume(0.7));
++  await Promise.all(handles.map(handle=>handle.play()));
++  expect(created.map(audio=>audio.src)).toEqual(['/bgm.wav','/sfx.wav','/voice.wav']);
++  expect(created.every(audio=>audio.muted===muted && audio.volume===0.7 && audio.preload==='auto' && audio.playCount===1)).toBe(true);
++  backend.dispose();
++  expect(created.every(audio=>audio.loadCount===1)).toBe(true);
++});
+--- start/src/audio/audioBackend.ts
++++ src/audio/audioBackend.ts
+@@ -171,12 +171,15 @@
+   };
+ }
+ 
+-export class BrowserAudioBackend implements AudioBackend {
+-  private readonly handles = new Set<BrowserAudioPlaybackHandle>();
+-
+-  createPlayback(asset: AudioAssetDefinition): AudioPlaybackHandle {
+-    const audio = new Audio(asset.src);
+-    audio.loop = asset.loop;
++export class BrowserAudioBackend implements AudioBackend {
++  private readonly handles = new Set<BrowserAudioPlaybackHandle>();
++
++  constructor(private readonly automationMuted = false) {}
++
++  createPlayback(asset: AudioAssetDefinition): AudioPlaybackHandle {
++    const audio = new Audio(asset.src);
++    if (this.automationMuted) audio.muted = true;
++    audio.loop = asset.loop;
+     audio.preload = 'auto';
+     const handle = new BrowserAudioPlaybackHandle(audio, (disposed) => this.handles.delete(disposed));
+     this.handles.add(handle);
+@@ -189,6 +192,11 @@
+   }
+ }
+ 
+-export function createDefaultAudioBackend(): AudioBackend {
+-  return typeof Audio === 'undefined' ? new NoopAudioBackend() : new BrowserAudioBackend();
+-}
++export function createDefaultAudioBackend(): AudioBackend {
++  return typeof Audio === 'undefined' ? new NoopAudioBackend()
++    : new BrowserAudioBackend(isAutomationMuteEnabled(typeof window === 'undefined' ? '' : window.location.search));
++}
++
++export function isAutomationMuteEnabled(search: string): boolean {
++  return new URLSearchParams(search).get('mute') === '1';
++}
+--- start/src/components/game/DoraIndicatorStack.tsx
++++ src/components/game/DoraIndicatorStack.tsx
+@@ -1,6 +1,9 @@
+ import type { MatchState } from '../../game/match/types';
+ import type { ReactNode } from 'react';
+-import { useLayoutEffect, useRef } from 'react';
++import { useLayoutEffect, useRef, useState } from 'react';
++import { presentationPacingGate } from '../../presentation/pacing/PresentationPacingGate';
++import type { PresentationEvent } from '../../presentation/PresentationEventBus';
++import { getPresentationFeatures } from '../../config/presentationFeatures';
+ import { presentationEventBus } from '../../presentation/PresentationEventBus';
+ import { presentationAudioCues } from '../../presentation/PresentationAudioCue';
+ import type { GameState, TileId, Wind } from '../../game/types';
+@@ -36,26 +39,56 @@
+ export function DoraIndicatorStack({ gameState, matchState, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, slots, summary }: DoraIndicatorStackProps) {
+   const indicatorSlots = slots ?? buildDoraIndicatorSlots(gameState.doraIndicators);
+   const root = useRef<HTMLElement>(null);
+-  useLayoutEffect(() => presentationEventBus.subscribe(event => {
+-    if (event.type !== 'dora_revealed') return;
+-    // The observer publishes after the DOM commit. A shader sweep never enters here.
+-    const committed = [...(root.current?.querySelectorAll<HTMLElement>('[data-dora-instance]') ?? [])]
+-      .some(node => node.dataset.doraInstance === event.instanceId);
+-    if (!committed) return;
+-    const run = presentationAudioCues.run(event);
+-    run.emit('dora-reveal', 'indicator-commit', 1);
+-    run.close();
+-  }), []);
++  const [revealed, setRevealed] = useState(() => gameState.doraIndicators.map(tile => tile.instanceId));
++  const pending = useRef(new Map<string, { event: PresentationEvent; predecessor?: string; run: ReturnType<typeof presentationAudioCues.run> }>());
++  const currentIds = gameState.doraIndicators.map(tile => tile.instanceId);
++  const sameHand = revealed.every((id, index) => currentIds[index] === id);
++  useLayoutEffect(() => {
++    let live = true;
++    let lastKan: { eventId: string; sequence: number } | undefined;
++    const unsubscribe = presentationEventBus.subscribe(event => {
++      if (event.type === 'meld_declared' && event.meldType === 'kan') lastKan = event;
++      if (event.type !== 'dora_revealed') return;
++      const run = presentationAudioCues.run(event);
++      pending.current.set(event.instanceId, { event, run, predecessor: lastKan && event.sequence === lastKan.sequence + 1 ? lastKan.eventId : undefined });
++      presentationPacingGate.begin(event);
++      void presentationPacingGate.waitUntilClearBefore(event.sequence).then(() => {
++        if (live && pending.current.get(event.instanceId)?.event === event) setRevealed(ids => ids.includes(event.instanceId) ? ids : [...ids, event.instanceId]);
++      });
++    });
++    return () => {
++      live = false; unsubscribe();
++      pending.current.forEach(({ event, run }) => { run.close(); presentationPacingGate.cancel(event.eventId); });
++      pending.current.clear();
++    };
++  }, []);
++  useLayoutEffect(() => {
++    if (!sameHand) {
++      pending.current.forEach(({ event, run }) => { run.close(); presentationPacingGate.cancel(event.eventId); });
++      pending.current.clear();
++      setRevealed(currentIds);
++      return;
++    }
++    pending.current.forEach(({ event, run, predecessor }, id) => {
++      if (!revealed.includes(id)) return;
++      // Skipping/cancelling the preceding Kan suppresses unplayed cues; the visual still commits.
++      if (!predecessor || presentationAudioCues.hasEmitted(predecessor, 'meld-impact')) run.emit('dora-reveal', 'indicator-commit', 1);
++      run.close(); pending.current.delete(id); presentationPacingGate.complete(event.eventId);
++    });
++  });
+ 
+   return (
+     <aside ref={root} className="dora-indicator-stack" aria-label="宝牌指示牌">
+       <span className="dora-indicator-title">宝牌指示牌</span>
+       <div className="dora-indicator-slots">
+-        {indicatorSlots.map((slot) => (
++        {indicatorSlots.map(original => {
++          const slot = getPresentationFeatures().presentationEvents && original.state === 'revealed' && sameHand && !revealed.includes(original.tile.instanceId)
++            ? { state: 'hidden' as const, index: original.index } : original;
++          return (
+           <span key={slot.state === 'revealed' ? slot.tile.instanceId : `dora-back-${slot.index}`} className="dora-indicator-slot" data-dora-instance={slot.state === 'revealed' ? slot.tile.instanceId : undefined} data-dora-open={slot.state === 'revealed' ? 'true' : 'false'} data-dora-state={slot.state}>
+             <Tile tile={slot.state === 'revealed' ? slot.tile : undefined} faceDown={slot.state === 'hidden'} compact doraGlowEnabled={false} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />
+           </span>
+-        ))}
++        ); })}
+       </div>
+       <div className="dora-round-summary">
+         {summary ?? <>
+--- start/src/components/game/GameEventOverlay.tsx
++++ src/components/game/GameEventOverlay.tsx
+@@ -20,6 +20,7 @@
+ interface GameEventOverlayProps {
+   readonly bottomPlayerId: PlayerId;
+   readonly enabled: boolean;
++  readonly seatForPlayer?: (playerId: PlayerId) => VisualSeat;
+   readonly onRoundEndSettled?: () => void;
+ }
+ 
+@@ -28,7 +29,7 @@
+   readonly phase: EventOverlayPhase;
+ }
+ 
+-export function GameEventOverlay({ bottomPlayerId, enabled, onRoundEndSettled }: GameEventOverlayProps) {
++export function GameEventOverlay({ bottomPlayerId, enabled, onRoundEndSettled, seatForPlayer }: GameEventOverlayProps) {
+   const enabledRef = useRef(enabled);
+   const onRoundEndSettledRef = useRef(onRoundEndSettled);
+   const controllerRef = useRef<EventOverlayController | null>(null);
+@@ -77,7 +78,8 @@
+     controllerRef.current?.cancelAll();
+   }, [enabled]);
+ 
+-  const seat = visual ? eventSeatForAction(visual.action, bottomPlayerId) : null;
++  const seat = visual ? visual.action.type === 'round_end_announced' ? 'center'
++    : seatForPlayer?.(visual.action.playerId) ?? eventSeatForAction(visual.action, bottomPlayerId) : null;
+   return (
+     <div
+       className="game-event-overlay"
+--- start/src/components/game/GameScreen.tsx
++++ src/components/game/GameScreen.tsx
+@@ -194,10 +194,8 @@
+     eventOverlayEnabled,
+     completedRoundEndPresentationKey,
+   );
+-  const realtimeHandAnimationsEnabled = handAnimationsEnabled && (
+-    winPresentationKey !== null
+-    || (gameState.phase !== 'round-ended' && gameState.phase !== 'exhaustive-draw')
+-  );
++  // The terminal commit can include the last discard. Keep its owner alive through settle.
++  const realtimeHandAnimationsEnabled = handAnimationsEnabled;
+   const tenpaiDisplay = showTenpaiWaitsEnabled
+     || tenpaiPreviewDiscardInstanceId
+     ? buildTenpaiDisplay(
+@@ -310,21 +308,24 @@
+         onPresentationReady={activeTableRenderer === '3d' ? handleLocalHandLayoutReady : undefined}
+         handPack={localHandPack}
+       />
+-      </TileFaceDomAppearance>
+-      <HandAnimationOverlay
+-        bottomPlayerId={tableBottomPlayerId}
+-        discardSourceSnapshots={discardSourceSnapshots}
+-        enabled={realtimeHandAnimationsEnabled && activeTableRenderer === '2d'}
+-        sessionKey={handAnimationSessionKey}
+-        turn={gameState.turn}
+-      />
+       <WinPresentationOverlay
+         gameState={gameState}
++        sessionKey={handAnimationSessionKey}
++        doraGlowEnabled={doraGlowEnabled}
++        appearanceSettings={appearanceSettings}
+         bottomPlayerId={tableBottomPlayerId}
+         enabled={winPresentationEnabled}
+         rendererMode={activeTableRenderer}
+         on3DPresentationChange={handleWinPresentation3DChange}
+         onRoundEndSettled={settleRoundEndPresentation}
++      />
++      </TileFaceDomAppearance>
++      <HandAnimationOverlay
++        bottomPlayerId={tableBottomPlayerId}
++        discardSourceSnapshots={discardSourceSnapshots}
++        enabled={realtimeHandAnimationsEnabled && activeTableRenderer === '2d'}
++        sessionKey={handAnimationSessionKey}
++        turn={gameState.turn}
+       />
+       <GameEventOverlay bottomPlayerId={tableBottomPlayerId} enabled={eventOverlayEnabled} onRoundEndSettled={settleRoundEndPresentation} />
+       {actionPrompt ? (
+--- start/src/components/game/LocalAnimationHand.tsx
++++ src/components/game/LocalAnimationHand.tsx
+@@ -30,14 +30,21 @@
+       let rect = frame && animation.discardMotion
+         ? resolveLocalDiscardRect(frame, animation.discardMotion)
+         : animation.kind === 'draw' ? drawn?.getBoundingClientRect() : undefined;
+-      if (frame && !frame.snapshot.isTsumogiri && ['insert', 'reorder', 'complete'].includes(frame.phase)) {
++      if (frame && !frame.snapshot.isTsumogiri && ['gap-hold', 'insert', 'reorder', 'complete'].includes(frame.phase)) {
+         const index = frame.snapshot.drawnTile ? frame.snapshot.visualHand.length - 1
+           : Math.max(0, frame.snapshot.discardVisualSlot - 1);
+         rect = document.querySelector<HTMLElement>(`.local-hand-area--screen-space [data-hand-slot-index="${index}"] .tile`)?.getBoundingClientRect();
++        if (frame.phase === 'gap-hold' && animation.discardMotion && rect) {
++          rect = returnToDrawnRect(animation.discardMotion.destination, animation.discardMotion.drawnSource ?? rect, frame.progress);
++        }
+       }
+       if (!rect || !rect.width || !rect.height) { controller.hide(); return; }
+       const contact = localHandContact(rect);
+-      controller.update({ ...contact, width: rect.width }, frame?.phase ?? animation.phase,
++      const phase = frame && !frame.snapshot.isTsumogiri && frame.snapshot.drawnTile
++        ? frame.phase === 'gap-hold' ? 'travel' : frame.phase === 'insert' ? frame.progress < 0.2 ? 'grasp' : 'carry'
++          : frame.phase === 'reorder' ? 'release' : frame.phase === 'complete' ? 'retreat' : frame.phase
++        : frame?.phase ?? animation.phase;
++      controller.update({ ...contact, width: rect.width }, phase,
+         frame?.progress ?? animation.progress ?? 0, frame?.snapshot.isTsumogiri);
+     };
+     position();
+@@ -46,3 +53,11 @@
+   }, [animation]);
+   return null;
+ }
++
++/** Continuous return from the river to the captured, actual drawn DOM tile. */
++export function returnToDrawnRect(from: PresentationRect, to: PresentationRect, progress: number): PresentationRect {
++  const p = Math.max(0, Math.min(1, progress));
++  const t = p * p * (3 - 2 * p);
++  return { left: from.left + (to.left - from.left) * t, top: from.top + (to.top - from.top) * t,
++    width: from.width + (to.width - from.width) * t, height: from.height + (to.height - from.height) * t };
++}
+--- start/src/components/game/LocalHandArea.tsx
++++ src/components/game/LocalHandArea.tsx
+@@ -78,13 +78,15 @@
+     else onDiscardPreviewChange?.(tileInstanceId);
+   };
+   const displayName = playerProfile?.nickname ?? identityPlayer.name;
+-  const handleDiscard = (tile: TileModel, sourceElement: HTMLButtonElement) => {
+-    const tileInstanceId = tile.instanceId;
++  const handleDiscard = (tile: TileModel, sourceElement: HTMLButtonElement) => {
++    const tileInstanceId = tile.instanceId;
++    const drawnElement = rootRef.current?.querySelector('.drawn-tile-gap .tile');
+     const clearSourceSnapshot = onDiscardSourceCapture?.({
+       playerId: player.id,
+       tileInstanceId,
+       tile: { id: tile.id, red: tile.red },
+-      sourceTileRect: copyRect(sourceElement.getBoundingClientRect()),
++      sourceTileRect: copyRect(sourceElement.getBoundingClientRect()),
++      drawnTileRect: drawnElement ? copyRect(drawnElement.getBoundingClientRect()) : undefined,
+     });
+     selectTile(null);
+     onHoveredTileTypeChange?.(null);
+--- start/src/components/game/LocalHandSnapshot.tsx
++++ src/components/game/LocalHandSnapshot.tsx
+@@ -12,7 +12,7 @@
+   const count = frame.snapshot.visualHand.length - (frame.snapshot.drawnTile ? 1 : 0);
+   return <div className="local-hand-snapshot-row" data-hand-snapshot={frame.snapshot.eventId}
+     data-hand-phase={frame.phase} style={{ '--snapshot-count': count } as CSSProperties}>
+-    {resolveHandPresentationSlots(frame).map((entry) => <span key={entry.tile.instanceId}
++    {resolveLocalHandSlots(frame).map((entry) => <span key={entry.tile.instanceId}
+       className="local-hand-snapshot-slot" data-hand-slot-index={entry.index} data-hand-gap={entry.hidden || undefined}
+       style={{ visibility: entry.hidden ? 'hidden' : undefined,
+         left: `calc(${entry.slot} * (var(--hand-tile-width) + 2px) + ${entry.drawnGap} * var(--drawn-tile-gap))`,
+@@ -22,6 +22,22 @@
+         doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled && !concealed} doraSweepEnabled={doraSweepEnabled} />
+     </span>)}
+   </div>;
++}
++
++/** Local tedashi carries the real drawn tile directly to its final slot. The immutable
++ * UI-6A history still owns every tile; adjacent tiles make room only as insertion arrives. */
++export function resolveLocalHandSlots(frame: HandPresentationFrame) {
++  const entries = resolveHandPresentationSlots(frame);
++  const { snapshot, phase } = frame;
++  if (snapshot.isTsumogiri || !snapshot.drawnTile || !['insert', 'reorder', 'complete'].includes(phase)) return entries;
++  const ease = (value: number) => { const p = Math.max(0, Math.min(1, value)); return p * p * (3 - 2 * p); };
++  return entries.map(entry => {
++    if (entry.hidden) return entry;
++    const drawn = entry.tile.instanceId === snapshot.drawnTile?.instanceId;
++    const t = phase === 'insert' ? ease(drawn ? (frame.progress - 0.2) / 0.8 : (frame.progress - 0.6) / 0.4) : 1;
++    return { ...entry, slot: entry.index + (entry.finalIndex - entry.index) * t,
++      drawnGap: drawn ? 1 - t : 0, lift: drawn && phase === 'insert' && t < 1 ? Math.sin(Math.PI * t) : 0 };
++  });
+ }
+ 
+ export function resolveLocalDiscardRect(frame: HandPresentationFrame, motion: LocalDiscardMotion) {
+--- start/src/components/game/winPresentationOverlay.css
++++ src/components/game/winPresentationOverlay.css
+@@ -53,8 +53,16 @@
+   margin-left: 8px;
+ }
+ 
++.win-presentation-stage[data-win-type="tsumo"] .win-presentation-tile--drawn { margin-left: 0; }
++.win-presentation-stage[data-win-type="tsumo"] .tile {
++  width: var(--win-tile-width);
++  height: var(--win-tile-height);
++  min-width: var(--win-tile-width);
++}
++
+ .win-presentation-stage[data-win-type="tsumo"][data-win-phase="slam"] .win-presentation-tile--drawn {
+-  animation: win-tile-slam 210ms cubic-bezier(0.18, 0.88, 0.28, 1) both;
++  /* The existing AnimationScheduler owns the single winning tile trajectory. */
++  animation: none;
+ }
+ 
+ .win-presentation-winning-discard .tile {
+--- start/src/components/game/WinPresentationOverlay.tsx
++++ src/components/game/WinPresentationOverlay.tsx
+@@ -18,7 +18,12 @@
+ import type { VisualSeat } from './HandAnimationOverlay';
+ import type { TableRendererMode } from '../../presentation3d/rendererMode';
+ import type { WinPresentation3DState } from '../../presentation3d/win/winPresentation3D';
+-import './winPresentationOverlay.css';
++import './winPresentationOverlay.css';
++import { HandVisualController } from '../../hand/HandVisualController';
++import { resolveHandPackForPlayer, usePlayerSlotAppearances } from '../../presentation/appearance/playerSlotAppearance';
++import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../../presentation/appearance/appearanceSettings';
++import type { HandPack } from '../../hand/handPacks';
++import type { WinnerPresentationHand } from '../../presentation/winAnimation/winnerPresentationHands';
+ 
+ type OverlayPhase = 'ready' | WinPresentationPhase;
+ 
+@@ -31,29 +36,47 @@
+   readonly sourceX: number;
+   readonly sourceY: number;
+   readonly pushX: number;
+-  readonly pushY: number;
+-}
+-
+-interface WinPresentationOverlayProps {
+-  readonly gameState: GameState;
++  readonly pushY: number;
++  readonly progress?: number;
++  readonly tileWidth?: number;
++  readonly tileHeight?: number;
++}
++
++interface WinPresentationOverlayProps {
++  readonly gameState?: GameState;
++  readonly winnerHands?: readonly WinnerPresentationHand[];
+   readonly bottomPlayerId: PlayerId;
+-  readonly enabled: boolean;
++  readonly enabled: boolean;
++  readonly sessionKey?: string;
+   readonly rendererMode?: TableRendererMode;
+   readonly on3DPresentationChange?: (presentation: WinPresentation3DState | null) => void;
+-  readonly onRoundEndSettled?: () => void;
+-}
+-
++  readonly onRoundEndSettled?: () => void;
++  readonly appearanceSettings?: AppearanceSettings;
++  readonly doraIndicators?: TileModel[];
++  readonly doraGlowEnabled?: boolean;
++}
++
+ export function WinPresentationOverlay({
+-  gameState,
++  gameState,
++  winnerHands,
+   bottomPlayerId,
+-  enabled,
++  enabled,
++  sessionKey,
+   rendererMode = '2d',
+   on3DPresentationChange,
+-  onRoundEndSettled,
+-}: WinPresentationOverlayProps) {
++  onRoundEndSettled,
++  appearanceSettings = DEFAULT_APPEARANCE_SETTINGS,
++  doraIndicators,
++  doraGlowEnabled = true,
++}: WinPresentationOverlayProps) {
++  const appearances = usePlayerSlotAppearances();
++  const resolvePackRef = useRef((id: PlayerId) => resolveHandPackForPlayer(id, appearances, appearanceSettings));
++  resolvePackRef.current = id => resolveHandPackForPlayer(id, appearances, appearanceSettings);
+   const qaMotion = useContext(QaMotionContext);
+   const overlayRef = useRef<HTMLDivElement>(null);
+-  const gameStateRef = useRef(gameState);
++  const gameStateRef = useRef(gameState);
++  const winnerHandsRef = useRef(winnerHands);
++  winnerHandsRef.current = winnerHands;
+   const enabledRef = useRef(enabled);
+   const rendererModeRef = useRef(rendererMode);
+   const on3DPresentationChangeRef = useRef(on3DPresentationChange);
+@@ -73,7 +96,9 @@
+       gameStateRef,
+       bottomPlayerId,
+       () => rendererModeRef.current,
+-      (presentation) => on3DPresentationChangeRef.current?.(presentation),
++      (presentation) => on3DPresentationChangeRef.current?.(presentation),
++      () => winnerHandsRef.current,
++      id => resolvePackRef.current(id),
+     );
+     const controller = new WinPresentationController(target, new AnimationScheduler(), presentationPacingGate, {
+       onError: () => target.clear(),
+@@ -96,20 +121,31 @@
+       controllerRef.current = null;
+       target.clear();
+     };
+-  }, [bottomPlayerId]);
+-
+-  useEffect(() => {
+-    if (enabled) return;
+-    controllerRef.current?.cancelAll();
+-  }, [enabled]);
+-
+-  useEffect(() => { if (qaMotion) controllerRef.current?.setSpeed(qaMotion.speed); }, [qaMotion, bottomPlayerId]);
++  }, [bottomPlayerId, sessionKey]);
++
++  useEffect(() => {
++    if (enabled) return;
++    controllerRef.current?.cancelAll();
++  }, [enabled]);
++
++  const hasWinner = gameState?.result?.type === 'ron' || gameState?.result?.type === 'tsumo' || Boolean(winnerHands?.length);
++  useEffect(() => {
++    if (!hasWinner) controllerRef.current?.cancelAll();
++  }, [hasWinner, sessionKey]);
++
++  useEffect(() => { if (qaMotion) controllerRef.current?.setSpeed(qaMotion.speed); }, [qaMotion, bottomPlayerId, sessionKey]);
+ 
+   const style = visual ? ({
+     '--win-source-x': `${visual.sourceX}px`,
+     '--win-source-y': `${visual.sourceY}px`,
+     '--win-push-x': `${visual.pushX}px`,
+-    '--win-push-y': `${visual.pushY}px`,
++    '--win-push-y': `${visual.pushY}px`,
++    ...(visual.action.winType === 'tsumo' ? {
++      '--win-tile-width': `${visual.tileWidth}px`,
++      '--win-tile-height': `${visual.tileHeight}px`,
++      transform: `translate(-50%, calc(-50% + ${tsumoSlapOffset(visual.progress ?? (visual.phase === 'ready' ? 0 : 1))}px))`,
++      transition: 'none',
++    } : {}),
+   } as CSSProperties) : undefined;
+ 
+   return (
+@@ -128,7 +164,7 @@
+                 className={tile.instanceId === visual.drawnTileInstanceId ? 'win-presentation-tile win-presentation-tile--drawn' : 'win-presentation-tile'}
+                 key={tile.instanceId}
+               >
+-                <Tile tile={tile} compact interactive={false} />
++                <Tile tile={tile} compact interactive={false} doraIndicators={gameState?.doraIndicators ?? doraIndicators} doraGlowEnabled={doraGlowEnabled} />
+               </span>
+             ))}
+           </div>
+@@ -138,33 +174,42 @@
+   );
+ }
+ 
+-class DomWinPresentationTarget implements WinPresentationTarget {
+-  private highlightedDiscard: HTMLElement | null = null;
+-  private readonly threeDActionIds = new Set<string>();
++class DomWinPresentationTarget implements WinPresentationTarget {
++  private highlightedDiscard: HTMLElement | null = null;
++  private hiddenSource: HTMLElement | null = null;
++  private originalVisibility = '';
++  private slapHand: HandVisualController | null = null;
++  private slapSource: { x: number; y: number; width: number } | null = null;
++  private readonly threeDActionIds = new Set<string>();
++  private readonly revealedPlayerIds = new Set<PlayerId>();
+ 
+   constructor(
+     private readonly overlayRef: RefObject<HTMLDivElement | null>,
+     private readonly setVisual: Dispatch<SetStateAction<WinPresentationVisualState | null>>,
+-    private readonly gameStateRef: RefObject<GameState>,
++    private readonly gameStateRef: RefObject<GameState | undefined>,
+     private readonly bottomPlayerId: PlayerId,
+     private readonly getRendererMode: () => TableRendererMode,
+-    private readonly set3DPresentation: (presentation: WinPresentation3DState | null) => void,
++    private readonly set3DPresentation: (presentation: WinPresentation3DState | null) => void,
++    private readonly getWinnerHands: () => readonly WinnerPresentationHand[] | undefined,
++    private readonly resolvePack: (id: PlayerId) => HandPack,
+   ) {}
+ 
+   prepare(action: WinPresentationAction): boolean {
+     const overlay = this.overlayRef.current;
+     const scene = overlay?.closest<HTMLElement>('.game-screen');
+     const gameState = this.gameStateRef.current;
+-    const result = gameState.result;
++    const result = gameState?.result;
+     const winner = result && (result.type === 'ron' || result.type === 'tsumo')
+       ? result.winners.find((candidate) => candidate.winner === action.playerId)
+       : undefined;
+-    if (!winner) return false;
++    const supplied = this.getWinnerHands()?.find(hand => hand.playerId === action.playerId);
++    if (!winner && !supplied) return false;
+ 
+     const isThreeD = this.getRendererMode() === '3d';
+-    if (isThreeD) {
+-      this.threeDActionIds.add(action.eventId);
+-      this.set3DPresentation({ action, phase: 'ready' });
++    if (isThreeD) {
++      this.threeDActionIds.add(action.eventId);
++      if (action.winType === 'ron') this.revealedPlayerIds.add(action.playerId);
++      this.set3DPresentation({ action, phase: 'ready', revealedPlayerIds: [...this.revealedPlayerIds] });
+     }
+     const usesDomHand = !isThreeD || action.playerId === this.bottomPlayerId;
+     if (!usesDomHand) {
+@@ -177,19 +222,33 @@
+       return false;
+     }
+ 
+-    const seat = seatForPlayer(action.playerId, this.bottomPlayerId);
++    const seat = supplied?.seat ?? seatForPlayer(action.playerId, this.bottomPlayerId);
+     const handElement = scene.querySelector<HTMLElement>(`[data-local-player="${action.playerId}"] .local-hand-row`)
+-      ?? scene.querySelector<HTMLElement>(`[data-player-index="${action.playerId}"] .player-zone-hand-wrap`);
++      ?? scene.querySelector<HTMLElement>(`[data-player-index="${action.playerId}"] .player-zone-hand-wrap`)
++      ?? (supplied ? action.playerId === this.bottomPlayerId ? scene.querySelector<HTMLElement>('.seventeen-fixed-grid') : scene : null);
+     if (!handElement) {
+       this.clear3DPresentation(action);
+       return false;
+     }
+ 
+     const overlayRect = overlay.getBoundingClientRect();
+-    const handRect = handElement.getBoundingClientRect();
+-    const sourceX = handRect.left - overlayRect.left + handRect.width / 2;
+-    const sourceY = handRect.top - overlayRect.top + handRect.height / 2;
+-    const push = inwardPushVector(seat, overlayRect, sourceX, sourceY);
++    const drawnElement = action.winType === 'tsumo' ? handElement.querySelector<HTMLElement>('.drawn-tile-gap .tile') : null;
++    const handRect = (drawnElement ?? handElement).getBoundingClientRect();
++    const sourceX = supplied ? overlayRect.width / 2 : handRect.left - overlayRect.left + handRect.width / 2;
++    const sourceY = supplied ? overlayRect.height * 0.24 : handRect.top - overlayRect.top + handRect.height / 2;
++    const push = supplied ? { x: 0, y: 0 } : inwardPushVector(seat, overlayRect, sourceX, sourceY);
++    if (action.winType === 'ron' && (!supplied || action.playerId === this.bottomPlayerId)) {
++      this.hiddenSource = handElement;
++      this.originalVisibility = handElement.style.visibility;
++      handElement.style.visibility = 'hidden';
++    }
++    if (drawnElement) {
++      this.hiddenSource = drawnElement;
++      this.originalVisibility = drawnElement.style.visibility;
++      drawnElement.style.visibility = 'hidden';
++      this.slapSource = { x: handRect.left + handRect.width / 2, y: handRect.top + handRect.height / 2, width: handRect.width };
++      this.slapHand = new HandVisualController(action.eventId, seat, this.resolvePack(action.playerId), action.playerId);
++    }
+ 
+     this.removeHighlight();
+     if (action.winType === 'ron' && !isThreeD) {
+@@ -201,46 +260,78 @@
+       action,
+       seat,
+       phase: 'ready',
+-      tiles: gameState.players[action.playerId].hand,
++      tiles: action.winType === 'tsumo' ? [winner!.winTile] : supplied?.tiles ?? gameState!.players[action.playerId].hand,
+       drawnTileInstanceId: action.winType === 'tsumo'
+-        ? gameState.players[action.playerId].drawnTile?.instanceId ?? winner.winTile.instanceId
++        ? gameState!.players[action.playerId].drawnTile?.instanceId ?? winner!.winTile.instanceId
+         : null,
+       sourceX,
+       sourceY,
+       pushX: push.x,
+-      pushY: push.y,
++      pushY: push.y,
++      tileWidth: handRect.width,
++      tileHeight: handRect.height,
+     });
+     return true;
+   }
+ 
+-  setPhase(action: WinPresentationAction, phase: WinPresentationPhase): void {
+-    if (this.threeDActionIds.has(action.eventId)) this.set3DPresentation({ action, phase });
+-    this.setVisual((current) => current?.action.eventId === action.eventId ? { ...current, phase } : current);
+-  }
+-
+-  finish(action: WinPresentationAction): void {
++  setPhase(action: WinPresentationAction, phase: WinPresentationPhase): void {
++    if (this.threeDActionIds.has(action.eventId)) this.set3DPresentation({ action, phase, revealedPlayerIds: [...this.revealedPlayerIds] });
++    this.setVisual((current) => current?.action.eventId === action.eventId ? { ...current, phase } : current);
++    if (action.winType === 'tsumo' && phase === 'announce' && this.slapSource) {
++      this.slapHand?.update({ ...this.slapSource, y: this.slapSource.y + tsumoSlapOffset(1) }, 'release', 1);
++    }
++    if (phase === 'hold') this.slapHand?.hide();
++  }
++
++  setProgress(action: WinPresentationAction, _phase: WinPresentationPhase, progress: number): void {
++    if (this.threeDActionIds.has(action.eventId)) this.set3DPresentation({ action, phase: _phase, progress });
++    if (_phase === 'announce') {
++      if (this.slapSource) this.slapHand?.update({ ...this.slapSource, y: this.slapSource.y + tsumoSlapOffset(1) }, 'retreat', progress);
++      return;
++    }
++    this.setVisual(current => current?.action.eventId === action.eventId ? { ...current, progress } : current);
++    if (this.slapSource) this.slapHand?.update({ ...this.slapSource, y: this.slapSource.y + tsumoSlapOffset(progress) },
++      progress < 0.25 ? 'grasp' : progress < 1 ? 'carry' : 'release', progress < 0.25 ? progress * 4 : progress);
++  }
++
++  finish(action: WinPresentationAction): void {
++    this.clearSlap();
+     this.clear3DPresentation(action);
+     this.removeHighlight();
+     this.setVisual((current) => current?.action.eventId === action.eventId ? null : current);
+   }
+ 
+-  clear(): void {
+-    this.threeDActionIds.clear();
++  clear(): void {
++    this.clearSlap();
++    this.threeDActionIds.clear();
++    this.revealedPlayerIds.clear();
+     this.set3DPresentation(null);
+     this.removeHighlight();
+     this.setVisual(null);
+   }
+ 
+-  private removeHighlight(): void {
++  private removeHighlight(): void {
+     this.highlightedDiscard?.classList.remove('win-presentation-winning-discard');
+     this.highlightedDiscard = null;
++  }
++
++  private clearSlap(): void {
++    if (this.hiddenSource) this.hiddenSource.style.visibility = this.originalVisibility;
++    this.hiddenSource = null; this.slapSource = null;
++    this.slapHand?.dispose(); this.slapHand = null;
++  }
++
++  private clear3DPresentation(action: WinPresentationAction): void {
++    if (!this.threeDActionIds.delete(action.eventId)) return;
++    this.set3DPresentation(action.winType === 'ron' ? { action, phase: 'hold', revealedPlayerIds: [...this.revealedPlayerIds] } : null);
+   }
+-
+-  private clear3DPresentation(action: WinPresentationAction): void {
+-    if (!this.threeDActionIds.delete(action.eventId)) return;
+-    this.set3DPresentation(null);
+-  }
+-}
++}
++
++/** Table-side impact in front of the actual drawn DOM slot; one scheduler supplies progress. */
++export function tsumoSlapOffset(progress: number): number {
++  const p = Math.max(0, Math.min(1, progress));
++  return p < 0.25 ? -12 * p / 0.25 : -12 - 60 * ((p - 0.25) / 0.75);
++}
+ 
+ export function seatForPlayer(playerId: PlayerId, bottomPlayerId: PlayerId): VisualSeat {
+   const positions = playersByPosition(bottomPlayerId);
+--- start/src/components/SeventeenStepsScreen.tsx
++++ src/components/SeventeenStepsScreen.tsx
+@@ -37,7 +37,11 @@
+ import { RulesGuideScreen } from './rulesGuide/RulesGuideScreen';
+ import type { FullRuleConfig } from '../game/match/types';
+ import { useGamePresentationEvents } from '../presentation/gamePresentationEvents';
+-import { useStaticWinCue } from '../presentation/useStaticWinCue';
++import { WinPresentationOverlay } from './game/WinPresentationOverlay';
++import { GameEventOverlay } from './game/GameEventOverlay';
++import { winnerPresentationHands } from '../presentation/winAnimation/winnerPresentationHands';
++import { presentationPacingGate } from '../presentation/pacing/PresentationPacingGate';
++import { getPresentationFeatures } from '../config/presentationFeatures';
+ import { DEFAULT_PLAYER_PROFILE, type PlayerProfile } from '../profile/playerProfile';
+ import { PlayerAvatar } from './PlayerAvatar';
+ import { getLocalHandScreenOffset } from '../presentation3d/table/tablePresentationTuning';
+@@ -124,8 +128,22 @@
+   const opponentDrawAnalysis = state.phase === 'round-ended' && state.result?.type === 'draw'
+     ? analyzeSeventeenStepsTenpai(state, 1)
+     : undefined;
+-  useStaticWinCue(!animation.frame && state.phase === 'round-ended' && state.result?.type === 'ron', sceneSession);
+-  useGamePresentationEvents(tableState);
++  const [settledResult, setSettledResult] = useState(state.result);
++  const resultActivity = useRef({ result: state.result, version: presentationPacingGate.version });
++  if (resultActivity.current.result !== state.result) resultActivity.current = { result: state.result, version: presentationPacingGate.version };
++  const presentationEnabled = getPresentationFeatures().presentationEvents;
++  const resultPending = Boolean(presentationEnabled && state.result && state.result !== settledResult);
++  const finishResultPresentation = useCallback(() => setSettledResult(state.result), [state.result]);
++  const winnerHands = useMemo(() => winnerPresentationHands(tableState, id => id === 0 ? 'bottom' : 'top'), [tableState]);
++  useEffect(() => {
++    if (!resultPending) return;
++    let live = true;
++    void presentationPacingGate.waitUntilActivityClearAfter(resultActivity.current.version, { timeoutMs: 15_000 }).then(() => {
++      if (live) finishResultPresentation();
++    });
++    return () => { live = false; };
++  }, [resultPending, finishResultPresentation]);
++  useGamePresentationEvents(tableState);
+ 
+   const qaAnimationReady = !(import.meta.env.DEV && initialState) || animationReady;
+   useEffect(() => {
+@@ -216,7 +234,9 @@
+           </ActionPrompt>
+         </div>
+       ) : null}
+-      {!(import.meta.env.DEV && qaHideResult) && !animation.frame && state.phase === 'round-ended' && state.result ? (
++      <WinPresentationOverlay winnerHands={winnerHands} sessionKey={sceneSession} appearanceSettings={appearanceSettings} doraIndicators={tableState.doraIndicators} doraGlowEnabled={matchConfig.displayOptions.doraGlowEnabled} bottomPlayerId={0} enabled={presentationEnabled} onRoundEndSettled={finishResultPresentation} />
++      <GameEventOverlay bottomPlayerId={0} enabled={presentationEnabled} seatForPlayer={id => id === 0 ? 'bottom' : 'top'} onRoundEndSettled={finishResultPresentation} />
++      {!(import.meta.env.DEV && qaHideResult) && !resultPending && !animation.frame && state.phase === 'round-ended' && state.result ? (
+         <ResultDialog
+           gameState={tableState}
+           onReset={() => setState((current) => createSeventeenStepsAIGame(advanceSeventeenStepsMatch(current), {
+--- start/src/dev/finalGate/RealAppSeventeenGate.tsx
++++ src/dev/finalGate/RealAppSeventeenGate.tsx
+@@ -0,0 +1,9 @@
++import { useState } from 'react';
++import App from '../../App';
++import { createSeventeenPresentationFixture } from '../seventeenPresentationFixtures';
++
++/** Uses App's real AudioManager, policy, library and route cleanup. No harness audio consumer. */
++export default function RealAppSeventeenGate() {
++  const [fixture] = useState(() => createSeventeenPresentationFixture('ron'));
++  return <App initialSeventeenGate={fixture} />;
++}
+--- start/src/dev/finalGate/scenarios.ts
++++ src/dev/finalGate/scenarios.ts
+@@ -7,7 +7,7 @@
+ import { discardCandidate, passSeventeenStepsRon } from '../../game/seventeenSteps';
+ 
+ const names = ['本家摸牌', '对手摸牌', '本家摸切', '本家手切', '下席弃牌', '右席弃牌', '上席弃牌', '左席弃牌', '吃', '碰', '暗杠', '立直', '新增宝牌', '荣和', '自摸', '17步本家弃牌', '17步对家弃牌', '17步荣和', '17步最终流局'];
+-const expected = ['draw', 'draw', 'draw → discard', 'discard', 'discard', 'discard', 'discard', 'discard', 'meld', 'meld', 'meld / dora / draw（各自节点）', 'discard → riichi', 'dora（杠与补牌另有 meld / draw）', 'discard → rong', 'rong', 'discard（对手随后也弃牌）', 'discard', 'rong', 'discard → discard；无 rong'];
++const expected = ['draw', 'draw', 'draw → discard', 'discard → 直接返回新摸牌 → 抓取并插入；不晃手', 'discard', 'discard', 'discard', 'discard', 'meld', 'meld', 'meld → dora → draw；补牌动画接管期间不提前静态显示', 'discard → riichi', 'meld → dora → draw；初始指示牌与扫光无声音', 'discard → 荣和完整倒牌 + rong → 保持约3秒 → 结算', '仅拍新摸的和牌张 → rong；不再整手推倒', 'discard（对手随后也弃牌）', 'discard', '荣和 → 权威13张+和牌张 → rong → 结算', 'discard → discard → 流局大字 → 结算；无 rong'];
+ export const finalGateScenarios = [
+   ...names.map((name, index) => ({ id: `AV-${String(index + 1).padStart(2, '0')}`, name, section: 'A. 音画同步', expected: expected[index] })),
+   ...['720p 双方17张牌河', '12→13 紧凑过渡', '1080p 双方17张牌河', '1080p→720p 同场景缩放'].map((name, index) => ({ id: `VIS-0${index + 1}`, name, section: 'B. 17步视觉', expected: '检查无遮挡、正确落点、平滑交接；初始状态无声音' })),
+--- start/src/main.tsx
++++ src/main.tsx
+@@ -2,8 +2,10 @@
+ import ReactDOM from 'react-dom/client';
+ import App from './App';
+ import { finalGateRoute } from './dev/finalGate/route';
+-const FinalGate = finalGateRoute(location.search, import.meta.env.DEV).enabled
+-  ? React.lazy(() => import('./dev/finalGate/FinalGate')) : null;
++const FinalGate = finalGateRoute(location.search, import.meta.env.DEV).enabled
++  ? React.lazy(() => import('./dev/finalGate/FinalGate')) : null;
++const RealAppGate = import.meta.env.DEV && !new URLSearchParams(location.search).has('testMode') && new URLSearchParams(location.search).get('appFinalGate') === '17-ron'
++  ? React.lazy(() => import('./dev/finalGate/RealAppSeventeenGate')) : null;
+ import './styles/tokens.css';
+ import './styles.css';
+ 
+@@ -14,6 +16,6 @@
+ 
+ ReactDOM.createRoot(document.getElementById('root')!).render(
+   <React.StrictMode>
+-    {FinalGate ? <React.Suspense fallback={<p>正在准备最终验收…</p>}><FinalGate /></React.Suspense> : ParticipantPreview ? <React.Suspense fallback={<p>正在准备布局预览…</p>}><ParticipantPreview /></React.Suspense> : SeventeenPreview ? <React.Suspense fallback={<p>正在准备测试场景…</p>}><SeventeenPreview /></React.Suspense> : <App />}
++    {RealAppGate ? <React.Suspense fallback={<p>正在准备正式 App 验收…</p>}><RealAppGate /></React.Suspense> : FinalGate ? <React.Suspense fallback={<p>正在准备最终验收…</p>}><FinalGate /></React.Suspense> : ParticipantPreview ? <React.Suspense fallback={<p>正在准备布局预览…</p>}><ParticipantPreview /></React.Suspense> : SeventeenPreview ? <React.Suspense fallback={<p>正在准备测试场景…</p>}><SeventeenPreview /></React.Suspense> : <App />}
+   </React.StrictMode>,
+ );
+--- start/src/presentation/eventOverlay/EventOverlayController.test.ts
++++ src/presentation/eventOverlay/EventOverlayController.test.ts
+@@ -152,8 +152,8 @@
+       action({ type: 'round_end_announced', settlementType: 'abortive-draw', reason: 'suukan-sanra' }),
+       action({ type: 'round_end_announced', settlementType: 'abortive-draw', reason: 'sanchahou' }),
+     ];
+-    expect(variants.map(eventOverlayLabel)).toEqual(['立直', '吃', '碰', '杠', '荣和', '自摸', '流局', '九种九牌', '四风连打', '四家立直', '四杠散了', '三家和']);
+-    expect(variants.map(eventOverlayIntensity)).toEqual(['medium', 'light', 'light', 'medium', 'strong', 'strong', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium']);
++    expect(variants.map(eventOverlayLabel)).toEqual(['立直', '吃', '碰', '杠', '荣和', '自摸', '流局', '流局', '流局', '流局', '流局', '流局']);
++    expect(variants.map(eventOverlayIntensity)).toEqual(['medium', 'light', 'light', 'medium', 'strong', 'strong', 'strong', 'strong', 'strong', 'strong', 'strong', 'strong']);
+     variants.forEach((variant) => expect(overlayPhases(variant).map((phase) => phase.phase)).toEqual(['lead-in', 'enter', 'hold', 'exit']));
+   });
+ });
+--- start/src/presentation/eventOverlay/EventOverlayController.ts
++++ src/presentation/eventOverlay/EventOverlayController.ts
+@@ -37,6 +37,7 @@
+   private readonly onSettled: (action: EventOverlayAction) => void;
+   private draining = false;
+   private disposed = false;
++  private generation = 0;
+   private currentAction: EventOverlayAction | null = null;
+ 
+   constructor(
+@@ -78,6 +79,7 @@
+   }
+ 
+   cancelAll(): void {
++    ++this.generation;
+     this.queue.splice(0).forEach((action) => this.safeFinish(action));
+     if (this.currentAction) this.safeFinish(this.currentAction);
+     this.scheduler.cancelAll();
+@@ -111,15 +113,12 @@
+       const action = this.queue.shift();
+       if (!action) continue;
+       this.currentAction = action;
++      const generation = this.generation;
+       try {
+-        if (action.type === 'win_declared') {
+-          await this.pacingGate.waitUntilOnlyParticipantRemains(action);
+-        } else {
+-          await this.pacingGate.waitUntilClearBefore(action.sequence);
+-        }
+-        if (this.disposed) continue;
++        await this.pacingGate.waitUntilClearBefore(action.sequence, { timeoutMs: 15_000 });
++        if (this.disposed || generation !== this.generation) continue;
+         const prepared = await this.target.prepare(action);
+-        if (prepared) {
++        if (prepared && !this.disposed && generation === this.generation) {
+           await this.scheduler.sequence(overlayPhases(action).map(({ phase, durationMs }) => this.phaseTask(action, phase, durationMs)));
+         }
+       } catch (error) {
+@@ -169,8 +168,8 @@
+ }
+ 
+ export function eventOverlayIntensity(action: EventOverlayAction): EventOverlayIntensity {
+-  if (action.type === 'win_declared') return 'strong';
+-  if (action.type === 'round_end_announced' || action.type === 'riichi_declared') return 'medium';
++  if (action.type === 'win_declared' || action.type === 'round_end_announced') return 'strong';
++  if (action.type === 'riichi_declared') return 'medium';
+   if (action.type === 'meld_declared' && action.meldType === 'kan') return 'medium';
+   return 'light';
+ }
+@@ -178,11 +177,7 @@
+ export function eventOverlayLabel(action: EventOverlayAction): string {
+   if (action.type === 'win_declared') return action.winType === 'tsumo' ? '自摸' : '荣和';
+   if (action.type === 'round_end_announced') {
+-    if (action.settlementType === 'exhaustive-draw') return '流局';
+-    if (action.reason === 'kyuushu-kyuuhai') return '九种九牌';
+-    if (action.reason === 'suufon-renda') return '四风连打';
+-    if (action.reason === 'suucha-riichi') return '四家立直';
+-    return action.reason === 'suukan-sanra' ? '四杠散了' : '三家和';
++    return '流局';
+   }
+   if (action.type === 'riichi_declared') return action.kind === 'double-riichi' ? '双立直' : '立直';
+   if (action.meldType === 'kan') return '杠';
+@@ -192,7 +187,7 @@
+ export function overlayPhases(action: EventOverlayAction): ReadonlyArray<{ phase: EventOverlayPhase; durationMs: number }> {
+   const intensity = eventOverlayIntensity(action);
+   const leadIn = action.type === 'win_declared'
+-    ? action.winType === 'tsumo' ? 490 : 280
++    ? action.winType === 'tsumo' ? 490 : 0
+     : action.type === 'round_end_announced' ? 180 : 480;
+   const hold = intensity === 'strong' ? 700 : intensity === 'medium' ? 520 : 400;
+   return [
+--- start/src/presentation/gamePresentationEvents.ts
++++ src/presentation/gamePresentationEvents.ts
+@@ -54,6 +54,16 @@
+           : { type: 'meld_declared', playerId: player.id, meldType: call.type });
+       });
+     });
++
++    const nextDoraIds = state.doraIndicators.map(tile => tile.instanceId);
++    // Only appended indicators in this hand. Initial scene / a new hand is a baseline.
++    if (presentationEventsEnabled && this.doraIds.length > 0
++      && this.doraIds.every((id, index) => nextDoraIds[index] === id)) {
++      nextDoraIds.slice(this.doraIds.length).forEach(instanceId => {
++        this.eventBus.publish({ type: 'dora_revealed', instanceId });
++      });
++    }
++    this.doraIds = nextDoraIds;
+ 
+     state.players.forEach((player) => {
+       const previousInstanceId = this.drawnTileInstanceIds[player.id] ?? null;
+@@ -124,16 +134,6 @@
+         kind: player.riichiState?.kind === 'double-riichi' ? 'double-riichi' : 'riichi',
+       });
+     });
+-
+-    const nextDoraIds = state.doraIndicators.map(tile => tile.instanceId);
+-    // Only appended indicators in this hand. Initial scene / a new hand is a baseline.
+-    if (presentationEventsEnabled && this.doraIds.length > 0
+-      && this.doraIds.every((id, index) => nextDoraIds[index] === id)) {
+-      nextDoraIds.slice(this.doraIds.length).forEach(instanceId => {
+-        this.eventBus.publish({ type: 'dora_revealed', instanceId });
+-      });
+-    }
+-    this.doraIds = nextDoraIds;
+ 
+     const roundSettled = roundSettledEvent(state);
+     const roundEndAnnounced = roundEndAnnouncedEvent(state);
+--- start/src/presentation/handAnimation/DiscardSourceSnapshot.ts
++++ src/presentation/handAnimation/DiscardSourceSnapshot.ts
+@@ -15,7 +15,8 @@
+     readonly id: TileId;
+     readonly red: boolean;
+   };
+-  readonly sourceTileRect: PresentationRect;
++  readonly sourceTileRect: PresentationRect;
++  readonly drawnTileRect?: PresentationRect;
+ }
+ 
+ export interface DiscardSourceFreshness {
+@@ -44,7 +45,8 @@
+     this.snapshot = {
+       ...snapshot,
+       tile: { ...snapshot.tile },
+-      sourceTileRect: { ...snapshot.sourceTileRect },
++      sourceTileRect: { ...snapshot.sourceTileRect },
++      drawnTileRect: snapshot.drawnTileRect ? { ...snapshot.drawnTileRect } : undefined,
+       generation,
+     };
+     return () => {
+--- start/src/presentation/manualGateFixes.test.ts
++++ src/presentation/manualGateFixes.test.ts
+@@ -0,0 +1,210 @@
++import { afterEach, expect, it, vi } from 'vitest';
++import { getBuiltInTestScenario } from '../game/testMode/builtInScenarios';
++import { loadTestScenarioState } from '../game/testMode/scenario';
++import { applyOfficialTestModeAction } from '../game/testMode/actions';
++import { GamePresentationEventObserver } from './gamePresentationEvents';
++import { PresentationEventBus, type PresentationEvent } from './PresentationEventBus';
++import { buildTableSceneState } from '../presentation3d/sceneState/buildTableSceneState';
++import { TableAnimation3DTarget, type TableAnimation3DRenderState } from '../presentation3d/animation/useTableAnimation3D';
++import { DiscardSource3DStore } from '../presentation3d/animation/DiscardSource3D';
++import { resolveTableAnimation3DPlan, resolveTableAnimation3DMotion } from '../presentation3d/animation/tableAnimation3D';
++import { PresentationPacingGate } from './pacing/PresentationPacingGate';
++import { AnimationScheduler } from './animation/AnimationScheduler';
++import { RON_REVEAL_HOLD_MS, WinPresentationController } from './winAnimation/WinPresentationController';
++import { presentationAudioCues } from './PresentationAudioCue';
++import { returnToDrawnRect } from '../components/game/LocalAnimationHand';
++import { getRiichiStickTransform } from '../presentation3d/riichi/RiichiStick3D';
++import { createSeventeenPresentationFixture } from '../dev/seventeenPresentationFixtures';
++import { declareSeventeenStepsRon, toSeventeenStepsGameState } from '../game/seventeenSteps';
++import { winnerPresentationHands } from './winAnimation/winnerPresentationHands';
++import { winningTileSlapTransform } from '../presentation3d/win/winPresentation3D';
++import { getGroundedTileCenterY } from '../presentation3d/tile/tileGrounding';
++import { getHandTileScale } from '../presentation3d/table/tablePresentationTuning';
++import { resolveLocalHandSlots } from '../components/game/LocalHandSnapshot';
++import { createHandPresentationSnapshot } from './handAnimation/HandPresentationSnapshot';
++import { createFourGateFixture, gateAction } from '../dev/finalGate/scenarios';
++import { WinPresentationConsumer } from './winAnimation/WinPresentationConsumer';
++import { AudioPresentationConsumer } from '../audio/AudioPresentationConsumer';
++import { EventOverlayController, type EventOverlayAction } from './eventOverlay/EventOverlayController';
++import { EventOverlayConsumer } from './eventOverlay/EventOverlayConsumer';
++
++afterEach(() => vi.useRealTimers());
++
++it('local insertion retains the drawn source until grab, then goes directly to final slot without a second sweep', () => {
++  const before = createFourGateFixture('AV-04');
++  const after = applyOfficialTestModeAction(before, gateAction('AV-04', before));
++  const bus = new PresentationEventBus(); const events: PresentationEvent[] = [];
++  bus.subscribe(e => events.push(e)); new GamePresentationEventObserver(before, bus).observe(after);
++  const event = events.find(e => e.type === 'tile_discarded')!;
++  const snapshot = createHandPresentationSnapshot(event, true)!;
++  const slots = (phase: 'gap-hold' | 'insert' | 'reorder', progress: number) => resolveLocalHandSlots({ snapshot, phase, progress });
++  const drawnIndex = snapshot.visualHand.length - 1;
++  expect(slots('gap-hold', 1)[drawnIndex].drawnGap).toBe(1);
++  expect(slots('insert', 0.2)[drawnIndex].slot).toBe(drawnIndex);
++  slots('insert', 0.5).filter(e => e.index !== drawnIndex && !e.hidden).forEach(e => expect(e.slot).toBe(e.index));
++  const inserted = slots('insert', 1)[drawnIndex];
++  expect(inserted.slot).toBe(inserted.finalIndex);
++  expect(inserted.slot).not.toBe(snapshot.discardVisualSlot);
++  expect(slots('reorder', 0)[drawnIndex]).toEqual(inserted);
++  expect(slots('reorder', 1)[drawnIndex]).toEqual(inserted);
++});
++
++it('17-step official Ron feeds shared overlay, win controller and the production audio consumer once', async () => {
++  vi.useFakeTimers();
++  const initial = createSeventeenPresentationFixture('ron');
++  const bus = new PresentationEventBus(); const gate = new PresentationPacingGate();
++  const playSfx = vi.fn(); const audio = new AudioPresentationConsumer({ playSfx });
++  const win = new WinPresentationController({ prepare: () => true, setPhase: () => {}, finish: () => {}, clear: () => {} },
++    new AnimationScheduler(), gate, { onSettled: e => gate.complete(e.eventId) });
++  const overlayPrepare = vi.fn((_action: EventOverlayAction) => true);
++  const overlay = new EventOverlayController({ prepare: overlayPrepare, setPhase: () => {}, finish: () => {}, clear: () => {} },
++    new AnimationScheduler(), gate, { onSettled: e => gate.complete(e.eventId) });
++  const wins = new WinPresentationConsumer(bus, win, gate); wins.start();
++  const overlays = new EventOverlayConsumer(overlay, gate, bus); overlays.start();
++  const observer = new GamePresentationEventObserver(toSeventeenStepsGameState(initial), bus);
++  const ended = toSeventeenStepsGameState(declareSeventeenStepsRon(initial, 0));
++  observer.observe(ended); observer.observe(ended);
++  await vi.advanceTimersByTimeAsync(500);
++  expect(overlayPrepare).toHaveBeenCalledOnce();
++  expect(overlayPrepare.mock.calls[0][0]).toMatchObject({ type: 'win_declared', winType: 'ron' });
++  expect(playSfx).toHaveBeenCalledOnce(); expect(playSfx).toHaveBeenCalledWith('rong');
++  expect(gate.pendingCount).toBeGreaterThan(0);
++  await vi.runAllTimersAsync(); await win.whenIdle(); await overlay.whenIdle();
++  expect(gate.pendingCount).toBe(0); expect(playSfx).toHaveBeenCalledOnce();
++  wins.dispose(); overlays.dispose(); win.dispose(); overlay.dispose(); audio.dispose();
++});
++
++it.each(['skip', 'cancel'] as const)('Ron %s during the long hold releases pacing without replaying rong', async mode => {
++  vi.useFakeTimers();
++  const bus = new PresentationEventBus(); const event = bus.publish({ type: 'win_declared', playerId: 1, winType: 'ron' });
++  if (event.type !== 'win_declared') throw Error('fixture');
++  const gate = new PresentationPacingGate(); gate.begin(event);
++  const sound = vi.fn(); const disconnect = presentationAudioCues.connect(sound);
++  const controller = new WinPresentationController({ prepare: () => true, setPhase: () => {}, finish: () => {}, clear: () => {} },
++    new AnimationScheduler(), gate, { onSettled: e => gate.complete(e.eventId) });
++  controller.enqueue(event); await vi.advanceTimersByTimeAsync(500);
++  if (mode === 'skip') controller.setSkip(true); else controller.cancelAll();
++  await vi.runAllTimersAsync(); await controller.whenIdle();
++  expect(gate.pendingCount).toBe(0); expect(sound).toHaveBeenCalledOnce();
++  controller.dispose(); disconnect();
++});
++
++it('multi-Ron retains sequential winner holds without the former 2.5-second pacing timeout', async () => {
++  vi.useFakeTimers();
++  const bus = new PresentationEventBus(); const gate = new PresentationPacingGate(); const prepared: number[] = [];
++  const controller = new WinPresentationController({ prepare: e => { prepared.push(e.playerId); return true; }, setPhase: () => {}, finish: () => {}, clear: () => {} },
++    new AnimationScheduler(), gate, { onSettled: e => gate.complete(e.eventId) });
++  const consumer = new WinPresentationConsumer(bus, controller, gate); consumer.start();
++  bus.publish({ type: 'win_declared', playerId: 1, winType: 'ron' });
++  bus.publish({ type: 'win_declared', playerId: 2, winType: 'ron' });
++  await vi.advanceTimersByTimeAsync(3000);
++  expect(prepared).toEqual([1]); expect(gate.pendingCount).toBe(2);
++  await vi.advanceTimersByTimeAsync(1000);
++  expect(prepared).toEqual([1, 2]); expect(gate.pendingCount).toBe(1);
++  await vi.runAllTimersAsync(); await controller.whenIdle();
++  expect(gate.pendingCount).toBe(0); consumer.dispose(); controller.dispose();
++});
++
++it('cancelled asynchronous overlay preparation cannot resurrect a draw overlay', async () => {
++  let resolvePrepare!: (value: boolean) => void;
++  const prepared = new Promise<boolean>(resolve => { resolvePrepare = resolve; });
++  const gate = new PresentationPacingGate(); const phase = vi.fn();
++  const event = { type: 'round_end_announced' as const, eventId: 'cancel-draw-prepare', sequence: 1, settlementType: 'exhaustive-draw' as const };
++  gate.begin(event);
++  const controller = new EventOverlayController({ prepare: () => prepared, setPhase: phase, finish: () => {}, clear: () => {} },
++    new AnimationScheduler(), gate, { onSettled: e => gate.complete(e.eventId) });
++  controller.enqueue(event); await Promise.resolve(); controller.cancelAll(); resolvePrepare(true); await controller.whenIdle();
++  expect(phase).not.toHaveBeenCalled(); expect(gate.pendingCount).toBe(0); controller.dispose();
++});
++
++it.each(['ankan', 'minkan'] as const)('%s reserves replacement draw ownership before its prepare, using official action', async kanType => {
++  const before = loadTestScenarioState(getBuiltInTestScenario(`STAB-001-${kanType.toUpperCase()}`)!);
++  const after = applyOfficialTestModeAction(before, { type: 'kan', playerId: 0, kanType, tileId: kanType === 'ankan' ? 0 : 5 });
++  expect(after.players[0].drawnTile).not.toBeNull();
++  const finalState = JSON.stringify(after);
++  const bus = new PresentationEventBus(); const events: PresentationEvent[] = [];
++  bus.subscribe(e => events.push(e));
++  new GamePresentationEventObserver(before, bus).observe(after);
++  expect(events.map(e => e.type)).toEqual(['meld_declared', 'dora_revealed', 'tile_drawn']);
++  let render: TableAnimation3DRenderState = { active: null, hiddenHandKeys: new Set(), hiddenRiverKeys: new Set(), hiddenMeldTileKeys: new Set(), hiddenRiichiSeats: new Set() };
++  const local: string[] = [];
++  const target = new TableAnimation3DTarget(() => buildTableSceneState(after), new DiscardSource3DStore(), () => 'kan',
++    update => { render = typeof update === 'function' ? update(render) : update; }, () => 0, () => undefined,
++    frame => local.push(frame?.phase ?? 'clear'));
++  const kan = events.find(e => e.type === 'meld_declared')!;
++  const draw = events.find(e => e.type === 'tile_drawn')!;
++  target.beforeEnqueue(kan); target.prepare(kan);
++  target.beforeEnqueue(draw);
++  expect(render.active?.plan.action.eventId).toBe(kan.eventId);
++  expect(local).toEqual(['enter']); // masked while Kan still owns the table action
++  target.finish(kan);
++  expect(local).toEqual(['enter']);
++  await target.prepare(draw);
++  target.setPhase(draw, 'release'); target.setPhase(draw, 'retreat'); target.finish(draw);
++  expect(local[local.length - 1]).toBe('clear');
++  expect(render.active).toBeNull();
++  expect(JSON.stringify(after)).toBe(finalState);
++});
++
++it('tedashi return has exact river/source endpoints and no hand-area waypoint', () => {
++  const river = { left: 620, top: 310, width: 34, height: 42 };
++  const drawn = { left: 1035, top: 650, width: 52, height: 70 };
++  expect(returnToDrawnRect(river, drawn, 0)).toEqual(river);
++  expect(returnToDrawnRect(river, drawn, 1)).toEqual(drawn);
++  expect(returnToDrawnRect(river, drawn, 0.5).left).toBe((river.left + drawn.left) / 2);
++});
++
++it.each(['bottom', 'right', 'top', 'left'] as const)('riichi %s travel/release/static share the same stick target without tile grounding jump', seat => {
++  const initial = loadTestScenarioState(getBuiltInTestScenario('STAB-001-ANKAN')!);
++  const scene = buildTableSceneState(initial);
++  const playerId = scene.seats[seat].playerId;
++  const plan = resolveTableAnimation3DPlan({ type: 'riichi_declared', eventId: `stick-${seat}`, sequence: 1, playerId, riverIndex: 0, kind: 'riichi' }, scene, new DiscardSource3DStore(), 'stick')!;
++  expect(plan.destination).toEqual(getRiichiStickTransform(seat).position);
++  expect(resolveTableAnimation3DMotion(plan, 'travel', 1).tilePosition).toEqual(plan.destination);
++  expect(resolveTableAnimation3DMotion(plan, 'release', 0).tilePosition).toEqual(plan.destination);
++  expect(resolveTableAnimation3DMotion(plan, 'release', 1).tilePosition).toEqual(plan.destination);
++  expect(resolveTableAnimation3DMotion(plan, 'release', 0).handPosition).toEqual(plan.destination);
++});
++
++it('Ron keeps its pacing participant throughout the configured 3-second hold, and sounds once', async () => {
++  vi.useFakeTimers();
++  const bus = new PresentationEventBus(); const event = bus.publish({ type: 'win_declared', playerId: 1, winType: 'ron' });
++  if (event.type !== 'win_declared') throw Error('fixture');
++  const gate = new PresentationPacingGate(); gate.begin(event);
++  const phases: string[] = []; const cues = vi.fn(); const disconnect = presentationAudioCues.connect(cues);
++  const controller = new WinPresentationController({ prepare: () => true, setPhase: (_, phase) => phases.push(phase), finish: () => {}, clear: () => {} },
++    new AnimationScheduler(), gate, { onSettled: e => gate.complete(e.eventId) });
++  controller.enqueue(event);
++  await vi.advanceTimersByTimeAsync(440);
++  expect(phases[phases.length - 1]).toBe('hold'); expect(gate.pendingCount).toBe(1);
++  await vi.advanceTimersByTimeAsync(RON_REVEAL_HOLD_MS - 1);
++  expect(gate.pendingCount).toBe(1); expect(cues).toHaveBeenCalledTimes(1);
++  await vi.runAllTimersAsync(); await controller.whenIdle();
++  expect(gate.pendingCount).toBe(0); expect(phases).not.toContain('slam'); expect(cues).toHaveBeenCalledTimes(1);
++  controller.dispose(); disconnect();
++});
++
++it('17-step official Ron supplies exactly the authoritative fixed hand and winning discard, without candidates', () => {
++  const before = createSeventeenPresentationFixture('ron');
++  const after = declareSeventeenStepsRon(before, 0);
++  expect(after.result?.type).toBe('ron');
++  if (after.result?.type !== 'ron') throw Error('fixture');
++  const result = JSON.stringify(after.result);
++  const hands = winnerPresentationHands(toSeventeenStepsGameState(after), id => id === 0 ? 'bottom' : 'top');
++  expect(hands).toHaveLength(1);
++  expect(hands[0].tiles).toHaveLength(14);
++  expect(hands[0].tiles.slice(0, 13)).toEqual(after.players[after.result.winnerId].fixedHand);
++  expect(hands[0].tiles[13]).toEqual(after.result.winningTile);
++  const concealedCandidates = new Set(after.players[1].discardCandidates.map(tile => tile.instanceId));
++  expect(hands[0].tiles.some(tile => concealedCandidates.has(tile.instanceId))).toBe(false);
++  expect(JSON.stringify(after.result)).toBe(result);
++});
++
++it.each(['bottom', 'right', 'top', 'left'] as const)('Tsumo %s places only the winning slot flat on the felt', seat => {
++  const impact = winningTileSlapTransform(seat, 13, 14, 1);
++  expect(impact.rotationX).toBe(0);
++  expect(impact.position[1]).toBe(getGroundedTileCenterY(0, getHandTileScale(seat)));
++  const source = winningTileSlapTransform(seat, 13, 14, 0);
++  expect(source.rotationX).not.toBe(0);
++  expect(impact.position).not.toEqual(source.position);
++});
+--- start/src/presentation/PresentationAudioCue.test.ts
++++ src/presentation/PresentationAudioCue.test.ts
+@@ -123,7 +123,7 @@
+     controller.dispose(); disconnect();
+   });
+ 
+-  it.each(['ron', 'tsumo'] as const)('%s win waits for earlier discard barrier and commits at push', async winType => {
++  it.each(['ron', 'tsumo'] as const)('%s win waits for earlier discard barrier and commits at Ron reveal / Tsumo slap impact', async winType => {
+     vi.useFakeTimers();
+     const played = vi.fn(); const disconnect = presentationAudioCues.connect(played);
+     const gate = new PresentationPacingGate(); const source = discard(); gate.begin(source);
+@@ -136,7 +136,7 @@
+     gate.complete(source.eventId);
+     await vi.runAllTimersAsync(); await controller.whenIdle();
+     expect(played).toHaveBeenCalledTimes(1);
+-    expect(played.mock.calls[0][0]).toMatchObject({ kind: 'win-impact', phase: 'push' });
++    expect(played.mock.calls[0][0]).toMatchObject({ kind: 'win-impact', phase: winType === 'ron' ? 'push' : 'slam' });
+     controller.dispose(); disconnect();
+   });
+ 
+--- start/src/presentation/PresentationAudioCue.ts
++++ src/presentation/PresentationAudioCue.ts
+@@ -28,7 +28,7 @@
+     };
+   }
+ 
+-  run(event: PresentationEvent) {
++  run(event: PresentationEvent) {
+     const generation = this.generation;
+     let live = true;
+     return {
+@@ -43,6 +43,11 @@
+         catch { /* Audio failure must never escape into pacing. */ }
+       },
+     };
++  }
++
++  /** Semantic completion only, independent of mute, backend or playback success. */
++  hasEmitted(eventId: string, kind: PresentationAudioCueKind): boolean {
++    return this.consumed.has(`${eventId}:${kind}`);
+   }
+ 
+   private remember(key: string, sequence: number): void {
+--- start/src/presentation/PresentationEventBus.test.ts
++++ src/presentation/PresentationEventBus.test.ts
+@@ -417,7 +417,8 @@
+ 
+     expect(events.filter((event) => event.type === 'meld_declared')).toHaveLength(1);
+     expect(events[0]).toMatchObject({ type: 'meld_declared', playerId: 0, meldType: 'kan', kanType: 'minkan' });
+-    expect(events[1]).toMatchObject({ type: 'tile_drawn', playerId: 0 });
++    expect(events[1]).toMatchObject({ type: 'dora_revealed' });
++    expect(events[2]).toMatchObject({ type: 'tile_drawn', playerId: 0 });
+     expect(events.some((event) => event.type === 'tile_discarded')).toBe(false);
+   });
+ 
+--- start/src/presentation/winAnimation/winnerPresentationHands.ts
++++ src/presentation/winAnimation/winnerPresentationHands.ts
+@@ -0,0 +1,18 @@
++import type { GameState, PlayerId, Tile } from '../../game/types';
++import { buildResultViewModel } from '../result/resultViewModel';
++import type { Table3DSeat } from '../../presentation3d/coordinates/seatTransforms';
++
++export type WinnerPresentationHand = Readonly<{
++  playerId: PlayerId; tiles: readonly Tile[]; winningTile: Tile;
++  drawnTileInstanceId: string | null; seat: Table3DSeat;
++}>;
++
++/** The result view model owns the split between concealed tiles and the winning tile. */
++export function winnerPresentationHands(state: GameState, seatFor: (id: PlayerId) => Table3DSeat): readonly WinnerPresentationHand[] {
++  const result = buildResultViewModel(state);
++  return result?.kind === 'win' ? result.winners.map(winner => ({
++    playerId: winner.source.winner, tiles: [...winner.concealedTiles, winner.winningTile],
++    winningTile: winner.winningTile, drawnTileInstanceId: winner.source.winType === 'tsumo' ? winner.winningTile.instanceId : null,
++    seat: seatFor(winner.source.winner),
++  })) : [];
++}
+--- start/src/presentation/winAnimation/WinPresentationController.test.ts
++++ src/presentation/winAnimation/WinPresentationController.test.ts
+@@ -33,7 +33,7 @@
+ });
+ 
+ describe('WinPresentationController', () => {
+-  it('等待先前 Draw/Discard pacing，再按 slam → push → announce → hold 清理', async () => {
++  it('等待先前 Draw/Discard pacing，再按 slam → announce → hold（不再整手推倒） 清理', async () => {
+     vi.useFakeTimers();
+     const log: string[] = [];
+     const gate = new PresentationPacingGate();
+@@ -50,7 +50,7 @@
+     await vi.runAllTimersAsync();
+     await controller.whenIdle();
+ 
+-    expect(log).toEqual(['prepare', 'slam', 'push', 'announce', 'hold', 'cleanup', 'finish']);
++    expect(log).toEqual(['prepare', 'slam', 'announce', 'hold', 'cleanup', 'finish']);
+     expect(gate.pendingCount).toBe(0);
+   });
+ 
+--- start/src/presentation/winAnimation/WinPresentationController.ts
++++ src/presentation/winAnimation/WinPresentationController.ts
+@@ -1,6 +1,7 @@
+ import {
+   AnimationScheduler,
+   waitForAnimationTime,
++  animationFrameTask,
+   type AnimationTask,
+ } from '../animation/AnimationScheduler';
+ import type {
+@@ -21,6 +22,7 @@
+   setPhase(action: WinPresentationAction, phase: WinPresentationPhase): void;
+   finish(action: WinPresentationAction): void;
+   clear(): void;
++  setProgress?(action: WinPresentationAction, phase: WinPresentationPhase, progress: number): void;
+ }
+ 
+ export interface WinPresentationControllerOptions {
+@@ -29,6 +31,8 @@
+   readonly onSettled?: (action: WinPresentationAction) => void;
+ }
+ 
++export const RON_REVEAL_HOLD_MS = 3000;
++export const WIN_PRESENTATION_WAIT_MS = 15_000;
+ const PHASE_DURATIONS: Record<WinPresentationPhase, number> = {
+   slam: 210,
+   push: 280,
+@@ -129,12 +133,14 @@
+       const audioRun = presentationAudioCues.run(action);
+       this.closeAudioRun = audioRun.close;
+       try {
+-        await this.pacingGate.waitUntilClearBefore(action.sequence);
++        await this.pacingGate.waitUntilClearBefore(action.sequence, { timeoutMs: WIN_PRESENTATION_WAIT_MS });
+         if (this.disposed || generation !== this.generation) continue;
+         const prepared = await this.target.prepare(action);
+         if (prepared && !this.disposed && generation === this.generation) {
+-          await this.scheduler.sequence((Object.keys(PHASE_DURATIONS) as WinPresentationPhase[])
+-            .map((phase) => this.phaseTask(action, phase, action.winType === 'ron' && phase === 'slam' ? 0 : PHASE_DURATIONS[phase], audioRun.emit)));
++          const phases = (Object.keys(PHASE_DURATIONS) as WinPresentationPhase[])
++            .filter(phase => action.winType === 'ron' ? phase !== 'slam' : phase !== 'push');
++          await this.scheduler.sequence(phases.map(phase => this.phaseTask(action, phase,
++            action.winType === 'ron' && phase === 'hold' ? RON_REVEAL_HOLD_MS : PHASE_DURATIONS[phase], audioRun.emit)));
+         }
+       } catch (error) {
+         this.onError(error, action);
+@@ -149,12 +155,16 @@
+ 
+   private phaseTask(action: WinPresentationAction, phase: WinPresentationPhase, durationMs: number,
+     emit: (kind: PresentationAudioCueKind, phase: string, progress: number) => void): AnimationTask {
++    if (action.winType === 'tsumo' && (phase === 'slam' || phase === 'announce') && this.target.setProgress) return animationFrameTask(durationMs, progress => {
++      this.target.setPhase(action, phase);
++      this.target.setProgress?.(action, phase, progress);
++    }, progress => { if (phase === 'slam' && progress === 1) emit('win-impact', phase, 1); });
+     return {
+       play: async (context) => {
+         this.target.setPhase(action, phase);
+-        // Push is the existing winning-hand reveal commit, after Ron's discard barrier.
+-        if (phase === 'push' && !context.signal.aborted) emit('win-impact', phase, 0);
++        if (action.winType === 'ron' && phase === 'push' && !context.signal.aborted) emit('win-impact', phase, 0);
+         await waitForAnimationTime(durationMs, context);
++        if (action.winType === 'tsumo' && phase === 'slam' && !context.signal.aborted) emit('win-impact', phase, 1);
+       },
+       snapToEnd: () => this.target.setPhase(action, phase),
+     };
+--- start/src/presentation3d/animation/localDiscardMotion.ts
++++ src/presentation3d/animation/localDiscardMotion.ts
+@@ -4,7 +4,7 @@
+ import { TABLE_CAMERA } from '../camera/FixedTableCamera';
+ import { MAHJONG_TILE_DIMENSIONS } from '../tile/tileGeometry';
+ 
+-export type LocalDiscardMotion = Readonly<{ source: PresentationRect; destination: PresentationRect }>;
++export type LocalDiscardMotion = Readonly<{ source: PresentationRect; destination: PresentationRect; drawnSource?: PresentationRect }>;
+ 
+ /** DOM-to-river bridge only; uses the frozen camera and final river transform. */
+ export function captureLocalDiscardMotion(plan: TableAnimation3DPlan, source?: PresentationRect): LocalDiscardMotion | undefined {
+--- start/src/presentation3d/animation/tableAnimation3D.ts
++++ src/presentation3d/animation/tableAnimation3D.ts
+@@ -327,7 +327,7 @@
+     handPosition = plan.source;
+     tilePosition = addY(plan.source, TILE_LIFT * t);
+   } else if (phase === 'travel') {
+-    const travel = lerpPoint(plan.source, plan.destination, t);
++    const travel = t === 1 ? plan.destination : lerpPoint(plan.source, plan.destination, t);
+     const arc = Math.sin(Math.PI * t) * 0.22 + TILE_LIFT * (1 - t);
+     handPosition = addY(travel, arc);
+     tilePosition = addY(travel, arc);
+@@ -335,9 +335,9 @@
+     tileRotationY = lerpAngle(plan.sourceRotationY, plan.destinationRotationY, t);
+     tileScale = lerp(plan.sourceScale, plan.destinationScale, t);
+   } else if (phase === 'release') {
+-    handPosition = addY(plan.destination, TILE_LIFT * (1 - t));
++    handPosition = plan.stickProxy ? plan.destination : addY(plan.destination, TILE_LIFT * (1 - t));
+     // Snapshot carry already reaches the river; settle must not lift it a second time.
+-    tilePosition = plan.handSnapshot ? plan.destination : addY(plan.destination, TILE_LIFT * (1 - t));
++    tilePosition = plan.handSnapshot || plan.stickProxy ? plan.destination : addY(plan.destination, TILE_LIFT * (1 - t));
+     tileRotationX = plan.destinationRotationX;
+     tileRotationY = plan.destinationRotationY;
+     tileScale = plan.destinationScale;
+@@ -352,7 +352,7 @@
+ 
+   return {
+     handPosition,
+-    tilePosition: groundTilePosition(tilePosition, tileRotationX, tileScale),
++    tilePosition: plan.stickProxy ? tilePosition : groundTilePosition(tilePosition, tileRotationX, tileScale),
+     tileRotationX,
+     tileRotationY,
+     tileScale,
+--- start/src/presentation3d/animation/useTableAnimation3D.ts
++++ src/presentation3d/animation/useTableAnimation3D.ts
+@@ -180,15 +180,28 @@
+       : resolvedPlan;
+     if (plan.handSnapshot && plan.seat === 'bottom') {
+       const localDiscardMotion = captureLocalDiscardMotion(plan, localDiscardSnapshot?.sourceTileRect);
+-      plan = { ...plan, localDiscardMotion, showPrimaryTile: !localDiscardMotion };
+-    }
+-    this.plans.set(action.eventId, plan);
+-    return true;
+-  }
+-
+-  prepare(action: HandAnimationAction): boolean | Promise<boolean> {
+-    const plan = this.plans.get(action.eventId);
+-    if (!plan) return false;
++      plan = { ...plan, localDiscardMotion: localDiscardMotion ? { ...localDiscardMotion, drawnSource: localDiscardSnapshot?.drawnTileRect } : undefined, showPrimaryTile: !localDiscardMotion };
++    }
++    this.plans.set(action.eventId, plan);
++    // Ownership starts on confirmation, including while a Kan is ahead in the queue.
++    if (action.type === 'tile_drawn') {
++      this.setRenderState(current => ({ ...current, hiddenHandKeys: addKey(current.hiddenHandKeys, plan.hiddenHandKey) }));
++      if (plan.localDomDraw) this.onLocalHandAnimationChange({ eventId: action.eventId, kind: 'draw', phase: 'enter' });
++    }
++    return true;
++  }
++
++  prepare(action: HandAnimationAction): boolean | Promise<boolean> {
++    const plan = this.plans.get(action.eventId);
++    if (!plan) return false;
++    if (action.type === 'tile_drawn') {
++      return presentationPacingGate.waitUntilClearBefore(action.sequence).then(() =>
++        this.plans.get(action.eventId) === plan ? this.preparePlan(action, plan) : false);
++    }
++    return this.preparePlan(action, plan);
++  }
++
++  private preparePlan(action: HandAnimationAction, plan: TableAnimation3DPlan): boolean | Promise<boolean> {
+     this.setRenderState((current) => prepareTableAnimation3DRenderState(current, plan));
+     if (plan.handSnapshot) {
+       this.updateHandPresentation(plan, { snapshot: plan.handSnapshot, phase: 'lift', progress: 0 });
+--- start/src/presentation3d/hand/Hand3D.tsx
++++ src/presentation3d/hand/Hand3D.tsx
+@@ -16,7 +16,10 @@
+ } from './handInteraction';
+ import type { DiscardSource3DCapture } from '../animation/DiscardSource3D';
+ import { useThree } from '@react-three/fiber';
+-import { useEffect, useRef } from 'react';
++import { useEffect, useLayoutEffect, useRef } from 'react';
++import { HandVisualController } from '../../hand/HandVisualController';
++import { DEFAULT_HAND_PACK, type HandPack } from '../../hand/handPacks';
++import { projectHandContact } from '../../hand/handProjection';
+ import {
+   resolveWinnerHandMotion3D,
+   type WinPresentation3DState,
+@@ -25,9 +28,12 @@
+ import type { TileVisualSemanticContext } from '../../presentation/table/tileVisualSemantics';
+ import type { HandPresentationFrame } from '../../presentation/handAnimation/HandPresentationSnapshot';
+ import { resolveHandSnapshotLayout } from './handSnapshotLayout';
++import { getGroundedTileCenterY } from '../tile/tileGrounding';
++import { winningTileSlapTransform } from '../win/winPresentation3D';
+ 
+ type Hand3DProps = Readonly<{
+   handPresentation?: HandPresentationFrame;
++  winHandPack?: HandPack;
+   seatState: SeatSceneState;
+   presentation?: LocalHandPresentation;
+   interactionActions?: TableInteractionActions;
+@@ -41,6 +47,7 @@
+ 
+ export function Hand3D({
+   seatState,
++  winHandPack = DEFAULT_HAND_PACK,
+   handPresentation,
+   presentation,
+   interactionActions,
+@@ -54,7 +61,27 @@
+   const hoverRevisionRef = useRef(0);
+   const ownsPointer = presentation !== undefined;
+   const hasDrawnTile = seatState.hand.some((tile) => tile.drawn);
+-  const winMotion = resolveWinnerHandMotion3D(seatState.seat, winPresentation?.phase ?? 'ready');
++  const ronFlat = winPresentation?.action.winType === 'ron'
++    && (winPresentation.phase !== 'ready' || winPresentation.action.playerId !== seatState.playerId);
++  const winMotion = resolveWinnerHandMotion3D(seatState.seat, ronFlat ? 'hold' : 'ready');
++  const tsumo = winPresentation?.action.winType === 'tsumo' ? winPresentation : null;
++  const slapHand = useRef<HandVisualController | null>(null);
++  const camera = useThree(state => state.camera);
++  const drawnIndex = seatState.hand.findIndex(tile => tile.drawn);
++  const slap = tsumo && drawnIndex >= 0 ? winningTileSlapTransform(seatState.seat, drawnIndex, seatState.hand.length,
++    tsumo.phase === 'ready' ? 0 : tsumo.phase === 'slam' ? tsumo.progress ?? 0 : 1) : null;
++  useLayoutEffect(() => {
++    if (!tsumo) return;
++    const hand = new HandVisualController(tsumo.action.eventId, seatState.seat, winHandPack, seatState.playerId);
++    slapHand.current = hand;
++    return () => { hand.dispose(); slapHand.current = null; };
++  }, [tsumo?.action.eventId, seatState.seat, seatState.playerId, winHandPack]);
++  useLayoutEffect(() => {
++    if (!tsumo || !slap) return;
++    if (tsumo.phase === 'hold' || tsumo.phase === 'cleanup') { slapHand.current?.hide(); return; }
++    slapHand.current?.update(projectHandContact(slap.position, camera, canvas.getBoundingClientRect()),
++      tsumo.phase === 'slam' ? 'carry' : tsumo.phase === 'announce' ? 'retreat' : 'release', tsumo.progress ?? 1);
++  }, [tsumo, slap, camera, canvas]);
+ 
+   useEffect(() => {
+     if (!ownsPointer) return undefined;
+@@ -112,7 +139,7 @@
+         const interactive = interaction?.playable === true && interactionActions !== undefined;
+         const position = [
+           transform.position[0] + winMotion.offset[0],
+-          transform.position[1] + winMotion.offset[1],
++          ronFlat ? getGroundedTileCenterY(0, getHandTileScale(seatState.seat)) : transform.position[1] + winMotion.offset[1],
+           transform.position[2] + winMotion.offset[2],
+         ] as const;
+         if (hiddenTileKeys?.has(tile.key)) return null;
+@@ -121,10 +148,10 @@
+             ownerPlayerId={seatState.playerId}
+             key={tile.key}
+             tile={tile.tile}
+-            faceState={tile.faceState}
++            faceState={tsumo && !tile.drawn ? 'face-down' : tile.faceState}
+             orientation={tile.orientation}
+-            position={position}
+-            rotationX={transform.rotationX + winMotion.tiltX}
++            position={tile.drawn && slap ? slap.position : position}
++            rotationX={tile.drawn && slap ? slap.rotationX : ronFlat ? 0 : transform.rotationX + winMotion.tiltX}
+             rotationY={transform.rotationY}
+             tileScale={getHandTileScale(seatState.seat)}
+             doraSweepKey={tile.key}
+--- start/src/presentation3d/riichi/RiichiStick3D.test.ts
++++ src/presentation3d/riichi/RiichiStick3D.test.ts
+@@ -43,8 +43,8 @@
+     );
+   });
+ 
+-  it('keeps the authoritative stick inside the inner frame and exposes a default texture', () => {
+-    expect(TABLE_PRESENTATION_TUNING.riichiStickLayout.laneOffset).toBeLessThan(
++  it('keeps the authoritative stick outside the center HUD frame and exposes a default texture', () => {
++    expect(TABLE_PRESENTATION_TUNING.riichiStickLayout.laneOffset).toBeGreaterThan(
+       TABLE_PRESENTATION_TUNING.centerDecoration.innerSquareSize / 2,
+     );
+     expect(DEFAULT_RIICHI_STICK_3D_APPEARANCE.textureSource)
+--- start/src/presentation3d/sceneState/buildTableSceneState.ts
++++ src/presentation3d/sceneState/buildTableSceneState.ts
+@@ -21,6 +21,7 @@
+   seatMapping?: TableSceneSeatMapping;
+   revealOpponentHands?: boolean;
+   revealedPlayerId?: PlayerId;
++  revealedPlayerIds?: readonly PlayerId[];
+   preserveClaimedDiscardGap?: boolean;
+ }>;
+ 
+@@ -47,10 +48,11 @@
+     const handVisible = seat === 'bottom'
+       || options.revealOpponentHands === true
+       || options.revealedPlayerId === playerId;
++    const winnerVisible = options.revealedPlayerIds?.includes(playerId) === true;
+     return [seat, buildSeatSceneState(
+       player,
+       seat,
+-      handVisible,
++      handVisible || winnerVisible,
+       preserveClaimedDiscardGap,
+       gameState.doraIndicators,
+     )];
+--- start/src/presentation3d/table/tablePresentationTuning.ts
++++ src/presentation3d/table/tablePresentationTuning.ts
+@@ -120,7 +120,7 @@
+     surfaceClearance: 0.004,
+   },
+   riichiStickLayout: {
+-    laneOffset: 3.35,
++    laneOffset: 5.2,
+     seatOffsets: {
+       bottom: { inline: 0, radial: 0 },
+       right: { inline: 0, radial: 0 },
+--- start/src/presentation3d/Table3DScene.test.ts
++++ src/presentation3d/Table3DScene.test.ts
+@@ -143,7 +143,7 @@
+     const handSource = readFileSync(sourcePath('./hand/Hand3D.tsx'), 'utf8');
+     const tileSource = readFileSync(sourcePath('./tile/Tile3D.tsx'), 'utf8');
+ 
+-    expect(handSource).toContain('rotationX={transform.rotationX + winMotion.tiltX}');
++    expect(handSource).toContain('rotationX={tile.drawn && slap ? slap.rotationX : ronFlat ? 0 : transform.rotationX + winMotion.tiltX}');
+     expect(handSource).toContain("region: 'hand'");
+     expect(handSource).toContain('tileKey: tile.key');
+     expect(handSource).toContain('index,');
+--- start/src/presentation3d/Table3DScene.tsx
++++ src/presentation3d/Table3DScene.tsx
+@@ -68,6 +68,7 @@
+   hiddenRiverKeys,
+   hiddenMeldTileKeys,
+   winPresentation3D,
++  winHandPack,
+   tableVisualTheme,
+   tileVisualContext,
+   feltTexture,
+@@ -80,6 +81,7 @@
+   hiddenRiverKeys: TableAnimation3DRenderState['hiddenRiverKeys'];
+   hiddenMeldTileKeys: TableAnimation3DRenderState['hiddenMeldTileKeys'];
+   winPresentation3D?: WinPresentation3DState | null;
++  winHandPack?: import('../hand/handPacks').HandPack;
+   tableVisualTheme: TableVisualTheme;
+   tileVisualContext?: TileVisualSemanticContext;
+   feltTexture?: Texture;
+@@ -101,9 +103,10 @@
+             {seat === 'bottom' ? null : (
+               <Hand3D
+                 seatState={sceneState.seats[seat]}
++                winHandPack={winHandPack}
+                 handPresentation={handPresentation?.snapshot.playerId === sceneState.seats[seat].playerId ? handPresentation : undefined}
+                 hiddenTileKeys={hiddenHandKeys}
+-                winPresentation={winPresentation3D?.action.playerId === sceneState.seats[seat].playerId
++                winPresentation={winPresentation3D?.action.playerId === sceneState.seats[seat].playerId || winPresentation3D?.revealedPlayerIds?.includes(sceneState.seats[seat].playerId)
+                   ? winPresentation3D
+                   : null}
+                 visualContext={tileVisualContext}
+@@ -288,6 +291,7 @@
+                   hiddenRiverKeys={animation.hiddenRiverKeys}
+                   hiddenMeldTileKeys={animation.hiddenMeldTileKeys}
+                   winPresentation3D={winPresentation3D}
++                  winHandPack={resolveHandPackForPlayer(winPresentation3D?.action.playerId ?? 0, playerSlotAppearances, appearanceSettings)}
+                   tableVisualTheme={tableVisualTheme}
+                   tileVisualContext={tileVisualContext}
+                   feltTexture={feltTexture}
+--- start/src/presentation3d/TableRenderer.tsx
++++ src/presentation3d/TableRenderer.tsx
+@@ -134,12 +134,13 @@
+   const winnerRevealPlayerId = resolveWinnerRevealPlayerId3D(winPresentation3D, bottomPlayerId);
+   const sceneState = useMemo(() => {
+     if (!sharedPresentationState) return null;
+-    if (winnerRevealPlayerId === undefined) return sharedPresentationState.scene;
++    if (winnerRevealPlayerId === undefined && !winPresentation3D?.revealedPlayerIds?.length) return sharedPresentationState.scene;
+     return buildTableSceneState(tableProps.gameState, {
+       bottomPlayerId,
+       seatMapping: tableProps.seatMapping,
+       revealOpponentHands: tableProps.revealOpponentHands,
+       revealedPlayerId: winnerRevealPlayerId,
++      revealedPlayerIds: winPresentation3D?.revealedPlayerIds,
+     });
+   }, [
+     sharedPresentationState,
+@@ -148,6 +149,7 @@
+     tableProps.revealOpponentHands,
+     tableProps.seatMapping,
+     winnerRevealPlayerId,
++    winPresentation3D?.revealedPlayerIds,
+   ]);
+   const effectiveHandPackIds = useMemo(() => {
+     if (!sceneState) return [] as HandPackId[];
+--- start/src/presentation3d/win/winPresentation3D.ts
++++ src/presentation3d/win/winPresentation3D.ts
+@@ -5,12 +5,29 @@
+ } from '../../presentation/winAnimation/WinPresentationController';
+ import type { Table3DSeat } from '../coordinates/seatTransforms';
+ import { getSeatDirection } from '../coordinates/seatTransforms';
++import { getHandTileTransform } from '../coordinates/sceneTransforms';
++import { getGroundedTileCenterY } from '../tile/tileGrounding';
++import { getHandTileScale } from '../table/tablePresentationTuning';
++
++/** One winning tile, in front of its authoritative drawn slot; other hand tiles stay standing. */
++export function winningTileSlapTransform(seat: Table3DSeat, index: number, count: number, progress: number) {
++  const source = getHandTileTransform(seat, index, count, true);
++  const direction = getSeatDirection(seat);
++  const p = Math.max(0, Math.min(1, progress));
++  const t = p * p * (3 - 2 * p);
++  const rotationX = t === 1 ? 0 : source.rotationX * (1 - t);
++  return { position: [source.position[0] + direction.x * 1.1 * t,
++    getGroundedTileCenterY(rotationX, getHandTileScale(seat)) + Math.sin(Math.PI * t) * 0.3,
++    source.position[2] + direction.z * 1.1 * t] as const, rotationX };
++}
+ 
+ export type WinPresentation3DPhase = 'ready' | WinPresentationPhase;
+ 
+ export type WinPresentation3DState = Readonly<{
+   action: WinPresentationAction;
+   phase: WinPresentation3DPhase;
++  progress?: number;
++  revealedPlayerIds?: readonly PlayerId[];
+ }>;
+ 
+ export type WinningRiverTarget3D = Readonly<{

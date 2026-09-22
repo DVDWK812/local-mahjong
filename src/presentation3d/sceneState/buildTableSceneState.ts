@@ -21,6 +21,7 @@ export type BuildTableSceneStateOptions = Readonly<{
   seatMapping?: TableSceneSeatMapping;
   revealOpponentHands?: boolean;
   revealedPlayerId?: PlayerId;
+  revealedPlayerIds?: readonly PlayerId[];
   preserveClaimedDiscardGap?: boolean;
 }>;
 
@@ -47,10 +48,11 @@ export function buildTableSceneState(
     const handVisible = seat === 'bottom'
       || options.revealOpponentHands === true
       || options.revealedPlayerId === playerId;
+    const winnerVisible = options.revealedPlayerIds?.includes(playerId) === true;
     return [seat, buildSeatSceneState(
       player,
       seat,
-      handVisible,
+      handVisible || winnerVisible,
       preserveClaimedDiscardGap,
       gameState.doraIndicators,
     )];

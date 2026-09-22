@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>共享宿主最小测试场景</title></head>
+<body><div id="root"></div><script type="module">
+import RefreshRuntime from '/@react-refresh';
+RefreshRuntime.injectIntoGlobalHook(window);
+window.$RefreshReg$ = () => {};
+window.$RefreshSig$ = () => type => type;
+window.__vite_plugin_react_preamble_installed__ = true;
+await import('/artifacts/17-3d-a-host-fixture.tsx');
+</script></body></html>

@@ -1,0 +1,54 @@
+[
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\music\\effects\\default-tile.wav",
+    "Hash": "D7A8E9F645A0B8E1FE6D7D78AA2562BDBC639F8B6255E41ED715D0EFBB42A88A"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\music\\effects\\discard\\discard1.wav",
+    "Hash": "FD802437D430D0DB6135839C72DDBAFC1C729987AC4310043E0D42B1BADA1498"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\music\\effects\\discard\\discard2.wav",
+    "Hash": "7717EABE929B20D2246FD43304D96621B50F37B9C08471BB4D14CBA6B80016CA"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\music\\effects\\dora\\dora1.wav",
+    "Hash": "F6DD760476BAD33406500C646ADD8330F3586AD648AD535FEFF4426848CBA1DB"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\music\\effects\\dora\\dora2.wav",
+    "Hash": "BBE4F285AF99F5111101D11EC9CA2222F347F4852059DB75AF172505F0C6AF00"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\music\\effects\\draw\\draw1.wav",
+    "Hash": "4E03073719FD1B7C58DCFC564296ACFFCC87C3AB28005D932F41EF60BC627B1C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\music\\effects\\draw\\draw2.wav",
+    "Hash": "9D092F3FEF82F407130F2DB48A6474D9F679F42AFA8DA3E735646E954F4EAA90"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\music\\effects\\meld\\meld1.wav",
+    "Hash": "66E0FBAA6A57A952A9B4A1FFE13CC8AA605EA8BD7FBBD5E946A7751A08E60F80"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\music\\effects\\meld\\meld2.wav",
+    "Hash": "F1402CAF1A92BFE0E5962308A58133C908CB83A55ACD740009B0DF3A540F9775"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\music\\effects\\riichi\\riichi1.wav",
+    "Hash": "A9F2EAEDBE39DB9CE772E76B5E8D581BFADE661A1C3155280592222AB2B2AEB0"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\music\\effects\\riichi\\riichi2.wav",
+    "Hash": "8F9A55C757423CC25131F74DF7BA6E831E827A136CE5C4E08B986367FA02835C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\music\\effects\\win\\rong1.wav",
+    "Hash": "C80575BBA1684B51EFB3C2D76EE2E00E7FC6ED208D70ACF06AE96DF3311563C4"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\music\\effects\\win\\rong2.wav",
+    "Hash": "2EE27B6043B3E2DE4E2E14556BD815C8A43A4359F6AC0ABCAA00102BEA70003C"
+  }
+]

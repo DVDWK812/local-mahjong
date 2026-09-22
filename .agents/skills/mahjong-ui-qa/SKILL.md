@@ -16,6 +16,7 @@ Do not infer a browser-visible `PASS` from source inspection, unit tests, snapsh
 For localhost UI and WebGL acceptance in this repository:
 
 - Use the **Codex built-in browser only**.
+- Include `mute=1` in every project test URL, preserving other query parameters. This silences output without skipping audio loading; still inspect audio requests and errors.
 - Do **not** use the Google Chrome extension.
 - Do **not** depend on Chrome Native Messaging Host.
 - Do **not** require an existing Chrome profile, cookies, or user browser tab.
@@ -67,7 +68,7 @@ Before browser acceptance:
 
 1. Read the applicable `AGENTS.md`.
 2. Read the task scope.
-3. Identify whether the change affects 3D, shared presentation state, legacy isolation, or only DOM UI. Expand 2.5D regression only for GameScreen, Local Hand/shared DOM tiles, PresentationEvent/pacing, renderer switch/fallback, shared CSS/layout, shared audio, Rules/GameState, or an explicitly reported 2.5D bug.
+3. Identify whether the change is ordinary 3D work, a shared renderer boundary, or an explicit Legacy task. Ordinary 3D work must not navigate to `?table3d=0`. Enter Legacy Compatibility Mode only for GameScreen, Local Hand/shared DOM tiles, PresentationEvent/pacing, renderer switch/fallback, shared CSS/layout, shared audio, Rules/GameState, an explicitly reported 2.5D bug, or a release gate.
 4. Preserve existing dirty/untracked work.
 5. Do not modify product code while performing acceptance unless the task explicitly asks for a fix.
 
@@ -79,7 +80,7 @@ Use the running local development server if already available.
 
 Expected local application is normally under:
 
-`http://127.0.0.1:5173/`
+`http://127.0.0.1:5173/?mute=1`
 
 Do not start duplicate dev servers if an existing server is already serving the current worktree.
 
@@ -114,7 +115,7 @@ At each viewport check:
 
 The default URL is:
 
-`http://127.0.0.1:5173/`
+`http://127.0.0.1:5173/?mute=1`
 
 For 3D presentation, renderer integration, shared state, gameplay interaction, HUD, overlays, or routing, verify the primary 3D path at both required viewports.
 
@@ -127,15 +128,9 @@ Required checks:
 - Console contains no relevant errors;
 - required Network requests do not fail.
 
-# Legacy Compatibility smoke
+# Legacy Compatibility exceptions
 
-Use `http://127.0.0.1:5173/?table3d=0` for one lightweight legacy smoke after 3D presentation work:
-
-- Canvas count is `0` and no 3D layer is mounted;
-- the table enters without a crash;
-- a basic hand can run.
-
-Do not require 2.5D feature or visual parity for new 3D presentation work. Run the broader 2.5D regression only when the shared-boundary conditions above apply.
+Do not enter `?table3d=0` for ordinary 3D UI, presentation, animation, appearance, or visual-bugfix QA. Legacy browser evidence is required only for the exception list above or an explicit task instruction. New 3D work never requires 2.5D feature or visual parity.
 
 # Mandatory 3D / WebGL acceptance
 
@@ -143,9 +138,9 @@ Use this section for any change involving 3D runtime, 3D layout, camera, table d
 
 The default 3D URL is:
 
-`http://127.0.0.1:5173/`
+`http://127.0.0.1:5173/?mute=1`
 
-`?table3d=1` remains a compatible explicit 3D URL; `?table3d=0` explicitly selects Legacy Compatibility Mode.
+`?table3d=1&mute=1` remains a compatible explicit 3D test URL; `?table3d=0&mute=1` explicitly selects Legacy Compatibility Mode for applicable tests.
 
 Use the Codex built-in browser.
 
@@ -491,18 +486,18 @@ If acceptance finds a defect:
 
 Do not broaden the task into unrelated cleanup.
 
-# Legacy / 3D isolation
+# Legacy / 3D isolation exceptions
 
-For shared renderer changes, explicitly verify isolation.
+Only for shared renderer changes, WebGL fallback, explicit Legacy bugs, or release gates, explicitly verify isolation.
 
-A 3D fix must retain Legacy Compatibility smoke viability. It does not require 2.5D feature or visual parity.
+A 3D fix does not require Legacy Compatibility smoke, 2.5D feature parity, or visual parity outside those exceptions.
 
 A 2.5D fix must not accidentally mount or alter the 3D renderer.
 
-For standard acceptance:
+For an applicable Legacy exception:
 
 - default URL → one active 3D Canvas
-- `?table3d=0` → `Canvas=0`, no 3D layer
+- `?table3d=0&mute=1` → `Canvas=0`, no 3D layer
 
 # Output format
 
@@ -535,7 +530,7 @@ Include:
 - screenshots;
 - notable visual observations.
 
-## Legacy Compatibility smoke
+## Legacy Compatibility evidence
 
 State what was actually verified.
 
@@ -561,7 +556,7 @@ For 3D/WebGL work, `PASS` requires at minimum:
 - changed layout/interaction/animation verified in the browser;
 - Console clean of relevant errors;
 - Network clean of failed required resources;
-- Legacy Compatibility smoke checked; broader 2.5D regression checked only when applicable.
+- Legacy Compatibility evidence checked only when an exception applies.
 
 If any mandatory browser criterion is not observed, report `NOT VERIFIED` or `MANUAL BLOCKED`, not `PASS`.
 

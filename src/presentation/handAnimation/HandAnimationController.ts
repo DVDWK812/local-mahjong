@@ -5,6 +5,7 @@ import {
 } from '../animation/AnimationScheduler';
 import type { MeldDeclaredPresentationEvent, RiichiDeclaredPresentationEvent, TileDiscardedPresentationEvent, TileDrawnPresentationEvent } from '../PresentationEventBus';
 import type { PresentationRect } from './DiscardSourceSnapshot';
+import { handAudioCue, presentationAudioCues, type AnimationCueFrame } from '../PresentationAudioCue';
 
 export type HandAnimationAction = TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | (TileDiscardedPresentationEvent & {
   readonly discardSourceRect?: PresentationRect;
@@ -12,7 +13,7 @@ export type HandAnimationAction = TileDrawnPresentationEvent | RiichiDeclaredPre
 export type HandAnimationPhase = 'approach' | 'grasp' | 'travel' | 'release' | 'retreat';
 
 export interface HandAnimationTarget {
-  animationTasks?(action: HandAnimationAction): readonly AnimationTask[] | undefined;
+  animationTasks?(action: HandAnimationAction, onFrame?: AnimationCueFrame): readonly AnimationTask[] | undefined;
   beforeEnqueue?(action: HandAnimationAction): boolean | void;
   prepare(action: HandAnimationAction): boolean | Promise<boolean>;
   setPhase(action: HandAnimationAction, phase: HandAnimationPhase): void;
@@ -48,6 +49,9 @@ export class HandAnimationController {
   private disposed = false;
   private currentAction: HandAnimationAction | null = null;
   private generation = 0;
+  private closeAudioRun: (() => void) | null = null;
+  private skip = false;
+  private reducedMotion = false;
 
   constructor(
     private readonly target: HandAnimationTarget,
@@ -98,11 +102,20 @@ export class HandAnimationController {
   }
 
   setSkip(skip: boolean): void {
-    this.scheduler.setSkip(skip);
+    this.skip = skip;
+    if (skip) this.closeAudioRun?.();
+    this.scheduler.setSkip(skip || this.reducedMotion);
     if (skip && this.options.snapOnPlaybackChange) this.cancelAll();
   }
 
+  setReducedMotion(reduced: boolean): void {
+    this.reducedMotion = reduced;
+    this.scheduler.setSkip(this.skip || reduced);
+    if (reduced && this.currentAction) this.cancelAll();
+  }
+
   cancelAll(): void {
+    this.closeAudioRun?.();
     this.generation += 1;
     this.queue.splice(0).forEach((action) => this.safeFinish(action));
     this.scheduler.cancelAll();
@@ -137,30 +150,48 @@ export class HandAnimationController {
       if (!action) continue;
       this.currentAction = action;
       const generation = this.generation;
+      const audioRun = presentationAudioCues.run(action);
+      this.closeAudioRun = audioRun.close;
+      const onFrame: AnimationCueFrame = (phase, progress, profile) => {
+        if (generation !== this.generation || this.disposed) return;
+        const cue = handAudioCue(action, phase, progress, profile);
+        if (cue) audioRun.emit(cue, phase, progress);
+      };
       try {
         const prepared = await this.target.prepare(action);
         if (prepared && generation === this.generation && !this.disposed) {
           const holdMs = this.postAnimationHoldMs(action);
-          await this.scheduler.sequence([
-            ...(this.target.animationTasks?.(action)
-              ?? HAND_ANIMATION_PHASES.map(({ phase, durationMs }) => this.phaseTask(action, phase, durationMs))),
+          const status = await this.scheduler.sequence([
+            ...(this.target.animationTasks?.(action, onFrame)
+              ?? HAND_ANIMATION_PHASES.map(({ phase, durationMs }) => this.phaseTask(action, phase, durationMs, onFrame))),
             ...(holdMs > 0 ? [this.holdTask(holdMs)] : []),
           ]);
+          if (status === 'skipped' && this.reducedMotion && !this.skip
+            && generation === this.generation && !this.disposed) {
+            const kind = action.type === 'tile_drawn' ? 'draw-contact'
+              : action.type === 'tile_discarded' ? 'discard-impact'
+              : action.type === 'meld_declared' ? 'meld-impact' : 'riichi-stick-impact';
+            audioRun.emit(kind, 'reduced-motion-settled', 1);
+          }
         }
       } catch (error) {
         this.onError(error, action);
       } finally {
+        audioRun.close();
+        this.closeAudioRun = null;
         this.safeFinish(action);
         this.currentAction = null;
       }
     }
   }
 
-  private phaseTask(action: HandAnimationAction, phase: HandAnimationPhase, durationMs: number): AnimationTask {
+  private phaseTask(action: HandAnimationAction, phase: HandAnimationPhase, durationMs: number, onFrame: AnimationCueFrame): AnimationTask {
     return {
       play: async (context) => {
         this.target.setPhase(action, phase);
+        if (!context.signal.aborted) onFrame(phase, 0);
         await waitForAnimationTime(durationMs, context);
+        if (!context.signal.aborted) onFrame(phase, 1);
       },
       snapToEnd: () => this.target.setPhase(action, phase),
     };

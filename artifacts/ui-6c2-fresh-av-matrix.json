@@ -1,0 +1,97 @@
+[
+  {
+    "id": "AV-01",
+    "counts": "{\n  \"presentation-8cfc34f1-a0f5-4ebe-99ea-e37cd927bb86 draw-contact → draw\": 1\n}",
+    "trace": "37388.8 正式事件：presentation-8cfc34f1-a0f5-4ebe-99ea-e37cd927bb86 tile_drawn37566.3 语义节点：presentation-8cfc34f1-a0f5-4ebe-99ea-e37cd927bb86 tile_drawn grasp@0 draw-contact → draw；允许；generation=737566.3 媒体创建：builtin:effects:draw1 /src/music/effects/draw/draw1.wav37633.6 媒体开始：builtin:effects:draw138676.5 媒体结束：builtin:effects:draw1"
+  },
+  {
+    "id": "AV-02",
+    "counts": "{\n  \"presentation-6470df09-b543-4bd5-b07d-d60295f59a1b draw-contact → draw\": 1\n}",
+    "trace": "39184.1 正式事件：presentation-6470df09-b543-4bd5-b07d-d60295f59a1b tile_drawn39343.8 语义节点：presentation-6470df09-b543-4bd5-b07d-d60295f59a1b tile_drawn grasp@0 draw-contact → draw；允许；generation=1139343.8 媒体创建：builtin:effects:draw1 /src/music/effects/draw/draw1.wav39354.3 媒体开始：builtin:effects:draw140406.5 媒体结束：builtin:effects:draw1"
+  },
+  {
+    "id": "AV-03",
+    "counts": "{\n  \"presentation-7a76b314-444e-4cc7-bd9b-03a97dedf40d draw-contact → draw\": 1,\n  \"presentation-2de09703-7bd7-4ccc-90b5-0a896a9e12bc discard-impact → discard\": 1\n}",
+    "trace": "40862.6 正式事件：presentation-7a76b314-444e-4cc7-bd9b-03a97dedf40d tile_drawn41048.0 语义节点：presentation-7a76b314-444e-4cc7-bd9b-03a97dedf40d tile_drawn grasp@0 draw-contact → draw；允许；generation=1541048.0 媒体创建：builtin:effects:draw1 /src/music/effects/draw/draw1.wav41085.5 媒体开始：builtin:effects:draw142116.5 媒体结束：builtin:effects:draw142218.0 正式事件：presentation-2de09703-7bd7-4ccc-90b5-0a896a9e12bc tile_discarded42640.0 语义节点：presentation-2de09703-7bd7-4ccc-90b5-0a896a9e12bc tile_discarded river-settle@0 discard-impact → discard；允许；generation=1542640.0 媒体创建：builtin:effects:discard1 /src/music/effects/discard/discard1.wav42666.1 媒体开始：builtin:effects:discard143716.5 媒体结束：builtin:effects:discard1"
+  },
+  {
+    "id": "AV-04",
+    "counts": "{\n  \"presentation-152682dc-c8c0-4712-a2aa-29e8a0a68989 discard-impact → discard\": 1\n}",
+    "trace": "44274.1 正式事件：presentation-152682dc-c8c0-4712-a2aa-29e8a0a68989 tile_discarded44709.1 语义节点：presentation-152682dc-c8c0-4712-a2aa-29e8a0a68989 tile_discarded river-settle@0 discard-impact → discard；允许；generation=1944709.1 媒体创建：builtin:effects:discard1 /src/music/effects/discard/discard1.wav44738.5 媒体开始：builtin:effects:discard145776.5 媒体结束：builtin:effects:discard1"
+  },
+  {
+    "id": "AV-05",
+    "counts": "{\n  \"presentation-8f0616e5-8e8c-4cda-aa6d-a54ca8c2989d discard-impact → discard\": 1\n}",
+    "trace": "46260.8 正式事件：presentation-8f0616e5-8e8c-4cda-aa6d-a54ca8c2989d tile_discarded46685.3 语义节点：presentation-8f0616e5-8e8c-4cda-aa6d-a54ca8c2989d tile_discarded river-settle@0 discard-impact → discard；允许；generation=2346685.3 媒体创建：builtin:effects:discard1 /src/music/effects/discard/discard1.wav46707.4 媒体开始：builtin:effects:discard147756.6 媒体结束：builtin:effects:discard1"
+  },
+  {
+    "id": "AV-06",
+    "counts": "{\n  \"presentation-e1e263e6-5d10-4f28-84ac-eb2ae7f526e1 discard-impact → discard\": 1\n}",
+    "trace": "48317.0 正式事件：presentation-e1e263e6-5d10-4f28-84ac-eb2ae7f526e1 tile_discarded48719.4 语义节点：presentation-e1e263e6-5d10-4f28-84ac-eb2ae7f526e1 tile_discarded river-settle@0 discard-impact → discard；允许；generation=2748719.4 媒体创建：builtin:effects:discard1 /src/music/effects/discard/discard1.wav48733.6 媒体开始：builtin:effects:discard149786.7 媒体结束：builtin:effects:discard1"
+  },
+  {
+    "id": "AV-07",
+    "counts": "{\n  \"presentation-902b3594-b27d-413a-8b24-c10f86ec1296 discard-impact → discard\": 1\n}",
+    "trace": "50181.5 正式事件：presentation-902b3594-b27d-413a-8b24-c10f86ec1296 tile_discarded50581.1 语义节点：presentation-902b3594-b27d-413a-8b24-c10f86ec1296 tile_discarded river-settle@0 discard-impact → discard；允许；generation=3150581.1 媒体创建：builtin:effects:discard1 /src/music/effects/discard/discard1.wav50595.3 媒体开始：builtin:effects:discard151646.7 媒体结束：builtin:effects:discard1"
+  },
+  {
+    "id": "AV-08",
+    "counts": "{\n  \"presentation-4893bb9a-ccc4-426d-9fb3-9a6e7fd4cace discard-impact → discard\": 1\n}",
+    "trace": "52182.0 正式事件：presentation-4893bb9a-ccc4-426d-9fb3-9a6e7fd4cace tile_discarded52582.2 语义节点：presentation-4893bb9a-ccc4-426d-9fb3-9a6e7fd4cace tile_discarded river-settle@0 discard-impact → discard；允许；generation=3552582.2 媒体创建：builtin:effects:discard1 /src/music/effects/discard/discard1.wav52597.5 媒体开始：builtin:effects:discard153646.8 媒体结束：builtin:effects:discard1"
+  },
+  {
+    "id": "AV-09",
+    "counts": "{\n  \"presentation-95781ed5-fd4a-40e5-83f9-bc8a39b6b976 meld-impact → meld\": 1\n}",
+    "trace": "54178.3 正式事件：presentation-95781ed5-fd4a-40e5-83f9-bc8a39b6b976 meld_declared54778.3 语义节点：presentation-95781ed5-fd4a-40e5-83f9-bc8a39b6b976 meld_declared release@1 meld-impact → meld；允许；generation=3954778.3 媒体创建：builtin:effects:meld1 /src/music/effects/meld/meld1.wav54803.1 媒体开始：builtin:effects:meld155856.8 媒体结束：builtin:effects:meld1"
+  },
+  {
+    "id": "AV-10",
+    "counts": "{\n  \"presentation-fc1bc218-4207-49dd-81eb-af138742faa7 meld-impact → meld\": 1\n}",
+    "trace": "56415.7 正式事件：presentation-fc1bc218-4207-49dd-81eb-af138742faa7 meld_declared57008.8 语义节点：presentation-fc1bc218-4207-49dd-81eb-af138742faa7 meld_declared release@1 meld-impact → meld；允许；generation=4357008.8 媒体创建：builtin:effects:meld1 /src/music/effects/meld/meld1.wav57026.0 媒体开始：builtin:effects:meld158076.8 媒体结束：builtin:effects:meld1"
+  },
+  {
+    "id": "AV-11",
+    "counts": "{\n  \"presentation-25da54ae-350a-45db-aef5-87089da08ffa dora-reveal → dora\": 1,\n  \"presentation-d0ce622e-d5ae-43fa-8d14-d0a1f79e6262 meld-impact → meld\": 1,\n  \"presentation-ffc25250-2608-4ff5-a5cf-8b9c62ac1889 draw-contact → draw\": 1\n}",
+    "trace": "82712.2 媒体开始：builtin:effects:dora183260.7 语义节点：presentation-d0ce622e-d5ae-43fa-8d14-d0a1f79e6262 meld_declared release@1 meld-impact → meld；允许；generation=4783260.7 媒体创建：builtin:effects:meld1 /src/music/effects/meld/meld1.wav83278.0 媒体开始：builtin:effects:meld183781.5 语义节点：presentation-ffc25250-2608-4ff5-a5cf-8b9c62ac1889 tile_drawn grasp@0 draw-contact → draw；允许；generation=4783781.5 媒体创建：builtin:effects:draw1 /src/music/effects/draw/draw1.wav83813.1 媒体结束：builtin:effects:dora183903.8 媒体开始：builtin:effects:draw184366.9 媒体结束：builtin:effects:meld184947.5 媒体结束：builtin:effects:draw1"
+  },
+  {
+    "id": "AV-12",
+    "counts": "{\n  \"presentation-9a4d276f-2567-4504-8325-452a1157cca7 discard-impact → discard\": 1,\n  \"presentation-0e47a4cd-dc76-4d20-a69e-47a51cd00989 riichi-stick-impact → riichi\": 1\n}",
+    "trace": "85679.9 正式事件：presentation-9a4d276f-2567-4504-8325-452a1157cca7 tile_discarded85682.6 正式事件：presentation-0e47a4cd-dc76-4d20-a69e-47a51cd00989 riichi_declared86156.6 语义节点：presentation-9a4d276f-2567-4504-8325-452a1157cca7 tile_discarded river-settle@0 discard-impact → discard；允许；generation=5186156.6 媒体创建：builtin:effects:discard1 /src/music/effects/discard/discard1.wav86319.5 媒体开始：builtin:effects:discard186977.8 语义节点：presentation-0e47a4cd-dc76-4d20-a69e-47a51cd00989 riichi_declared release@1 riichi-stick-impact → riichi；允许；generation=5186977.8 媒体创建：builtin:effects:riichi1 /src/music/effects/riichi/riichi1.wav86988.5 媒体开始：builtin:effects:riichi187327.4 媒体结束：builtin:effects:discard188067.3 媒体结束：builtin:effects:riichi1"
+  },
+  {
+    "id": "AV-13",
+    "counts": "{\n  \"presentation-dc3fd513-d8ba-496e-b5d6-6ade2ec24b61 dora-reveal → dora\": 1,\n  \"presentation-1e5b6286-da70-4369-bf42-3f375f78fbde meld-impact → meld\": 1,\n  \"presentation-060502cd-91eb-4f59-bd86-92771e23b758 draw-contact → draw\": 1\n}",
+    "trace": "88990.9 媒体开始：builtin:effects:dora189542.3 语义节点：presentation-1e5b6286-da70-4369-bf42-3f375f78fbde meld_declared release@1 meld-impact → meld；允许；generation=5589542.3 媒体创建：builtin:effects:meld1 /src/music/effects/meld/meld1.wav89559.2 媒体开始：builtin:effects:meld190065.2 媒体结束：builtin:effects:dora190066.8 语义节点：presentation-060502cd-91eb-4f59-bd86-92771e23b758 tile_drawn grasp@0 draw-contact → draw；允许；generation=5590066.8 媒体创建：builtin:effects:draw1 /src/music/effects/draw/draw1.wav90174.4 媒体开始：builtin:effects:draw190645.7 媒体结束：builtin:effects:meld191217.5 媒体结束：builtin:effects:draw1"
+  },
+  {
+    "id": "AV-14",
+    "counts": "{\n  \"presentation-d289a436-6de2-4447-a6c3-ab4f13c74023 discard-impact → discard\": 1,\n  \"presentation-18d35f12-3238-46b8-8ef9-5898373a59f6 win-impact → rong\": 1\n}",
+    "trace": "91806.6 正式事件：presentation-18d35f12-3238-46b8-8ef9-5898373a59f6 win_declared91806.6 正式事件：presentation-10390510-baa2-46a8-b85a-ce3f3824e954 win_scored92219.3 语义节点：presentation-d289a436-6de2-4447-a6c3-ab4f13c74023 tile_discarded river-settle@0 discard-impact → discard；允许；generation=5992219.3 媒体创建：builtin:effects:discard1 /src/music/effects/discard/discard1.wav92256.9 媒体开始：builtin:effects:discard192445.4 语义节点：presentation-18d35f12-3238-46b8-8ef9-5898373a59f6 win_declared push@0 win-impact → rong；允许；generation=5992445.4 媒体创建：builtin:effects:rong1 /src/music/effects/win/rong1.wav92482.2 媒体开始：builtin:effects:rong193317.4 媒体结束：builtin:effects:discard193557.8 媒体结束：builtin:effects:rong1"
+  },
+  {
+    "id": "AV-15",
+    "counts": "{\n  \"presentation-080e7fc9-9335-4d89-b402-c6f867601c26 win-impact → rong\": 1\n}",
+    "trace": "94702.1 正式事件：presentation-080e7fc9-9335-4d89-b402-c6f867601c26 win_declared94703.5 正式事件：presentation-dbbb2f80-63e2-424e-8ac8-0c74db7f7736 win_scored94919.8 语义节点：presentation-080e7fc9-9335-4d89-b402-c6f867601c26 win_declared push@0 win-impact → rong；允许；generation=6394919.8 媒体创建：builtin:effects:rong1 /src/music/effects/win/rong1.wav95054.8 媒体开始：builtin:effects:rong196167.1 媒体结束：builtin:effects:rong1"
+  },
+  {
+    "id": "AV-16",
+    "counts": "{\n  \"presentation-e36b0d43-3650-4c4f-92eb-95dd1da865f1 discard-impact → discard\": 1,\n  \"presentation-bfd67fac-c4cf-4d72-88f2-fc5a26049fec discard-impact → discard\": 1\n}",
+    "trace": "96602.1 正式事件：presentation-e36b0d43-3650-4c4f-92eb-95dd1da865f1 tile_discarded97118.1 语义节点：presentation-e36b0d43-3650-4c4f-92eb-95dd1da865f1 tile_discarded release@0 discard-impact → discard；允许；generation=6797118.1 媒体创建：builtin:effects:discard1 /src/music/effects/discard/discard1.wav97134.3 媒体开始：builtin:effects:discard197402.2 正式事件：presentation-bfd67fac-c4cf-4d72-88f2-fc5a26049fec tile_discarded97915.1 语义节点：presentation-bfd67fac-c4cf-4d72-88f2-fc5a26049fec tile_discarded release@0 discard-impact → discard；允许；generation=6797915.1 媒体创建：builtin:effects:discard2 /src/music/effects/discard/discard2.wav97932.7 媒体开始：builtin:effects:discard298180.1 媒体结束：builtin:effects:discard198997.7 媒体结束：builtin:effects:discard2"
+  },
+  {
+    "id": "AV-17",
+    "counts": "{\n  \"presentation-6d1f6c0c-099d-473c-881d-dade0165a42d discard-impact → discard\": 1\n}",
+    "trace": "99816.9 正式事件：presentation-6d1f6c0c-099d-473c-881d-dade0165a42d tile_discarded100326.1 语义节点：presentation-6d1f6c0c-099d-473c-881d-dade0165a42d tile_discarded release@0 discard-impact → discard；允许；generation=71100326.1 媒体创建：builtin:effects:discard1 /src/music/effects/discard/discard1.wav100337.9 媒体开始：builtin:effects:discard1101387.7 媒体结束：builtin:effects:discard1"
+  },
+  {
+    "id": "AV-18",
+    "counts": "{\n  \"presentation-12b7bb36-8da4-4e46-ab9d-137fdf601305 win-impact → rong\": 1\n}",
+    "trace": "101858.2 正式事件：presentation-12b7bb36-8da4-4e46-ab9d-137fdf601305 win_declared101858.7 语义节点：presentation-12b7bb36-8da4-4e46-ab9d-137fdf601305 win_declared winning-hand-reveal-commit@1 win-impact → rong；允许；generation=75101858.7 正式事件：presentation-7a55a359-c7b6-47fe-b652-f986bbbe85f1 win_scored101871.7 媒体创建：builtin:effects:rong1 /src/music/effects/win/rong1.wav101879.3 媒体开始：builtin:effects:rong1102928.0 媒体结束：builtin:effects:rong1"
+  },
+  {
+    "id": "AV-19",
+    "counts": "{\n  \"presentation-c77c2f70-e19d-4a7c-aeb0-6f53b965462a discard-impact → discard\": 1,\n  \"presentation-58f7cc18-505a-4719-93ef-fd7f393dd596 discard-impact → discard\": 1\n}",
+    "trace": "103919.8 媒体创建：builtin:effects:discard1 /src/music/effects/discard/discard1.wav103942.7 媒体开始：builtin:effects:discard1104195.0 正式事件：presentation-58f7cc18-505a-4719-93ef-fd7f393dd596 tile_discarded104195.7 正式事件：presentation-2409f42b-a061-47aa-bed9-ab0e7781fa09 round_settled104195.7 正式事件：presentation-1173fd24-6e61-4210-9c06-07786b5525f5 round_end_announced104713.4 语义节点：presentation-58f7cc18-505a-4719-93ef-fd7f393dd596 tile_discarded release@0 discard-impact → discard；允许；generation=79104713.4 媒体创建：builtin:effects:discard2 /src/music/effects/discard/discard2.wav104727.8 媒体开始：builtin:effects:discard2105004.7 媒体结束：builtin:effects:discard1105788.0 媒体结束：builtin:effects:discard2"
+  }
+]

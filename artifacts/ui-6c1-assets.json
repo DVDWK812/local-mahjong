@@ -1,0 +1,106 @@
+[
+  {
+    "path": "src/music/effects/default-tile.wav",
+    "size": 1004,
+    "duration": 0.06,
+    "rate": 8000,
+    "channels": 1,
+    "bits": 16
+  },
+  {
+    "path": "src/music/effects/discard/discard1.wav",
+    "size": 192078,
+    "duration": 1.0,
+    "rate": 48000,
+    "channels": 2,
+    "bits": 16
+  },
+  {
+    "path": "src/music/effects/discard/discard2.wav",
+    "size": 192078,
+    "duration": 1.0,
+    "rate": 48000,
+    "channels": 2,
+    "bits": 16
+  },
+  {
+    "path": "src/music/effects/dora/dora1.wav",
+    "size": 192078,
+    "duration": 1.0,
+    "rate": 48000,
+    "channels": 2,
+    "bits": 16
+  },
+  {
+    "path": "src/music/effects/dora/dora2.wav",
+    "size": 192078,
+    "duration": 1.0,
+    "rate": 48000,
+    "channels": 2,
+    "bits": 16
+  },
+  {
+    "path": "src/music/effects/draw/draw1.wav",
+    "size": 192078,
+    "duration": 1.0,
+    "rate": 48000,
+    "channels": 2,
+    "bits": 16
+  },
+  {
+    "path": "src/music/effects/draw/draw2.wav",
+    "size": 192078,
+    "duration": 1.0,
+    "rate": 48000,
+    "channels": 2,
+    "bits": 16
+  },
+  {
+    "path": "src/music/effects/meld/meld1.wav",
+    "size": 192078,
+    "duration": 1.0,
+    "rate": 48000,
+    "channels": 2,
+    "bits": 16
+  },
+  {
+    "path": "src/music/effects/meld/meld2.wav",
+    "size": 192078,
+    "duration": 1.0,
+    "rate": 48000,
+    "channels": 2,
+    "bits": 16
+  },
+  {
+    "path": "src/music/effects/riichi/riichi1.wav",
+    "size": 192078,
+    "duration": 1.0,
+    "rate": 48000,
+    "channels": 2,
+    "bits": 16
+  },
+  {
+    "path": "src/music/effects/riichi/riichi2.wav",
+    "size": 192078,
+    "duration": 1.0,
+    "rate": 48000,
+    "channels": 2,
+    "bits": 16
+  },
+  {
+    "path": "src/music/effects/win/rong1.wav",
+    "size": 192078,
+    "duration": 1.0,
+    "rate": 48000,
+    "channels": 2,
+    "bits": 16
+  },
+  {
+    "path": "src/music/effects/win/rong2.wav",
+    "size": 192078,
+    "duration": 1.0,
+    "rate": 48000,
+    "channels": 2,
+    "bits": 16
+  }
+]

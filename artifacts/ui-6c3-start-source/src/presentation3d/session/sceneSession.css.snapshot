@@ -1,0 +1,14 @@
+.table-presentation-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  color: rgb(235 245 238 / 82%);
+  background:
+    radial-gradient(circle at 50% 46%, rgb(255 255 255 / 8%), transparent 30%),
+    linear-gradient(135deg, #18392f, #0f261f);
+  font-size: clamp(0.9rem, 1.2vw, 1.05rem);
+  letter-spacing: 0.08em;
+  pointer-events: auto;
+}

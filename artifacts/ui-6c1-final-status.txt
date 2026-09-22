@@ -1,0 +1,234 @@
+ M .agents/skills/mahjong-bugfix/SKILL.md
+ M .agents/skills/mahjong-code-review/SKILL.md
+ M .agents/skills/mahjong-dev-task/SKILL.md
+ M .agents/skills/mahjong-ui-qa/SKILL.md
+ M AGENTS.md
+ M scripts/tableRendererUrlBanner.test.ts
+ M scripts/tableRendererUrlBanner.ts
+ M src/App.tsx
+ M src/audio/AudioManager.test.ts
+ M src/audio/AudioManager.ts
+ M src/audio/AudioPresentationConsumer.test.ts
+ M src/audio/AudioPresentationConsumer.ts
+ M src/audio/audioBackend.ts
+ M src/audio/audioRegistry.ts
+ M src/audio/musicLibrary.test.ts
+ M src/audio/musicLibrary.ts
+ M src/audio/musicLibraryStorage.ts
+ M src/audio/musicPreferences.ts
+ M src/audio/musicRegistry.test.ts
+ M src/audio/musicRegistry.ts
+ M src/audio/musicTypes.ts
+ M src/components/AppearanceSettingsDialog.test.tsx
+ M src/components/AppearanceSettingsDialog.tsx
+ M src/components/AudioSettingsDialog.test.tsx
+ M src/components/AudioSettingsDialog.tsx
+ M src/components/PlayerProfileIntegration.test.tsx
+ M src/components/ReplayScreen.test.tsx
+ M src/components/SeventeenStepsScreen.tsx
+ M src/components/TestModePerspective.test.tsx
+ M src/components/game/DoraIndicatorStack.tsx
+ M src/components/game/GameScreen.test.tsx
+ M src/components/game/GameScreen.tsx
+ M src/components/game/HandAnimationOverlay.tsx
+ M src/components/game/LocalAnimationHand.tsx
+ M src/components/game/LocalHandArea.tsx
+ M src/components/game/TableLayoutRegression.test.tsx
+ M src/components/settings/AudioSettingsPanel.tsx
+ M src/hand/HandVisualController.test.ts
+ M src/hand/HandVisualController.ts
+ D src/hand/default/hand-arrange-push.png
+ D src/hand/default/hand-carry-forward.png
+ D src/hand/default/hand-pinch-grab.png
+ D src/hand/default/hand-reach.png
+ D src/hand/default/hand-release-open.png
+ D src/hand/default/hand-retract-relaxed.png
+ D src/hand/default/hand-touch-contact.png
+ M src/hand/handAssets.ts
+ M src/main.tsx
+ M src/presentation/PresentationEventBus.ts
+ M src/presentation/animation/AnimationScheduler.ts
+ M src/presentation/appearance/TileFaceDomAppearance.tsx
+ M src/presentation/appearance/appearanceLibrary.test.ts
+ M src/presentation/appearance/appearanceSettings.test.ts
+ M src/presentation/appearance/appearanceSettings.ts
+ M src/presentation/appearance/playerSlotAppearance.test.ts
+ M src/presentation/appearance/playerSlotAppearance.ts
+ M src/presentation/gamePresentationEvents.test.ts
+ M src/presentation/gamePresentationEvents.ts
+ M src/presentation/handAnimation/HandAnimationConsumer.test.ts
+ M src/presentation/handAnimation/HandAnimationConsumer.ts
+ M src/presentation/handAnimation/HandAnimationController.ts
+ M src/presentation/winAnimation/WinPresentationController.ts
+ M src/presentation3d/AGENTS.md
+ M src/presentation3d/Table3DHud.tsx
+ M src/presentation3d/Table3DScene.test.ts
+ M src/presentation3d/Table3DScene.tsx
+ M src/presentation3d/TableRenderer.test.ts
+ M src/presentation3d/TableRenderer.tsx
+ M src/presentation3d/animation/HandAction3D.tsx
+ M src/presentation3d/animation/useTableAnimation3D.ts
+ M src/presentation3d/appearance/AppearanceResources3D.tsx
+ M src/presentation3d/appearance/TileAppearance3DContext.ts
+ M src/presentation3d/rendererMode.ts
+ M src/styles.css
+?? artifacts/17-3d-a-build.log
+?? artifacts/17-3d-a-host-fixture.html
+?? artifacts/17-3d-a-host-fixture.tsx
+?? artifacts/17-3d-a-report.md
+?? artifacts/17-3d-a-ssr-regression.log
+?? artifacts/17-3d-a-targeted.log
+?? artifacts/17-3d-a-tests.log
+?? artifacts/17-3d-a-typecheck.log
+?? artifacts/17-3d-b-build.log
+?? artifacts/17-3d-b-report.md
+?? artifacts/17-3d-b-targeted.log
+?? artifacts/17-3d-b-tests-first-run.log
+?? artifacts/17-3d-b-tests.log
+?? artifacts/17-3d-b1-baseline-hashes.json
+?? artifacts/17-3d-b1-build.log
+?? artifacts/17-3d-b1-report.md
+?? artifacts/17-3d-b1-targeted.log
+?? artifacts/17-3d-b1-tests.log
+?? artifacts/17-3d-b2-build.log
+?? artifacts/17-3d-b2-final-stat.txt
+?? artifacts/17-3d-b2-final-status.txt
+?? artifacts/17-3d-b2-report.md
+?? artifacts/17-3d-b2-start-hashes.json
+?? artifacts/17-3d-b2-start-stat.txt
+?? artifacts/17-3d-b2-start-status.txt
+?? artifacts/17-3d-b2-targeted.log
+?? artifacts/17-3d-b2-tests.log
+?? artifacts/17-3d-c-build.log
+?? artifacts/17-3d-c-end-stat.txt
+?? artifacts/17-3d-c-end-status.txt
+?? artifacts/17-3d-c-files.json
+?? artifacts/17-3d-c-full-test.log
+?? artifacts/17-3d-c-report.md
+?? artifacts/17-3d-c-start-hashes.json
+?? artifacts/17-3d-c-start-stat.txt
+?? artifacts/17-3d-c-start-status.txt
+?? artifacts/17-3d-c-targeted.log
+?? artifacts/17-3d-c1-build.log
+?? artifacts/17-3d-c1-changed-files.json
+?? artifacts/17-3d-c1-diff-check.log
+?? artifacts/17-3d-c1-final-stat.txt
+?? artifacts/17-3d-c1-final-status.txt
+?? artifacts/17-3d-c1-report.md
+?? artifacts/17-3d-c1-start-hashes.json
+?? artifacts/17-3d-c1-start-stat.txt
+?? artifacts/17-3d-c1-start-status.txt
+?? artifacts/17-3d-c1-targeted.log
+?? artifacts/17-3d-c1-tests.log
+?? artifacts/17-3d-c1-video.jpg
+?? artifacts/17-3d-c11-build.log
+?? artifacts/17-3d-c11-diff-check.log
+?? artifacts/17-3d-c11-final-stat.txt
+?? artifacts/17-3d-c11-final-status.txt
+?? artifacts/17-3d-c11-measurements.json
+?? artifacts/17-3d-c11-report.md
+?? artifacts/17-3d-c11-start-hashes.json
+?? artifacts/17-3d-c11-start-stat.txt
+?? artifacts/17-3d-c11-start-status.txt
+?? artifacts/17-3d-c11-targeted.log
+?? artifacts/17-3d-c11-tests.log
+?? artifacts/17-3d-d-build.log
+?? artifacts/17-3d-d-diff-check.log
+?? artifacts/17-3d-d-final-stat.txt
+?? artifacts/17-3d-d-final-status.txt
+?? artifacts/17-3d-d-report.md
+?? artifacts/17-3d-d-start-hashes.json
+?? artifacts/17-3d-d-start-stat.txt
+?? artifacts/17-3d-d-start-status.txt
+?? artifacts/17-3d-d-targeted.log
+?? artifacts/17-3d-d-tests-rerun.log
+?? artifacts/17-3d-d-tests.log
+?? artifacts/17-3d-d1-baseline-targeted.log
+?? artifacts/17-3d-d1-build.log
+?? artifacts/17-3d-d1-geometry.md
+?? artifacts/17-3d-d1-report.md
+?? artifacts/17-3d-d1-targeted.log
+?? artifacts/17-3d-d1-tests.log
+?? artifacts/17-step-3d-audit-build.log
+?? artifacts/17-step-3d-audit-targeted.log
+?? artifacts/17-step-3d-audit-tests.log
+?? artifacts/17-step-3d-audit.md
+?? artifacts/ui-6b2-build.log
+?? artifacts/ui-6b2-report.md
+?? artifacts/ui-6b2-test.log
+?? artifacts/ui-6c-assets.json
+?? artifacts/ui-6c-browser-calls.json
+?? artifacts/ui-6c-build-final.log
+?? artifacts/ui-6c-build.log
+?? artifacts/ui-6c-changed-files.json
+?? artifacts/ui-6c-current-status.txt
+?? artifacts/ui-6c-diff-check.log
+?? artifacts/ui-6c-final-stat.txt
+?? artifacts/ui-6c-final-status.txt
+?? artifacts/ui-6c-four-1080.png
+?? artifacts/ui-6c-full-final.log
+?? artifacts/ui-6c-full-first.log
+?? artifacts/ui-6c-full-rerun.log
+?? artifacts/ui-6c-full.log
+?? artifacts/ui-6c-legacy-calls.json
+?? artifacts/ui-6c-policy-targeted.log
+?? artifacts/ui-6c-report.md
+?? artifacts/ui-6c-seventeen-720.png
+?? artifacts/ui-6c-seventeen-final.json
+?? artifacts/ui-6c-seventeen-final.png
+?? artifacts/ui-6c-seventeen-ron.json
+?? artifacts/ui-6c-start-hashes.json
+?? artifacts/ui-6c-start-stat.txt
+?? artifacts/ui-6c-start-status.txt
+?? artifacts/ui-6c-targeted-first.log
+?? artifacts/ui-6c-targeted.log
+?? artifacts/ui-6c-typecheck-first.log
+?? artifacts/ui-6c1-1080-layout.json
+?? artifacts/ui-6c1-1080-settings.png
+?? artifacts/ui-6c1-720-scroll.png
+?? artifacts/ui-6c1-720-settings.png
+?? artifacts/ui-6c1-assets.json
+?? artifacts/ui-6c1-baseline/
+?? artifacts/ui-6c1-browser-new-assets.json
+?? artifacts/ui-6c1-build-final.log
+?? artifacts/ui-6c1-build.log
+?? artifacts/ui-6c1-changed-files.json
+?? artifacts/ui-6c1-diff-check.log
+?? artifacts/ui-6c1-final-diff-stat.txt
+?? artifacts/ui-6c1-final-status.txt
+?? artifacts/ui-6c1-full-final.log
+?? artifacts/ui-6c1-full-first.log
+?? artifacts/ui-6c1-full.log
+?? artifacts/ui-6c1-gameplay-fixtures.json
+?? artifacts/ui-6c1-harness.html
+?? artifacts/ui-6c1-harness.tsx
+?? artifacts/ui-6c1-legacy.json
+?? artifacts/ui-6c1-only.diff
+?? artifacts/ui-6c1-real-app.json
+?? artifacts/ui-6c1-report.md
+?? artifacts/ui-6c1-start-asset-hashes.json
+?? artifacts/ui-6c1-start-diff-stat.txt
+?? artifacts/ui-6c1-start-status.txt
+?? artifacts/ui-6c1-targeted-final.log
+?? artifacts/ui-6c1-targeted-first.log
+?? artifacts/ui-6c1-targeted.log
+?? src/audio/audioBackend.test.ts
+?? src/components/game/localHandPresentationReady.test.ts
+?? src/components/game/localHandPresentationReady.ts
+?? src/components/settings/HandAppearanceSettings.tsx
+?? src/dev/
+?? src/hand/hand-instruct.png
+?? src/hand/handPacks.test.ts
+?? src/hand/handPacks.ts
+?? src/hand/packs/
+?? src/music/effects/dora/
+?? src/music/effects/riichi/
+?? src/music/effects/win/
+?? src/presentation/PresentationAudioCue.test.ts
+?? src/presentation/PresentationAudioCue.ts
+?? src/presentation/useStaticWinCue.ts
+?? src/presentation3d/initialSceneReady.test.ts
+?? src/presentation3d/initialSceneReady.ts
+?? src/presentation3d/participants/
+?? src/presentation3d/session/
+?? src/presentation3d/table/TableEnvironment.tsx

@@ -187,7 +187,7 @@ function createSavedMatch(activeGame: ActiveGame, ruleConfig: FullRuleConfig): S
   };
 }
 
-export default function App() {
+export default function App({ initialSeventeenGate }: { initialSeventeenGate?: import('./game/seventeenSteps').SeventeenStepsState } = {}) {
   const testModeAvailability = currentTestModeAvailability();
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [appearanceDialogOpen, setAppearanceDialogOpen] = useState(false);
@@ -228,7 +228,7 @@ export default function App() {
     if (typeof window !== 'undefined') saveAppearanceSettings(next, window.localStorage);
   };
   const [state, setState] = useState<AppState>(() => ({
-    screen: testModeAvailability.requested ? 'test-mode' : 'main-menu',
+    screen: import.meta.env.DEV && initialSeventeenGate ? 'riichi-17-steps' : testModeAvailability.requested ? 'test-mode' : 'main-menu',
     activeGame: null,
     ruleConfig: loadInitialRuleConfig(),
     presetId: 'east-round',
@@ -377,8 +377,8 @@ export default function App() {
       undefined,
       () => isRealtimeAudioScreen(audioScreenRef.current),
     );
-    return () => consumer.dispose();
-  }, [audioManager]);
+    return () => { consumer.dispose(); audioManager.stopSfx(); };
+  }, [audioManager, state.screen]);
 
   useEffect(() => {
     const sync = () => setPlayback(audioManager.getPlaybackSnapshot());
@@ -568,7 +568,8 @@ export default function App() {
 
   function handleRemoveMusicTrack(category: MusicCategory, trackId: MusicTrackId) {
     if (previewTrackId === trackId) {
-      audioManager.stopTemporary();
+      if (category === 'effects') audioManager.stopSfxPreview();
+      else audioManager.stopTemporary();
       setPreviewTrackId(null);
     }
     void musicLibrary.removeTrack(trackId).then(() => {
@@ -610,12 +611,16 @@ export default function App() {
   }
 
   function handlePreviewMusic(track: MusicTrackDefinition) {
-    audioManager.playTemporary(track);
+    audioManager.stopSfxPreview();
     setPreviewTrackId(track.id);
+    if (track.category === 'effects') audioManager.playSfxPreview(track, () => setPreviewTrackId(current => current === track.id ? null : current));
+    else audioManager.playTemporary(track);
   }
 
   function handleStopPreviewMusic() {
-    audioManager.stopTemporary();
+    const isSfx = musicLibrary.tracks('effects').some(track => track.id === previewTrackId);
+    audioManager.stopSfxPreview();
+    if (!isSfx) audioManager.stopTemporary();
     setPreviewTrackId(null);
   }
 
@@ -653,6 +658,8 @@ export default function App() {
   }
 
   function closeAudioDialog() {
+    audioManager.stopSfxPreview();
+    setPreviewTrackId(null);
     audioManager.setTemporaryReturnPolicy('restart-runtime-playlist');
     setVoicePackCreationOpen(false);
     setVoiceManagementPackId(null);
@@ -660,6 +667,7 @@ export default function App() {
   }
 
   function openVoiceManagement(packId: string) {
+    audioManager.stopSfxPreview();
     handleAudioSettingsChange({ ...audioSettings, selectedVoicePackId: packId });
     setVoiceManagementPackId(packId);
   }
@@ -711,6 +719,8 @@ export default function App() {
         onReauthorize={handleReauthorizeMusic}
         onRelink={handleRelinkMusic}
         onReorderSfxGroup={handleReorderSfxGroup}
+        onSfxSelectionChange={(group, ids) => { musicLibrary.setSfxSelection(group, ids); refreshMusicLibrary(); }}
+        onResetSfxGroup={(group) => { musicLibrary.resetSfxGroup(group); refreshMusicLibrary(); }}
         onSfxPlaybackModeChange={handleSfxPlaybackModeChange}
         onReorder={handleReorderMusic}
         onPlaybackModeChange={handlePlaybackModeChange}
@@ -721,7 +731,7 @@ export default function App() {
         onPreviousTrack={handlePreviousTrack}
         onNextTrack={handleNextTrack}
         onManageVoicePack={openVoiceManagement}
-        onCreateVoicePack={() => setVoicePackCreationOpen(true)}
+        onCreateVoicePack={() => { audioManager.stopSfxPreview(); setVoicePackCreationOpen(true); }}
         voicePlayerCount={voicePlayerCount}
         onVoicePackDeleted={handleVoicePackDeleted}
       />
@@ -1005,7 +1015,7 @@ export default function App() {
   if (state.screen === 'riichi-17-steps') {
     return (
       <>
-        <SeventeenStepsScreen matchConfig={state.seventeenStepsConfig} ruleConfig={state.ruleConfig} playerProfile={state.playerProfile} onBack={() => setScreen('riichi-17-steps-settings')} onOpenAudioSettings={openAudioSettings} />
+        <SeventeenStepsScreen initialState={import.meta.env.DEV ? initialSeventeenGate : undefined} matchConfig={state.seventeenStepsConfig} ruleConfig={state.ruleConfig} playerProfile={state.playerProfile} appearanceSettings={appearanceSettings} onBack={() => setScreen('riichi-17-steps-settings')} onOpenAudioSettings={openAudioSettings} />
         {renderAudioSettingsDialog()}
       </>
     );

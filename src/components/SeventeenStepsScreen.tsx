@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCandidateAnimation } from '../presentation3d/participants/useCandidateAnimation';
+import { traceCandidate } from '../presentation3d/participants/candidateTrace';
+import { candidateSlots, candidateRiverOwns, candidateSourceHidden, confirmedCandidateDiscard, type CandidateFrame } from '../presentation3d/participants/candidateAnimation';
+import { candidateSourceSlot } from '../presentation3d/participants/participantLayout';
+import { resolveHandPackForPlayer, usePlayerSlotAppearances, type PlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
+import { runPacedAutomaticAction } from '../presentation/pacing/automaticActionPacing';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import {
   analyzeSeventeenStepsTenpai,
   advanceSeventeenStepsMatch,
@@ -23,12 +29,22 @@ import { Tile } from './Tile';
 import { AnalysisDrawer } from './game/AnalysisDrawer';
 import { DoraIndicatorStack } from './game/DoraIndicatorStack';
 import { GameTopBar } from './game/GameTopBar';
-import { MahjongTable } from './game/MahjongTable';
+import { ParticipantTable } from '../presentation3d/participants/ParticipantTable';
+import { presentSeventeenSteps } from '../presentation3d/participants/participantPresentation';
+import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
+import { TileFaceDomAppearance, resolveTileAppearanceId } from '../presentation/appearance/TileFaceDomAppearance';
+import { waitForLocalHandPresentation } from './game/localHandPresentationReady';
 import { RulesGuideScreen } from './rulesGuide/RulesGuideScreen';
 import type { FullRuleConfig } from '../game/match/types';
 import { useGamePresentationEvents } from '../presentation/gamePresentationEvents';
+import { WinPresentationOverlay } from './game/WinPresentationOverlay';
+import { GameEventOverlay } from './game/GameEventOverlay';
+import { winnerPresentationHands } from '../presentation/winAnimation/winnerPresentationHands';
+import { presentationPacingGate } from '../presentation/pacing/PresentationPacingGate';
+import { getPresentationFeatures } from '../config/presentationFeatures';
 import { DEFAULT_PLAYER_PROFILE, type PlayerProfile } from '../profile/playerProfile';
 import { PlayerAvatar } from './PlayerAvatar';
+import { getLocalHandScreenOffset } from '../presentation3d/table/tablePresentationTuning';
 
 interface SeventeenStepsScreenProps {
   onBack: () => void;
@@ -36,10 +52,19 @@ interface SeventeenStepsScreenProps {
   ruleConfig: FullRuleConfig;
   matchConfig?: SeventeenStepsMatchConfig;
   playerProfile?: PlayerProfile;
+  appearanceSettings?: AppearanceSettings;
+  /** Development fixtures only. Production always starts with the existing constructor. */
+  initialState?: SeventeenStepsState;
+  /** DEV visual fixtures can inspect the settled table without the result overlay. */
+  qaHideResult?: boolean;
+  /** Isolated development preview; never persisted to player settings. */
+  previewAppearances?: PlayerSlotAppearances;
 }
 
-export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, matchConfig = DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG, playerProfile = DEFAULT_PLAYER_PROFILE }: SeventeenStepsScreenProps) {
-  const [state, setState] = useState<SeventeenStepsState>(() => createSeventeenStepsAIGame(createSeventeenStepsGame(matchConfig), {
+const SEVENTEEN_DISPLAY_SEATS = [{ participantId: 'seventeen:0', seat: 'bottom' }, { participantId: 'seventeen:1', seat: 'top' }] as const;
+
+export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, matchConfig = DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG, playerProfile = DEFAULT_PLAYER_PROFILE, appearanceSettings = DEFAULT_APPEARANCE_SETTINGS, initialState, previewAppearances, qaHideResult }: SeventeenStepsScreenProps) {
+  const [state, setState] = useState<SeventeenStepsState>(() => (import.meta.env.DEV && initialState) || createSeventeenStepsAIGame(createSeventeenStepsGame(matchConfig), {
     difficulty: matchConfig.aiDifficulty,
     personality: matchConfig.aiPersonality,
     seed: 0,
@@ -50,32 +75,98 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
   const isBuildPhase = state.phase === 'build';
   const isLocalTurn = state.phase === 'active' && state.currentPlayerId === 0;
   const tableState = useMemo(() => toSeventeenStepsGameState(state), [state]);
+  const presentation = useMemo(() => presentSeventeenSteps(state), [state]);
+  const doraHud = useMemo(() => <DoraIndicatorStack gameState={tableState} slots={state.doraIndicators.map((tile, index) => ({ state: 'revealed' as const, tile, index }))}
+    summary={<span>{windLabel(state.prevailingWind)}{state.handInCycle + 1}局 · 17步麻将</span>} />, [tableState, state.doraIndicators, state.prevailingWind, state.handInCycle]);
+  const faceIds = useMemo(() => [...new Set([...state.players[0].sourceTiles, ...state.doraIndicators,
+    ...(state.result?.type === 'ron' ? [...state.players[state.result.winnerId].fixedHand, state.result.winningTile]
+      : state.result?.type === 'draw' ? state.players[1].fixedHand : []),
+  ].map(tile => resolveTileAppearanceId(tile.id, tile.red)))], [state]);
+  const screenRef = useRef<HTMLElement>(null);
+  const faceSignature = JSON.stringify(faceIds.map(id => [id, appearanceSettings.tileFaces[id].face]));
+  const [readyFaceSignature, setReadyFaceSignature] = useState('');
+  const faceReady = readyFaceSignature === faceSignature;
+  const [domReadySession, setDomReadySession] = useState('');
+  const sceneSession = `seventeen-${state.completedHands}`;
+  const [animationReady, setAnimationReady] = useState(false);
+  const animation = useCandidateAnimation(sceneSession, animationReady);
+  const savedAppearances = usePlayerSlotAppearances();
+  const appearances = (import.meta.env.DEV && previewAppearances) || savedAppearances;
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const submitDiscard = useCallback((playerId: 0 | 1, instanceId: string) => {
+    traceCandidate(playerId === 0 ? 'click' : 'automatic discard', { playerId });
+    if (animation.isBusy()) return;
+    const before = stateRef.current;
+    const container = screenRef.current?.querySelector<HTMLElement>('.seventeen-steps-candidate-grid');
+    const source = playerId === 0 && container ? candidateSourceSlot(container, instanceId) : null;
+    const slot = source ? candidateSlots(before.players[0].discardCandidates)[source.index] : null;
+    const next = discardCandidate(before, playerId, instanceId);
+    const tile = confirmedCandidateDiscard(before, next, playerId, instanceId);
+    if (!tile) return;
+    traceCandidate('confirmed discard', { playerId, riverIndex: before.players[playerId].discardedTiles.length });
+    // Capture before React can delete/reflow the source; only confirmed authority changes animate.
+    if (playerId === 1 || (source && slot)) animation.capture({
+      session: sceneSession, playerId, tile: { ...tile }, riverIndex: before.players[playerId].discardedTiles.length,
+      river: next.players[playerId].discardedTiles.map(tile => ({ ...tile })),
+      candidateCount: before.players[playerId].discardCandidates.length,
+      candidates: playerId === 0 ? before.players[0].discardCandidates.map(tile => ({ ...tile })) : [],
+      source: source && slot ? { instanceId, row: slot.row, column: slot.column, rect: { left: source.rect.left, top: source.rect.top, width: source.rect.width, height: source.rect.height } } : undefined,
+      pack: resolveHandPackForPlayer(playerId, appearances, appearanceSettings),
+    });
+    stateRef.current = next;
+    setState(next);
+  }, [animation.capture, animation.isBusy, sceneSession, appearances, appearanceSettings]);
+  const handleFacesReady = useCallback(() => setReadyFaceSignature(faceSignature), [faceSignature]);
+  useEffect(() => {
+    if (isBuildPhase || !faceReady) return;
+    const abort = new AbortController();
+    void waitForLocalHandPresentation(() => Array.from(screenRef.current?.querySelectorAll('img') ?? []), undefined, abort.signal)
+      .then(ready => { if (ready) setDomReadySession(sceneSession); });
+    return () => abort.abort();
+  }, [isBuildPhase, faceReady, sceneSession]);
   const opponentDrawAnalysis = state.phase === 'round-ended' && state.result?.type === 'draw'
     ? analyzeSeventeenStepsTenpai(state, 1)
     : undefined;
+  const [settledResult, setSettledResult] = useState(state.result);
+  const resultActivity = useRef({ result: state.result, version: presentationPacingGate.version });
+  if (resultActivity.current.result !== state.result) resultActivity.current = { result: state.result, version: presentationPacingGate.version };
+  const presentationEnabled = getPresentationFeatures().presentationEvents;
+  const resultPending = Boolean(presentationEnabled && state.result && state.result !== settledResult);
+  const finishResultPresentation = useCallback(() => setSettledResult(state.result), [state.result]);
+  const winnerHands = useMemo(() => winnerPresentationHands(tableState, id => id === 0 ? 'bottom' : 'top'), [tableState]);
+  useEffect(() => {
+    if (!resultPending) return;
+    let live = true;
+    void presentationPacingGate.waitUntilActivityClearAfter(resultActivity.current.version, { timeoutMs: 15_000 }).then(() => {
+      if (live) finishResultPresentation();
+    });
+    return () => { live = false; };
+  }, [resultPending, finishResultPresentation]);
   useGamePresentationEvents(tableState);
 
+  const qaAnimationReady = !(import.meta.env.DEV && initialState) || animationReady;
   useEffect(() => {
-    if (state.phase === 'active' && state.currentPlayerId === 1) {
-      const timer = window.setTimeout(() => {
-        const candidate = createSeventeenStepsAI({
-          difficulty: state.matchConfig.aiDifficulty,
-          personality: state.matchConfig.aiPersonality,
-          seed: 0,
-        }).discard(state, 1);
-        if (candidate) setState((current) => discardCandidate(current, 1, candidate.instanceId));
-      }, 350);
-      return () => window.clearTimeout(timer);
-    }
-    if (state.phase === 'ron-window' && state.pendingRon?.winnerId === 1) {
-      const timer = window.setTimeout(() => setState((current) => declareSeventeenStepsRon(current, 1)), 350);
-      return () => window.clearTimeout(timer);
-    }
-    return undefined;
-  }, [state]);
+    if (!((state.phase === 'active' && state.currentPlayerId === 1) || (state.phase === 'ron-window' && state.pendingRon?.winnerId === 1))) return;
+    if (!qaAnimationReady) return;
+    let cancelled = false;
+    // Product thinking delay is independent from the presentation completion barrier.
+    const timer = window.setTimeout(() => {
+      void runPacedAutomaticAction(() => {
+        if (stateRef.current !== state) return;
+        if (state.phase === 'ron-window') setState(current => declareSeventeenStepsRon(current, 1));
+        else {
+          const candidate = createSeventeenStepsAI({ difficulty: state.matchConfig.aiDifficulty, personality: state.matchConfig.aiPersonality, seed: 0 }).discard(state, 1);
+          if (candidate) submitDiscard(1, candidate.instanceId);
+        }
+      }, { isCancelled: () => cancelled });
+    }, 350);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [state, submitDiscard, qaAnimationReady]);
 
   return (
-    <main className={`game-screen seventeen-steps-game ${isBuildPhase ? 'seventeen-steps-game--build' : ''}`} data-testid="game-screen">
+    <TileFaceDomAppearance settings={appearanceSettings} appearanceIds={faceIds} onReady={handleFacesReady}>
+    <main ref={screenRef} className={`game-screen ${isBuildPhase ? 'seventeen-steps-game seventeen-steps-game--build' : 'seventeen-steps-battle'}`} data-testid="game-screen" data-qa-river-counts={import.meta.env.DEV && initialState ? state.players.map(player => player.discardedTiles.length).join(',') : undefined} data-qa-animation-ready={import.meta.env.DEV && initialState ? animationReady : undefined}>
       <GameTopBar
         gameState={tableState}
         analysisOpen={analysisOpen}
@@ -84,7 +175,7 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
         onOpenRulesGuide={() => setRulesOpen(true)}
         onOpenAudioSettings={onOpenAudioSettings ?? (() => undefined)}
         onToggleAnalysis={() => setAnalysisOpen((open) => !open)}
-        onReturnMenu={onBack}
+        onReturnMenu={() => { animation.cancel(); onBack(); }}
       />
       {isBuildPhase ? (
         <SeventeenStepsBuildSummary
@@ -95,25 +186,12 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
           onHoveredTileTypeChange={setHoveredTileType}
         />
       ) : null}
-      {!isBuildPhase ? <div className="seventeen-steps-board-area">
-        <PlayerProfileBadge profile={playerProfile} className="seventeen-steps-table-profile" />
-        <MahjongTable
-          gameState={tableState}
-          activeSeats={['north', 'south']}
-          bottomPlayerId={0}
-          seatMapping={{ bottomPlayerId: 0, topPlayerId: 1, rightPlayerId: 2, leftPlayerId: 3 }}
-          centerRemainingLabel={null}
-          centerRoundLabel={`${windLabel(state.prevailingWind)}场 第${state.handInCycle + 1}局`}
-          riverColumns={8}
-          centerCornerLabels={{
-            topLeft: `对家 ${state.players[1].discardCount} / 17`,
-            bottomRight: `自己 ${state.players[0].discardCount} / 17`,
-          }}
-          hoveredTileType={hoveredTileType}
-          doraGlowEnabled={matchConfig.displayOptions.doraGlowEnabled}
-          sameTileHoverEnabled={matchConfig.displayOptions.sameTileHoverEnabled}
-          onHoveredTileTypeChange={setHoveredTileType}
-        />
+      {!isBuildPhase ? <>
+        <ParticipantTable participants={presentation.participants} preset="duel"
+          mapping={SEVENTEEN_DISPLAY_SEATS}
+          sessionKey={sceneSession} localReady={domReadySession === sceneSession} settings={appearanceSettings} profile={playerProfile}
+          label={`${windLabel(state.prevailingWind)}${state.handInCycle + 1}局`} currentParticipantId={presentation.currentParticipantId}
+          dora={doraHud} appearanceSlots={appearances} candidateFrame={animation.frame} onAnimationReady={setAnimationReady} onCandidatePrepared={animation.prepared} />
         {!isBuildPhase ? (
           <FixedHandPanel
             state={state}
@@ -122,7 +200,7 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
             onHoveredTileTypeChange={setHoveredTileType}
           />
         ) : null}
-      </div> : null}
+      </> : null}
       <section className="seventeen-steps-action-area" aria-label="17步麻将操作区">
         {isBuildPhase ? (
           <BuildPanel
@@ -135,19 +213,20 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
             onConfirm={() => setState((current) => confirmBuild(current, 0))}
           />
         ) : (
-          <>
+          <SeventeenBattleControls>
             <DiscardPanel
               state={state}
               gameState={tableState}
-              canDiscard={isLocalTurn}
+              canDiscard={isLocalTurn && !animation.frame}
+              candidateFrame={animation.frame}
               hoveredTileType={hoveredTileType}
               onHoveredTileTypeChange={setHoveredTileType}
-              onDiscard={(instanceId) => setState((current) => discardCandidate(current, 0, instanceId))}
+              onDiscard={(instanceId) => submitDiscard(0, instanceId)}
             />
-          </>
+          </SeventeenBattleControls>
         )}
       </section>
-      {state.phase === 'ron-window' && state.pendingRon?.winnerId === 0 ? (
+      {!animation.frame && state.phase === 'ron-window' && state.pendingRon?.winnerId === 0 ? (
         <div className="game-prompt-layer">
           <ActionPrompt title={`可以荣和 ${tileLabel(state.pendingRon.tile)}`} ariaLabel="17步麻将荣和操作">
             <OperationButton kind="win" onClick={() => setState((current) => declareSeventeenStepsRon(current, 0))}>荣和</OperationButton>
@@ -155,7 +234,9 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
           </ActionPrompt>
         </div>
       ) : null}
-      {state.phase === 'round-ended' && state.result ? (
+      <WinPresentationOverlay winnerHands={winnerHands} sessionKey={sceneSession} appearanceSettings={appearanceSettings} doraIndicators={tableState.doraIndicators} doraGlowEnabled={matchConfig.displayOptions.doraGlowEnabled} bottomPlayerId={0} enabled={presentationEnabled} onRoundEndSettled={finishResultPresentation} />
+      <GameEventOverlay bottomPlayerId={0} enabled={presentationEnabled} seatForPlayer={id => id === 0 ? 'bottom' : 'top'} onRoundEndSettled={finishResultPresentation} />
+      {!(import.meta.env.DEV && qaHideResult) && !resultPending && !animation.frame && state.phase === 'round-ended' && state.result ? (
         <ResultDialog
           gameState={tableState}
           onReset={() => setState((current) => createSeventeenStepsAIGame(advanceSeventeenStepsMatch(current), {
@@ -181,8 +262,9 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
         seed: 0,
       }))} onBack={onBack} /> : null}
       {rulesOpen ? <RulesGuideScreen embedded ruleConfig={ruleConfig} onBack={() => setRulesOpen(false)} /> : null}
-      <AnalysisDrawer open={analysisOpen} gameState={tableState} onClose={() => setAnalysisOpen(false)} />
+      {analysisOpen ? <AnalysisDrawer open gameState={tableState} onClose={() => setAnalysisOpen(false)} /> : null}
     </main>
+    </TileFaceDomAppearance>
   );
 }
 
@@ -282,7 +364,7 @@ function BuildTileGrid({ tiles, selected, doraIndicators, hoveredTileType, onHov
 }
 
 function SeventeenStepsAnalysisCard({ state, onConfirm }: { state: SeventeenStepsState; onConfirm?: () => void }) {
-  const waits = analyzeSeventeenStepsTenpai(state, 0);
+  const waits = useMemo(() => analyzeSeventeenStepsTenpai(state, 0), [state]);
   const player = state.players[0];
   return (
     <section className="seventeen-steps-analysis-card" aria-label="听牌分析">
@@ -318,34 +400,42 @@ function SeventeenStepsAnalysisCard({ state, onConfirm }: { state: SeventeenStep
   );
 }
 
-function FixedHandPanel({ state, gameState, hoveredTileType, onHoveredTileTypeChange }: { state: SeventeenStepsState; gameState: GameState; hoveredTileType: TileId | null; onHoveredTileTypeChange: (tileType: TileId | null) => void }) {
+const FixedHandPanel = memo(function FixedHandPanel({ state, gameState, hoveredTileType, onHoveredTileTypeChange }: { state: SeventeenStepsState; gameState: GameState; hoveredTileType: TileId | null; onHoveredTileTypeChange: (tileType: TileId | null) => void }) {
   const player = state.players[0];
   return (
-    <aside className="seventeen-steps-fixed" aria-label="固定手牌与听牌信息">
-      <div className="seventeen-steps-section-title"><h2>固定手牌</h2><strong>{player.fixedHand.length} 张</strong></div>
-      <TileGrid
-        tiles={player.fixedHand}
-        className="seventeen-steps-fixed-grid"
-        doraIndicators={gameState.doraIndicators}
-        hoveredTileType={hoveredTileType}
-        onHoveredTileTypeChange={onHoveredTileTypeChange}
-      />
-      <SeventeenStepsAnalysisCard state={state} />
-      {player.permanentFuriten ? <p className="seventeen-steps-furiten">永久振听：本局不能再荣和。</p> : null}
-    </aside>
+    <section className="seventeen-fixed-hand" aria-label="固定手牌">
+      <header className="seventeen-fixed-heading"><h2>固定手牌</h2><span>{player.fixedHand.length} 张 · 仅展示</span></header>
+      <div className="seventeen-fixed-grid">
+        {player.fixedHand.map(tile => <Tile key={tile.instanceId} tile={tile} disabled interactive doraIndicators={gameState.doraIndicators}
+          doraGlowEnabled={state.matchConfig.displayOptions.doraGlowEnabled} doraSweepEnabled hoveredTileType={hoveredTileType}
+          sameTileHoverEnabled={state.matchConfig.displayOptions.sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />)}
+      </div>
+      <details className="seventeen-fixed-analysis" open><summary>听牌分析</summary><div className="seventeen-analysis-scroll"><SeventeenStepsAnalysisCard state={state} />
+        {player.permanentFuriten ? <p>永久振听：本局不能再荣和。</p> : null}</div></details>
+    </section>
   );
+});
+
+function SeventeenBattleControls({ children }: { children: ReactNode }) {
+  const offset = getLocalHandScreenOffset();
+  return <div className="seventeen-battle-controls" style={{ '--local-hand-tuning-x': `${offset.x}px`, '--local-hand-tuning-y': `${offset.y}px` } as CSSProperties}>
+    {children}
+  </div>;
 }
 
-function DiscardPanel({ state, gameState, canDiscard, hoveredTileType, onHoveredTileTypeChange, onDiscard }: { state: SeventeenStepsState; gameState: GameState; canDiscard: boolean; hoveredTileType: TileId | null; onHoveredTileTypeChange: (tileType: TileId | null) => void; onDiscard: (instanceId: string) => void }) {
+function DiscardPanel({ state, gameState, canDiscard, hoveredTileType, onHoveredTileTypeChange, onDiscard, candidateFrame }: { candidateFrame?: CandidateFrame | null; state: SeventeenStepsState; gameState: GameState; canDiscard: boolean; hoveredTileType: TileId | null; onHoveredTileTypeChange: (tileType: TileId | null) => void; onDiscard: (instanceId: string) => void }) {
   const player = state.players[0];
+  const shownCandidates = candidateFrame?.snapshot.playerId === 0 && !candidateRiverOwns(candidateFrame) ? [...candidateFrame.snapshot.candidates] : player.discardCandidates;
   return (
     <section className="seventeen-steps-candidates" aria-label="弃牌候选池">
       <div className="seventeen-steps-section-title">
         <h2>弃牌候选</h2>
-        <strong>{player.discardCandidates.length} 张 · 剩 {Math.max(0, 17 - player.discardCount)} 步</strong>
+        <strong>{shownCandidates.length} 张 · 剩 {Math.max(0, 17 - player.discardCount)} 步</strong>
       </div>
       <TileGrid
-        tiles={player.discardCandidates}
+        tiles={shownCandidates}
+        candidateFrame={candidateFrame}
+        bottomFirst
         className={`seventeen-steps-candidate-grid ${canDiscard ? '' : 'seventeen-steps-candidate-grid--waiting'}`}
         disabled={!canDiscard}
         onClick={onDiscard}
@@ -382,21 +472,18 @@ function SeventeenStepsMatchResult({ state, playerProfile, onNewMatch, onBack }:
   );
 }
 
-function PlayerProfileBadge({ profile, className = '' }: { profile: PlayerProfile; className?: string }) {
-  return (
-    <div className={`player-profile-badge ${className}`.trim()} aria-label={`本地玩家：${profile.nickname}`}>
-      <PlayerAvatar avatarId={profile.avatarId} />
-      <span>本地玩家</span>
-      <strong title={profile.nickname}>{profile.nickname}</strong>
-    </div>
-  );
-}
-
-function TileGrid({ tiles, selectedIds, disabled = false, onClick, className = '', firstTileSideways = false, doraIndicators = [], hoveredTileType = null, onHoveredTileTypeChange }: { tiles: TileModel[]; selectedIds?: Set<string>; disabled?: boolean; onClick?: (instanceId: string) => void; className?: string; firstTileSideways?: boolean; doraIndicators?: TileModel[]; hoveredTileType?: TileId | null; onHoveredTileTypeChange?: (tileType: TileId | null) => void }) {
+function TileGrid({ tiles, candidateFrame, bottomFirst = false, selectedIds, disabled = false, onClick, className = '', firstTileSideways = false, doraIndicators = [], hoveredTileType = null, onHoveredTileTypeChange }: { tiles: TileModel[]; candidateFrame?: CandidateFrame | null; bottomFirst?: boolean; selectedIds?: Set<string>; disabled?: boolean; onClick?: (instanceId: string) => void; className?: string; firstTileSideways?: boolean; doraIndicators?: TileModel[]; hoveredTileType?: TileId | null; onHoveredTileTypeChange?: (tileType: TileId | null) => void }) {
+  const slots = bottomFirst ? candidateSlots(tiles) : null;
   return (
     <div className={`seventeen-steps-tile-grid ${className}`}>
       {tiles.map((tile, index) => (
-        <Tile key={tile.instanceId} tile={tile} compact sideways={firstTileSideways && index === 0} selected={selectedIds?.has(tile.instanceId)} disabled={disabled} interactive={Boolean(onClick) && !disabled} doraIndicators={doraIndicators} doraGlowEnabled hoveredTileType={hoveredTileType} sameTileHoverEnabled onHoveredTileTypeChange={onHoveredTileTypeChange} onClick={onClick ? () => onClick(tile.instanceId) : undefined} />
+        <span key={tile.instanceId} data-candidate-instance={onClick ? tile.instanceId : undefined}
+          data-candidate-row={slots?.[index].row}
+          data-candidate-column={slots?.[index].column}
+          style={slots ? { gridRow: slots[index].row, gridColumn: slots[index].column,
+            visibility: candidateFrame?.snapshot.playerId === 0 && candidateFrame.snapshot.tile.instanceId === tile.instanceId && candidateSourceHidden(candidateFrame) ? 'hidden' : undefined } : undefined}>
+          <Tile tile={tile} compact sideways={firstTileSideways && index === 0} selected={selectedIds?.has(tile.instanceId)} disabled={disabled} interactive={Boolean(onClick) && !disabled} doraIndicators={doraIndicators} doraGlowEnabled hoveredTileType={hoveredTileType} sameTileHoverEnabled onHoveredTileTypeChange={onHoveredTileTypeChange} onClick={onClick ? () => onClick(tile.instanceId) : undefined} />
+        </span>
       ))}
     </div>
   );

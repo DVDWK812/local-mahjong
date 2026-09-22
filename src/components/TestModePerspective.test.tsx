@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { PlayerId } from '../game/types';
 import { getBuiltInTestScenario } from '../game/testMode/builtInScenarios';
 import { loadTestScenarioState } from '../game/testMode/scenario';
@@ -62,3 +62,10 @@ function sliceBetween(value: string, start: string, end: string): string {
   expect(endIndex).toBeGreaterThan(startIndex);
   return value.slice(startIndex, endIndex);
 }
+
+// These SSR assertions inspect the Legacy DOM table; select it explicitly instead
+// of depending on a 3D lazy-loading fallback to render a different renderer.
+vi.mock('../presentation3d/rendererMode', async importOriginal => {
+  const original = await importOriginal<typeof import('../presentation3d/rendererMode')>();
+  return { ...original, resolveTableRenderer: () => '2d' as const };
+});

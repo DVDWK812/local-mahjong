@@ -70,7 +70,7 @@ export function HandAnimationOverlay({ bottomPlayerId, discardSourceSnapshots, e
     controllerRef.current = controller;
 
     const reducedMotion = typeof window === 'undefined' ? null : window.matchMedia('(prefers-reduced-motion: reduce)');
-    const applyMotionPreference = () => controller.setSkip(reducedMotion?.matches ?? false);
+    const applyMotionPreference = () => controller.setReducedMotion(reducedMotion?.matches ?? false);
     applyMotionPreference();
     reducedMotion?.addEventListener('change', applyMotionPreference);
 

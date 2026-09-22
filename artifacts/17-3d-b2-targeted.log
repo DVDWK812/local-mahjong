@@ -1,0 +1,12 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation3d/participants/participantPresentation.test.tsx (7 tests) 35ms
+ ✓ src/presentation3d/participants/participantBaseline.test.tsx (4 tests) 131ms
+ ✓ src/components/SeventeenStepsScreen.test.tsx (4 tests) 298ms
+
+ Test Files  3 passed (3)
+      Tests  15 passed (15)
+   Start at  16:45:51
+   Duration  1.91s (transform 703ms, setup 0ms, collect 3.22s, tests 464ms, environment 0ms, prepare 277ms)
+

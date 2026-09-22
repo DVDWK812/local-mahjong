@@ -1,8 +1,7 @@
-import { useFrame, useThree } from '@react-three/fiber';
+import { useThree } from '@react-three/fiber';
 import { useLayoutEffect, useRef } from 'react';
 import type { Group } from 'three';
 import {
-  HAND_ANIMATION_PHASES,
   type HandAnimationPhase,
 } from '../../presentation/handAnimation/HandAnimationController';
 import { Tile3D } from '../tile/Tile3D';
@@ -10,11 +9,11 @@ import { useTileAppearance3D } from '../appearance/TileAppearance3DContext';
 import { RiichiStick3D } from '../riichi/RiichiStick3D';
 import type { RiichiStick3DAppearance } from '../riichi/riichiStickAppearance';
 import { HandVisualController } from '../../hand/HandVisualController';
+import { DEFAULT_HAND_PACK, type HandPack } from '../../hand/handPacks';
 import { projectHandContact } from '../../hand/handProjection';
 import { resolveHandSnapshotLayout } from '../hand/handSnapshotLayout';
 import type { HandPresentationFrame } from '../../presentation/handAnimation/HandPresentationSnapshot';
 import { resolveSnapshotDiscardMotion } from './discardHandLifecycle';
-import { DemandFrameInvalidator } from './DemandFrameInvalidator';
 import {
   resolveTableAnimation3DMotion,
   resolveTransientTile3DMotion,
@@ -25,27 +24,25 @@ export type ActiveTableAnimation3D = Readonly<{
   handPresentation?: HandPresentationFrame;
   plan: TableAnimation3DPlan;
   phase: HandAnimationPhase;
+  progress?: number;
 }>;
 
-const PHASE_DURATION = Object.fromEntries(
-  HAND_ANIMATION_PHASES.map(({ phase, durationMs }) => [phase, durationMs]),
-) as Record<HandAnimationPhase, number>;
-
-export function HandAction3D({ active, riichiStickAppearance }: Readonly<{
+export function HandAction3D({ active, riichiStickAppearance, handPack = DEFAULT_HAND_PACK }: Readonly<{
   active: ActiveTableAnimation3D;
   riichiStickAppearance?: RiichiStick3DAppearance;
+  handPack?: HandPack;
 }>) {
-  if (active.handPresentation) return <SnapshotDiscardProxy3D active={active} />;
-  return <LegacyHandAction3D active={active} riichiStickAppearance={riichiStickAppearance} />;
+  if (active.handPresentation) return <SnapshotDiscardProxy3D active={active} handPack={handPack} />;
+  return <LegacyHandAction3D active={active} riichiStickAppearance={riichiStickAppearance} handPack={handPack} />;
 }
 
 /** Discard frames come from the shared scheduler, including the DOM consumer. */
-function SnapshotDiscardProxy3D({ active }: { active: ActiveTableAnimation3D }) {
+function SnapshotDiscardProxy3D({ active, handPack }: { active: ActiveTableAnimation3D; handPack: HandPack }) {
   const frame = active.handPresentation!;
   const motion = resolveSnapshotDiscardMotion(active.plan, frame);
   const invalidate = useThree((state) => state.invalidate);
   const { camera, gl } = useThree((state) => state);
-  const hand = useVisualHand(active);
+  const hand = useVisualHand(active, handPack);
   useLayoutEffect(() => {
     const update = () => {
       let position = motion.tilePosition;
@@ -76,45 +73,35 @@ function SnapshotDiscardProxy3D({ active }: { active: ActiveTableAnimation3D }) 
   </group>;
 }
 
-function useVisualHand(active: ActiveTableAnimation3D) {
+function useVisualHand(active: ActiveTableAnimation3D, handPack: HandPack) {
   const hand = useRef<HandVisualController | null>(null);
   const domOwned = active.plan.localDomDraw || Boolean(active.plan.localDiscardMotion);
   useLayoutEffect(() => {
     if (domOwned) return;
-    const controller = new HandVisualController(active.plan.action.eventId, active.plan.seat);
+    const controller = new HandVisualController(active.plan.action.eventId, active.plan.seat, handPack, active.plan.action.playerId);
     hand.current = controller;
     return () => { controller.dispose(); hand.current = null; };
-  }, [active.plan.action.eventId, active.plan.seat, domOwned]);
+  }, [active.plan.action.eventId, active.plan.action.playerId, active.plan.seat, domOwned, handPack]);
   return hand;
 }
 
-function LegacyHandAction3D({ active, riichiStickAppearance }: Readonly<{
+function LegacyHandAction3D({ active, riichiStickAppearance, handPack }: Readonly<{
   active: ActiveTableAnimation3D;
   riichiStickAppearance?: RiichiStick3DAppearance;
+  handPack: HandPack;
 }>) {
   const ownerAppearance = useTileAppearance3D(active.plan.action.playerId);
-  const hand = useVisualHand(active);
+  const hand = useVisualHand(active, handPack);
   const { camera, gl } = useThree((state) => state);
   const tileRef = useRef<Group>(null);
   const tilePitchRef = useRef<Group>(null);
   const transientRefs = useRef(new Map<string, Group>());
   const transientPitchRefs = useRef(new Map<string, Group>());
   const stickRef = useRef<Group>(null);
-  const phaseStartRef = useRef(performance.now());
-  const frameInvalidatorRef = useRef(new DemandFrameInvalidator());
   const invalidate = useThree((state) => state.invalidate);
 
   useLayoutEffect(() => {
-    frameInvalidatorRef.current.cancelPending();
-    phaseStartRef.current = performance.now();
-    frameInvalidatorRef.current.markInvalidated(phaseStartRef.current);
-    invalidate();
-    return () => frameInvalidatorRef.current.cancelPending();
-  }, [active.phase, active.plan.action.eventId, invalidate]);
-
-  useFrame(() => {
-    const duration = PHASE_DURATION[active.phase];
-    const progress = duration <= 0 ? 1 : Math.min(1, (performance.now() - phaseStartRef.current) / duration);
+    const progress = active.progress ?? 0;
     const motion = resolveTableAnimation3DMotion(active.plan, active.phase, progress);
     hand.current?.update(projectHandContact(motion.tilePosition, camera, gl.domElement.getBoundingClientRect()),
       active.phase, progress);
@@ -142,10 +129,10 @@ function LegacyHandAction3D({ active, riichiStickAppearance }: Readonly<{
       stickRef.current.rotation.set(0, motion.tileRotationY, 0);
       stickRef.current.visible = active.phase !== 'approach' && active.phase !== 'retreat';
     }
-    if (progress < 1) frameInvalidatorRef.current.request(invalidate);
-  });
+    invalidate();
+  }, [active, camera, gl, hand, invalidate]);
 
-  const initial = resolveTableAnimation3DMotion(active.plan, active.phase, 0);
+  const initial = resolveTableAnimation3DMotion(active.plan, active.phase, active.progress ?? 0);
   return (
     <group
       name="table-animation-3d"
@@ -174,7 +161,7 @@ function LegacyHandAction3D({ active, riichiStickAppearance }: Readonly<{
         </group>
       ) : null}
       {active.plan.transientTiles?.map((tile) => {
-        const motion = resolveTransientTile3DMotion(tile, active.phase, 0);
+        const motion = resolveTransientTile3DMotion(tile, active.phase, active.progress ?? 0);
         return (
           <group
             key={tile.key}

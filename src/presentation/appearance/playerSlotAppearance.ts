@@ -1,16 +1,23 @@
 import { useSyncExternalStore } from 'react';
 import { normalizeAssetRef, normalizeAppearanceColor, type AppearanceAssetRef, type AppearanceSettings } from './appearanceSettings';
+import { getHandPack, isHandPackId, type HandPack, type HandPackId } from '../../hand/handPacks';
 
 export const PLAYER_APPEARANCE_SLOTS = [0, 1, 2, 3] as const;
 export type AppearancePlayerSlot = typeof PLAYER_APPEARANCE_SLOTS[number];
 export type InheritableAsset = 'inherit' | AppearanceAssetRef;
+export type InheritableHandPack = 'inherit' | HandPackId;
 export type PlayerSlotAppearance = Readonly<{
   tileBack: Readonly<{ texture: InheritableAsset; sideColor: string }>;
   riichiStick: InheritableAsset;
+  handAppearance: InheritableHandPack;
 }>;
 export type PlayerSlotAppearances = Readonly<Record<AppearancePlayerSlot, PlayerSlotAppearance>>;
 export const PLAYER_SLOT_APPEARANCE_KEY = 'local-mahjong.player-slot-appearance.v1';
-const defaultSlot: PlayerSlotAppearance = Object.freeze({ tileBack: Object.freeze({ texture: 'inherit', sideColor: 'inherit' }), riichiStick: 'inherit' });
+const defaultSlot: PlayerSlotAppearance = Object.freeze({
+  tileBack: Object.freeze({ texture: 'inherit', sideColor: 'inherit' }),
+  riichiStick: 'inherit',
+  handAppearance: 'inherit',
+});
 export const DEFAULT_PLAYER_SLOT_APPEARANCES: PlayerSlotAppearances = Object.freeze({ 0: defaultSlot, 1: defaultSlot, 2: defaultSlot, 3: defaultSlot });
 type StoragePort = Pick<Storage, 'getItem' | 'setItem'>;
 function browserStorage(): StoragePort | undefined {
@@ -19,12 +26,16 @@ function browserStorage(): StoragePort | undefined {
 const asset = (value: unknown): InheritableAsset => normalizeAssetRef(value) ?? 'inherit';
 function normalizeSlot(value: unknown): PlayerSlotAppearance {
   const data = value as Partial<PlayerSlotAppearance> | null;
-  return { tileBack: { texture: asset(data?.tileBack?.texture), sideColor: normalizeAppearanceColor(data?.tileBack?.sideColor) ?? 'inherit' }, riichiStick: asset(data?.riichiStick) };
+  return {
+    tileBack: { texture: asset(data?.tileBack?.texture), sideColor: normalizeAppearanceColor(data?.tileBack?.sideColor) ?? 'inherit' },
+    riichiStick: asset(data?.riichiStick),
+    handAppearance: data?.handAppearance === 'inherit' || isHandPackId(data?.handAppearance) ? data.handAppearance : 'inherit',
+  };
 }
 export function loadPlayerSlotAppearances(storage = browserStorage()): PlayerSlotAppearances {
   try {
     const data = JSON.parse(storage?.getItem(PLAYER_SLOT_APPEARANCE_KEY) ?? 'null');
-    if (data?.version !== 1) return DEFAULT_PLAYER_SLOT_APPEARANCES;
+    if (data?.version !== 1 && data?.version !== 2) return DEFAULT_PLAYER_SLOT_APPEARANCES;
     return Object.fromEntries(PLAYER_APPEARANCE_SLOTS.map(slot => [slot, normalizeSlot(data.players?.[slot])])) as PlayerSlotAppearances;
   } catch { return DEFAULT_PLAYER_SLOT_APPEARANCES; }
 }
@@ -38,7 +49,7 @@ export function createPlayerSlotAppearanceStore(storage = browserStorage()) {
   const listeners = new Set<() => void>();
   const publish = () => listeners.forEach(listener => listener());
   const save = (next: PlayerSlotAppearances) => {
-    storage?.setItem(PLAYER_SLOT_APPEARANCE_KEY, JSON.stringify({ version: 1, players: next }));
+    storage?.setItem(PLAYER_SLOT_APPEARANCE_KEY, JSON.stringify({ version: 2, players: next }));
     snapshot = next;
     publish();
   };
@@ -56,6 +67,7 @@ export function createPlayerSlotAppearanceStore(storage = browserStorage()) {
       save(Object.fromEntries(PLAYER_APPEARANCE_SLOTS.map(slot => [slot, {
         tileBack: { ...snapshot[slot].tileBack, texture: remove(snapshot[slot].tileBack.texture) },
         riichiStick: remove(snapshot[slot].riichiStick),
+        handAppearance: snapshot[slot].handAppearance,
       }])) as PlayerSlotAppearances);
     },
   };
@@ -73,5 +85,23 @@ export function resolvePlayerSlotAppearance(playerId: number | undefined, player
     tileBack: { texture: player.tileBack.texture === 'inherit' ? global.tileBack.texture : player.tileBack.texture,
       sideColor: player.tileBack.sideColor === 'inherit' ? global.tileBack.sideColor : player.tileBack.sideColor },
     riichiStick: player.riichiStick === 'inherit' ? global.riichiStick.asset : player.riichiStick,
+    handAppearance: player.handAppearance === 'inherit' ? global.handAppearance.packId : player.handAppearance,
   };
+}
+
+/** Event owner IDs are stable participant slots; seat/wind never participates in this lookup. */
+export function resolveHandPackForPlayer(
+  playerId: number | undefined,
+  players: PlayerSlotAppearances,
+  global: AppearanceSettings,
+): HandPack {
+  return getHandPack(resolvePlayerSlotAppearance(playerId, players, global).handAppearance);
+}
+
+export function resolveEffectiveHandPackIds(
+  playerIds: readonly number[],
+  players: PlayerSlotAppearances,
+  global: AppearanceSettings,
+): HandPackId[] {
+  return [...new Set(playerIds.map((playerId) => resolveHandPackForPlayer(playerId, players, global).id))];
 }

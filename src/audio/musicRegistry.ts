@@ -7,7 +7,7 @@ export { VOICE_PACK_REPOSITORY } from './voice/VoicePackRepository';
 export type BuiltinMusicModuleMap = Record<string, string>;
 
 const MUSIC_CATEGORY_PATTERN = /\/(bgm_main|bgm_game|bgm_richi|effects|voice_lines)\//;
-const SFX_GROUP_PATTERN = /\/music\/effects\/(draw|discard|meld)\//;
+const SFX_GROUP_PATTERN = /\/music\/effects\/(draw|discard|meld|riichi|dora|rong|win)\//;
 
 export function musicCategoryFromModulePath(path: string): MusicCategory | null {
   const match = MUSIC_CATEGORY_PATTERN.exec(path);
@@ -16,7 +16,7 @@ export function musicCategoryFromModulePath(path: string): MusicCategory | null 
 
 export function gameSfxGroupFromModulePath(path: string): GameSfxGroup | null {
   const match = SFX_GROUP_PATTERN.exec(path);
-  return (match?.[1] as GameSfxGroup | undefined) ?? null;
+  return match?.[1] === 'win' ? 'rong' : (match?.[1] as GameSfxGroup | undefined) ?? null;
 }
 
 export function fileNameFromModulePath(path: string): string {
@@ -67,6 +67,10 @@ export const GAME_SFX_TO_TRACK: Record<GameSfxId, MusicTrackId> = Object.freeze(
   chi: DEFAULT_TILE_SFX_TRACK_ID,
   pon: DEFAULT_TILE_SFX_TRACK_ID,
   kan: DEFAULT_TILE_SFX_TRACK_ID,
+  riichi: builtinTrackId('effects', 'riichi1'),
+  dora: builtinTrackId('effects', 'dora1'),
+  win: builtinTrackId('effects', 'rong1'),
+  rong: builtinTrackId('effects', 'rong1'),
 });
 
 export const GAME_SFX_GROUP_BY_ACTION: Record<GameSfxId, GameSfxGroup> = Object.freeze({
@@ -75,6 +79,10 @@ export const GAME_SFX_GROUP_BY_ACTION: Record<GameSfxId, GameSfxGroup> = Object.
   chi: 'meld',
   pon: 'meld',
   kan: 'meld',
+  riichi: 'riichi',
+  dora: 'dora',
+  win: 'rong',
+  rong: 'rong',
 });
 
-export const GAME_SFX_IDS: readonly GameSfxId[] = Object.freeze(['draw', 'discard', 'chi', 'pon', 'kan']);
+export const GAME_SFX_IDS: readonly GameSfxId[] = Object.freeze(['draw', 'discard', 'chi', 'pon', 'kan', 'riichi', 'dora', 'win', 'rong']);

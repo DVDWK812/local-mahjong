@@ -1,0 +1,93 @@
+
+> local-mahjong-trainer@0.1.0 pretest
+> npm run generate:voice-packs && npm run test:voice-pack-index
+
+
+> local-mahjong-trainer@0.1.0 generate:voice-packs
+> node scripts/generateVoicePackIndex.mjs
+
+Generated Voice Pack index: 3 valid pack(s), 0 skipped.
+
+> local-mahjong-trainer@0.1.0 test:voice-pack-index
+> node scripts/verifyVoicePackIndex.mjs
+
+Voice Pack index lifecycle test passed.
+
+> local-mahjong-trainer@0.1.0 test
+> vitest run --run src/presentation/manualGateFixes.test.ts src/presentation/PresentationAudioCue.test.ts src/presentation/PresentationEventBus.test.ts src/presentation/gamePresentationEvents.test.ts src/presentation/winAnimation src/presentation/eventOverlay src/presentation3d/animation src/presentation3d/riichi src/dev/finalGate src/components/game/DoraIndicatorStack.test.tsx src/components/game/GameScreen.test.tsx src/components/SeventeenStepsScreen.test.tsx src/presentation3d/Table3DScene.test.ts
+
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation3d/Table3DScene.test.ts (10 tests) 8ms
+ ✓ src/presentation/eventOverlay/EventOverlayController.test.ts (5 tests) 8ms
+ ✓ src/presentation/winAnimation/WinPresentationController.test.ts (5 tests) 8ms
+ ✓ src/presentation/PresentationAudioCue.test.ts (13 tests) 21ms
+ ✓ src/presentation/eventOverlay/EventOverlayConsumer.test.ts (4 tests) 4ms
+ ✓ src/presentation/PresentationEventBus.test.ts (21 tests) 43ms
+ ✓ src/presentation/gamePresentationEvents.test.ts (7 tests) 15ms
+ ✓ src/presentation3d/animation/animationRuntime.test.ts (3 tests) 5ms
+ ✓ src/presentation3d/riichi/RiichiStick3D.test.ts (5 tests) 6ms
+ ✓ src/presentation/winAnimation/WinPresentationConsumer.test.ts (2 tests) 4ms
+ ✓ src/components/game/DoraIndicatorStack.test.tsx (6 tests) 33ms
+ ✓ src/dev/finalGate/scenarios.test.ts (28 tests) 248ms
+stderr | src/presentation3d/animation/flashLifecycle.test.tsx > local discard / ron / tsumo frames keep the same scene and visible seats without loading fresh textures
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+
+ ✓ src/presentation3d/animation/flashLifecycle.test.tsx (1 test) 75ms
+ ✓ src/presentation3d/animation/DiscardSource3D.test.ts (2 tests) 3ms
+ ✓ src/presentation3d/animation/tableAnimation3D.test.ts (35 tests) 87ms
+ ✓ src/presentation3d/animation/handPresentation.test.tsx (18 tests) 100ms
+ ❯ src/presentation/manualGateFixes.test.ts (17 tests | 1 failed) 89ms
+   × 17-step official Ron feeds shared overlay, win controller and the production audio consumer once 18ms
+     → expected "spy" to be called with arguments: [ 'win' ]
+
+Received: 
+
+  1st spy call:
+
+  Array [
+-   "win",
++   "rong",
+  ]
+
+
+Number of calls: 1
+
+ ✓ src/presentation3d/riichi/RiichiSticks3D.test.ts (2 tests) 2ms
+ ✓ src/components/SeventeenStepsScreen.test.tsx (4 tests) 375ms
+ ✓ src/components/game/GameScreen.test.tsx (13 tests) 402ms
+ ✓ src/dev/finalGate/FinalGate.test.tsx (3 tests) 18ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/presentation/manualGateFixes.test.ts > 17-step official Ron feeds shared overlay, win controller and the production audio consumer once
+AssertionError: expected "spy" to be called with arguments: [ 'win' ]
+
+Received: 
+
+  1st spy call:
+
+  Array [
+-   "win",
++   "rong",
+  ]
+
+
+Number of calls: 1
+
+ ❯ src/presentation/manualGateFixes.test.ts:70:59
+     68|   expect(overlayPrepare).toHaveBeenCalledOnce();
+     69|   expect(overlayPrepare.mock.calls[0][0]).toMatchObject({ type: 'win_d…
+     70|   expect(playSfx).toHaveBeenCalledOnce(); expect(playSfx).toHaveBeenCa…
+       |                                                           ^
+     71|   expect(gate.pendingCount).toBeGreaterThan(0);
+     72|   await vi.runAllTimersAsync(); await win.whenIdle(); await overlay.wh…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed | 20 passed (21)
+      Tests  1 failed | 203 passed (204)
+   Start at  02:29:46
+   Duration  3.73s (transform 3.32s, setup 0ms, collect 16.59s, tests 1.56s, environment 3ms, prepare 2.33s)
+

@@ -21,7 +21,7 @@ export type TableAppearance3DResources = TileAppearance3DResources & { players?:
 export const TileAppearance3DContext = createContext<TableAppearance3DResources>({});
 
 /** Explicit builtin wins; a missing/failed custom decode inherits the global resource. */
-export function resolveLoadedPlayerAppearance3D(player: PlayerSlotAppearance, global: PlayerAppearance3DResources, back?: Texture, stick?: Texture): PlayerAppearance3DResources {
+export function resolveLoadedPlayerAppearance3D(player: Pick<PlayerSlotAppearance, 'tileBack' | 'riichiStick'>, global: PlayerAppearance3DResources, back?: Texture, stick?: Texture): PlayerAppearance3DResources {
   return {
     backTexture: player.tileBack.texture !== 'inherit' && player.tileBack.texture.kind === 'builtin' ? undefined : back ?? global.backTexture,
     backColor: player.tileBack.sideColor === 'inherit' ? global.backColor : player.tileBack.sideColor,

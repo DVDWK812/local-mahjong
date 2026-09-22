@@ -1,0 +1,45 @@
+.participant-table:not(.table-renderer-layer) { position: relative; width: 100%; height: 100%; min-height: 250px; overflow: hidden; border-radius: 12px; background: #0b2019; }
+.participant-table-label { position: absolute; left: 12px; top: 8px; color: #dbeadf; font-size: 12px; pointer-events: none; }
+.participant-hud { position: absolute; transform: translate(-50%, -50%); display: grid; grid-template-columns: 34px auto; gap: 3px 7px; padding: 7px; color: #edf5ef; background: #0b2019ed; border: 1px solid #698b72; border-radius: 8px; font-size: 12px; pointer-events: none; }
+.participant-hud .player-avatar { grid-row: span 2; width: 34px; height: 40px; }
+.participant-hud strong { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.participant-fallback { padding: 18px; color: #edf5ef; overflow: auto; height: 100%; }
+.participant-fallback > div > div { display: flex; flex-wrap: wrap; gap: 3px; }
+.seventeen-steps-game .seventeen-steps-candidate-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+.seventeen-steps-candidate-grid > [data-candidate-instance] { display: inline-flex; }
+.participant-preview { height: 100dvh; display: grid; grid-template-rows: auto minmax(0, 1fr); padding: 10px; gap: 8px; background: #10251f; color: white; }
+.participant-preview header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.participant-preview h1 { font-size: 18px; margin: 0; }
+.seventeen-steps-battle > .table-renderer-layer { grid-row: 2; }
+.seventeen-steps-battle > .seventeen-steps-action-area { position: absolute; }
+/* Mode-only DOM panels: neither participates in the table's grid sizing. */
+.seventeen-fixed-hand { --fixed-tile-width: clamp(49px, 3.2vw, 61px); position: fixed; left: clamp(16px, 1.25vw, 24px); top: max(190px, 25vh); z-index: var(--z-hand); width: max-content; padding: 10px; border: 1px solid rgb(230 241 232 / 20%); border-radius: 10px; background: rgb(8 29 23 / 94%); color: #edf5ef; }
+.seventeen-fixed-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+.seventeen-fixed-heading h2 { margin: 0; font-size: 16px; }
+.seventeen-fixed-heading span { font-size: 12px; color: #bacdc2; }
+.seventeen-fixed-grid { display: grid; grid-template-columns: repeat(7, var(--fixed-tile-width)); grid-template-rows: repeat(2, calc(var(--fixed-tile-width) * 1.405)); gap: 4px 3px; }
+.seventeen-steps-battle .seventeen-fixed-grid .tile { width: var(--fixed-tile-width); height: calc(var(--fixed-tile-width) * 1.405); }
+.seventeen-fixed-analysis { margin-top: 10px; width: 100%; }
+.seventeen-fixed-analysis summary { cursor: pointer; font-size: 13px; padding: 4px 0; }
+.seventeen-fixed-analysis .seventeen-analysis-scroll { max-height: min(140px, 18vh); overflow: auto; width: 0; min-width: 100%; }
+.seventeen-fixed-analysis .seventeen-steps-analysis-card { margin: 0; padding: 8px; }
+.seventeen-fixed-analysis .seventeen-steps-analysis-item { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+.seventeen-fixed-analysis .seventeen-steps-analysis-item > span,
+.seventeen-fixed-analysis .seventeen-steps-analysis-item > strong,
+.seventeen-fixed-analysis p { white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip; height: auto; min-width: 0; }
+.seventeen-fixed-analysis .seventeen-steps-analysis-item > span:nth-child(3) { display: block; }
+.seventeen-fixed-analysis .seventeen-steps-analysis-wait { min-width: 0; flex-wrap: wrap; }
+.seventeen-fixed-analysis .seventeen-analysis-scroll { overflow-x: hidden; overflow-y: auto; }
+.seventeen-battle-controls { --candidate-tile-width: clamp(37px, 2.9vw, 46px); position: fixed; left: 50%; bottom: clamp(0.45rem, 1.2vh, 0.9rem); transform: translate(calc(-50% + var(--local-hand-tuning-x, 0px)), var(--local-hand-tuning-y, 0px)); z-index: var(--z-hand); width: max-content; color: #edf5ef; pointer-events: none; }
+.seventeen-battle-controls .seventeen-steps-candidates { margin: 0; padding: 0; gap: 4px; border: 0; background: transparent; box-shadow: none; }
+.seventeen-battle-controls .seventeen-steps-section-title { display: flex; align-items: baseline; justify-content: flex-end; gap: 12px; width: max-content; margin-left: auto; padding: 3px 8px; border-radius: 6px; background: rgb(8 29 23 / 94%); pointer-events: auto; }
+@media (max-height: 800px) {
+  .seventeen-battle-controls .seventeen-steps-section-title { position: absolute; left: calc(100% + 8px); top: 0; margin-left: 0; }
+}
+.seventeen-battle-controls .seventeen-steps-section-title h2 { margin: 0; font-size: 14px; }
+.seventeen-battle-controls .seventeen-steps-section-title strong { font-size: 12px; }
+.seventeen-battle-controls .seventeen-steps-candidate-grid { display: grid; grid-template-columns: repeat(11, var(--candidate-tile-width)); grid-template-rows: repeat(2, calc(var(--candidate-tile-width) * 1.405)); gap: 4px; padding: 2px 0; overflow: visible; pointer-events: auto; }
+.seventeen-battle-controls .seventeen-steps-candidate-grid .tile { width: var(--candidate-tile-width); height: calc(var(--candidate-tile-width) * 1.405); }
+.seventeen-battle-controls .tile--clickable:not(:disabled):hover { filter: brightness(1.08); outline: 2px solid #f2c969; outline-offset: 1px; }
+.seventeen-steps-battle > .game-prompt-layer { position: fixed; left: auto; right: clamp(16px, 1.25vw, 24px); bottom: clamp(180px, 20vh, 240px); width: 260px; transform: none; }
+.seventeen-steps-battle .action-prompt[data-operation-area="stable"] { grid-template-columns: 1fr; }

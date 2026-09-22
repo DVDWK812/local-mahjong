@@ -1,0 +1,49 @@
+ .agents/skills/mahjong-bugfix/SKILL.md             |   1 +
+ .agents/skills/mahjong-code-review/SKILL.md        |   2 +-
+ .agents/skills/mahjong-dev-task/SKILL.md           |   2 +-
+ .agents/skills/mahjong-ui-qa/SKILL.md              |  24 ++--
+ AGENTS.md                                          |   2 +-
+ scripts/tableRendererUrlBanner.test.ts             |  10 +-
+ scripts/tableRendererUrlBanner.ts                  |   8 +-
+ src/App.tsx                                        |   2 +-
+ src/components/AppearanceSettingsDialog.test.tsx   |  30 ++++-
+ src/components/AppearanceSettingsDialog.tsx        |  12 +-
+ src/components/PlayerProfileIntegration.test.tsx   |   9 +-
+ src/components/ReplayScreen.test.tsx               |   9 +-
+ src/components/SeventeenStepsScreen.tsx            | 136 +++++++++++++--------
+ src/components/TestModePerspective.test.tsx        |   9 +-
+ src/components/game/DoraIndicatorStack.tsx         |   6 +-
+ src/components/game/GameScreen.test.tsx            |   9 +-
+ src/components/game/GameScreen.tsx                 |  21 +++-
+ src/components/game/LocalAnimationHand.tsx         |  11 +-
+ src/components/game/LocalHandArea.tsx              |  25 +++-
+ src/components/game/TableLayoutRegression.test.tsx |   9 +-
+ src/hand/HandVisualController.test.ts              |  54 ++++++++
+ src/hand/HandVisualController.ts                   |  55 +++++++--
+ src/hand/default/hand-arrange-push.png             | Bin 551457 -> 0 bytes
+ src/hand/default/hand-carry-forward.png            | Bin 588748 -> 0 bytes
+ src/hand/default/hand-pinch-grab.png               | Bin 621018 -> 0 bytes
+ src/hand/default/hand-reach.png                    | Bin 632826 -> 0 bytes
+ src/hand/default/hand-release-open.png             | Bin 624887 -> 0 bytes
+ src/hand/default/hand-retract-relaxed.png          | Bin 568455 -> 0 bytes
+ src/hand/default/hand-touch-contact.png            | Bin 577670 -> 0 bytes
+ src/hand/handAssets.ts                             |  31 +----
+ src/main.tsx                                       |   7 +-
+ .../appearance/TileFaceDomAppearance.tsx           |  21 +++-
+ .../appearance/appearanceLibrary.test.ts           |   4 +-
+ .../appearance/appearanceSettings.test.ts          |  21 +++-
+ src/presentation/appearance/appearanceSettings.ts  |  22 ++--
+ .../appearance/playerSlotAppearance.test.ts        |  29 ++++-
+ .../appearance/playerSlotAppearance.ts             |  38 +++++-
+ src/presentation3d/AGENTS.md                       |   4 +-
+ src/presentation3d/Table3DHud.tsx                  |   4 +-
+ src/presentation3d/Table3DScene.test.ts            |  40 +++---
+ src/presentation3d/Table3DScene.tsx                | 135 ++++++++------------
+ src/presentation3d/TableRenderer.test.ts           |  47 ++++++-
+ src/presentation3d/TableRenderer.tsx               |  79 +++++++-----
+ src/presentation3d/animation/HandAction3D.tsx      |  23 ++--
+ .../appearance/AppearanceResources3D.tsx           | 105 +++++++++++-----
+ .../appearance/TileAppearance3DContext.ts          |   2 +-
+ src/presentation3d/rendererMode.ts                 |   5 +-
+ src/styles.css                                     |  75 ++++++++++++
+ 48 files changed, 793 insertions(+), 345 deletions(-)

@@ -1,0 +1,23 @@
+/* Above hand/tile proxies; below action prompts, drawers and results. */
+:root { --z-human-hand: calc(var(--z-hand, 20) + 3); }
+.hand-visual-sprite {
+  position: fixed;
+  width: 0;
+  height: 0;
+  z-index: var(--z-human-hand);
+  pointer-events: none;
+  isolation: isolate;
+}
+.hand-visual-sprite img {
+  position: absolute;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+  /* Add premultiplied crossfade weights without dimming overlapping skin. */
+  mix-blend-mode: plus-lighter;
+  /* Feather only the authored sleeve exit; preserve the original PNG alpha. */
+  mask-image: linear-gradient(135deg, #000 68%, transparent 88%);
+}
+.hand-visual-sprite img[data-hand-pose="arrange-push"] {
+  mask-image: linear-gradient(45deg, #000 68%, transparent 88%);
+}

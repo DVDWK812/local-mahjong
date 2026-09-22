@@ -25,6 +25,7 @@ Prove the first incorrect state or transition, fix its cause, and add regression
 - Older async results must not overwrite newer state.
 - Presentation cannot repair itself by duplicating Rules or mutating `GameState`.
 - Variant-specific behavior must remain isolated.
+- For an ordinary 3D visual bug, reproduce and verify the 3D renderer only. Enter Legacy Compatibility Mode only for renderer switch/fallback, shared renderer boundaries, an explicit Legacy bug, or a release gate; do not turn omitted 2.5D parity into a defect.
 
 Use the relevant domain QA Skill after the fix only when it adds evidence for the reported defect.
 

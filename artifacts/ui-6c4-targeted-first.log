@@ -1,0 +1,89 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation3d/Table3DScene.test.ts (10 tests) 9ms
+ ✓ artifacts/ui-6c4-start-source/src/presentation3d/Table3DScene.test.ts (10 tests) 9ms
+ ✓ src/presentation/winAnimation/WinPresentationController.test.ts (5 tests) 9ms
+ ✓ artifacts/ui-6c4-start-source/src/presentation/winAnimation/WinPresentationController.test.ts (5 tests) 8ms
+ ✓ artifacts/ui-6c4-start-source/src/presentation3d/table/tablePresentationTuning.test.ts (5 tests) 6ms
+ ✓ src/presentation3d/table/tablePresentationTuning.test.ts (5 tests) 6ms
+ ✓ src/presentation3d/table/FeltDecoration3D.test.ts (7 tests) 7ms
+ ✓ artifacts/ui-6c4-start-source/src/presentation3d/riichi/RiichiStick3D.test.ts (5 tests) 5ms
+ ✓ src/presentation3d/riichi/RiichiStick3D.test.ts (5 tests) 6ms
+ ✓ artifacts/ui-6c4-start-source/src/presentation3d/table/FeltDecoration3D.test.ts (7 tests) 7ms
+ ✓ src/presentation3d/table/feltSurfaceUv.test.ts (2 tests) 7ms
+ ✓ src/presentation3d/TableRenderer.test.ts (15 tests) 159ms
+ ✓ artifacts/ui-6c4-start-source/src/presentation3d/TableRenderer.test.ts (15 tests) 151ms
+ ✓ src/presentation/winAnimation/WinPresentationConsumer.test.ts (2 tests) 4ms
+ ✓ artifacts/ui-6c4-start-source/src/presentation/winAnimation/WinPresentationConsumer.test.ts (2 tests) 5ms
+ ✓ artifacts/ui-6c4-start-source/src/presentation/manualGateFixes.test.ts (19 tests) 88ms
+ ❯ src/presentation/manualGateFixes.test.ts (19 tests | 1 failed) 93ms
+   × multi-Ron retains sequential winner holds without the former 2.5-second pacing timeout 7ms
+     → expected [ 1, 2 ] to deeply equal [ 1 ]
+ ✓ artifacts/ui-6c4-start-source/src/presentation3d/table/feltSurfaceUv.test.ts (2 tests) 7ms
+ ❯ src/presentation/winAnimation/tsumoSlapMotion.test.ts (2 tests | 1 failed) 9ms
+   × has continuous position and velocity through the grasp/carry boundary 6ms
+     → expected -0 to be +0 // Object.is equality
+ ✓ src/presentation3d/table/CentralConsoleHudAnchor3D.test.ts (4 tests) 5ms
+ ✓ artifacts/ui-6c4-start-source/src/presentation3d/table/CentralConsoleHudAnchor3D.test.ts (4 tests) 4ms
+ ✓ src/components/game/AnalysisDrawer.test.tsx (2 tests) 40ms
+ ✓ src/presentation3d/table/centralConsoleLayout.test.ts (3 tests) 6ms
+ ✓ artifacts/ui-6c4-start-source/src/presentation3d/Table3DHud.test.tsx (2 tests) 38ms
+ ✓ src/presentation3d/Table3DHud.test.tsx (2 tests) 37ms
+ ✓ src/presentation3d/Table3DHudAvatar.test.tsx (1 test) 33ms
+ ✓ src/presentation3d/table/feltMainViewMapping.test.ts (3 tests) 3ms
+ ✓ artifacts/ui-6c4-start-source/src/components/game/AnalysisDrawer.test.tsx (2 tests) 61ms
+ ✓ artifacts/ui-6c4-start-source/src/presentation3d/Table3DHudAvatar.test.tsx (1 test) 33ms
+ ✓ artifacts/ui-6c4-start-source/src/presentation3d/table/feltMainViewMapping.test.ts (3 tests) 3ms
+ ✓ src/presentation3d/table/TableMesh.test.ts (1 test) 2ms
+ ✓ artifacts/ui-6c4-start-source/src/presentation3d/table/TableMesh.test.ts (1 test) 1ms
+ ✓ artifacts/ui-6c4-start-source/src/presentation3d/riichi/RiichiSticks3D.test.ts (2 tests) 2ms
+ ✓ src/presentation3d/riichi/RiichiSticks3D.test.ts (2 tests) 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/presentation/manualGateFixes.test.ts > multi-Ron retains sequential winner holds without the former 2.5-second pacing timeout
+AssertionError: expected [ 1, 2 ] to deeply equal [ 1 ]
+
+- Expected
++ Received
+
+  Array [
+    1,
++   2,
+  ]
+
+ ❯ src/presentation/manualGateFixes.test.ts:101:20
+     99|   bus.publish({ type: 'win_declared', playerId: 2, winType: 'ron' });
+    100|   await vi.advanceTimersByTimeAsync(3000);
+    101|   expect(prepared).toEqual([1]); expect(gate.pendingCount).toBe(2);
+       |                    ^
+    102|   await vi.advanceTimersByTimeAsync(1000);
+    103|   expect(prepared).toEqual([1, 2]); expect(gate.pendingCount).toBe(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/presentation/winAnimation/tsumoSlapMotion.test.ts > has continuous position and velocity through the grasp/carry boundary
+AssertionError: expected -0 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ -0
+
+ ❯ src/presentation/winAnimation/tsumoSlapMotion.test.ts:13:45
+     11|   expect(contact.offsetY - before.offsetY).toBeCloseTo(after.offsetY -…
+     12|   expect(contact.handPhase).toBe('carry'); expect(contact.handProgress…
+     13|   expect(resolveTsumoSlapMotion(0).offsetY).toBe(0);
+       |                                             ^
+     14|   expect(resolveTsumoSlapMotion(1).offsetY).toBe(-72);
+     15|   let previous = 0;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  2 failed | 32 passed (34)
+      Tests  2 failed | 173 passed (175)
+   Start at  21:36:36
+   Duration  7.55s (transform 3.76s, setup 0ms, collect 65.61s, tests 864ms, environment 6ms, prepare 3.96s)
+

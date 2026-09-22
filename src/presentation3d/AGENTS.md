@@ -6,7 +6,7 @@
 
 3D is the primary/default renderer. 2.5D is frozen Legacy Compatibility Mode and is bugfix-only. New presentation work targets 3D unless the task explicitly says otherwise.
 
-保留 WebGL fallback 到 2.5D。普通本目录 3D 工作只需按 `mahjong-ui-qa` 做 3D 验收与轻量 legacy smoke；仅在共享层、renderer switch / fallback 或根 `AGENTS.md` 所列边界受影响时扩大 2.5D regression。
+保留 WebGL fallback 到 2.5D。普通本目录 3D 工作只做 3D 验收，不得主动进入 `?table3d=0`；只有共享层、renderer switch / fallback、明确 Legacy bug 或 release gate 才运行 Legacy smoke 或扩大 2.5D regression。
 
 ## Authority boundary
 
@@ -82,4 +82,4 @@ UI-5F.4 已将以下源码 authority 与精确值冻结。后续任务必须修�
 - skip、cancel、session change 与 unmount 必须清理 proxy、mask、source capture、scheduler 与 pacing。
 - 复用 shared `PresentationEvent`、`AnimationScheduler` 与 `PresentationPacing`，不新增固定 AI timer。
 
-3D runtime、layout、interaction 或 animation 变更完成后，按 `mahjong-ui-qa` 做真实 Chrome / WebGL 验收；完成轻量 Legacy Compatibility smoke，只有共享层变更时才扩大 2.5D regression。
+3D runtime、layout、interaction 或 animation 变更完成后，按 `mahjong-ui-qa` 做真实 Chrome / WebGL 3D 验收。只有共享层、renderer switch / fallback、明确 Legacy bug 或 release gate 才进入 Legacy Compatibility Mode。

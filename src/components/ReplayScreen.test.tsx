@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { buildReplayState } from '../game/replay/roundReplay';
 import { advancePlaybackStep } from '../game/replay/replayPlayback';
 import type { RoundLog, TileSnapshot } from '../game/replay/types';
@@ -411,4 +411,11 @@ describe('ReplayScreen 视角边界', () => {
     const html = renderToStaticMarkup(<ReplayWallPanel replayState={state} allOpen={false} cameraPlayerId={0} />);
     expect(html).toContain('<small>公开宝牌</small>');
   });
+});
+
+// These SSR assertions inspect the Legacy DOM table; select it explicitly instead
+// of depending on a 3D lazy-loading fallback to render a different renderer.
+vi.mock('../presentation3d/rendererMode', async importOriginal => {
+  const original = await importOriginal<typeof import('../presentation3d/rendererMode')>();
+  return { ...original, resolveTableRenderer: () => '2d' as const };
 });

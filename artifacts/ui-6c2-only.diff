@@ -1,0 +1,621 @@
+--- before/src/main.tsx
++++ after/src/main.tsx
+@@ -1,6 +1,9 @@
+ import React from 'react';
+ import ReactDOM from 'react-dom/client';
+ import App from './App';
++import { finalGateRoute } from './dev/finalGate/route';
++const FinalGate = finalGateRoute(location.search, import.meta.env.DEV).enabled
++  ? React.lazy(() => import('./dev/finalGate/FinalGate')) : null;
+ import './styles/tokens.css';
+ import './styles.css';
+ 
+@@ -11,6 +14,6 @@
+ 
+ ReactDOM.createRoot(document.getElementById('root')!).render(
+   <React.StrictMode>
+-    {ParticipantPreview ? <React.Suspense fallback={<p>正在准备布局预览…</p>}><ParticipantPreview /></React.Suspense> : SeventeenPreview ? <React.Suspense fallback={<p>正在准备测试场景…</p>}><SeventeenPreview /></React.Suspense> : <App />}
++    {FinalGate ? <React.Suspense fallback={<p>正在准备最终验收…</p>}><FinalGate /></React.Suspense> : ParticipantPreview ? <React.Suspense fallback={<p>正在准备布局预览…</p>}><ParticipantPreview /></React.Suspense> : SeventeenPreview ? <React.Suspense fallback={<p>正在准备测试场景…</p>}><SeventeenPreview /></React.Suspense> : <App />}
+   </React.StrictMode>,
+ );
+--- before/src/audio/AudioPresentationConsumer.ts
++++ after/src/audio/AudioPresentationConsumer.ts
+@@ -13,6 +13,7 @@
+     private readonly audio: AudioPresentationTarget,
+     cues: PresentationAudioCues = presentationAudioCues,
+     private readonly shouldHandleEvent: () => boolean = () => true,
++    private readonly onCue?: (cue: PresentationAudioCue, sound: SfxId | undefined, allowed: boolean) => void,
+   ) {
+     this.unsubscribe = cues.connect(this.handleCue);
+   }
+@@ -22,13 +23,14 @@
+   }
+ 
+   private readonly handleCue = (cue: PresentationAudioCue) => {
+-    if (!this.shouldHandleEvent() || !getPresentationFeatures().presentationEvents) return;
++    const allowed = this.shouldHandleEvent() && getPresentationFeatures().presentationEvents;
+     const sound: SfxId | undefined = cue.kind === 'draw-contact' ? 'draw'
+       : cue.kind === 'discard-impact' ? 'discard'
+       : cue.kind === 'riichi-stick-impact' ? 'riichi'
+       : cue.kind === 'dora-reveal' ? 'dora'
+       : cue.kind === 'win-impact' ? 'rong'
+       : cue.event.type === 'meld_declared' ? cue.event.meldType : undefined;
+-    if (sound) this.audio.playSfx(sound);
++    try { this.onCue?.(cue, sound, allowed); } catch { /* Diagnostics cannot affect playback or pacing. */ }
++    if (sound && allowed) this.audio.playSfx(sound);
+   };
+ }
+--- before/src/components/SeventeenStepsScreen.tsx
++++ after/src/components/SeventeenStepsScreen.tsx
+@@ -51,13 +51,15 @@
+   appearanceSettings?: AppearanceSettings;
+   /** Development fixtures only. Production always starts with the existing constructor. */
+   initialState?: SeventeenStepsState;
++  /** DEV visual fixtures can inspect the settled table without the result overlay. */
++  qaHideResult?: boolean;
+   /** Isolated development preview; never persisted to player settings. */
+   previewAppearances?: PlayerSlotAppearances;
+ }
+ 
+ const SEVENTEEN_DISPLAY_SEATS = [{ participantId: 'seventeen:0', seat: 'bottom' }, { participantId: 'seventeen:1', seat: 'top' }] as const;
+ 
+-export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, matchConfig = DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG, playerProfile = DEFAULT_PLAYER_PROFILE, appearanceSettings = DEFAULT_APPEARANCE_SETTINGS, initialState, previewAppearances }: SeventeenStepsScreenProps) {
++export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, matchConfig = DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG, playerProfile = DEFAULT_PLAYER_PROFILE, appearanceSettings = DEFAULT_APPEARANCE_SETTINGS, initialState, previewAppearances, qaHideResult }: SeventeenStepsScreenProps) {
+   const [state, setState] = useState<SeventeenStepsState>(() => (import.meta.env.DEV && initialState) || createSeventeenStepsAIGame(createSeventeenStepsGame(matchConfig), {
+     difficulty: matchConfig.aiDifficulty,
+     personality: matchConfig.aiPersonality,
+@@ -125,8 +127,10 @@
+   useStaticWinCue(!animation.frame && state.phase === 'round-ended' && state.result?.type === 'ron', sceneSession);
+   useGamePresentationEvents(tableState);
+ 
++  const qaAnimationReady = !(import.meta.env.DEV && initialState) || animationReady;
+   useEffect(() => {
+     if (!((state.phase === 'active' && state.currentPlayerId === 1) || (state.phase === 'ron-window' && state.pendingRon?.winnerId === 1))) return;
++    if (!qaAnimationReady) return;
+     let cancelled = false;
+     // Product thinking delay is independent from the presentation completion barrier.
+     const timer = window.setTimeout(() => {
+@@ -140,11 +144,11 @@
+       }, { isCancelled: () => cancelled });
+     }, 350);
+     return () => { cancelled = true; window.clearTimeout(timer); };
+-  }, [state, submitDiscard]);
++  }, [state, submitDiscard, qaAnimationReady]);
+ 
+   return (
+     <TileFaceDomAppearance settings={appearanceSettings} appearanceIds={faceIds} onReady={handleFacesReady}>
+-    <main ref={screenRef} className={`game-screen ${isBuildPhase ? 'seventeen-steps-game seventeen-steps-game--build' : 'seventeen-steps-battle'}`} data-testid="game-screen">
++    <main ref={screenRef} className={`game-screen ${isBuildPhase ? 'seventeen-steps-game seventeen-steps-game--build' : 'seventeen-steps-battle'}`} data-testid="game-screen" data-qa-river-counts={import.meta.env.DEV && initialState ? state.players.map(player => player.discardedTiles.length).join(',') : undefined} data-qa-animation-ready={import.meta.env.DEV && initialState ? animationReady : undefined}>
+       <GameTopBar
+         gameState={tableState}
+         analysisOpen={analysisOpen}
+@@ -212,7 +216,7 @@
+           </ActionPrompt>
+         </div>
+       ) : null}
+-      {!animation.frame && state.phase === 'round-ended' && state.result ? (
++      {!(import.meta.env.DEV && qaHideResult) && !animation.frame && state.phase === 'round-ended' && state.result ? (
+         <ResultDialog
+           gameState={tableState}
+           onReset={() => setState((current) => createSeventeenStepsAIGame(advanceSeventeenStepsMatch(current), {
+--- before/src/components/TestModeScreen.tsx
++++ after/src/components/TestModeScreen.tsx
+@@ -194,6 +194,8 @@
+             );
+           })}
+         </section>
++
++        {import.meta.env.DEV ? <details><summary>UI Final Gate · 最终人工验收</summary><p>独立场景、默认静音，不写入存档或设置。</p><a href="?testMode=1&uiFinalGate=1">进入最终验收</a></details> : null}
+ 
+         <details className="test-mode-import">
+           <summary>导入或制作 TestScenario JSON</summary>
+--- before/src/components/game/WinPresentationOverlay.tsx
++++ after/src/components/game/WinPresentationOverlay.tsx
+@@ -1,3 +1,5 @@
++import { useContext } from 'react';
++import { QaMotionContext } from '../../presentation/animation/QaMotionContext';
+ import { useEffect, useRef, useState, type CSSProperties, type Dispatch, type RefObject, type SetStateAction } from 'react';
+ import { getPresentationFeatures } from '../../config/presentationFeatures';
+ import type { GameState, PlayerId, Tile as TileModel } from '../../game/types';
+@@ -49,6 +51,7 @@
+   on3DPresentationChange,
+   onRoundEndSettled,
+ }: WinPresentationOverlayProps) {
++  const qaMotion = useContext(QaMotionContext);
+   const overlayRef = useRef<HTMLDivElement>(null);
+   const gameStateRef = useRef(gameState);
+   const enabledRef = useRef(enabled);
+@@ -100,6 +103,8 @@
+     controllerRef.current?.cancelAll();
+   }, [enabled]);
+ 
++  useEffect(() => { if (qaMotion) controllerRef.current?.setSpeed(qaMotion.speed); }, [qaMotion, bottomPlayerId]);
++
+   const style = visual ? ({
+     '--win-source-x': `${visual.sourceX}px`,
+     '--win-source-y': `${visual.sourceY}px`,
+--- before/src/presentation3d/animation/useTableAnimation3D.ts
++++ after/src/presentation3d/animation/useTableAnimation3D.ts
+@@ -1,3 +1,5 @@
++import { useContext } from 'react';
++import { QaMotionContext } from '../../presentation/animation/QaMotionContext';
+ import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+ import { AnimationScheduler, animationFrameTask } from '../../presentation/animation/AnimationScheduler';
+ import { handPresentationPhases, riverOwnsDiscard, type HandPresentationFrame } from '../../presentation/handAnimation/HandPresentationSnapshot';
+@@ -60,6 +62,8 @@
+   localDiscardSnapshots?: DiscardSourceSnapshotStore;
+   onLocalHandAnimationChange?: (state: LocalHandAnimation3DState | null) => void;
+ }>): TableAnimation3DRenderState {
++  const qaMotion = useContext(QaMotionContext);
++  const qaRef = useRef(qaMotion); qaRef.current = qaMotion;
+   const sceneStateRef = useRef(sceneState);
+   const enabledRef = useRef(enabled);
+   const sessionKeyRef = useRef(sessionKey);
+@@ -106,7 +110,7 @@
+     controllerRef.current = controller;
+ 
+     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+-    const applyMotionPreference = () => controller.setReducedMotion(reducedMotion.matches);
++    const applyMotionPreference = () => controller.setReducedMotion(qaRef.current?.reduced ?? reducedMotion.matches);
+     applyMotionPreference();
+     reducedMotion.addEventListener('change', applyMotionPreference);
+ 
+@@ -125,6 +129,9 @@
+     controllerRef.current?.cancelAll();
+   }, [enabled, sessionKey, sourceStore]);
+ 
++  useEffect(() => {
++    if (qaMotion) { controllerRef.current?.setSpeed(qaMotion.speed); controllerRef.current?.setReducedMotion(qaMotion.reduced); }
++  }, [qaMotion]);
+   return renderState;
+ }
+ 
+--- before/src/presentation3d/participants/useCandidateAnimation.ts
++++ after/src/presentation3d/participants/useCandidateAnimation.ts
+@@ -1,3 +1,5 @@
++import { useContext } from 'react';
++import { QaMotionContext } from '../../presentation/animation/QaMotionContext';
+ import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+ import { HandAnimationController } from '../../presentation/handAnimation/HandAnimationController';
+ import { HandAnimationConsumer } from '../../presentation/handAnimation/HandAnimationConsumer';
+@@ -7,6 +9,8 @@
+ import { CandidateAnimationTarget, type CandidateDiscard, type CandidateFrame } from './candidateAnimation';
+ 
+ export function useCandidateAnimation(session: string, enabled: boolean, speed = 1) {
++  const qaMotion = useContext(QaMotionContext);
++  const qaRef = useRef(qaMotion); qaRef.current = qaMotion;
+   const [frame, setFrame] = useState<CandidateFrame | null>(null);
+   const target = useRef<CandidateAnimationTarget | null>(null);
+   const controller = useRef<HandAnimationController | null>(null);
+@@ -23,11 +27,13 @@
+       event => event.type === 'tile_discarded' && current.matches(event) ? { ...event, handHistory: undefined } : undefined,
+       presentationPacingGate);
+     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+-    const update = () => animation.setReducedMotion(motion.matches);
++    const update = () => animation.setReducedMotion(qaRef.current?.reduced ?? motion.matches);
+     update(); motion.addEventListener('change', update);
+     return () => { live = false; consumer.dispose(); animation.dispose(); current.clear(); motion.removeEventListener('change', update); target.current = null; controller.current = null; };
+   }, [session]);
+-  useLayoutEffect(() => { controller.current?.setSpeed(speed); }, [speed, session]);
++  useLayoutEffect(() => { controller.current?.setSpeed(qaMotion?.speed ?? speed);
++    if (qaMotion) controller.current?.setReducedMotion(qaMotion.reduced);
++  }, [speed, session, qaMotion]);
+   useLayoutEffect(() => { if (!enabled) controller.current?.cancelAll(); }, [enabled]);
+   const capture = useCallback((snapshot: CandidateDiscard) => {
+     const features = getPresentationFeatures();
+--- /dev/null
++++ src/dev/finalGate/finalGate.css
+@@ -0,0 +1,10 @@
++.final-gate-controls { position: fixed; z-index: 10000; top: 4px; left: 4px; width: min(360px, calc(100vw - 8px)); color: #f4f1df; background: #10271fee; border: 1px solid #ae9964; border-radius: 6px; font-size: 12px; }
++.final-gate-controls summary { cursor: pointer; padding: 7px; }
++.final-gate-body { padding: 8px; max-height: min(65vh, 570px); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
++.final-gate-body label { display: block; margin: 5px 0; }
++.final-gate-body select { max-width: 100%; }
++.final-gate-body button, .final-gate-body a { margin: 3px; }
++.final-gate-body p { margin: 6px 0; }
++.final-gate-body ol { padding-left: 20px; overflow-wrap: anywhere; }
++.final-gate-body a { color: #e7cf8b; }
++.final-gate-action { position: fixed; z-index: 9999; left: 6px; bottom: 6px; background: #10271fee; color: white; padding: 4px; font-size: 12px; }
+--- /dev/null
++++ src/dev/finalGate/FinalGate.test.tsx
+@@ -0,0 +1,62 @@
++import { renderToStaticMarkup } from 'react-dom/server';
++import { afterEach, expect, it, vi } from 'vitest';
++import FinalGate from './FinalGate';
++import { AudioPresentationConsumer } from '../../audio/AudioPresentationConsumer';
++import { PresentationAudioCues } from '../../presentation/PresentationAudioCue';
++import { PresentationEventBus } from '../../presentation/PresentationEventBus';
++import { createSeventeenGateFixture } from './scenarios';
++import { discardCandidate } from '../../game/seventeenSteps';
++import { participantRiverTarget } from '../../presentation3d/participants/participantLayout';
++import { TABLE_PRESENTATION_TUNING } from '../../presentation3d/table/tablePresentationTuning';
++
++afterEach(() => vi.unstubAllGlobals());
++
++it('renders all 27 scenarios, manual unchecked progress and opt-in; does not write preferences', () => {
++  const setItem = vi.fn();
++  vi.stubGlobal('location', { search: '?testMode=1&uiFinalGate=1' });
++  vi.stubGlobal('localStorage', { getItem: () => null, setItem });
++  const html = renderToStaticMarkup(<FinalGate />);
++  expect(html).toContain('QA 音频：OFF');
++  expect(html).toContain('0 / 27');
++  expect(html.match(/<option value=/g)).toHaveLength(29); // 27 scenarios + 1x/2x
++  expect(html).toContain('重演动作');
++  expect(html).toContain('取消 / 退出场景');
++  expect(html).not.toContain('checked=""');
++  expect(setItem).not.toHaveBeenCalled();
++  expect(renderToStaticMarkup(<FinalGate />)).toBe(html);
++});
++
++it('diagnostics receive real deduped cue identity and policy without creating an audio authority', () => {
++  const cues = new PresentationAudioCues(), bus = new PresentationEventBus();
++  const play = vi.fn(), trace = vi.fn();
++  let allowed = false;
++  const consumer = new AudioPresentationConsumer({ playSfx: play }, cues, () => allowed, trace);
++  const event = bus.publish({ type: 'tile_drawn', playerId: 0 });
++  expect(trace).not.toHaveBeenCalled();
++  const run = cues.run(event);
++  run.emit('draw-contact', 'grasp', 0);
++  expect(trace).toHaveBeenCalledWith(expect.objectContaining({ event, phase: 'grasp', kind: 'draw-contact' }), 'draw', false);
++  allowed = true;
++  run.emit('draw-contact', 'grasp', 0);
++  expect(trace).toHaveBeenCalledTimes(1);
++  expect(play).not.toHaveBeenCalled();
++  consumer.dispose();
++  const next = new AudioPresentationConsumer({ playSfx: play }, cues, () => true, () => { throw new Error('diagnostic failure'); });
++  run.emit('draw-contact', 'grasp', 0);
++  cues.run(bus.publish({ type: 'tile_drawn', playerId: 0 })).emit('draw-contact', 'grasp', 0);
++  expect(play).toHaveBeenCalledOnce();
++  next.dispose();
++});
++
++it('12→13 uses a real candidate discard and only the short viewport enters compact scale', () => {
++  const state = createSeventeenGateFixture('VIS-02');
++  const next = discardCandidate(state, 0, state.players[0].discardCandidates[0].instanceId);
++  expect(state.players[0].discardedTiles).toHaveLength(12);
++  expect(next.players[0].discardedTiles).toHaveLength(13);
++  const before = participantRiverTarget('duel', 'bottom', 0, state.players[0].discardedTiles, { width: 1280, height: 720 });
++  const short = participantRiverTarget('duel', 'bottom', 0, next.players[0].discardedTiles, { width: 1280, height: 720 });
++  const tall = participantRiverTarget('duel', 'bottom', 0, next.players[0].discardedTiles, { width: 1920, height: 1080 });
++  expect(before.tileScale).toBe(TABLE_PRESENTATION_TUNING.tileScale.river);
++  expect(tall.tileScale).toBe(before.tileScale);
++  expect(short.tileScale).toBeLessThan(tall.tileScale);
++});
+--- /dev/null
++++ src/dev/finalGate/FinalGate.tsx
+@@ -0,0 +1,176 @@
++import { useEffect, useMemo, useRef, useState } from 'react';
++import { getTileAlt } from '../../game/tileAssets';
++import { Board } from '../../components/Board';
++import { SeventeenStepsScreen } from '../../components/SeventeenStepsScreen';
++import { getRulePreset } from '../../game/match/matchRules';
++import { applyOfficialTestModeAction, type OfficialTestModeAction } from '../../game/testMode/actions';
++import { AudioManager } from '../../audio/AudioManager';
++import { AudioPresentationConsumer } from '../../audio/AudioPresentationConsumer';
++import { GAME_SFX_GROUP_BY_ACTION } from '../../audio/musicRegistry';
++import type { GameSfxId } from '../../audio/musicTypes';
++import { MusicLibrary } from '../../audio/musicLibrary';
++import { createMusicLibraryStorage } from '../../audio/musicLibraryStorage';
++import { DEFAULT_AUDIO_SETTINGS } from '../../audio/audioSettings';
++import { createDefaultAudioBackend } from '../../audio/audioBackend';
++import { presentationEventBus } from '../../presentation/PresentationEventBus';
++import { presentationPacingGate } from '../../presentation/pacing/PresentationPacingGate';
++import { QaMotionContext } from '../../presentation/animation/QaMotionContext';
++import { loadAppearanceSettings } from '../../presentation/appearance/appearanceSettingsStorage';
++import { finalGateRoute } from './route';
++import { createFourGateFixture, createSeventeenGateFixture, finalGateScenarios, gateAction, isSeventeenGate } from './scenarios';
++import './finalGate.css';
++
++type Trace = { at: number; type: string; detail: string };
++export default function FinalGate() {
++  const [index, setIndex] = useState(0);
++  const [generation, setGeneration] = useState(0);
++  const [replay, setReplay] = useState(false);
++  const [active, setActive] = useState(true);
++  const [audioOn, setAudioOn] = useState(() => finalGateRoute(location.search, import.meta.env.DEV).audio);
++  const [muted, setMuted] = useState(false);
++  const [speed, setSpeed] = useState(1);
++  const [reduced, setReduced] = useState(false);
++  const [sweepCheck, setSweepCheck] = useState<{ at: number; counts: string } | null>(null);
++  const [inspection, setInspection] = useState('');
++  const [cueCounts, setCueCounts] = useState<Record<string, number>>({});
++  const [trace, setTrace] = useState<Trace[]>([]);
++  const [checks, setChecks] = useState<Record<string, boolean[]>>({});
++  const scenario = finalGateScenarios[index];
++  const policy = useRef({ audioOn, muted }); policy.current = { audioOn, muted };
++  const audio = useRef<AudioManager | null>(null);
++  const motion = useMemo(() => ({ speed, reduced }), [speed, reduced]);
++  const [ready, setReady] = useState(false);
++  const [appearance] = useState(() => loadAppearanceSettings(localStorage));
++
++  useEffect(() => {
++    let live = true;
++    const log = (type: string, detail: string) => { if (live) setTrace(rows => [...rows, { at: performance.now(), type, detail }].slice(-10)); };
++    const backend = createDefaultAudioBackend();
++    const create = backend.createPlayback.bind(backend);
++    backend.createPlayback = asset => {
++      log('媒体创建', `${asset.id} ${asset.src}`);
++      const handle = create(asset), play = handle.play.bind(handle);
++      handle.onEnded(() => log('媒体结束', asset.id));
++      handle.onError?.(() => log('媒体错误', asset.id));
++      handle.play = async () => {
++        try { await play(); log('媒体开始', asset.id); }
++        catch (error) { log('播放失败', `${asset.id}: ${String(error)}`); throw error; }
++      };
++      return handle;
++    };
++    // Builtins in an isolated memory catalog. Neither selection cursors nor settings touch storage.
++    const library = new MusicLibrary(createMusicLibraryStorage(null as unknown as IDBFactory));
++    const manager = new AudioManager(DEFAULT_AUDIO_SETTINGS, backend);
++    manager.setMusicLibrary(library); audio.current = manager;
++    const consumer = new AudioPresentationConsumer(manager, undefined, () => active && policy.current.audioOn,
++      (cue, sound, allowed) => {
++        const group = sound ? GAME_SFX_GROUP_BY_ACTION[sound as GameSfxId] ?? sound : undefined;
++        if (live) setCueCounts(counts => { const key = `${cue.event.eventId} ${cue.kind} → ${group}`; return { ...counts, [key]: (counts[key] ?? 0) + 1 }; });
++        log('语义节点', `${cue.event.eventId} ${cue.event.type} ${cue.phase}@${cue.progress} ${cue.kind} → ${group}；${allowed ? '允许' : '静音策略'}；generation=${cue.generation}`); });
++    const unsubscribe = presentationEventBus.subscribe(event => log('正式事件', `${event.eventId} ${event.type}`));
++    void library.initialize().then(() => { if (live) setReady(true); });
++    return () => { live = false; unsubscribe(); consumer.dispose(); manager.dispose(); library.dispose(); audio.current = null; };
++  }, [generation, index, active]);
++
++  useEffect(() => {
++    audio.current?.setSettings({ ...DEFAULT_AUDIO_SETTINGS, sfxEnabled: !muted });
++    if (!audioOn || muted) audio.current?.stopSfx();
++  }, [audioOn, muted, generation, index, active]);
++
++  const reset = (next = index, replayAction = false) => {
++    setReplay(replayAction); setSweepCheck(null); setInspection('');
++    audio.current?.stopSfx(); setReady(false); setTrace([]); setCueCounts({}); setActive(true); setIndex(next); setGeneration(value => value + 1);
++  };
++  useEffect(() => {
++    if (!ready || !active || !replay) return;
++    let done = false;
++    const start = () => {
++      if (isSeventeenGate(scenario.id) && !document.querySelector('[data-qa-animation-ready="true"]')) return;
++      if (done || !document.querySelector('[data-presentation-revealed="true"], [data-initial-scene-ready="true"][data-local-presentation-ready="true"][data-critical-hand-packs-ready="true"]')) return;
++      if (scenario.id === 'AV-17' || scenario.id === 'VIS-01' || scenario.id === 'VIS-03') { done = true; observer.disconnect(); return; }
++      const button = scenario.id === 'AV-18'
++        ? [...document.querySelectorAll<HTMLButtonElement>('button')].find(button => button.textContent === '荣和')
++        : document.querySelector<HTMLButtonElement>(isSeventeenGate(scenario.id)
++        ? '.seventeen-steps-candidate-grid button:not(:disabled)' : '.final-gate-action button');
++      if (!button) return;
++      done = true; observer.disconnect(); button.click();
++    };
++    const observer = new MutationObserver(start);
++    observer.observe(document.body, { attributes: true, childList: true, subtree: true });
++    start();
++    return () => observer.disconnect();
++  }, [ready, active, replay, generation, scenario.id]);
++  const stage = useMemo(() => !active || !ready ? null : isSeventeenGate(scenario.id)
++    ? <SeventeenStepsScreen key={`${scenario.id}-${generation}`} initialState={createSeventeenGateFixture(scenario.id)} qaHideResult={scenario.id.startsWith('VIS-')} ruleConfig={getRulePreset('east-round')}
++      appearanceSettings={appearance} onBack={() => setActive(false)} />
++    : <FourScenario key={`${scenario.id}-${generation}`} id={scenario.id} appearance={appearance} onExit={() => setActive(false)} />,
++  [active, ready, scenario.id, generation, appearance]);
++  const labels = scenario.id.startsWith('VIS-') ? ['牌河可辨认且无遮挡', '落点与比例正确', '过渡自然且无跳动', '无残留或重复牌'] : ['视觉动作正确', '声音时机自然', '只播放一次', '无额外声音'];
++  return <QaMotionContext.Provider value={motion}>
++    {stage}
++    <details className="final-gate-controls" open>
++      <summary>UI Final Gate · {scenario.id} · QA 音频：{audioOn ? 'ON' : 'OFF'}（可折叠看全桌）</summary>
++      <div className="final-gate-body">
++        <label>验收场景 <select aria-label="验收场景" value={index} onChange={event => reset(Number(event.target.value))}>
++          {['A. 音画同步', 'B. 17步视觉', 'C. 清理与策略'].map(section => <optgroup key={section} label={section}>{finalGateScenarios.map((item, i) => item.section === section ? <option key={item.id} value={i}>{item.id} {item.name}</option> : null)}</optgroup>)}
++        </select></label>
++        <div><button disabled={!index} onClick={() => reset(index - 1)}>上一项</button><button disabled={index === finalGateScenarios.length - 1} onClick={() => reset(index + 1)}>下一项</button><button onClick={() => reset()}>重置场景 / 重演准备</button><button onClick={() => reset(index, true)}>重演动作</button></div>
++        <p>{scenario.name} · 预期：{scenario.expected}</p>
++        <p>使用桌面正式动作按钮或“执行下一动作”。重演先重置，再执行新动作。初始宝牌、5秒扫光、结果弹窗均不应额外发声。</p>
++        <label><input type="checkbox" checked={audioOn} onChange={event => setAudioOn(event.target.checked)} />显式开启 QA 音频</label>
++        <p>普通 Test Mode 保持静音。仅本次 Final Gate 允许音效；不保存设置，使用内置音效。</p>
++        <label><input type="checkbox" checked={muted} onChange={event => setMuted(event.target.checked)} />临时 SFX OFF</label>
++        <label>速度 <select aria-label="动画速度" value={speed} onChange={event => setSpeed(Number(event.target.value))}><option value={1}>1x</option><option value={2}>2x</option></select></label>
++        <label><input type="checkbox" checked={reduced} onChange={event => setReduced(event.target.checked)} />临时减少动态效果</label>
++        <button onClick={() => { audio.current?.stopSfx(); setActive(false); }}>取消 / 退出场景</button>
++        <a href="?testMode=1">返回普通静音 Test Mode</a>
++        <button onClick={() => {
++          const renderer = document.querySelector('[data-table-renderer-active]');
++          setInspection(`${innerWidth}×${innerHeight} CSS；Canvas=${document.querySelectorAll('canvas').length}；renderer=${renderer?.getAttribute('data-table-renderer-active')}；fallback=${renderer?.getAttribute('data-table-renderer-fallback-reason')}；牌河=${document.querySelector('[data-qa-river-counts]')?.getAttribute('data-qa-river-counts') ?? '四人'}`);
++        }}>读取场景状态</button><output>{inspection}</output>
++        {scenario.id === 'AV-13' ? <div><button onClick={() => setSweepCheck({ at: performance.now(), counts: JSON.stringify(cueCounts) })}>开始等待宝牌扫光</button><button disabled={!sweepCheck} onClick={() => setInspection(sweepCheck ? `已等待 ${((performance.now() - sweepCheck.at) / 1000).toFixed(1)} 秒；cue ${sweepCheck.counts === JSON.stringify(cueCounts) ? '未增加' : '有变化'}` : '')}>读取等待结果</button></div> : null}
++        <details><summary>人工检查 · {Object.values(checks).filter(values => values.length === 4 && values.every(Boolean)).length} / {finalGateScenarios.length}（不会自动通过）</summary>
++          {labels.map((label, i) => <label key={label}><input type="checkbox" checked={checks[scenario.id]?.[i] ?? false} onChange={event => setChecks(previous => {
++            const values = [...(previous[scenario.id] ?? [false, false, false, false])]; values[i] = event.target.checked; return { ...previous, [scenario.id]: values };
++          })} />{label}</label>)}
++        </details>
++        <details><summary>真实管线 Trace（最近10条）</summary><pre data-final-gate-counts>{JSON.stringify(cueCounts, null, 2)}</pre><ol data-final-gate-trace>{trace.map((row, i) => <li key={`${row.at}-${i}`}>{row.at.toFixed(1)} {row.type}：{row.detail}</li>)}</ol></details>
++        <small>人耳同步待确认。VIS-01/02：1280×720；VIS-03：1920×1080；VIS-04：同场景缩放后弃牌。QA-02 在落点前取消，QA-03 在落点后退出。</small>
++      </div>
++    </details>
++  </QaMotionContext.Provider>;
++}
++
++function FourScenario({ id, appearance, onExit }: { id: string; appearance: ReturnType<typeof loadAppearanceSettings>; onExit: () => void }) {
++  const [state, setState] = useState(() => createFourGateFixture(id));
++  const [error, setError] = useState('');
++  const action = (value: OfficialTestModeAction) => {
++    if (presentationPacingGate.pendingCount) { setError('请等当前动作完成后继续。'); return; }
++    try { const next = applyOfficialTestModeAction(state, value); setState(next); setError(next === state ? '动作未被规则接受；请检查阶段。' : ''); }
++    catch (reason) { setError(String(reason)); }
++  };
++  return <>
++    <Board gameState={state} controlledPlayerId={0} tableBottomPlayerId={0} handAnimationsEnabled appearanceSettings={appearance}
++      onDiscard={(playerId, tileInstanceId) => action({ type: 'discard', playerId, tileInstanceId })}
++      onDeclareRiichi={(playerId, tileInstanceId) => action({ type: 'riichi', playerId, tileInstanceId })}
++      onTsumo={playerId => action({ type: 'tsumo', playerId })} onRon={playerId => action({ type: 'ron', playerId })}
++      onPassRon={playerId => action({ type: 'pass-ron', playerId })} onPon={playerId => action({ type: 'pon', playerId })}
++      onChi={(playerId, optionIndex) => action({ type: 'chi', playerId, optionIndex })}
++      onKan={(playerId, kanType, tileId) => action({ type: 'kan', playerId, kanType, tileId })}
++      onChankanRon={playerId => action({ type: 'chankan-ron', playerId })} onPassChankan={playerId => action({ type: 'pass-chankan', playerId })}
++      onPassCall={() => action({ type: 'pass-call' })} onSkipDrawActions={() => {}} onDeclareKyuushuKyuuhai={playerId => action({ type: 'kyuushu-kyuuhai', playerId })}
++      onReset={onExit} onReturnMenu={onExit} />
++    <div className="final-gate-action"><button onClick={() => {
++      const next = gateAction(id, state);
++      if (next.type === 'discard' && next.playerId === 0) {
++        const tile = state.players[0].hand.find(tile => tile.instanceId === next.tileInstanceId)!;
++        const buttons = [...document.querySelectorAll<HTMLButtonElement>('.local-hand-area button:not(:disabled)')];
++        const button = buttons.find(button => state.players[0].drawnTile?.instanceId === tile.instanceId
++          ? button.dataset.drawn === 'true' : button.getAttribute('aria-label') === getTileAlt(tile));
++        if (button) { button.click(); return; }
++        setError('请先关闭可执行操作提示，然后点击指定手牌。'); return;
++      }
++      action(next);
++    }}>执行下一动作</button><span>{state.phase} · 玩家{state.currentPlayer + 1}</span><span role="status">{error}</span></div>
++  </>;
++}
+--- /dev/null
++++ src/dev/finalGate/route.ts
+@@ -0,0 +1,6 @@
++/** Explicit development-only harness. Replay and ordinary Test Mode never opt in. */
++export function finalGateRoute(search: string, development: boolean) {
++  const params = new URLSearchParams(search);
++  const enabled = development && params.get('testMode') === '1' && params.get('uiFinalGate') === '1';
++  return { enabled, audio: enabled && params.get('qaAudio') === '1' };
++}
+--- /dev/null
++++ src/dev/finalGate/scenarios.test.ts
+@@ -0,0 +1,41 @@
++import { describe, expect, it } from 'vitest';
++import { applyOfficialTestModeAction } from '../../game/testMode/actions';
++import { createFourGateFixture, createSeventeenGateFixture, finalGateScenarios, gateAction, isSeventeenGate } from './scenarios';
++import { finalGateRoute } from './route';
++
++describe('Final Gate opt-in and fixtures', () => {
++  it('requires DEV plus both harness parameters; audio separately opts in', () => {
++    for (const search of ['', '?testMode=1', '?qaAudio=1', '?uiFinalGate=1&qaAudio=1']) expect(finalGateRoute(search, true)).toEqual({ enabled: false, audio: false });
++    expect(finalGateRoute('?testMode=1&uiFinalGate=1', true)).toEqual({ enabled: true, audio: false });
++    expect(finalGateRoute('?testMode=1&uiFinalGate=1&qaAudio=1', true)).toEqual({ enabled: true, audio: true });
++    expect(finalGateRoute('?testMode=1&uiFinalGate=1&qaAudio=1', false)).toEqual({ enabled: false, audio: false });
++  });
++  for (const scenario of finalGateScenarios.filter(item => !isSeventeenGate(item.id))) {
++    it(`${scenario.id} executes a real accepted action and independently resets`, () => {
++      const state = createFourGateFixture(scenario.id);
++      const baseline = JSON.stringify(state);
++      const next = applyOfficialTestModeAction(state, gateAction(scenario.id, state));
++      expect(next).not.toEqual(state);
++      expect(JSON.stringify(state)).toBe(baseline);
++      expect(createFourGateFixture(scenario.id)).toEqual(state);
++      if (scenario.id === 'AV-14') {
++        expect(next.phase).toBe('round-ended');
++        expect(next.result?.type).toBe('ron');
++        expect(next.players[0].river).toHaveLength(1);
++      }
++      if (scenario.id === 'AV-15') expect(next.result?.type).toBe('tsumo');
++      if (scenario.id === 'AV-09' || scenario.id === 'AV-10') expect(next.players[1].calls).toHaveLength(1);
++    });
++  }
++  for (const scenario of finalGateScenarios.filter(item => isSeventeenGate(item.id))) {
++    it(`${scenario.id} creates a fresh deterministic seventeen-step fixture`, () => {
++      const state = createSeventeenGateFixture(scenario.id);
++      expect(state).toEqual(createSeventeenGateFixture(scenario.id));
++      if (scenario.id === 'VIS-01' || scenario.id === 'VIS-03') {
++        expect(state.players.map(player => player.discardedTiles.length)).toEqual([17, 17]);
++        expect(state.result?.type).toBe('draw');
++      }
++      if (scenario.id === 'VIS-02' || scenario.id === 'VIS-04') expect(state.players.map(player => player.discardedTiles.length)).toEqual([12, 12]);
++    });
++  }
++});
+--- /dev/null
++++ src/dev/finalGate/scenarios.ts
+@@ -0,0 +1,96 @@
++import { getBuiltInTestScenario } from '../../game/testMode/builtInScenarios';
++import { loadTestScenarioState } from '../../game/testMode/scenario';
++import { applyOfficialTestModeAction, type OfficialTestModeAction } from '../../game/testMode/actions';
++import type { GameState, PlayerId, TileId } from '../../game/types';
++import { buildWall } from '../../game/wall';
++import { createSeventeenPresentationFixture } from '../seventeenPresentationFixtures';
++import { discardCandidate, passSeventeenStepsRon } from '../../game/seventeenSteps';
++
++const names = ['本家摸牌', '对手摸牌', '本家摸切', '本家手切', '下席弃牌', '右席弃牌', '上席弃牌', '左席弃牌', '吃', '碰', '暗杠', '立直', '新增宝牌', '荣和', '自摸', '17步本家弃牌', '17步对家弃牌', '17步荣和', '17步最终流局'];
++const expected = ['draw', 'draw', 'draw → discard', 'discard', 'discard', 'discard', 'discard', 'discard', 'meld', 'meld', 'meld / dora / draw（各自节点）', 'discard → riichi', 'dora（杠与补牌另有 meld / draw）', 'discard → rong', 'rong', 'discard（对手随后也弃牌）', 'discard', 'rong', 'discard → discard；无 rong'];
++export const finalGateScenarios = [
++  ...names.map((name, index) => ({ id: `AV-${String(index + 1).padStart(2, '0')}`, name, section: 'A. 音画同步', expected: expected[index] })),
++  ...['720p 双方17张牌河', '12→13 紧凑过渡', '1080p 双方17张牌河', '1080p→720p 同场景缩放'].map((name, index) => ({ id: `VIS-0${index + 1}`, name, section: 'B. 17步视觉', expected: '检查无遮挡、正确落点、平滑交接；初始状态无声音' })),
++  ...['临时音效开关', '落点前取消', '落点后退出', '临时减少动态效果'].map((name, index) => ({ id: `QA-0${index + 1}`, name, section: 'C. 清理与策略', expected: '动作继续；无历史补播、无残留或延迟声音' })),
++];
++
++/** Fresh deterministic tile allocation, using the existing validated scenario as the schema. */
++function fourFixture(seat: PlayerId, kind: 'discard' | 'draw' | 'chi' | 'pon' | 'ron' | 'tsumo'): GameState {
++  const state = loadTestScenarioState(getBuiltInTestScenario('STAB-001-ANKAN')!);
++  const deck = buildWall().map((tile, index) => ({ ...tile, instanceId: `final-gate-${index}` }));
++  const take = (id: number) => {
++    const index = deck.findIndex(tile => tile.id === id);
++    if (index < 0) throw new Error(`Final Gate: missing tile ${id}`);
++    return deck.splice(index, 1)[0];
++  };
++  const winningHand = [1, 2, 3, 10, 11, 12, 19, 20, 21, 4, 5, 6, 14];
++  const special = kind === 'chi' ? [0, 1] : kind === 'pon' ? [31, 31] : kind === 'ron' || kind === 'tsumo' ? winningHand : [];
++  const receiver = kind === 'tsumo' ? 0 : 1;
++  const specialTiles = special.map(take);
++  const target = take(kind === 'chi' ? 2 : kind === 'pon' ? 31 : kind === 'ron' || kind === 'tsumo' ? 14 : 33);
++  state.players.forEach(player => {
++    player.hand = player.id === receiver ? specialTiles : [];
++    while (player.hand.length < 13) {
++      const wanted = [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 28, 29, 30][player.hand.length];
++      const index = deck.findIndex(tile => tile.id === wanted);
++      player.hand.push(deck.splice(index < 0 ? 0 : index, 1)[0]);
++    }
++    player.drawnTile = null;
++  });
++  state.currentPlayer = seat;
++  state.phase = kind === 'draw' ? 'draw' : 'discard';
++  if (kind !== 'draw') { state.players[seat].hand.push(target); state.players[seat].drawnTile = target; }
++  else deck.unshift(target);
++  state.deadWall = deck.splice(-14);
++  state.doraIndicators = [state.deadWall[4]];
++  state.wall = deck;
++  return state;
++}
++
++export function createFourGateFixture(id: string): GameState {
++  if (id === 'AV-11' || id === 'AV-13') return loadTestScenarioState(getBuiltInTestScenario('STAB-001-ANKAN')!);
++  if (id === 'AV-12') return loadTestScenarioState(getBuiltInTestScenario('RIICHI-DISCARD-MUST-TENPAI')!);
++  if (id === 'AV-09' || id === 'AV-10') {
++    const state = fourFixture(0, id === 'AV-09' ? 'chi' : 'pon');
++    return applyOfficialTestModeAction(state, { type: 'discard', playerId: 0, tileInstanceId: state.players[0].drawnTile!.instanceId });
++  }
++  const seat = id === 'AV-02' ? 2 : id === 'AV-06' ? 1 : id === 'AV-07' ? 2 : id === 'AV-08' ? 3 : 0;
++  return fourFixture(seat, id === 'AV-01' || id === 'AV-02' || id === 'AV-03' ? 'draw' : id === 'AV-14' ? 'ron' : id === 'AV-15' ? 'tsumo' : 'discard');
++}
++
++export function gateAction(id: string, state: GameState): OfficialTestModeAction {
++  if (state.phase === 'draw') return { type: 'draw' };
++  if (id === 'AV-09') return { type: 'chi', playerId: 1, optionIndex: 0 };
++  if (id === 'AV-10') return { type: 'pon', playerId: 1 };
++  if (id === 'AV-11' || id === 'AV-13') return { type: 'kan', playerId: 0, kanType: 'ankan', tileId: 0 as TileId };
++  if (id === 'AV-14' && state.phase === 'ron-window') return { type: 'ron', playerId: 1 };
++  if (id === 'AV-15') return { type: 'tsumo', playerId: 0 };
++  const player = state.players[state.currentPlayer];
++  return { type: id === 'AV-12' ? 'riichi' : 'discard', playerId: player.id,
++    tileInstanceId: (id === 'AV-04' ? player.hand[0] : player.drawnTile ?? player.hand[player.hand.length - 1]).instanceId };
++}
++
++export const isSeventeenGate = (id: string) => id.startsWith('VIS-') || ['AV-16', 'AV-17', 'AV-18', 'AV-19'].includes(id);
++function seventeenFixture(id: string) {
++  if (id === 'AV-18') return createSeventeenPresentationFixture('ron');
++  if (id === 'AV-19') return createSeventeenPresentationFixture('last-turn');
++  let state = createSeventeenPresentationFixture('initial');
++  const turns = id === 'VIS-01' || id === 'VIS-03' ? 34 : id.startsWith('VIS-') ? 24 : 0;
++  for (let i = 0; i < turns; i++) {
++    const player = state.players[state.currentPlayerId];
++    state = discardCandidate(state, player.id, player.discardCandidates[0].instanceId);
++    if (state.phase === 'ron-window' && state.pendingRon) state = passSeventeenStepsRon(state, state.pendingRon.winnerId);
++  }
++  if (id === 'AV-16') {
++    const safe = state.players[0].discardCandidates.find(tile => discardCandidate(state, 0, tile.instanceId).phase === 'active');
++    if (!safe) throw new Error('No safe candidate in AV-16');
++    state.players[0].discardCandidates = [safe, ...state.players[0].discardCandidates.filter(tile => tile !== safe)];
++  }
++  return id === 'AV-17' ? { ...state, currentPlayerId: 1 as const } : state;
++}
++
++/** Stable tile identities across resets, preserving all shared tile references. */
++export function createSeventeenGateFixture(id: string) {
++  return JSON.parse(JSON.stringify(seventeenFixture(id), (key, value) => key === 'instanceId' && typeof value === 'string'
++    ? `final-gate-17-${value.split('-').slice(0, 2).join('-')}` : value)) as ReturnType<typeof seventeenFixture>;
++}
+--- /dev/null
++++ src/presentation/animation/QaMotionContext.ts
+@@ -0,0 +1,4 @@
++import { createContext } from 'react';
++
++/** Only supplied by the DEV Final Gate root; no persisted or global override. */
++export const QaMotionContext = createContext<{ speed: number; reduced: boolean } | null>(null);

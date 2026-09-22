@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "languages": [
+    { "localePrefix": "zh", "cloneLanguage": "zh" },
+    { "localePrefix": "en", "cloneLanguage": "en" },
+    { "localePrefix": "ja", "cloneLanguage": "ja" },
+    { "localePrefix": "ko", "cloneLanguage": "ko" },
+    { "localePrefix": "ru", "cloneLanguage": "ru" },
+    { "localePrefix": "es", "cloneLanguage": "es" },
+    { "localePrefix": "fr", "cloneLanguage": "fr" },
+    { "localePrefix": "ar", "cloneLanguage": "ar" },
+    { "localePrefix": "de", "cloneLanguage": "de" },
+    { "localePrefix": "pt", "cloneLanguage": "pt" },
+    { "localePrefix": "hi", "cloneLanguage": "hi" },
+    { "localePrefix": "tr", "cloneLanguage": "tr" },
+    { "localePrefix": "it", "cloneLanguage": "it" },
+    { "localePrefix": "id", "cloneLanguage": "id" },
+    { "localePrefix": "th", "cloneLanguage": "th" },
+    { "localePrefix": "pl", "cloneLanguage": "pl" },
+    { "localePrefix": "fil", "cloneLanguage": "fil" },
+    { "localePrefix": "uk", "cloneLanguage": "uk" },
+    { "localePrefix": "nl", "cloneLanguage": "nl" },
+    { "localePrefix": "ms", "cloneLanguage": "ms" },
+    { "localePrefix": "el", "cloneLanguage": "el" },
+    { "localePrefix": "ro", "cloneLanguage": "ro" },
+    { "localePrefix": "vi", "cloneLanguage": "vi" }
+  ]
+}

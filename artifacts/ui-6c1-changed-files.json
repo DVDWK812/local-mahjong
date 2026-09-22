@@ -1,0 +1,21 @@
+[
+  "src/App.tsx",
+  "src/styles.css",
+  "src/components/AudioSettingsDialog.tsx",
+  "src/components/settings/AudioSettingsPanel.tsx",
+  "src/audio/audioBackend.ts",
+  "src/audio/AudioManager.test.ts",
+  "src/audio/AudioManager.ts",
+  "src/audio/AudioPresentationConsumer.test.ts",
+  "src/audio/AudioPresentationConsumer.ts",
+  "src/audio/audioRegistry.ts",
+  "src/audio/musicLibrary.test.ts",
+  "src/audio/musicLibrary.ts",
+  "src/audio/musicLibraryStorage.ts",
+  "src/audio/musicPreferences.ts",
+  "src/audio/musicRegistry.test.ts",
+  "src/audio/musicRegistry.ts",
+  "src/audio/musicTypes.ts",
+  "src/components/AudioSettingsDialog.test.tsx",
+  "src/audio/audioBackend.test.ts"
+]

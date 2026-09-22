@@ -1,0 +1,30 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ❯ src/dev/finalGate/scenarios.test.ts (28 tests | 1 failed) 140ms
+   × Final Gate opt-in and fixtures > AV-14 executes a real accepted action and independently resets 13ms
+     → expected 'round-ended' to be 'ron-window' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/dev/finalGate/scenarios.test.ts > Final Gate opt-in and fixtures > AV-14 executes a real accepted action and independently resets
+AssertionError: expected 'round-ended' to be 'ron-window' // Object.is equality
+
+Expected: "ron-window"
+Received: "round-ended"
+
+ ❯ src/dev/finalGate/scenarios.test.ts:22:28
+     20|       expect(createFourGateFixture(scenario.id)).toEqual(state);
+     21|       if (scenario.id === 'AV-14') {
+     22|         expect(next.phase).toBe('ron-window');
+       |                            ^
+     23|         expect(applyOfficialTestModeAction(next, gateAction(scenario.i…
+     24|       }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 27 passed (28)
+   Start at  21:58:58
+   Duration  768ms (transform 213ms, setup 0ms, collect 301ms, tests 140ms, environment 0ms, prepare 89ms)
+

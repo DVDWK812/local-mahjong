@@ -16,6 +16,7 @@ export interface DiscardSourceCapture {
     readonly red: boolean;
   };
   readonly sourceTileRect: PresentationRect;
+  readonly drawnTileRect?: PresentationRect;
 }
 
 export interface DiscardSourceFreshness {
@@ -45,6 +46,7 @@ export class DiscardSourceSnapshotStore {
       ...snapshot,
       tile: { ...snapshot.tile },
       sourceTileRect: { ...snapshot.sourceTileRect },
+      drawnTileRect: snapshot.drawnTileRect ? { ...snapshot.drawnTileRect } : undefined,
       generation,
     };
     return () => {

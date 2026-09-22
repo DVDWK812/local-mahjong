@@ -197,10 +197,10 @@ describe('AudioSettingsDialog', () => {
     for (const group of ['摸牌音效', '弃牌音效', '鸣牌音效']) {
       expect(html).toContain(`aria-label="添加${group}"`);
     }
-    for (const group of ['draw', 'discard', 'meld']) {
+    for (const group of ['draw', 'discard', 'meld', 'riichi', 'dora', 'rong']) {
       expect(html).toContain(`name="music-mode-sfx-${group}"`);
     }
-    expect(html.match(/type="radio"/g)).toHaveLength(18);
+    expect(html.match(/type="radio"/g)).toHaveLength(27);
     expect(html).toContain('随机播放');
     expect(html).toContain('循环播放');
     expect(html).not.toContain('顺序播放');
@@ -341,4 +341,16 @@ describe('AudioSettingsDialog', () => {
     onClose();
     expect(onClose).toHaveBeenCalledOnce();
   });
+});
+
+it('six SFX categories share selection/import/reset UI, separate scroll region, Voice remains intact', () => {
+  const html = renderDialog();
+  for (const label of ['摸牌音效','弃牌音效','鸣牌音效','立直棒音效','宝牌音效','和牌音效']) {
+    expect(html).toContain(`恢复默认（${label}）`);
+    expect(html).toContain(`复制到游戏音乐库（${label}）`);
+  }
+  expect(html).toContain('aria-label="游戏音效分类列表"');
+  expect(html).toContain('music-card--sfx');
+  expect(html).toContain('audio-settings__channel--voice');
+  expect(html).toContain('出牌报牌范围');
 });

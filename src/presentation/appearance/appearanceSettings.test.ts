@@ -23,7 +23,7 @@ function memoryStorage(): Storage {
   };
 }
 
-describe('AppearanceSettings v2', () => {
+describe('AppearanceSettings v3', () => {
   it('uses the stable builtin defaults and all 37 authoritative tile appearance identities', () => {
     const defaults = createDefaultAppearanceSettings();
     expect(defaults).toEqual(DEFAULT_APPEARANCE_SETTINGS);
@@ -31,7 +31,7 @@ describe('AppearanceSettings v2', () => {
     expect(TILE_APPEARANCE_IDS).toHaveLength(37);
     expect(defaults.tileFaces.red5m.face).toEqual({ kind: 'builtin', id: 'default' });
     expect(defaults.tableFelt.asset).toEqual({ kind: 'builtin', id: 'classic-green' });
-    expect(defaults.handAppearance).toEqual({ status: 'reserved' });
+    expect(defaults.handAppearance).toEqual({ packId: 'female' });
   });
 
   it('migrates v1 while retaining each legacy reference under the new v2 contract', () => {
@@ -42,11 +42,24 @@ describe('AppearanceSettings v2', () => {
       tableFelt: { kind: 'builtin', id: 'jade-felt' },
       riichiStick: { kind: 'local', assetId: 'stick-a' },
     });
-    expect(migrated?.version).toBe(2);
+    expect(migrated?.version).toBe(3);
     expect(migrated?.tileFaces.m1.face).toEqual({ kind: 'local', assetId: 'face-pack' });
     expect(migrated?.tileFaces.red5s.face).toEqual({ kind: 'local', assetId: 'face-pack' });
     expect(migrated?.tileBack.texture).toEqual({ kind: 'local', assetId: 'back-a' });
     expect(migrated?.tableFelt.asset).toEqual({ kind: 'builtin', id: 'jade-felt' });
+  });
+
+  it('migrates the reserved v2 hand field and preserves valid v3 Pack choices', () => {
+    expect(migrateAppearanceSettings({ version: 2, handAppearance: { status: 'reserved' } })?.handAppearance)
+      .toEqual({ packId: 'female' });
+    expect(migrateAppearanceSettings({ ...createDefaultAppearanceSettings(), handAppearance: { packId: 'cat' } })?.handAppearance)
+      .toEqual({ packId: 'female' });
+    for (const packId of ['female', 'female_2', 'male', 'cat_orange', 'cat_grey', 'dog', 'gloved', 'robot', 'cyberpunk'] as const) {
+      expect(migrateAppearanceSettings({ ...createDefaultAppearanceSettings(), handAppearance: { packId } })?.handAppearance)
+        .toEqual({ packId });
+    }
+    expect(migrateAppearanceSettings({ ...createDefaultAppearanceSettings(), handAppearance: { packId: '../bad' } })?.handAppearance)
+      .toEqual({ packId: 'female' });
   });
 
   it('saves, reloads, and resets v2 without serializing image payloads', () => {
@@ -73,7 +86,7 @@ describe('AppearanceSettings v2', () => {
     const normalized = loadAppearanceSettings(storage);
     expect(normalized.tileFaces.m1).toEqual(DEFAULT_APPEARANCE_SETTINGS.tileFaces.m1);
     expect(normalized.tileBack).toEqual(DEFAULT_APPEARANCE_SETTINGS.tileBack);
-    for (const raw of ['{bad', '[]', JSON.stringify({ version: 3 })]) {
+    for (const raw of ['{bad', '[]', JSON.stringify({ version: 4 })]) {
       storage.setItem(APPEARANCE_SETTINGS_STORAGE_KEY, raw);
       expect(loadAppearanceSettings(storage)).toEqual(DEFAULT_APPEARANCE_SETTINGS);
     }

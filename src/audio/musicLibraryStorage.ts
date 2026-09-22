@@ -35,7 +35,7 @@ function normalizeStoredTrack(record: Partial<StoredMusicTrack> & Record<string,
     sourceType,
     order: typeof record.order === 'number' && Number.isFinite(record.order) ? record.order : 0,
     createdAt: typeof record.createdAt === 'string' ? record.createdAt : new Date(0).toISOString(),
-    ...(record.gameSfxGroup === 'draw' || record.gameSfxGroup === 'discard' || record.gameSfxGroup === 'meld'
+    ...(record.gameSfxGroup === 'draw' || record.gameSfxGroup === 'discard' || record.gameSfxGroup === 'meld' || record.gameSfxGroup === 'riichi' || record.gameSfxGroup === 'dora' || record.gameSfxGroup === 'rong'
       ? { gameSfxGroup: record.gameSfxGroup }
       : {}),
   };

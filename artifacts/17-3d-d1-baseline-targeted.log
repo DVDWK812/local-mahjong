@@ -1,0 +1,11 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation3d/participants/candidateAnimation.test.ts (32 tests) 36ms
+ ✓ src/presentation3d/participants/participantBaseline.test.tsx (4 tests) 52ms
+
+ Test Files  2 passed (2)
+      Tests  36 passed (36)
+   Start at  14:22:38
+   Duration  6.18s (transform 968ms, setup 0ms, collect 10.56s, tests 88ms, environment 0ms, prepare 784ms)
+

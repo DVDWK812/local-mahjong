@@ -1,0 +1,1084 @@
+--- before/src/App.tsx
++++ after/src/App.tsx
+@@ -568,7 +568,8 @@
+ 
+   function handleRemoveMusicTrack(category: MusicCategory, trackId: MusicTrackId) {
+     if (previewTrackId === trackId) {
+-      audioManager.stopTemporary();
++      if (category === 'effects') audioManager.stopSfxPreview();
++      else audioManager.stopTemporary();
+       setPreviewTrackId(null);
+     }
+     void musicLibrary.removeTrack(trackId).then(() => {
+@@ -610,12 +611,16 @@
+   }
+ 
+   function handlePreviewMusic(track: MusicTrackDefinition) {
+-    audioManager.playTemporary(track);
++    audioManager.stopSfxPreview();
+     setPreviewTrackId(track.id);
++    if (track.category === 'effects') audioManager.playSfxPreview(track, () => setPreviewTrackId(current => current === track.id ? null : current));
++    else audioManager.playTemporary(track);
+   }
+ 
+   function handleStopPreviewMusic() {
+-    audioManager.stopTemporary();
++    const isSfx = musicLibrary.tracks('effects').some(track => track.id === previewTrackId);
++    audioManager.stopSfxPreview();
++    if (!isSfx) audioManager.stopTemporary();
+     setPreviewTrackId(null);
+   }
+ 
+@@ -653,6 +658,8 @@
+   }
+ 
+   function closeAudioDialog() {
++    audioManager.stopSfxPreview();
++    setPreviewTrackId(null);
+     audioManager.setTemporaryReturnPolicy('restart-runtime-playlist');
+     setVoicePackCreationOpen(false);
+     setVoiceManagementPackId(null);
+@@ -660,6 +667,7 @@
+   }
+ 
+   function openVoiceManagement(packId: string) {
++    audioManager.stopSfxPreview();
+     handleAudioSettingsChange({ ...audioSettings, selectedVoicePackId: packId });
+     setVoiceManagementPackId(packId);
+   }
+@@ -711,6 +719,8 @@
+         onReauthorize={handleReauthorizeMusic}
+         onRelink={handleRelinkMusic}
+         onReorderSfxGroup={handleReorderSfxGroup}
++        onSfxSelectionChange={(group, ids) => { musicLibrary.setSfxSelection(group, ids); refreshMusicLibrary(); }}
++        onResetSfxGroup={(group) => { musicLibrary.resetSfxGroup(group); refreshMusicLibrary(); }}
+         onSfxPlaybackModeChange={handleSfxPlaybackModeChange}
+         onReorder={handleReorderMusic}
+         onPlaybackModeChange={handlePlaybackModeChange}
+@@ -721,7 +731,7 @@
+         onPreviousTrack={handlePreviousTrack}
+         onNextTrack={handleNextTrack}
+         onManageVoicePack={openVoiceManagement}
+-        onCreateVoicePack={() => setVoicePackCreationOpen(true)}
++        onCreateVoicePack={() => { audioManager.stopSfxPreview(); setVoicePackCreationOpen(true); }}
+         voicePlayerCount={voicePlayerCount}
+         onVoicePackDeleted={handleVoicePackDeleted}
+       />
+--- before/src/styles.css
++++ after/src/styles.css
+@@ -2289,7 +2289,23 @@
+   min-height: 0;
+ }
+ 
++/* Keep the final grid row equal-height; growing libraries scroll inside it. */
++.music-card--sfx,
++.audio-settings__channel--voice {
++  height: 420px;
++  min-height: 0;
++  overflow: hidden;
++  box-sizing: border-box;
++}
++.audio-settings__channel--voice { overflow-y: auto; }
++.music-card--sfx > .music-card__header,
++.music-card--sfx > .audio-volume { flex-shrink: 0; }
++.music-card__sfx-summary { margin: 0; font-size: 12px; }
+ .music-card__sfx-groups {
++  flex: 1;
++  overflow-y: auto;
++  overscroll-behavior: contain;
++  scrollbar-gutter: stable;
+   display: flex;
+   flex-direction: column;
+   gap: var(--space-2);
+@@ -2297,6 +2313,7 @@
+ }
+ 
+ .music-card__sfx-group {
++  flex-shrink: 0;
+   display: flex;
+   flex-direction: column;
+   gap: 6px;
+@@ -2315,7 +2332,8 @@
+ }
+ 
+ .music-card__sfx-group .music-track-list {
+-  max-height: 108px;
++  max-height: none;
++  flex-shrink: 0;
+ }
+ 
+ .music-card__sfx-group .music-card__add-actions {
+@@ -2408,6 +2426,10 @@
+   gap: var(--space-1);
+   min-width: 0;
+   padding: 4px 6px;
++}
++
++.music-card__sfx-group .music-track {
++  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+ }
+ 
+ .music-track--dragging {
+--- before/src/components/AudioSettingsDialog.tsx
++++ after/src/components/AudioSettingsDialog.tsx
+@@ -21,6 +21,8 @@
+   onRelink: (category: MusicCategory, trackId: MusicTrackId) => void;
+   onReorder: (category: MusicCategory, orderedIds: MusicTrackId[]) => void;
+   onReorderSfxGroup: (group: GameSfxGroup, orderedIds: MusicTrackId[]) => void;
++  onSfxSelectionChange?: (group: GameSfxGroup, ids: readonly MusicTrackId[]) => void;
++  onResetSfxGroup?: (group: GameSfxGroup) => void;
+   onSfxPlaybackModeChange: (group: GameSfxGroup, mode: PlaybackMode) => void;
+   onPlaybackModeChange: (category: MusicCategory, mode: PlaybackMode) => void;
+   onPreview: (track: MusicTrackDefinition) => void;
+@@ -50,6 +52,8 @@
+   onRelink,
+   onReorder,
+   onReorderSfxGroup,
++  onSfxSelectionChange,
++  onResetSfxGroup,
+   onSfxPlaybackModeChange,
+   onPlaybackModeChange,
+   onPreview,
+@@ -115,6 +119,8 @@
+             onRelink={onRelink}
+             onReorder={onReorder}
+             onReorderSfxGroup={onReorderSfxGroup}
++            onSfxSelectionChange={onSfxSelectionChange}
++            onResetSfxGroup={onResetSfxGroup}
+             onSfxPlaybackModeChange={onSfxPlaybackModeChange}
+             onPlaybackModeChange={onPlaybackModeChange}
+             onPreview={onPreview}
+--- before/src/components/settings/AudioSettingsPanel.tsx
++++ after/src/components/settings/AudioSettingsPanel.tsx
+@@ -21,6 +21,8 @@
+   onRelink: (category: MusicCategory, trackId: MusicTrackId) => void;
+   onReorder: (category: MusicCategory, orderedIds: MusicTrackId[]) => void;
+   onReorderSfxGroup: (group: GameSfxGroup, orderedIds: MusicTrackId[]) => void;
++  onSfxSelectionChange?: (group: GameSfxGroup, ids: readonly MusicTrackId[]) => void;
++  onResetSfxGroup?: (group: GameSfxGroup) => void;
+   onSfxPlaybackModeChange: (group: GameSfxGroup, mode: PlaybackMode) => void;
+   onPlaybackModeChange: (category: MusicCategory, mode: PlaybackMode) => void;
+   onPreview: (track: MusicTrackDefinition) => void;
+@@ -69,6 +71,8 @@
+   onRelink,
+   onReorder,
+   onReorderSfxGroup,
++  onSfxSelectionChange,
++  onResetSfxGroup,
+   onSfxPlaybackModeChange,
+   onPlaybackModeChange,
+   onPreview,
+@@ -119,6 +123,8 @@
+             onReauthorize={onReauthorize}
+             onRelink={onRelink}
+             onReorderSfxGroup={onReorderSfxGroup}
++            onSfxSelectionChange={onSfxSelectionChange}
++            onResetSfxGroup={onResetSfxGroup}
+             onSfxPlaybackModeChange={onSfxPlaybackModeChange}
+             onPreview={onPreview}
+             onStopPreview={onStopPreview}
+@@ -338,6 +344,9 @@
+   ['draw', '摸牌音效'],
+   ['discard', '弃牌音效'],
+   ['meld', '鸣牌音效'],
++  ['riichi', '立直棒音效'],
++  ['dora', '宝牌音效'],
++  ['rong', '和牌音效'],
+ ]);
+ 
+ function SfxCategoryCard({
+@@ -352,6 +361,8 @@
+   onReauthorize,
+   onRelink,
+   onReorderSfxGroup,
++  onSfxSelectionChange,
++  onResetSfxGroup,
+   onSfxPlaybackModeChange,
+   onPreview,
+   onStopPreview,
+@@ -367,6 +378,8 @@
+   onReauthorize: (category: MusicCategory, trackId: MusicTrackId) => void;
+   onRelink: (category: MusicCategory, trackId: MusicTrackId) => void;
+   onReorderSfxGroup: (group: GameSfxGroup, orderedIds: MusicTrackId[]) => void;
++  onSfxSelectionChange?: (group: GameSfxGroup, ids: readonly MusicTrackId[]) => void;
++  onResetSfxGroup?: (group: GameSfxGroup) => void;
+   onSfxPlaybackModeChange: (group: GameSfxGroup, mode: PlaybackMode) => void;
+   onPreview: (track: MusicTrackDefinition) => void;
+   onStopPreview: () => void;
+@@ -390,7 +403,7 @@
+         disabled={!(settings[enabledKey] as boolean)}
+         onChange={(value) => onChange({ ...settings, [volumeKey]: Number(value) / 100 })}
+       />
+-      <div className="music-card__sfx-groups">
++      <div className="music-card__sfx-groups" role="region" aria-label="游戏音效分类列表" tabIndex={0}>
+         {SFX_GROUP_LABELS.map(([group, label]) => (
+           <SfxGroupSection
+             key={group}
+@@ -409,6 +422,8 @@
+             onReauthorize={onReauthorize}
+             onRelink={onRelink}
+             onReorderSfxGroup={onReorderSfxGroup}
++            onSfxSelectionChange={onSfxSelectionChange}
++            onResetSfxGroup={onResetSfxGroup}
+             onSfxPlaybackModeChange={onSfxPlaybackModeChange}
+             onPreview={onPreview}
+             onStopPreview={onStopPreview}
+@@ -433,6 +448,8 @@
+   onReauthorize,
+   onRelink,
+   onReorderSfxGroup,
++  onSfxSelectionChange,
++  onResetSfxGroup,
+   onSfxPlaybackModeChange,
+   onPreview,
+   onStopPreview,
+@@ -450,6 +467,8 @@
+   onReauthorize: (category: MusicCategory, trackId: MusicTrackId) => void;
+   onRelink: (category: MusicCategory, trackId: MusicTrackId) => void;
+   onReorderSfxGroup: (group: GameSfxGroup, orderedIds: MusicTrackId[]) => void;
++  onSfxSelectionChange?: (group: GameSfxGroup, ids: readonly MusicTrackId[]) => void;
++  onResetSfxGroup?: (group: GameSfxGroup) => void;
+   onSfxPlaybackModeChange: (group: GameSfxGroup, mode: PlaybackMode) => void;
+   onPreview: (track: MusicTrackDefinition) => void;
+   onStopPreview: () => void;
+@@ -459,8 +478,15 @@
+   return (
+     <div className="music-card__sfx-group">
+       <h4 className="music-card__sfx-group-title">{label}</h4>
++      <p className="music-card__sfx-summary">{PLAYBACK_MODE_LABELS[playbackMode]} · 已选 {(library.sfxSelectedTrackIds?.(group) ?? tracks.map(track => track.id)).length} 个音效</p>
++      <button type="button" onClick={() => onResetSfxGroup?.(group)} aria-label={`恢复默认（${label}）`}>恢复默认</button>
+       <MusicTrackList
+         category="effects"
++        selectedIds={library.sfxSelectedTrackIds?.(group) ?? tracks.map(track => track.id)}
++        onSelect={(id, checked) => {
++          const current = library.sfxSelectedTrackIds?.(group) ?? tracks.map(track => track.id);
++          onSfxSelectionChange?.(group, checked ? [...current, id] : current.filter(item => item !== id));
++        }}
+         tracks={tracks}
+         repeatTargetId={repeatTargetId}
+         previewTrackId={previewTrackId}
+@@ -499,6 +525,14 @@
+           }}
+         />
+       </div>
++      {playbackMode === 'repeat-one' && <label className="audio-settings__field">单曲音效
++        <select aria-label={`单曲音效（${label}）`} value={
++          (library.sfxSelectedTrackIds?.(group) ?? tracks.map(track => track.id)).includes(repeatTargetId ?? '')
++            ? repeatTargetId ?? '' : library.sfxSelectedTrackIds?.(group)[0] ?? tracks[0]?.id ?? ''
++        } onChange={event => onSfxSelectionChange?.(group, [event.target.value])}>
++          {tracks.map(track => <option key={track.id} value={track.id}>{track.name}</option>)}
++        </select>
++      </label>}
+       <PlaybackModeControl
+         name={`music-mode-sfx-${group}`}
+         value={playbackMode}
+@@ -509,6 +543,8 @@
+ }
+ 
+ function MusicTrackList({
++  selectedIds,
++  onSelect,
+   category,
+   tracks,
+   repeatTargetId,
+@@ -521,6 +557,8 @@
+   onPreview,
+   onStopPreview,
+ }: {
++  selectedIds?: readonly MusicTrackId[];
++  onSelect?: (id: MusicTrackId, checked: boolean) => void;
+   category: MusicCategory;
+   tracks: readonly MusicTrackDefinition[];
+   repeatTargetId: MusicTrackId | null;
+@@ -571,6 +609,9 @@
+               setDraggingId(null);
+             }}
+           >
++            {onSelect && <input type="checkbox" aria-label={`选用 ${track.name}`} checked={selectedIds?.includes(track.id) ?? false}
++              disabled={selectedIds?.length === 1 && selectedIds.includes(track.id)}
++              onChange={event => onSelect(track.id, event.target.checked)} />}
+             {previewTrackId === track.id ? (
+               <button
+                 type="button"
+@@ -598,7 +639,7 @@
+                     : <small className="music-track__source">外部文件</small>
+               ) : track.sourceType === 'copied'
+                 ? <small className="music-track__source">游戏库副本</small>
+-                : null}
++                : category === 'effects' ? <small className="music-track__source">内置音效</small> : null}
+             </span>
+             <button
+               type="button"
+--- before/src/audio/audioBackend.ts
++++ after/src/audio/audioBackend.ts
+@@ -5,6 +5,7 @@
+   pause(): void;
+   setVolume(volume: number): void;
+   onEnded(listener: () => void): () => void;
++  onError?(listener: () => void): () => void;
+   dispose(): void;
+   getCurrentTime?(): number;
+   getDuration?(): number;
+@@ -41,6 +42,7 @@
+ }
+ 
+ class BrowserAudioPlaybackHandle implements AudioPlaybackHandle {
++  private readonly errorListeners = new Set<() => void>();
+   private readonly endedListeners = new Set<() => void>();
+   private readonly timeUpdateListeners = new Set<() => void>();
+   private readonly playListeners = new Set<() => void>();
+@@ -53,6 +55,7 @@
+     private readonly onDispose: (handle: BrowserAudioPlaybackHandle) => void,
+   ) {
+     this.audio.addEventListener('ended', this.handleEnded);
++    this.audio.addEventListener('error', this.handleError);
+     this.audio.addEventListener('timeupdate', this.handleTimeUpdate);
+     this.audio.addEventListener('play', this.handlePlay);
+     this.audio.addEventListener('pause', this.handlePause);
+@@ -78,6 +81,11 @@
+   onEnded(listener: () => void): () => void {
+     this.endedListeners.add(listener);
+     return () => this.endedListeners.delete(listener);
++  }
++
++  onError(listener: () => void): () => void {
++    this.errorListeners.add(listener);
++    return () => this.errorListeners.delete(listener);
+   }
+ 
+   onTimeUpdate(listener: () => void): () => void {
+@@ -121,17 +129,24 @@
+     this.playing = false;
+     this.audio.pause();
+     this.audio.removeEventListener('ended', this.handleEnded);
++    this.audio.removeEventListener('error', this.handleError);
+     this.audio.removeEventListener('timeupdate', this.handleTimeUpdate);
+     this.audio.removeEventListener('play', this.handlePlay);
+     this.audio.removeEventListener('pause', this.handlePause);
+     this.audio.removeAttribute('src');
+     this.audio.load();
+     this.endedListeners.clear();
++    this.errorListeners.clear();
+     this.timeUpdateListeners.clear();
+     this.playListeners.clear();
+     this.pauseListeners.clear();
+     this.onDispose(this);
+   }
++
++  private readonly handleError = () => {
++    this.playing = false;
++    [...this.errorListeners].forEach(listener => listener());
++  };
+ 
+   private readonly handleEnded = () => {
+     this.playing = false;
+--- before/src/audio/AudioManager.test.ts
++++ after/src/audio/AudioManager.test.ts
+@@ -246,7 +246,7 @@
+   private tracksMap: Record<MusicCategory, MusicTrackDefinition[]>;
+   private modes: Record<MusicCategory, PlaybackMode>;
+   private last: Record<MusicCategory, MusicTrackId | null>;
+-  private sfxLast: Record<GameSfxGroup, MusicTrackId | null> = { draw: null, discard: null, meld: null };
++  private sfxLast: Record<GameSfxGroup, MusicTrackId | null> = { draw: null, discard: null, meld: null, riichi: null, dora: null, rong: null };
+   private sfxModes: Record<GameSfxGroup, PlaybackMode>;
+   readonly releases: ReturnType<typeof vi.fn>[] = [];
+ 
+@@ -268,7 +268,7 @@
+       effects: mode,
+       voice_lines: mode,
+     };
+-    this.sfxModes = { draw: mode, discard: mode, meld: mode };
++    this.sfxModes = { draw: mode, discard: mode, meld: mode, riichi: mode, dora: mode, rong: mode };
+     this.last = {
+       bgm_main: null,
+       bgm_game: null,
+@@ -478,7 +478,7 @@
+     expect(library.releases[0]).toHaveBeenCalled();
+   });
+ 
+-  it('Game SFX 映射：draw/discard/chi/pon/kan 都绑定默认音效 track，开关关闭时不创建', async () => {
++  it('Game SFX 映射：draw/discard/chi/pon/kan 空列表回退各自内置组，开关关闭时不创建', async () => {
+     const effects = track('default-tile', 'effects');
+     const library = new FakeMusicLibrary([effects]);
+     const backend = new RecordingBackend();
+@@ -491,7 +491,10 @@
+     manager.playSfx('kan');
+     await flush();
+     expect(backend.handles).toHaveLength(5);
+-    expect(new Set(backend.handles.map((handle) => handle.src)).size).toBe(1);
++    expect(backend.handles.map(handle => handle.src)).toEqual([
++      "blob:builtin:effects:draw1", "blob:builtin:effects:discard1",
++      "blob:builtin:effects:meld1", "blob:builtin:effects:meld1", "blob:builtin:effects:meld1",
++    ]);
+ 
+     const disabled = new AudioManager({ ...DEFAULT_AUDIO_SETTINGS, sfxEnabled: false }, new RecordingBackend());
+     disabled.setMusicLibrary(library);
+@@ -1080,7 +1083,7 @@
+     ]);
+   });
+ 
+-  it('空组 fallback 到 default-tile，安全播放一次', async () => {
++  it('空组 fallback 到同类别内置音效，安全播放一次', async () => {
+     const library = new FakeMusicLibrary([
+       track('c', 'effects', 'discard'),
+       track('default-tile', 'effects'),
+@@ -1091,7 +1094,7 @@
+     manager.playSfx('chi');
+     await flush();
+     expect(backend.handles).toHaveLength(1);
+-    expect(backend.handles[0].src).toBe('blob:builtin:effects:default-tile');
++    expect(backend.handles[0].src).toBe('blob:builtin:effects:meld1');
+   });
+ 
+   it('三组播放模式独立：draw 单曲、discard 循环、meld 随机互不影响', async () => {
+@@ -1124,3 +1127,110 @@
+     }
+   });
+ });
++
++describe('UI-6C.1 selection and managed preview', () => {
++  it.each(['riichi','dora','rong'] as const)('%s uses selected assets and mute does not consume playback', async group => {
++    const library = new FakeMusicLibrary([track('a','effects',group),track('b','effects',group)]);
++    const backend = new RecordingBackend(); const manager = new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry); manager.setMusicLibrary(library);
++    manager.setSettings({...DEFAULT_AUDIO_SETTINGS,sfxEnabled:false}); manager.playSfx(group); await flush();
++    expect(backend.handles).toHaveLength(0);
++    manager.setSettings(DEFAULT_AUDIO_SETTINGS); manager.playSfx(group); await flush();
++    expect(backend.handles[0].src).toBe('blob:builtin:effects:a');
++    manager.dispose();
++  });
++  it('SFX preview neither pauses BGM nor advances sequential/shuffle cursors; stop releases once', async () => {
++    const library = new FakeMusicLibrary([track('home','bgm_main'),track('a','effects','draw'),track('b','effects','draw')]);
++    const backend = new RecordingBackend(); const manager = new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry); manager.setMusicLibrary(library);
++    manager.playBgm('home'); await flush();
++    const bgm = backend.handles[0];
++    const ended = vi.fn(); manager.playSfxPreview(track('b','effects','draw'),ended); await flush();
++    expect(bgm.isPlaying()).toBe(true);
++    expect(manager.getPlaybackSnapshot().source).toBe('runtime');
++    manager.stopSfxPreview(); expect(ended).toHaveBeenCalledOnce();
++    manager.playSfx('draw'); await flush();
++    expect(backend.handles[backend.handles.length - 1]?.src).toBe('blob:builtin:effects:a');
++    expect(library.releases[1]).toHaveBeenCalledOnce();
++    manager.dispose();
++  });
++  it.each(['missing','reject','throw'] as const)('custom %s falls back once to same builtin group without blocking', async failure => {
++    const custom: MusicTrackDefinition = {...track('custom','effects','rong'),sourceType:'copied'};
++    const library = new FakeMusicLibrary([custom]);
++    const backend = new FakeBackend(); if (failure === 'reject') backend.rejectNextPlay = true;
++    const original = library.resolveTrack.bind(library);
++    vi.spyOn(library,'resolveTrack').mockImplementation(async target => {
++      if (target.id === custom.id && failure === 'missing') return null;
++      if (target.id === custom.id && failure === 'throw') throw new Error('missing blob');
++      return original(target);
++    });
++    const manager = new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry); manager.setMusicLibrary(library);
++    manager.playSfx('rong'); await flush(); await flush();
++    expect(library.resolveTrack).toHaveBeenCalledWith(expect.objectContaining({id:'builtin:effects:rong1'}));
++    expect(manager.getSnapshot().activeSfxCount).toBe(1);
++    manager.stopSfx(); expect(manager.getSnapshot().activeSfxCount).toBe(0);
++    manager.dispose();
++  });
++  it('closing preview or exiting route before resolve suppresses stale playback', async () => {
++    const library = new FakeMusicLibrary([track('a','effects','dora')]);
++    let resolve!: (value: {url:string;release:()=>void}) => void;
++    vi.spyOn(library,'resolveTrack').mockImplementation(()=>new Promise(done=>{resolve=done;}));
++    const backend = new FakeBackend(); const manager = new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry); manager.setMusicLibrary(library);
++    const release = vi.fn(); manager.playSfxPreview(track('a','effects','dora')); manager.stopSfxPreview();
++    resolve({url:'blob:preview',release}); await flush();
++    expect(backend.handles).toHaveLength(0); expect(release).toHaveBeenCalledOnce();
++    manager.playSfx('dora'); manager.stopSfx(); resolve({url:'blob:game',release}); await flush();
++    expect(backend.handles).toHaveLength(0); manager.dispose();
++  });
++});
++
++it('selected pool is authoritative in all existing modes; preview does not change selection or cursor', async () => {
++  for (const mode of ['sequential','shuffle','repeat-one'] as const) {
++    const a = track('a','effects','rong'); const b = track('b','effects','rong');
++    let selected = [b.id];
++    const library = Object.assign(new FakeMusicLibrary([a,b],mode), {sfxSelectedTrackIds: () => selected});
++    const backend = new RecordingBackend(); const manager = new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry);
++    manager.setMusicLibrary(library);
++    manager.playSfx('rong'); await flush();
++    manager.playSfxPreview(a); await flush(); manager.stopSfxPreview();
++    manager.playSfx('rong'); await flush();
++    expect(backend.handles.map(handle=>handle.src)).toEqual([`blob:${b.id}`,`blob:${a.id}`,`blob:${b.id}`]);
++    selected = [a.id]; manager.playSfx('rong'); await flush();
++    expect(backend.handles[3].src).toBe(`blob:${a.id}`);
++    manager.dispose();
++  }
++});
++it('natural preview completion notifies once, later close is harmless', async () => {
++  const library = new FakeMusicLibrary([track('a','effects','draw')]);
++  const backend = new RecordingBackend(); const manager = new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry);
++  manager.setMusicLibrary(library); const ended=vi.fn();
++  manager.playSfxPreview(track('a','effects','draw'),ended); await flush();
++  backend.handles[0].finish(); manager.stopSfxPreview();
++  expect(ended).toHaveBeenCalledOnce(); expect(library.releases[0]).toHaveBeenCalledOnce();
++  manager.dispose();
++});
++
++it('late media decode error releases the custom handle and falls back exactly once', async () => {
++  const custom: MusicTrackDefinition={...track('broken','effects','riichi'),sourceType:'copied'};
++  const library=new FakeMusicLibrary([custom]); const backend=new FakeBackend();
++  const errors: Array<()=>void>=[];
++  const create=backend.createPlayback.bind(backend);
++  vi.spyOn(backend,'createPlayback').mockImplementation(()=>Object.assign(create(), {
++    onError: (listener:()=>void) => {errors.push(listener);return ()=>undefined;},
++  }));
++  const manager=new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry); manager.setMusicLibrary(library);
++  manager.playSfx('riichi'); await flush(); errors[0](); errors[0](); await flush();
++  expect(backend.handles).toHaveLength(2); expect(backend.handles[0].disposed).toBe(true);
++  expect(library.releases[0]).toHaveBeenCalledOnce();
++  manager.stopSfx(); errors[1](); await flush();
++  expect(backend.handles).toHaveLength(2); expect(manager.getSnapshot().activeSfxCount).toBe(0);
++  manager.dispose();
++});
++it('SFX preview leaves existing temporary music playing on stop or deletion', async () => {
++  const song=track('song','bgm_main'); const effect=track('effect','effects','dora');
++  const library=new FakeMusicLibrary([song,effect]); const backend=new RecordingBackend();
++  const manager=new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry); manager.setMusicLibrary(library);
++  manager.playTemporary(song); await flush();
++  manager.playSfxPreview(effect); await flush(); manager.stopSfxPreview();
++  expect(manager.getPlaybackSnapshot()).toMatchObject({source:'temporary',trackId:song.id,isPlaying:true});
++  expect(backend.handles[0].disposed).toBe(false);
++  manager.dispose();
++});
+--- before/src/audio/AudioManager.ts
++++ after/src/audio/AudioManager.ts
+@@ -10,7 +10,7 @@
+ } from './audioRegistry';
+ import { normalizeAudioSettings, type AudioChannel, type AudioSettings } from './audioSettings';
+ import type { MusicLibraryView } from './musicLibrary';
+-import { DEFAULT_TILE_SFX_TRACK_ID, GAME_SFX_GROUP_BY_ACTION } from './musicRegistry';
++import { BUILTIN_MUSIC_TRACKS, DEFAULT_TILE_SFX_TRACK_ID, GAME_SFX_GROUP_BY_ACTION } from './musicRegistry';
+ import type { GameSfxGroup, GameSfxId, MusicCategory, MusicTrackDefinition, MusicTrackId, PlaybackMode } from './musicTypes';
+ import { isGameSfxId } from './musicTypes';
+ 
+@@ -111,11 +111,14 @@
+   private suspendedRuntime: SuspendedRuntime | null = null;
+   private readonly activeSfx = new Set<AudioPlaybackHandle>();
+   private sfxGeneration = 0;
++  private previewGeneration = 0;
++  private sfxPreview: AudioPlaybackHandle | null = null;
++  private sfxPreviewEnded: (() => void) | undefined;
+   private readonly activeVoice = new Set<AudioPlaybackHandle>();
+   private readonly releaseCallbacks = new Map<AudioPlaybackHandle, () => void>();
+   private readonly playbackListeners = new Set<() => void>();
+-  private readonly sfxCursors: Record<GameSfxGroup, number> = { draw: 0, discard: 0, meld: 0 };
+-  private readonly sfxLastPlayed: Record<GameSfxGroup, MusicTrackId | null> = { draw: null, discard: null, meld: null };
++  private readonly sfxCursors: Record<GameSfxGroup, number> = { draw: 0, discard: 0, meld: 0, riichi: 0, dora: 0, rong: 0 };
++  private readonly sfxLastPlayed: Record<GameSfxGroup, MusicTrackId | null> = { draw: null, discard: null, meld: null, riichi: null, dora: null, rong: null };
+ 
+   constructor(
+     initialSettings: AudioSettings,
+@@ -329,6 +332,7 @@
+ 
+   /** Cancel pending resolutions and current one-shots without touching BGM/Voice. */
+   stopSfx(): void {
++    this.stopSfxPreview();
+     ++this.sfxGeneration;
+     this.activeSfx.forEach(handle => {
+       this.releaseCallbacks.get(handle)?.();
+@@ -473,6 +477,7 @@
+   }
+ 
+   dispose(): void {
++    this.stopSfxPreview();
+     if (this.disposed) return;
+     this.disposed = true;
+     this.disposeTemporaryHandle();
+@@ -565,24 +570,69 @@
+     const music = this.music;
+     if (!music) return;
+     const group = GAME_SFX_GROUP_BY_ACTION[gameSfxId];
+-    const groupTracks = [...music.tracksBySfxGroup(group)];
+-    const track = this.pickSfxTrack(group, groupTracks)
+-      ?? music.tracks('effects').find((candidate) => candidate.id === DEFAULT_TILE_SFX_TRACK_ID)
+-      ?? music.tracks('effects')[0];
++    const selected = music.sfxSelectedTrackIds?.(group);
++    const groupTracks = music.tracksBySfxGroup(group).filter(track => !selected || selected.includes(track.id));
++    const fallback = BUILTIN_MUSIC_TRACKS.find(track => track.gameSfxGroup === group);
++    const track = this.pickSfxTrack(group, groupTracks) ?? fallback
++      ?? music.tracks('effects').find(candidate => candidate.id === DEFAULT_TILE_SFX_TRACK_ID);
+     if (!track) return;
+-    const resolved = await music.resolveTrack(track);
+-    if (!resolved || this.disposed || generation !== this.sfxGeneration || this.getEffectiveVolume('sfx') <= 0) {
+-      resolved?.release();
+-      return;
+-    }
+-    const handle = this.backend.createPlayback({
+-      id: track.id,
+-      channel: 'sfx',
+-      src: resolved.url,
+-      loop: false,
+-      source: track.sourceType === 'builtin' ? 'project-local' : 'self-generated',
+-    });
+-    this.playOneShotHandle(handle, 'sfx', () => resolved.release());
++    const valid = () => !this.disposed && generation === this.sfxGeneration && this.getEffectiveVolume('sfx') > 0;
++    await this.playResolvedSfx(track, valid, track.sourceType !== 'builtin' ? fallback : undefined);
++  }
++
++  private async playResolvedSfx(
++    track: MusicTrackDefinition,
++    valid: () => boolean,
++    fallback?: MusicTrackDefinition,
++    preview = false,
++  ): Promise<void> {
++    if (!valid()) { if (preview) this.finishSfxPreview(); return; }
++    const retry = () => {
++      if (fallback && valid()) void this.playResolvedSfx(fallback, valid, undefined, preview).catch(() => undefined);
++    };
++    const resolved = await this.music?.resolveTrack(track).catch(() => null);
++    if (!resolved) { if (preview && valid()) this.finishSfxPreview(); retry(); return; }
++    if (!valid()) { resolved.release(); return; }
++    let handle: AudioPlaybackHandle;
++    try {
++      handle = this.backend.createPlayback({ id: track.id, channel: 'sfx', src: resolved.url,
++        loop: false, source: track.sourceType === 'builtin' ? 'project-local' : 'self-generated' });
++    } catch { resolved.release(); if (preview && valid()) this.finishSfxPreview(); retry(); return; }
++    if (preview) this.sfxPreview = handle;
++    this.playOneShotHandle(handle, 'sfx', () => {
++      if (this.sfxPreview === handle) { this.sfxPreview = null; this.finishSfxPreview(); }
++      resolved.release();
++    }, retry);
++  }
++
++  /** Managed one-shot preview: no playlist cursor, semantic cue or BGM state changes. */
++  playSfxPreview(track: MusicTrackDefinition, onEnded?: () => void): void {
++    this.stopSfxPreview();
++    this.sfxPreviewEnded = onEnded;
++    const previewGeneration = this.previewGeneration;
++    const generation = this.sfxGeneration;
++    const valid = () => !this.disposed && generation === this.sfxGeneration
++      && previewGeneration === this.previewGeneration && this.getEffectiveVolume('sfx') > 0;
++    void this.playResolvedSfx(track, valid, undefined, true).catch(() => undefined);
++  }
++
++  private finishSfxPreview(): void {
++    const onEnded = this.sfxPreviewEnded;
++    this.sfxPreviewEnded = undefined;
++    onEnded?.();
++  }
++
++  stopSfxPreview(): void {
++    ++this.previewGeneration;
++    const handle = this.sfxPreview;
++    this.sfxPreview = null;
++    this.finishSfxPreview();
++    this.sfxPreviewEnded = undefined;
++    if (!handle) return;
++    this.releaseCallbacks.get(handle)?.();
++    this.releaseCallbacks.delete(handle);
++    this.activeSfx.delete(handle);
++    handle.dispose();
+   }
+ 
+   private pickSfxTrack(
+@@ -828,6 +878,7 @@
+     handle: AudioPlaybackHandle,
+     channel: 'sfx' | 'voice',
+     release?: () => void,
++    onFailure?: () => void,
+   ): void {
+     const active = channel === 'sfx' ? this.activeSfx : this.activeVoice;
+     const limit = channel === 'sfx' ? MAX_ACTIVE_SFX : MAX_ACTIVE_VOICE;
+@@ -840,19 +891,30 @@
+         active.delete(oldest);
+       }
+     }
+-    if (release) this.releaseCallbacks.set(handle, release);
+ 
+     active.add(handle);
+     handle.setVolume(this.getEffectiveVolume(channel));
++    let removeError: () => void = () => undefined;
+     let removeEnded: () => void = () => undefined;
++    let released = false;
+     const finalRelease = () => {
++      if (released) return;
++      released = true;
+       removeEnded();
++      removeError();
+       active.delete(handle);
+       this.releaseCallbacks.delete(handle);
+       release?.();
+       handle.dispose();
+     };
++    this.releaseCallbacks.set(handle, finalRelease);
+     removeEnded = handle.onEnded(finalRelease);
+-    void handle.play().catch(finalRelease);
+-  }
+-}
++    const fail = () => {
++      if (released) return;
++      finalRelease();
++      onFailure?.();
++    };
++    removeError = handle.onError?.(fail) ?? (() => undefined);
++    void handle.play().catch(fail);
++  }
++}
+--- before/src/audio/AudioPresentationConsumer.test.ts
++++ after/src/audio/AudioPresentationConsumer.test.ts
+@@ -90,3 +90,21 @@
+     consumer.dispose();
+   });
+ });
++
++it('six semantic cues map to six libraries; no immediate event or duplicate playback', () => {
++  const cues = new PresentationAudioCues(); const bus = new PresentationEventBus();
++  const playSfx = vi.fn(); const consumer = new AudioPresentationConsumer({playSfx}, cues);
++  const riichi = bus.publish({type:'riichi_declared',playerId:0,riverIndex:0});
++  const dora = bus.publish({type:'dora_revealed',instanceId:'new-dora'});
++  const ron = bus.publish({type:'win_declared',playerId:0,winType:'ron'});
++  const tsumo = bus.publish({type:'win_declared',playerId:0,winType:'tsumo'});
++  expect(playSfx).not.toHaveBeenCalled();
++  for (let repeat=0; repeat<2; repeat++) {
++    cues.run(riichi).emit('riichi-stick-impact','release',1);
++    cues.run(dora).emit('dora-reveal','visual-commit',1);
++    cues.run(ron).emit('win-impact','push',0);
++    cues.run(tsumo).emit('win-impact','push',0);
++  }
++  expect(playSfx.mock.calls.map(([id])=>id)).toEqual(['riichi','dora','rong','rong']);
++  consumer.dispose();
++});
+--- before/src/audio/AudioPresentationConsumer.ts
++++ after/src/audio/AudioPresentationConsumer.ts
+@@ -27,7 +27,7 @@
+       : cue.kind === 'discard-impact' ? 'discard'
+       : cue.kind === 'riichi-stick-impact' ? 'riichi'
+       : cue.kind === 'dora-reveal' ? 'dora'
+-      : cue.kind === 'win-impact' ? 'win'
++      : cue.kind === 'win-impact' ? 'rong'
+       : cue.event.type === 'meld_declared' ? cue.event.meldType : undefined;
+     if (sound) this.audio.playSfx(sound);
+   };
+--- before/src/audio/audioRegistry.ts
++++ after/src/audio/audioRegistry.ts
+@@ -2,7 +2,7 @@
+ import defaultTileSfxUrl from '../music/effects/default-tile.wav';
+ 
+ export type BgmTrackId = 'home' | 'game' | 'riichi';
+-export type SfxId = 'discard' | 'riichi' | 'draw' | 'chi' | 'pon' | 'kan' | 'win' | 'dora';
++export type SfxId = 'discard' | 'riichi' | 'draw' | 'chi' | 'pon' | 'kan' | 'rong' | 'win' | 'dora';
+ export type VoiceId = 'round-start' | 'win';
+ 
+ export interface AudioAssetDefinition {
+--- before/src/audio/musicLibrary.test.ts
++++ after/src/audio/musicLibrary.test.ts
+@@ -419,3 +419,39 @@
+     expect(reloaded.sfxPlaybackMode('meld')).toBe('sequential');
+   });
+ });
++
++it.each(['draw', 'discard', 'meld', 'riichi', 'dora', 'rong'] as const)('%s custom selection survives refresh, deletion falls back, reset preserves saved custom', async group => {
++  const store = new MemoryMusicLibraryStore();
++  const storage = memoryStorage();
++  const library = new MusicLibrary(store, storage);
++  await library.initialize();
++  library.setSfxPlaybackMode('draw', 'shuffle');
++  await library.addCopiedFiles('effects', [wavFile('custom.wav')], group);
++  const custom = library.tracksBySfxGroup(group).find(track => track.sourceType === 'copied')!;
++  library.setSfxSelection(group, [custom.id]);
++  const fresh = new MusicLibrary(store, storage);
++  await fresh.initialize();
++  expect(fresh.sfxSelectedTrackIds(group)).toEqual([custom.id]);
++  fresh.resetSfxGroup(group);
++  expect(fresh.sfxPlaybackMode(group)).toBe('sequential');
++  expect(fresh.sfxSelectedTrackIds(group).every(id => id.startsWith('builtin:'))).toBe(true);
++  expect(fresh.tracksBySfxGroup(group).some(track => track.id === custom.id)).toBe(true);
++  fresh.setSfxSelection(group, [custom.id]);
++  await fresh.removeTrack(custom.id);
++  expect(fresh.sfxSelectedTrackIds(group).length).toBeGreaterThanOrEqual(2);
++  expect(fresh.sfxSelectedTrackIds(group)).not.toContain(custom.id);
++  expect(JSON.stringify(storage.getItem('local-mahjong.music-preferences.v1'))).not.toContain(custom.id);
++  expect(await store.getBlob(custom.id)).toBeNull();
++});
++it('old preferences keep modes and selection while new groups receive default sequential builtins', async () => {
++  const storage = memoryStorage();
++  storage.setItem('local-mahjong.music-preferences.v1', JSON.stringify({version:1, preferences:{sfxPlaybackMode:{draw:'shuffle',discard:'repeat-one'}, sfxLastSelectedTrackId:{discard:'builtin:effects:discard2'}}}));
++  const library = new MusicLibrary(new MemoryMusicLibraryStore(), storage);
++  await library.initialize();
++  expect(library.sfxPlaybackMode('draw')).toBe('shuffle');
++  expect(library.sfxLastSelectedTrackId('discard')).toBe('builtin:effects:discard2');
++  for (const group of ['riichi','dora','rong'] as const) {
++    expect(library.sfxPlaybackMode(group)).toBe('sequential');
++    expect(library.sfxSelectedTrackIds(group).length).toBeGreaterThanOrEqual(2);
++  }
++});
+--- before/src/audio/musicLibrary.ts
++++ after/src/audio/musicLibrary.ts
+@@ -24,6 +24,7 @@
+   readonly initialized: boolean;
+   tracks(category: MusicCategory): readonly MusicTrackDefinition[];
+   tracksBySfxGroup(group: GameSfxGroup): readonly MusicTrackDefinition[];
++  sfxSelectedTrackIds?(group: GameSfxGroup): readonly MusicTrackId[];
+   playbackMode(category: MusicCategory): PlaybackMode;
+   sfxPlaybackMode(group: GameSfxGroup): PlaybackMode;
+   lastSelectedTrackId(category: MusicCategory): MusicTrackId | null;
+@@ -194,8 +195,13 @@
+         sfxLastSelectedTrackId[group] = this.tracksBySfxGroup(group)[0]?.id ?? null;
+       }
+     });
+-    this.preferences = {
+-      ...this.preferences,
++    const sfxAssetIds = { ...this.preferences.sfxAssetIds };
++    GAME_SFX_GROUPS.forEach(group => {
++      if (sfxAssetIds[group]) sfxAssetIds[group] = sfxAssetIds[group]!.filter(isValid);
++    });
++    this.preferences = {
++      ...this.preferences,
++      sfxAssetIds,
+       disabledBuiltinTrackIds,
+       order,
+       lastSelectedTrackId,
+@@ -253,6 +259,38 @@
+     return ordered;
+   }
+ 
++  sfxSelectedTrackIds(group: GameSfxGroup): readonly MusicTrackId[] {
++    const tracks = this.tracksBySfxGroup(group);
++    const saved = this.preferences.sfxAssetIds?.[group];
++    if (!saved) return tracks.map(track => track.id);
++    const valid = saved.filter(id => tracks.some(track => track.id === id));
++    return valid.length ? valid : tracks.filter(track => track.sourceType === 'builtin').map(track => track.id);
++  }
++
++  setSfxSelection(group: GameSfxGroup, ids: readonly MusicTrackId[]): void {
++    const valid = this.tracksBySfxGroup(group);
++    this.preferences = { ...this.preferences, sfxAssetIds: { ...this.preferences.sfxAssetIds,
++      [group]: [...new Set(ids)].filter(id => valid.some(track => track.id === id)),
++    }, sfxLastSelectedTrackId: ids.length === 1 && valid.some(track => track.id === ids[0])
++      ? { ...this.preferences.sfxLastSelectedTrackId, [group]: ids[0] }
++      : this.preferences.sfxLastSelectedTrackId };
++
++    this.persistPreferences();
++  }
++
++  resetSfxGroup(group: GameSfxGroup): void {
++    const builtin = BUILTIN_MUSIC_TRACKS.filter(track => track.gameSfxGroup === group);
++    const ids = builtin.map(track => track.id);
++    this.preferences = { ...this.preferences,
++      disabledBuiltinTrackIds: this.preferences.disabledBuiltinTrackIds.filter(id => !ids.includes(id)),
++      sfxAssetIds: { ...this.preferences.sfxAssetIds, [group]: ids },
++      sfxOrder: { ...this.preferences.sfxOrder, [group]: ids },
++      sfxPlaybackMode: { ...this.preferences.sfxPlaybackMode, [group]: 'sequential' },
++      sfxLastSelectedTrackId: { ...this.preferences.sfxLastSelectedTrackId, [group]: ids[0] ?? null },
++    };
++    this.persistPreferences();
++  }
++
+   playbackMode(category: MusicCategory): PlaybackMode {
+     return this.preferences.playbackMode[category] ?? 'sequential';
+   }
+@@ -491,6 +529,9 @@
+         },
+       };
+     }
++    if (track.gameSfxGroup && this.preferences.sfxAssetIds?.[track.gameSfxGroup]) {
++      this.setSfxSelection(track.gameSfxGroup, this.preferences.sfxAssetIds[track.gameSfxGroup]!.filter(id => id !== trackId));
++    }
+     this.persistPreferences();
+   }
+ 
+--- before/src/audio/musicLibraryStorage.ts
++++ after/src/audio/musicLibraryStorage.ts
+@@ -35,7 +35,7 @@
+     sourceType,
+     order: typeof record.order === 'number' && Number.isFinite(record.order) ? record.order : 0,
+     createdAt: typeof record.createdAt === 'string' ? record.createdAt : new Date(0).toISOString(),
+-    ...(record.gameSfxGroup === 'draw' || record.gameSfxGroup === 'discard' || record.gameSfxGroup === 'meld'
++    ...(record.gameSfxGroup === 'draw' || record.gameSfxGroup === 'discard' || record.gameSfxGroup === 'meld' || record.gameSfxGroup === 'riichi' || record.gameSfxGroup === 'dora' || record.gameSfxGroup === 'rong'
+       ? { gameSfxGroup: record.gameSfxGroup }
+       : {}),
+   };
+--- before/src/audio/musicPreferences.ts
++++ after/src/audio/musicPreferences.ts
+@@ -11,11 +11,12 @@
+   'voice_lines',
+ ]);
+ 
+-export const GAME_SFX_GROUPS: readonly GameSfxGroup[] = Object.freeze(['draw', 'discard', 'meld']);
++export const GAME_SFX_GROUPS: readonly GameSfxGroup[] = Object.freeze(['draw', 'discard', 'meld', 'riichi', 'dora', 'rong']);
+ 
+ export const PLAYBACK_MODES: readonly PlaybackMode[] = Object.freeze(['shuffle', 'sequential', 'repeat-one']);
+ 
+ export interface MusicPreferences {
++  readonly sfxAssetIds?: Readonly<Partial<Record<GameSfxGroup, readonly MusicTrackId[]>>>;
+   readonly disabledBuiltinTrackIds: readonly MusicTrackId[];
+   readonly order: Readonly<Partial<Record<MusicCategory, readonly MusicTrackId[]>>>;
+   readonly playbackMode: Readonly<Partial<Record<MusicCategory, PlaybackMode>>>;
+@@ -46,12 +47,18 @@
+     draw: null,
+     discard: null,
+     meld: null,
++    riichi: null,
++    dora: null,
++    rong: null,
+   }),
+   sfxOrder: Object.freeze({}),
+   sfxPlaybackMode: Object.freeze({
+     draw: 'sequential',
+     discard: 'sequential',
+     meld: 'sequential',
++    riichi: 'sequential',
++    dora: 'sequential',
++    rong: 'sequential',
+   }),
+ });
+ 
+@@ -123,6 +130,7 @@
+   });
+   return {
+     disabledBuiltinTrackIds: normalizeTrackIdList(input.disabledBuiltinTrackIds),
++    ...(input.sfxAssetIds ? { sfxAssetIds: normalizeSfxMap(input.sfxAssetIds, normalizeTrackIdList) } : {}),
+     order: normalizeCategoryMap(input.order, (item) => {
+       const ids = normalizeTrackIdList(item);
+       return ids.length > 0 ? ids : null;
+--- before/src/audio/musicRegistry.test.ts
++++ after/src/audio/musicRegistry.test.ts
+@@ -91,11 +91,12 @@
+       chi: 'meld',
+       pon: 'meld',
+       kan: 'meld',
++      riichi: 'riichi', dora: 'dora', win: 'rong', rong: 'rong',
+     });
+   });
+ 
+   it('Game SFX 映射：draw/discard/chi/pon/kan 全部指向默认音效 track', () => {
+-    const ids = Object.values(GAME_SFX_TO_TRACK);
++    const ids = [GAME_SFX_TO_TRACK.draw, GAME_SFX_TO_TRACK.discard, GAME_SFX_TO_TRACK.chi, GAME_SFX_TO_TRACK.pon, GAME_SFX_TO_TRACK.kan];
+     expect(ids).toHaveLength(5);
+     expect(new Set(ids).size).toBe(1);
+     expect(BUILTIN_MUSIC_TRACKS.some((track) => track.id === GAME_SFX_TO_TRACK.discard)).toBe(true);
+@@ -105,3 +106,14 @@
+     expect(musicDisplayNameFromFileName('menu_theme_01')).toBe('menu theme 01');
+   });
+ });
++
++it.each(['draw', 'discard', 'meld', 'riichi', 'dora', 'rong'] as const)('%s has at least two real builtin WAVs with stable ids', group => {
++  const tracks = BUILTIN_MUSIC_TRACKS.filter(track => track.gameSfxGroup === group);
++  expect(tracks.length).toBeGreaterThanOrEqual(2);
++  expect(tracks.every(track => track.url && track.sourceType === 'builtin')).toBe(true);
++  expect(tracks.map(track => track.id)).toEqual(expect.arrayContaining([`builtin:effects:${group}1`, `builtin:effects:${group}2`]));
++});
++it('physical win folder preserves rong identity, alongside future rong paths', () => {
++  expect(gameSfxGroupFromModulePath('/src/music/effects/win/rong1.wav')).toBe('rong');
++  expect(gameSfxGroupFromModulePath('/src/music/effects/rong/rong2.wav')).toBe('rong');
++});
+--- before/src/audio/musicRegistry.ts
++++ after/src/audio/musicRegistry.ts
+@@ -7,7 +7,7 @@
+ export type BuiltinMusicModuleMap = Record<string, string>;
+ 
+ const MUSIC_CATEGORY_PATTERN = /\/(bgm_main|bgm_game|bgm_richi|effects|voice_lines)\//;
+-const SFX_GROUP_PATTERN = /\/music\/effects\/(draw|discard|meld)\//;
++const SFX_GROUP_PATTERN = /\/music\/effects\/(draw|discard|meld|riichi|dora|rong|win)\//;
+ 
+ export function musicCategoryFromModulePath(path: string): MusicCategory | null {
+   const match = MUSIC_CATEGORY_PATTERN.exec(path);
+@@ -16,7 +16,7 @@
+ 
+ export function gameSfxGroupFromModulePath(path: string): GameSfxGroup | null {
+   const match = SFX_GROUP_PATTERN.exec(path);
+-  return (match?.[1] as GameSfxGroup | undefined) ?? null;
++  return match?.[1] === 'win' ? 'rong' : (match?.[1] as GameSfxGroup | undefined) ?? null;
+ }
+ 
+ export function fileNameFromModulePath(path: string): string {
+@@ -67,6 +67,10 @@
+   chi: DEFAULT_TILE_SFX_TRACK_ID,
+   pon: DEFAULT_TILE_SFX_TRACK_ID,
+   kan: DEFAULT_TILE_SFX_TRACK_ID,
++  riichi: builtinTrackId('effects', 'riichi1'),
++  dora: builtinTrackId('effects', 'dora1'),
++  win: builtinTrackId('effects', 'rong1'),
++  rong: builtinTrackId('effects', 'rong1'),
+ });
+ 
+ export const GAME_SFX_GROUP_BY_ACTION: Record<GameSfxId, GameSfxGroup> = Object.freeze({
+@@ -75,6 +79,10 @@
+   chi: 'meld',
+   pon: 'meld',
+   kan: 'meld',
++  riichi: 'riichi',
++  dora: 'dora',
++  win: 'rong',
++  rong: 'rong',
+ });
+ 
+-export const GAME_SFX_IDS: readonly GameSfxId[] = Object.freeze(['draw', 'discard', 'chi', 'pon', 'kan']);
++export const GAME_SFX_IDS: readonly GameSfxId[] = Object.freeze(['draw', 'discard', 'chi', 'pon', 'kan', 'riichi', 'dora', 'win', 'rong']);
+--- before/src/audio/musicTypes.ts
++++ after/src/audio/musicTypes.ts
+@@ -11,9 +11,9 @@
+ 
+ export type MusicSourceType = 'builtin' | 'linked' | 'copied';
+ 
+-export type GameSfxId = 'draw' | 'discard' | 'chi' | 'pon' | 'kan';
++export type GameSfxId = 'draw' | 'discard' | 'chi' | 'pon' | 'kan' | 'riichi' | 'dora' | 'win' | 'rong';
+ 
+-export type GameSfxGroup = 'draw' | 'discard' | 'meld';
++export type GameSfxGroup = 'draw' | 'discard' | 'meld' | 'riichi' | 'dora' | 'rong';
+ 
+ export interface MusicTrackDefinition {
+   readonly id: MusicTrackId;
+@@ -28,5 +28,5 @@
+ }
+ 
+ export function isGameSfxId(value: string): value is GameSfxId {
+-  return value === 'draw' || value === 'discard' || value === 'chi' || value === 'pon' || value === 'kan';
++  return value === 'draw' || value === 'discard' || value === 'chi' || value === 'pon' || value === 'kan' || value === 'riichi' || value === 'dora' || value === 'win' || value === 'rong';
+ }
+--- before/src/components/AudioSettingsDialog.test.tsx
++++ after/src/components/AudioSettingsDialog.test.tsx
+@@ -197,10 +197,10 @@
+     for (const group of ['摸牌音效', '弃牌音效', '鸣牌音效']) {
+       expect(html).toContain(`aria-label="添加${group}"`);
+     }
+-    for (const group of ['draw', 'discard', 'meld']) {
++    for (const group of ['draw', 'discard', 'meld', 'riichi', 'dora', 'rong']) {
+       expect(html).toContain(`name="music-mode-sfx-${group}"`);
+     }
+-    expect(html.match(/type="radio"/g)).toHaveLength(18);
++    expect(html.match(/type="radio"/g)).toHaveLength(27);
+     expect(html).toContain('随机播放');
+     expect(html).toContain('循环播放');
+     expect(html).not.toContain('顺序播放');
+@@ -342,3 +342,15 @@
+     expect(onClose).toHaveBeenCalledOnce();
+   });
+ });
++
++it('six SFX categories share selection/import/reset UI, separate scroll region, Voice remains intact', () => {
++  const html = renderDialog();
++  for (const label of ['摸牌音效','弃牌音效','鸣牌音效','立直棒音效','宝牌音效','和牌音效']) {
++    expect(html).toContain(`恢复默认（${label}）`);
++    expect(html).toContain(`复制到游戏音乐库（${label}）`);
++  }
++  expect(html).toContain('aria-label="游戏音效分类列表"');
++  expect(html).toContain('music-card--sfx');
++  expect(html).toContain('audio-settings__channel--voice');
++  expect(html).toContain('出牌报牌范围');
++});
+--- before/src/audio/audioBackend.test.ts
++++ after/src/audio/audioBackend.test.ts
+@@ -0,0 +1,20 @@
++import {afterEach,expect,it,vi} from 'vitest';
++import {BrowserAudioBackend} from './audioBackend';
++
++afterEach(()=>vi.unstubAllGlobals());
++it('media error listeners are delivered and removed with the owned audio element', async ()=>{
++  let element!: EventTarget & {play:()=>Promise<void>;pause:()=>void;removeAttribute:()=>void;load:()=>void};
++  class Media extends EventTarget {
++    loop=false; preload=''; volume=1;
++    constructor(public src:string){super();element=this;}
++    async play(){} pause(){} removeAttribute(){} load(){}
++  }
++  vi.stubGlobal('Audio',Media);
++  const backend=new BrowserAudioBackend();
++  const handle=backend.createPlayback({id:'custom',src:'blob:local',channel:'sfx',loop:false,source:'self-generated'});
++  const failed=vi.fn();handle.onError?.(failed);
++  await handle.play(); element.dispatchEvent(new Event('error'));
++  expect(failed).toHaveBeenCalledOnce();
++  handle.dispose();element.dispatchEvent(new Event('error'));
++  expect(failed).toHaveBeenCalledOnce();backend.dispose();
++});

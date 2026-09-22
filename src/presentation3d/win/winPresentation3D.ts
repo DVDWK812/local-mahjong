@@ -5,12 +5,29 @@ import type {
 } from '../../presentation/winAnimation/WinPresentationController';
 import type { Table3DSeat } from '../coordinates/seatTransforms';
 import { getSeatDirection } from '../coordinates/seatTransforms';
+import { getHandTileTransform } from '../coordinates/sceneTransforms';
+import { getGroundedTileCenterY } from '../tile/tileGrounding';
+import { getHandTileScale } from '../table/tablePresentationTuning';
+
+/** One winning tile, in front of its authoritative drawn slot; other hand tiles stay standing. */
+export function winningTileSlapTransform(seat: Table3DSeat, index: number, count: number, progress: number) {
+  const source = getHandTileTransform(seat, index, count, true);
+  const direction = getSeatDirection(seat);
+  const p = Math.max(0, Math.min(1, progress));
+  const t = p * p * (3 - 2 * p);
+  const rotationX = t === 1 ? 0 : source.rotationX * (1 - t);
+  return { position: [source.position[0] + direction.x * 1.1 * t,
+    getGroundedTileCenterY(rotationX, getHandTileScale(seat)) + Math.sin(Math.PI * t) * 0.3,
+    source.position[2] + direction.z * 1.1 * t] as const, rotationX };
+}
 
 export type WinPresentation3DPhase = 'ready' | WinPresentationPhase;
 
 export type WinPresentation3DState = Readonly<{
   action: WinPresentationAction;
   phase: WinPresentation3DPhase;
+  progress?: number;
+  revealedPlayerIds?: readonly PlayerId[];
 }>;
 
 export type WinningRiverTarget3D = Readonly<{

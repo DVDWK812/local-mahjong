@@ -1465,6 +1465,81 @@ body {
   gap: var(--space-2);
 }
 
+.hand-appearance-settings h3 {
+  margin: 0 0 4px;
+}
+
+.hand-pack-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.hand-pack-option {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid rgba(33, 72, 58, 0.22);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.82);
+  color: #23483a;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.hand-pack-option--selected {
+  border-color: #21483a;
+  box-shadow: 0 0 0 2px rgba(33, 72, 58, 0.18);
+}
+
+.hand-pack-option img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 8px;
+  background: linear-gradient(145deg, #173c33, #0d2822);
+}
+
+.hand-player-pack-settings {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid #d6ded9;
+  border-radius: var(--radius-md);
+}
+
+.hand-player-pack-row {
+  display: grid;
+  grid-template-columns: minmax(72px, auto) 52px minmax(150px, 1fr) minmax(84px, auto);
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.hand-player-pack-row img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #173c33;
+}
+
+.hand-player-pack-row select {
+  min-width: 0;
+}
+
+.hand-player-pack-row small {
+  color: #63786e;
+}
+
+@media (max-width: 640px) {
+  .hand-pack-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hand-player-pack-row { grid-template-columns: 72px 44px minmax(0, 1fr); }
+  .hand-player-pack-row img { width: 44px; height: 44px; }
+  .hand-player-pack-row small { grid-column: 3; }
+}
+
 .appearance-image-library {
   display: grid;
   gap: 12px;
@@ -2214,7 +2289,23 @@ body:has(.appearance-scroll-dialog) {
   min-height: 0;
 }
 
+/* Keep the final grid row equal-height; growing libraries scroll inside it. */
+.music-card--sfx,
+.audio-settings__channel--voice {
+  height: 420px;
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.audio-settings__channel--voice { overflow-y: auto; }
+.music-card--sfx > .music-card__header,
+.music-card--sfx > .audio-volume { flex-shrink: 0; }
+.music-card__sfx-summary { margin: 0; font-size: 12px; }
 .music-card__sfx-groups {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -2222,6 +2313,7 @@ body:has(.appearance-scroll-dialog) {
 }
 
 .music-card__sfx-group {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -2240,7 +2332,8 @@ body:has(.appearance-scroll-dialog) {
 }
 
 .music-card__sfx-group .music-track-list {
-  max-height: 108px;
+  max-height: none;
+  flex-shrink: 0;
 }
 
 .music-card__sfx-group .music-card__add-actions {
@@ -2333,6 +2426,10 @@ body:has(.appearance-scroll-dialog) {
   gap: var(--space-1);
   min-width: 0;
   padding: 4px 6px;
+}
+
+.music-card__sfx-group .music-track {
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
 }
 
 .music-track--dragging {
@@ -6257,12 +6354,16 @@ button {
 }
 
 /* 17步专属宽屏1v1布局：牌桌保持正式组件，玩家状态移到左侧，操作区全宽上下排列。 */
-.seventeen-steps-game {
+.seventeen-steps-game,
+.seventeen-steps-battle {
   --seventeen-panel-bg: rgba(5, 31, 25, 0.92);
   --seventeen-panel-bg-secondary: rgba(7, 43, 34, 0.94);
   --seventeen-panel-border: rgba(255, 255, 255, 0.12);
   --seventeen-text-primary: #f1f5f2;
   --seventeen-text-secondary: #a9bbb4;
+}
+
+.seventeen-steps-game {
   --center-size: clamp(210px, 18vw, 300px);
   --river-tile-width: clamp(30px, 2.9vw, 52px);
   --opponent-tile-width: clamp(28px, 2.45vw, 44px);

@@ -5,6 +5,7 @@ import { createDefaultAppearanceSettings, DEFAULT_APPEARANCE_SETTINGS } from '..
 import { AppearanceSettingsDialog, TileBackColorSetting } from './AppearanceSettingsDialog';
 import { PlayerProfileDialog } from './PlayerProfileDialog';
 import { DEFAULT_PLAYER_PROFILE } from '../profile/playerProfile';
+import { HandAppearanceSettings } from './settings/HandAppearanceSettings';
 
 describe('AppearanceSettingsDialog', () => {
   it('shares a viewport-bounded scroll body with the avatar dialog and keeps chrome outside it', () => {
@@ -31,11 +32,11 @@ describe('AppearanceSettingsDialog', () => {
     expect(settings.tileBack.sideColor).toBe('#aabbcc');
   });
 
-  it('provides the five requested image settings entries with hand disabled', () => {
+  it('provides the five requested image settings entries with hand enabled', () => {
     const html = renderToStaticMarkup(<AppearanceSettingsDialog settings={createDefaultAppearanceSettings()} onClose={() => undefined} />);
     for (const label of ['图像设置', '牌面设置', '牌背设置', '桌布设置', '立直棒设置', '手部设置']) expect(html).toContain(label);
-    expect(html).toContain('暂未开放');
-    expect(html).toContain('disabled=""');
+    expect(html).toContain('手部动画 Pack');
+    expect(html).not.toContain('暂未开放');
   });
 
   it('keeps section copy on the root list and leaves detail pages with only back and preview controls', () => {
@@ -46,5 +47,28 @@ describe('AppearanceSettingsDialog', () => {
     expect(source).not.toContain('同一张图片会同时用于静态立直棒');
     expect(source).not.toContain('只替换桌面 Felt 的表面纹理');
     expect(source).toContain('图片仅保存在本机，并即时应用到 3D 牌桌。');
+  });
+
+  it('renders one global Pack picker and stable Player 1–4 selectors with previews', () => {
+    const html = renderToStaticMarkup(<HandAppearanceSettings settings={createDefaultAppearanceSettings()}
+      onChange={() => undefined} onBack={() => undefined} />);
+    for (const label of ['全局默认手部', 'Female', 'Female 2', 'Male', 'Orange Cat Paw', 'Grey Cat Paw', 'Dog Paw', 'Gloved', 'Robot', 'Cyberpunk']) {
+      expect(html).toContain(label);
+    }
+    expect(html).not.toContain('Follow Global');
+    expect(html).not.toContain('value="inherit"');
+    for (const player of [1, 2, 3, 4]) expect(html).toContain(`Player ${player}`);
+    expect((html.match(/<img/g) ?? [])).toHaveLength(13);
+    expect((html.match(/<select/g) ?? [])).toHaveLength(4);
+  });
+
+  it('does not rerun focus restoration when an inline close callback changes identity', () => {
+    const sourcePath = decodeURIComponent(new URL('./AppearanceSettingsDialog.tsx', import.meta.url).pathname)
+      .replace(/^\/([A-Za-z]:)/, '$1');
+    const source = readFileSync(sourcePath, 'utf8');
+    expect(source).toContain('const onCloseRef = useRef(onClose)');
+    expect(source).toContain('onCloseRef.current()');
+    expect(source).toContain('}, []);');
+    expect(source).not.toContain('}, [onClose]);');
   });
 });

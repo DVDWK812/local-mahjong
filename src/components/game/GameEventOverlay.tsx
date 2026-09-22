@@ -20,6 +20,7 @@ import './gameEventOverlay.css';
 interface GameEventOverlayProps {
   readonly bottomPlayerId: PlayerId;
   readonly enabled: boolean;
+  readonly seatForPlayer?: (playerId: PlayerId) => VisualSeat;
   readonly onRoundEndSettled?: () => void;
 }
 
@@ -28,7 +29,7 @@ interface GameEventOverlayVisual {
   readonly phase: EventOverlayPhase;
 }
 
-export function GameEventOverlay({ bottomPlayerId, enabled, onRoundEndSettled }: GameEventOverlayProps) {
+export function GameEventOverlay({ bottomPlayerId, enabled, onRoundEndSettled, seatForPlayer }: GameEventOverlayProps) {
   const enabledRef = useRef(enabled);
   const onRoundEndSettledRef = useRef(onRoundEndSettled);
   const controllerRef = useRef<EventOverlayController | null>(null);
@@ -77,7 +78,8 @@ export function GameEventOverlay({ bottomPlayerId, enabled, onRoundEndSettled }:
     controllerRef.current?.cancelAll();
   }, [enabled]);
 
-  const seat = visual ? eventSeatForAction(visual.action, bottomPlayerId) : null;
+  const seat = visual ? visual.action.type === 'round_end_announced' ? 'center'
+    : seatForPlayer?.(visual.action.playerId) ?? eventSeatForAction(visual.action, bottomPlayerId) : null;
   return (
     <div
       className="game-event-overlay"

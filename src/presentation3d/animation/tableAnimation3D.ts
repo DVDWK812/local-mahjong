@@ -327,7 +327,7 @@ export function resolveTableAnimation3DMotion(
     handPosition = plan.source;
     tilePosition = addY(plan.source, TILE_LIFT * t);
   } else if (phase === 'travel') {
-    const travel = lerpPoint(plan.source, plan.destination, t);
+    const travel = t === 1 ? plan.destination : lerpPoint(plan.source, plan.destination, t);
     const arc = Math.sin(Math.PI * t) * 0.22 + TILE_LIFT * (1 - t);
     handPosition = addY(travel, arc);
     tilePosition = addY(travel, arc);
@@ -335,9 +335,9 @@ export function resolveTableAnimation3DMotion(
     tileRotationY = lerpAngle(plan.sourceRotationY, plan.destinationRotationY, t);
     tileScale = lerp(plan.sourceScale, plan.destinationScale, t);
   } else if (phase === 'release') {
-    handPosition = addY(plan.destination, TILE_LIFT * (1 - t));
+    handPosition = plan.stickProxy ? plan.destination : addY(plan.destination, TILE_LIFT * (1 - t));
     // Snapshot carry already reaches the river; settle must not lift it a second time.
-    tilePosition = plan.handSnapshot ? plan.destination : addY(plan.destination, TILE_LIFT * (1 - t));
+    tilePosition = plan.handSnapshot || plan.stickProxy ? plan.destination : addY(plan.destination, TILE_LIFT * (1 - t));
     tileRotationX = plan.destinationRotationX;
     tileRotationY = plan.destinationRotationY;
     tileScale = plan.destinationScale;
@@ -352,7 +352,7 @@ export function resolveTableAnimation3DMotion(
 
   return {
     handPosition,
-    tilePosition: groundTilePosition(tilePosition, tileRotationX, tileScale),
+    tilePosition: plan.stickProxy ? tilePosition : groundTilePosition(tilePosition, tileRotationX, tileScale),
     tileRotationX,
     tileRotationY,
     tileScale,

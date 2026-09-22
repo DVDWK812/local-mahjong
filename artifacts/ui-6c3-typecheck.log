@@ -1,0 +1,2 @@
+src/presentation/manualGateFixes.test.ts(69,39): error TS2493: Tuple type '[]' of length '0' has no element at index '0'.
+src/presentation/manualGateFixes.test.ts(70,19): error TS2339: Property 'toHaveBeenCalledExactlyOnceWith' does not exist on type 'Assertion<Mock<Procedure>>'.

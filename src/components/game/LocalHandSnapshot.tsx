@@ -12,7 +12,7 @@ export function LocalHandSnapshot({ frame, concealed, doraIndicators, doraGlowEn
   const count = frame.snapshot.visualHand.length - (frame.snapshot.drawnTile ? 1 : 0);
   return <div className="local-hand-snapshot-row" data-hand-snapshot={frame.snapshot.eventId}
     data-hand-phase={frame.phase} style={{ '--snapshot-count': count } as CSSProperties}>
-    {resolveHandPresentationSlots(frame).map((entry) => <span key={entry.tile.instanceId}
+    {resolveLocalHandSlots(frame).map((entry) => <span key={entry.tile.instanceId}
       className="local-hand-snapshot-slot" data-hand-slot-index={entry.index} data-hand-gap={entry.hidden || undefined}
       style={{ visibility: entry.hidden ? 'hidden' : undefined,
         left: `calc(${entry.slot} * (var(--hand-tile-width) + 2px) + ${entry.drawnGap} * var(--drawn-tile-gap))`,
@@ -22,6 +22,22 @@ export function LocalHandSnapshot({ frame, concealed, doraIndicators, doraGlowEn
         doraIndicators={doraIndicators} doraGlowEnabled={doraGlowEnabled && !concealed} doraSweepEnabled={doraSweepEnabled} />
     </span>)}
   </div>;
+}
+
+/** Local tedashi carries the real drawn tile directly to its final slot. The immutable
+ * UI-6A history still owns every tile; adjacent tiles make room only as insertion arrives. */
+export function resolveLocalHandSlots(frame: HandPresentationFrame) {
+  const entries = resolveHandPresentationSlots(frame);
+  const { snapshot, phase } = frame;
+  if (snapshot.isTsumogiri || !snapshot.drawnTile || !['insert', 'reorder', 'complete'].includes(phase)) return entries;
+  const ease = (value: number) => { const p = Math.max(0, Math.min(1, value)); return p * p * (3 - 2 * p); };
+  return entries.map(entry => {
+    if (entry.hidden) return entry;
+    const drawn = entry.tile.instanceId === snapshot.drawnTile?.instanceId;
+    const t = phase === 'insert' ? ease(drawn ? (frame.progress - 0.2) / 0.8 : (frame.progress - 0.6) / 0.4) : 1;
+    return { ...entry, slot: entry.index + (entry.finalIndex - entry.index) * t,
+      drawnGap: drawn ? 1 - t : 0, lift: drawn && phase === 'insert' && t < 1 ? Math.sin(Math.PI * t) : 0 };
+  });
 }
 
 export function resolveLocalDiscardRect(frame: HandPresentationFrame, motion: LocalDiscardMotion) {

@@ -22,10 +22,26 @@ function sourcePath(relativePath: string): string {
 }
 
 describe('3D table renderer selection', () => {
+  it('renders Loading, not the Legacy table, while the default 3D chunk is pending', () => {
+    const markup = renderToStaticMarkup(createElement(TableRenderer, { gameState: createInitialGameState(), renderer: '3d' }));
+    expect(markup).toContain('data-table-renderer-requested="3d"');
+    expect(markup).toContain('data-presentation-revealed="false"');
+    expect(markup).toContain('正在准备牌桌…');
+    expect(markup).not.toContain('class="mahjong-table"');
+  });
   it('uses 3D by default and keeps the explicit Legacy Compatibility URL', () => {
     expect(resolveTableRenderer('', null)).toBe('3d');
     expect(resolveTableRenderer('?table3d=0')).toBe('2d');
     expect(resolveTableRenderer('?presentationEvents=1', null)).toBe('3d');
+  });
+
+  it('keeps test-mode and animation fixtures on 3D unless their URL explicitly selects Legacy', () => {
+    const legacyStorage = { getItem: (key: string) => key === TABLE_RENDERER_PREFERENCE_KEY ? '2d' : null };
+    expect(resolveTableRenderer('?testMode=1', legacyStorage)).toBe('3d');
+    expect(resolveTableRenderer('?testAnimations=1', legacyStorage)).toBe('3d');
+    expect(resolveTableRenderer('?testMode=1&testAnimations=1', legacyStorage)).toBe('3d');
+    expect(resolveTableRenderer('?testMode=1&table3d=1', legacyStorage)).toBe('3d');
+    expect(resolveTableRenderer('?testAnimations=1&table3d=0', legacyStorage)).toBe('2d');
   });
 
   it('honors a saved renderer preference unless an explicit URL overrides it', () => {
@@ -141,7 +157,8 @@ describe('3D table renderer selection', () => {
   it('coexists with the DOM HUD and switches the shared local hand to a transparent screen-space overlay only after 3D is active', () => {
     const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
     const gameScreenSource = readFileSync(sourcePath('../components/game/GameScreen.tsx'), 'utf8');
-    const css = readFileSync(sourcePath('./table3d.css'), 'utf8');
+    const css = readFileSync(sourcePath('./table3d.css'), 'utf8')
+      + readFileSync(sourcePath('./session/sceneSession.css'), 'utf8');
     expect(source).toContain('table-renderer-layer--3d');
     expect(source).toContain('<Table3DHud {...tableProps} doraIndicatorSlots={doraIndicatorSlots} playerProfile={playerProfile} />');
     expect(source).toContain('centralHud={centralHud}');
@@ -157,6 +174,34 @@ describe('3D table renderer selection', () => {
     expect(css).toContain('position: fixed');
     expect(css).toContain('background: transparent');
     expect(css).toContain('transform: translateX(-50%)');
+  });
+
+  it('covers the mounted renderer until scene and local presentation are both ready', () => {
+    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
+    const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
+    const css = readFileSync(sourcePath('./table3d.css'), 'utf8')
+      + readFileSync(sourcePath('./session/sceneSession.css'), 'utf8');
+
+    expect(source).toContain('sceneReady && criticalHandPacksReady');
+    expect(source).toContain('data-critical-hand-packs-ready={criticalHandPacksReady');
+    expect(source).toContain('resolveEffectiveHandPackIds(');
+    expect(source).toContain('preloadHandPacks(effectiveHandPackIds)');
+    expect(source).toContain('data-presentation-revealed={initialPresentationReady');
+    const loadingSource = readFileSync(sourcePath('./session/SceneErrorBoundary.tsx'), 'utf8');
+    const hostSource = readFileSync(sourcePath('./session/SceneCanvasHost.tsx'), 'utf8');
+    const commitSource = readFileSync(sourcePath('./session/initialFrameCommit.ts'), 'utf8');
+    expect(source).toContain('<SceneLoading />');
+    expect(source).toContain('<Suspense fallback={null}>');
+    expect(source).not.toContain('<Suspense fallback={<LegacyTable2D');
+    expect(loadingSource).toContain('className="table-presentation-loading"');
+    expect(loadingSource).toContain('正在准备牌桌…');
+    expect(sceneSource).toContain('<SceneContentReady sceneReady={tableSceneReady} criticalAssetsReady={criticalAssetsReady} />');
+    expect(hostSource).toContain('afterFrame: addAfterEffect');
+    expect(commitSource).toContain('invalidate();');
+    expect(sceneSource).not.toContain('requestAnimationFrame');
+    expect(css).toContain('.table-presentation-loading');
+    expect(css).toContain('position: fixed');
+    expect(css).not.toContain('transition: opacity');
   });
 
   it('lets Replay share the same visibility-aware renderer while 17-step stays isolated', () => {

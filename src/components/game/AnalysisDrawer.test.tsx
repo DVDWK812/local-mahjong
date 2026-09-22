@@ -9,6 +9,8 @@ describe('AnalysisDrawer', () => {
     expect(html).toContain('analysis-drawer');
     expect(html).not.toContain('analysis-drawer--open');
     expect(html).toContain('aria-hidden="true"');
+    expect(html).not.toContain('analysis-panel');
+    expect(html).not.toContain('推荐打牌');
   });
 
   it('打开后显示向听、有效牌、推荐内容和牌数统计', () => {

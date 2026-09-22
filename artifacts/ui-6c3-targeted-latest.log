@@ -1,0 +1,31 @@
+
+> local-mahjong-trainer@0.1.0 pretest
+> npm run generate:voice-packs && npm run test:voice-pack-index
+
+
+> local-mahjong-trainer@0.1.0 generate:voice-packs
+> node scripts/generateVoicePackIndex.mjs
+
+Generated Voice Pack index: 3 valid pack(s), 0 skipped.
+
+> local-mahjong-trainer@0.1.0 test:voice-pack-index
+> node scripts/verifyVoicePackIndex.mjs
+
+Voice Pack index lifecycle test passed.
+
+> local-mahjong-trainer@0.1.0 test
+> vitest run --run src/presentation/manualGateFixes.test.ts src/presentation/winAnimation/WinPresentationController.test.ts src/presentation/eventOverlay/EventOverlayController.test.ts src/presentation3d/animation/handPresentation.test.tsx
+
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation/eventOverlay/EventOverlayController.test.ts (5 tests) 11ms
+ ✓ src/presentation/winAnimation/WinPresentationController.test.ts (5 tests) 8ms
+ ✓ src/presentation/manualGateFixes.test.ts (13 tests) 40ms
+ ✓ src/presentation3d/animation/handPresentation.test.tsx (18 tests) 62ms
+
+ Test Files  4 passed (4)
+      Tests  41 passed (41)
+   Start at  02:22:51
+   Duration  1.63s (transform 723ms, setup 0ms, collect 2.46s, tests 121ms, environment 1ms, prepare 608ms)
+

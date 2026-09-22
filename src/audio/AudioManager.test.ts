@@ -246,7 +246,7 @@ class FakeMusicLibrary implements MusicLibraryView {
   private tracksMap: Record<MusicCategory, MusicTrackDefinition[]>;
   private modes: Record<MusicCategory, PlaybackMode>;
   private last: Record<MusicCategory, MusicTrackId | null>;
-  private sfxLast: Record<GameSfxGroup, MusicTrackId | null> = { draw: null, discard: null, meld: null };
+  private sfxLast: Record<GameSfxGroup, MusicTrackId | null> = { draw: null, discard: null, meld: null, riichi: null, dora: null, rong: null };
   private sfxModes: Record<GameSfxGroup, PlaybackMode>;
   readonly releases: ReturnType<typeof vi.fn>[] = [];
 
@@ -268,7 +268,7 @@ class FakeMusicLibrary implements MusicLibraryView {
       effects: mode,
       voice_lines: mode,
     };
-    this.sfxModes = { draw: mode, discard: mode, meld: mode };
+    this.sfxModes = { draw: mode, discard: mode, meld: mode, riichi: mode, dora: mode, rong: mode };
     this.last = {
       bgm_main: null,
       bgm_game: null,
@@ -478,7 +478,7 @@ describe('AudioManager MusicLibrary', () => {
     expect(library.releases[0]).toHaveBeenCalled();
   });
 
-  it('Game SFX 映射：draw/discard/chi/pon/kan 都绑定默认音效 track，开关关闭时不创建', async () => {
+  it('Game SFX 映射：draw/discard/chi/pon/kan 空列表回退各自内置组，开关关闭时不创建', async () => {
     const effects = track('default-tile', 'effects');
     const library = new FakeMusicLibrary([effects]);
     const backend = new RecordingBackend();
@@ -491,7 +491,10 @@ describe('AudioManager MusicLibrary', () => {
     manager.playSfx('kan');
     await flush();
     expect(backend.handles).toHaveLength(5);
-    expect(new Set(backend.handles.map((handle) => handle.src)).size).toBe(1);
+    expect(backend.handles.map(handle => handle.src)).toEqual([
+      "blob:builtin:effects:draw1", "blob:builtin:effects:discard1",
+      "blob:builtin:effects:meld1", "blob:builtin:effects:meld1", "blob:builtin:effects:meld1",
+    ]);
 
     const disabled = new AudioManager({ ...DEFAULT_AUDIO_SETTINGS, sfxEnabled: false }, new RecordingBackend());
     disabled.setMusicLibrary(library);
@@ -954,6 +957,37 @@ describe('AudioManager Temporary Pause/Resume', () => {
 });
 
 describe('AudioManager Game SFX Variants', () => {
+  it.each([{ masterEnabled: false }, { sfxEnabled: false }, { sfxVolume: 0 }, { masterVolume: 0 }])('mute %j does not consume playlist position or replay history', async mute => {
+    const library = new FakeMusicLibrary([track('a', 'effects', 'draw'), track('b', 'effects', 'draw')], 'sequential');
+    const backend = new RecordingBackend();
+    const manager = new AudioManager({ ...DEFAULT_AUDIO_SETTINGS, ...mute }, backend);
+    manager.setMusicLibrary(library);
+    manager.playSfx('draw'); await flush();
+    expect(backend.handles).toHaveLength(0);
+    manager.setSettings(DEFAULT_AUDIO_SETTINGS); await flush();
+    expect(backend.handles).toHaveLength(0);
+    manager.playSfx('draw'); await flush();
+    expect(backend.handles[0].src).toBe('blob:builtin:effects:a');
+    manager.dispose();
+  });
+
+  it.each(['exit', 'mute'] as const)('%s invalidates pending SFX resolve without stopping BGM', async reason => {
+    const library = new FakeMusicLibrary([track('a', 'effects', 'draw')], 'sequential');
+    const backend = new RecordingBackend();
+    const manager = new AudioManager(DEFAULT_AUDIO_SETTINGS, backend);
+    manager.setMusicLibrary(library);
+    let resolve!: (value: { url: string; release: () => void }) => void;
+    const release = vi.fn();
+    vi.spyOn(library, 'resolveTrack').mockImplementation(() => new Promise(done => { resolve = done; }));
+    manager.playSfx('draw');
+    if (reason === 'exit') manager.stopSfx();
+    else { manager.setSettings({ ...DEFAULT_AUDIO_SETTINGS, sfxEnabled: false }); manager.setSettings(DEFAULT_AUDIO_SETTINGS); }
+    resolve({ url: 'pending.wav', release }); await flush();
+    expect(backend.handles).toHaveLength(0);
+    expect(release).toHaveBeenCalledOnce();
+    manager.dispose();
+  });
+
   function sfxLibrary(mode: PlaybackMode = 'sequential') {
     return new FakeMusicLibrary([
       track('a', 'effects', 'draw'),
@@ -1049,7 +1083,7 @@ describe('AudioManager Game SFX Variants', () => {
     ]);
   });
 
-  it('空组 fallback 到 default-tile，安全播放一次', async () => {
+  it('空组 fallback 到同类别内置音效，安全播放一次', async () => {
     const library = new FakeMusicLibrary([
       track('c', 'effects', 'discard'),
       track('default-tile', 'effects'),
@@ -1060,7 +1094,7 @@ describe('AudioManager Game SFX Variants', () => {
     manager.playSfx('chi');
     await flush();
     expect(backend.handles).toHaveLength(1);
-    expect(backend.handles[0].src).toBe('blob:builtin:effects:default-tile');
+    expect(backend.handles[0].src).toBe('blob:builtin:effects:meld1');
   });
 
   it('三组播放模式独立：draw 单曲、discard 循环、meld 随机互不影响', async () => {
@@ -1092,4 +1126,111 @@ describe('AudioManager Game SFX Variants', () => {
       random.mockRestore();
     }
   });
+});
+
+describe('UI-6C.1 selection and managed preview', () => {
+  it.each(['riichi','dora','rong'] as const)('%s uses selected assets and mute does not consume playback', async group => {
+    const library = new FakeMusicLibrary([track('a','effects',group),track('b','effects',group)]);
+    const backend = new RecordingBackend(); const manager = new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry); manager.setMusicLibrary(library);
+    manager.setSettings({...DEFAULT_AUDIO_SETTINGS,sfxEnabled:false}); manager.playSfx(group); await flush();
+    expect(backend.handles).toHaveLength(0);
+    manager.setSettings(DEFAULT_AUDIO_SETTINGS); manager.playSfx(group); await flush();
+    expect(backend.handles[0].src).toBe('blob:builtin:effects:a');
+    manager.dispose();
+  });
+  it('SFX preview neither pauses BGM nor advances sequential/shuffle cursors; stop releases once', async () => {
+    const library = new FakeMusicLibrary([track('home','bgm_main'),track('a','effects','draw'),track('b','effects','draw')]);
+    const backend = new RecordingBackend(); const manager = new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry); manager.setMusicLibrary(library);
+    manager.playBgm('home'); await flush();
+    const bgm = backend.handles[0];
+    const ended = vi.fn(); manager.playSfxPreview(track('b','effects','draw'),ended); await flush();
+    expect(bgm.isPlaying()).toBe(true);
+    expect(manager.getPlaybackSnapshot().source).toBe('runtime');
+    manager.stopSfxPreview(); expect(ended).toHaveBeenCalledOnce();
+    manager.playSfx('draw'); await flush();
+    expect(backend.handles[backend.handles.length - 1]?.src).toBe('blob:builtin:effects:a');
+    expect(library.releases[1]).toHaveBeenCalledOnce();
+    manager.dispose();
+  });
+  it.each(['missing','reject','throw'] as const)('custom %s falls back once to same builtin group without blocking', async failure => {
+    const custom: MusicTrackDefinition = {...track('custom','effects','rong'),sourceType:'copied'};
+    const library = new FakeMusicLibrary([custom]);
+    const backend = new FakeBackend(); if (failure === 'reject') backend.rejectNextPlay = true;
+    const original = library.resolveTrack.bind(library);
+    vi.spyOn(library,'resolveTrack').mockImplementation(async target => {
+      if (target.id === custom.id && failure === 'missing') return null;
+      if (target.id === custom.id && failure === 'throw') throw new Error('missing blob');
+      return original(target);
+    });
+    const manager = new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry); manager.setMusicLibrary(library);
+    manager.playSfx('rong'); await flush(); await flush();
+    expect(library.resolveTrack).toHaveBeenCalledWith(expect.objectContaining({id:'builtin:effects:rong1'}));
+    expect(manager.getSnapshot().activeSfxCount).toBe(1);
+    manager.stopSfx(); expect(manager.getSnapshot().activeSfxCount).toBe(0);
+    manager.dispose();
+  });
+  it('closing preview or exiting route before resolve suppresses stale playback', async () => {
+    const library = new FakeMusicLibrary([track('a','effects','dora')]);
+    let resolve!: (value: {url:string;release:()=>void}) => void;
+    vi.spyOn(library,'resolveTrack').mockImplementation(()=>new Promise(done=>{resolve=done;}));
+    const backend = new FakeBackend(); const manager = new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry); manager.setMusicLibrary(library);
+    const release = vi.fn(); manager.playSfxPreview(track('a','effects','dora')); manager.stopSfxPreview();
+    resolve({url:'blob:preview',release}); await flush();
+    expect(backend.handles).toHaveLength(0); expect(release).toHaveBeenCalledOnce();
+    manager.playSfx('dora'); manager.stopSfx(); resolve({url:'blob:game',release}); await flush();
+    expect(backend.handles).toHaveLength(0); manager.dispose();
+  });
+});
+
+it('selected pool is authoritative in all existing modes; preview does not change selection or cursor', async () => {
+  for (const mode of ['sequential','shuffle','repeat-one'] as const) {
+    const a = track('a','effects','rong'); const b = track('b','effects','rong');
+    let selected = [b.id];
+    const library = Object.assign(new FakeMusicLibrary([a,b],mode), {sfxSelectedTrackIds: () => selected});
+    const backend = new RecordingBackend(); const manager = new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry);
+    manager.setMusicLibrary(library);
+    manager.playSfx('rong'); await flush();
+    manager.playSfxPreview(a); await flush(); manager.stopSfxPreview();
+    manager.playSfx('rong'); await flush();
+    expect(backend.handles.map(handle=>handle.src)).toEqual([`blob:${b.id}`,`blob:${a.id}`,`blob:${b.id}`]);
+    selected = [a.id]; manager.playSfx('rong'); await flush();
+    expect(backend.handles[3].src).toBe(`blob:${a.id}`);
+    manager.dispose();
+  }
+});
+it('natural preview completion notifies once, later close is harmless', async () => {
+  const library = new FakeMusicLibrary([track('a','effects','draw')]);
+  const backend = new RecordingBackend(); const manager = new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry);
+  manager.setMusicLibrary(library); const ended=vi.fn();
+  manager.playSfxPreview(track('a','effects','draw'),ended); await flush();
+  backend.handles[0].finish(); manager.stopSfxPreview();
+  expect(ended).toHaveBeenCalledOnce(); expect(library.releases[0]).toHaveBeenCalledOnce();
+  manager.dispose();
+});
+
+it('late media decode error releases the custom handle and falls back exactly once', async () => {
+  const custom: MusicTrackDefinition={...track('broken','effects','riichi'),sourceType:'copied'};
+  const library=new FakeMusicLibrary([custom]); const backend=new FakeBackend();
+  const errors: Array<()=>void>=[];
+  const create=backend.createPlayback.bind(backend);
+  vi.spyOn(backend,'createPlayback').mockImplementation(()=>Object.assign(create(), {
+    onError: (listener:()=>void) => {errors.push(listener);return ()=>undefined;},
+  }));
+  const manager=new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry); manager.setMusicLibrary(library);
+  manager.playSfx('riichi'); await flush(); errors[0](); errors[0](); await flush();
+  expect(backend.handles).toHaveLength(2); expect(backend.handles[0].disposed).toBe(true);
+  expect(library.releases[0]).toHaveBeenCalledOnce();
+  manager.stopSfx(); errors[1](); await flush();
+  expect(backend.handles).toHaveLength(2); expect(manager.getSnapshot().activeSfxCount).toBe(0);
+  manager.dispose();
+});
+it('SFX preview leaves existing temporary music playing on stop or deletion', async () => {
+  const song=track('song','bgm_main'); const effect=track('effect','effects','dora');
+  const library=new FakeMusicLibrary([song,effect]); const backend=new RecordingBackend();
+  const manager=new AudioManager(DEFAULT_AUDIO_SETTINGS,backend,registry); manager.setMusicLibrary(library);
+  manager.playTemporary(song); await flush();
+  manager.playSfxPreview(effect); await flush(); manager.stopSfxPreview();
+  expect(manager.getPlaybackSnapshot()).toMatchObject({source:'temporary',trackId:song.id,isPlaying:true});
+  expect(backend.handles[0].disposed).toBe(false);
+  manager.dispose();
 });

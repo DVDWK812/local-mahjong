@@ -1,0 +1,14 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation3d/participants/participantPresentation.test.tsx (7 tests) 35ms
+ ✓ src/presentation3d/participants/candidateAnimation.test.ts (20 tests) 33ms
+ ✓ src/presentation3d/participants/participantBaseline.test.tsx (4 tests) 141ms
+ ✓ src/components/SeventeenStepsScreen.test.tsx (4 tests) 453ms
+   ✓ 17步正式游戏界面接入 > 进入正式 game-screen，并且只显示上下两个有效座位 324ms
+
+ Test Files  4 passed (4)
+      Tests  35 passed (35)
+   Start at  18:42:53
+   Duration  2.07s (transform 1.12s, setup 0ms, collect 5.02s, tests 662ms, environment 0ms, prepare 434ms)
+

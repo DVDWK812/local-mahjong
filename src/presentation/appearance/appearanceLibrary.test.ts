@@ -86,7 +86,7 @@ describe('saved appearance library lifecycle', () => {
     const d = dependencies();
     const record = await d.store.put(new Blob(['shared'], { type: 'image/png' }));
     try {
-      for (const slot of PLAYER_APPEARANCE_SLOTS) playerSlotAppearanceStore.select(slot, { tileBack: { texture: { kind: 'local', assetId: record.id }, sideColor: '#123456' }, riichiStick: { kind: 'local', assetId: record.id } });
+      for (const slot of PLAYER_APPEARANCE_SLOTS) playerSlotAppearanceStore.select(slot, { tileBack: { texture: { kind: 'local', assetId: record.id }, sideColor: '#123456' }, riichiStick: { kind: 'local', assetId: record.id }, handAppearance: 'inherit' });
       expect(await cleanupAppearanceLibraryOrphans(createDefaultAppearanceSettings(), DEFAULT_AVATAR_ID, d)).toEqual([]);
       expect(await d.store.exists(record.id)).toBe(true);
       d.catalog.add({ ...entry(record.id), kind: 'tileBack' });
@@ -94,7 +94,7 @@ describe('saved appearance library lifecycle', () => {
         expect(collectCurrentAppearanceAssetIds(createDefaultAppearanceSettings(), DEFAULT_AVATAR_ID).has(record.id)).toBe(false);
       }, d);
       expect(await d.store.exists(record.id)).toBe(false);
-      for (const slot of PLAYER_APPEARANCE_SLOTS) expect(playerSlotAppearanceStore.getSnapshot()[slot]).toEqual({ tileBack: { texture: 'inherit', sideColor: '#123456' }, riichiStick: 'inherit' });
+      for (const slot of PLAYER_APPEARANCE_SLOTS) expect(playerSlotAppearanceStore.getSnapshot()[slot]).toEqual({ tileBack: { texture: 'inherit', sideColor: '#123456' }, riichiStick: 'inherit', handAppearance: 'inherit' });
     } finally { for (const slot of PLAYER_APPEARANCE_SLOTS) playerSlotAppearanceStore.select(slot, DEFAULT_PLAYER_SLOT_APPEARANCES[slot]); }
   });
   it.each(['tileBack', 'tableFelt', 'riichiStick'] as const)('%s keeps A/B across selection, default, reload and cleanup; only explicit delete removes A', async (kind) => {

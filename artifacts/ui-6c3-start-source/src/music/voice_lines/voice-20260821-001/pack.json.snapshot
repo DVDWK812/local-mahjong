@@ -1,0 +1,9 @@
+{
+  "id": "voice-20260821-001",
+  "name": "曼波",
+  "locale": "zh-CN",
+  "provider": "fish-audio",
+  "voiceId": "6ea69a95-793f-4c10-811f-f1b9ecb8866d",
+  "modelId": "fishaudio-s21pro-flash",
+  "version": 1
+}

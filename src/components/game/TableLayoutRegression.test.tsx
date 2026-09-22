@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createInitialGameState } from '../../game/engine';
 import { createMatch } from '../../game/match/matchEngine';
 import { GameScreen } from './GameScreen';
@@ -115,4 +115,11 @@ describe('牌桌布局回归', () => {
     expect(html).toContain('local-hand-area');
     expect(html).toContain('analysis-drawer');
   });
+});
+
+// These SSR assertions inspect the Legacy DOM table; select it explicitly instead
+// of depending on a 3D lazy-loading fallback to render a different renderer.
+vi.mock('../../presentation3d/rendererMode', async importOriginal => {
+  const original = await importOriginal<typeof import('../../presentation3d/rendererMode')>();
+  return { ...original, resolveTableRenderer: () => '2d' as const };
 });

@@ -120,7 +120,7 @@ export const TABLE_PRESENTATION_TUNING = {
     surfaceClearance: 0.004,
   },
   riichiStickLayout: {
-    laneOffset: 3.35,
+    laneOffset: INNER_SQUARE_SIZE / 2 - 0.25,
     seatOffsets: {
       bottom: { inline: 0, radial: 0 },
       right: { inline: 0, radial: 0 },

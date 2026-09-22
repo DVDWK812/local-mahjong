@@ -1,0 +1,20 @@
+{
+  "id": "yaya-001",
+  "name": "yaya",
+  "locale": "zh-CN",
+  "provider": "fish-audio",
+  "voiceId": "3cfac83f-efa7-46ce-ab23-5fc34a99d9f5",
+  "modelId": "fishaudio-s21pro",
+  "version": 1,
+  "ttsControls": {
+    "speed": false,
+    "volume": false,
+    "pitch": false,
+    "stability": false,
+    "similarity": false,
+    "language": true,
+    "textNormalization": true,
+    "emotion": false,
+    "instruction": false
+  }
+}

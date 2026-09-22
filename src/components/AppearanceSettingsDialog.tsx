@@ -6,6 +6,7 @@ import { getFeltCropAspectRatio, getRiichiStickCropAspectRatio, getTileBackCropA
 import { DEFAULT_RIICHI_STICK_3D_APPEARANCE } from '../presentation3d/riichi/riichiStickAppearance';
 import { AppearanceImageLibrary } from './settings/AppearanceImageLibrary';
 import { TileFaceSettings } from './settings/TileFaceSettings';
+import { HandAppearanceSettings } from './settings/HandAppearanceSettings';
 
 const DeleteAssetContext = createContext<((assetId: string) => Promise<void>) | undefined>(undefined);
 
@@ -21,23 +22,26 @@ const APPEARANCE_SECTIONS = [
   { id: 'tile-back', title: '牌背设置', description: '设置牌背图片与侧方颜色' },
   { id: 'table-felt', title: '桌布设置', description: '设置桌面图像' },
   { id: 'riichi-stick', title: '立直棒设置', description: '设置立直棒图像' },
+  { id: 'hand', title: '手部设置', description: '设置全局与四位玩家的手部动画 Pack' },
 ] as const;
 type AppearanceSection = (typeof APPEARANCE_SECTIONS)[number]['id'];
 
 /** Presentation-only settings: images stay in IndexedDB and settings hold only refs. */
 export function AppearanceSettingsDialog({ settings, onChange = () => undefined, onClose, onDeleteAsset }: AppearanceSettingsDialogProps) {
   const dialogRef = useRef<HTMLElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   const [openedSection, setOpenedSection] = useState<AppearanceSection | null>(null);
 
   useEffect(() => {
     const focused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     dialogRef.current?.querySelector<HTMLButtonElement>('[data-appearance-section]')?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { event.preventDefault(); onClose(); }
+      if (event.key === 'Escape') { event.preventDefault(); onCloseRef.current(); }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => { document.removeEventListener('keydown', onKeyDown); focused?.focus(); };
-  }, [onClose]);
+  }, []);
 
   return (
     <DeleteAssetContext.Provider value={onDeleteAsset}>
@@ -50,6 +54,7 @@ export function AppearanceSettingsDialog({ settings, onChange = () => undefined,
           {openedSection === 'table-felt' ? <TableFeltSettings settings={settings} onChange={onChange} onBack={() => setOpenedSection(null)} /> : null}
           {openedSection === 'riichi-stick' ? <RiichiStickSettings settings={settings} onChange={onChange} onBack={() => setOpenedSection(null)} /> : null}
           {openedSection === 'tile-faces' ? <TileFaceSettings settings={settings} onChange={onChange} onDeleteAsset={onDeleteAsset} onBack={() => setOpenedSection(null)} /> : null}
+          {openedSection === 'hand' ? <HandAppearanceSettings settings={settings} onChange={onChange} onBack={() => setOpenedSection(null)} /> : null}
         </div>
         <footer className="result-actions"><button type="button" onClick={onClose}>关闭</button></footer>
       </section>
@@ -63,9 +68,6 @@ function AppearanceSettingsList({ onOpen }: Readonly<{ onOpen: (section: Appeara
     {APPEARANCE_SECTIONS.map((section) => <button key={section.id} type="button" data-appearance-section className="appearance-settings-card" onClick={() => onOpen(section.id)}>
       <span><strong>{section.title}</strong><small>{section.description}</small></span><span aria-hidden="true">›</span>
     </button>)}
-    <button type="button" className="appearance-settings-card appearance-settings-card--disabled" disabled aria-label="手部设置，暂未开放">
-      <span><strong>手部设置</strong><small>暂未开放</small></span><span>暂未开放</span>
-    </button>
   </div>;
 }
 

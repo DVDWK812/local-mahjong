@@ -1,6 +1,7 @@
 import {
   AnimationScheduler,
   waitForAnimationTime,
+  animationFrameTask,
   type AnimationTask,
 } from '../animation/AnimationScheduler';
 import type {
@@ -8,8 +9,9 @@ import type {
   WinDeclaredPresentationEvent,
 } from '../PresentationEventBus';
 import type { PresentationPacingGate } from '../pacing/PresentationPacingGate';
+import { presentationAudioCues, type PresentationAudioCueKind } from '../PresentationAudioCue';
 
-export type WinPresentationPhase = 'slam' | 'push' | 'announce' | 'hold' | 'cleanup';
+export type WinPresentationPhase = 'approach' | 'slam' | 'push' | 'announce' | 'hold' | 'cleanup';
 
 export type WinPresentationAction = WinDeclaredPresentationEvent & {
   readonly sourceDiscard?: TileDiscardedPresentationEvent;
@@ -20,6 +22,7 @@ export interface WinPresentationTarget {
   setPhase(action: WinPresentationAction, phase: WinPresentationPhase): void;
   finish(action: WinPresentationAction): void;
   clear(): void;
+  setProgress?(action: WinPresentationAction, phase: WinPresentationPhase, progress: number): void;
 }
 
 export interface WinPresentationControllerOptions {
@@ -28,11 +31,15 @@ export interface WinPresentationControllerOptions {
   readonly onSettled?: (action: WinPresentationAction) => void;
 }
 
+export const RON_REVEAL_HOLD_MS = 2000;
+export const TSUMO_REVEAL_HOLD_MS = 2000;
+export const WIN_PRESENTATION_WAIT_MS = 15_000;
 const PHASE_DURATIONS: Record<WinPresentationPhase, number> = {
+  approach: 150,
   slam: 210,
   push: 280,
   announce: 160,
-  hold: 680,
+  hold: TSUMO_REVEAL_HOLD_MS,
   cleanup: 100,
 };
 
@@ -46,6 +53,8 @@ export class WinPresentationController {
   private draining = false;
   private disposed = false;
   private currentAction: WinPresentationAction | null = null;
+  private generation = 0;
+  private closeAudioRun: (() => void) | null = null;
 
   constructor(
     private readonly target: WinPresentationTarget,
@@ -82,10 +91,13 @@ export class WinPresentationController {
   }
 
   setSkip(skip: boolean): void {
+    if (skip) this.closeAudioRun?.();
     this.scheduler.setSkip(skip);
   }
 
   cancelAll(): void {
+    ++this.generation;
+    this.closeAudioRun?.();
     this.queue.splice(0).forEach((action) => this.safeFinish(action));
     if (this.currentAction) this.safeFinish(this.currentAction);
     this.scheduler.cancelAll();
@@ -119,28 +131,43 @@ export class WinPresentationController {
       const action = this.queue.shift();
       if (!action) continue;
       this.currentAction = action;
+      const generation = this.generation;
+      const audioRun = presentationAudioCues.run(action);
+      this.closeAudioRun = audioRun.close;
       try {
-        await this.pacingGate.waitUntilClearBefore(action.sequence);
-        if (this.disposed) continue;
+        await this.pacingGate.waitUntilClearBefore(action.sequence, { timeoutMs: WIN_PRESENTATION_WAIT_MS });
+        if (this.disposed || generation !== this.generation) continue;
         const prepared = await this.target.prepare(action);
-        if (prepared) {
-          await this.scheduler.sequence((Object.keys(PHASE_DURATIONS) as WinPresentationPhase[])
-            .map((phase) => this.phaseTask(action, phase, action.winType === 'ron' && phase === 'slam' ? 0 : PHASE_DURATIONS[phase])));
+        if (prepared && !this.disposed && generation === this.generation) {
+          const phases = (Object.keys(PHASE_DURATIONS) as WinPresentationPhase[])
+            .filter(phase => action.winType === 'ron' ? phase !== 'slam' && phase !== 'approach' : phase !== 'push');
+          await this.scheduler.sequence(phases.map(phase => this.phaseTask(action, phase,
+            action.winType === 'ron' && phase === 'hold' ? RON_REVEAL_HOLD_MS : PHASE_DURATIONS[phase], audioRun.emit)));
         }
       } catch (error) {
         this.onError(error, action);
       } finally {
+        audioRun.close();
+        this.closeAudioRun = null;
         this.safeFinish(action);
         this.currentAction = null;
       }
     }
   }
 
-  private phaseTask(action: WinPresentationAction, phase: WinPresentationPhase, durationMs: number): AnimationTask {
+  private phaseTask(action: WinPresentationAction, phase: WinPresentationPhase, durationMs: number,
+    emit: (kind: PresentationAudioCueKind, phase: string, progress: number) => void): AnimationTask {
+    let started = false;
+    if (action.winType === 'tsumo' && (phase === 'approach' || phase === 'slam' || phase === 'announce') && this.target.setProgress) return animationFrameTask(durationMs, progress => {
+      if (!started) { started = true; this.target.setPhase(action, phase); }
+      this.target.setProgress?.(action, phase, progress);
+    }, progress => { if (phase === 'slam' && progress === 1) emit('win-impact', phase, 1); });
     return {
       play: async (context) => {
         this.target.setPhase(action, phase);
+        if (action.winType === 'ron' && phase === 'push' && !context.signal.aborted) emit('win-impact', phase, 0);
         await waitForAnimationTime(durationMs, context);
+        if (action.winType === 'tsumo' && phase === 'slam' && !context.signal.aborted) emit('win-impact', phase, 1);
       },
       snapToEnd: () => this.target.setPhase(action, phase),
     };

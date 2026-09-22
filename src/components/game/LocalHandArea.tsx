@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import type { PlayerId, PlayerState, Tile as TileModel, TileId, Wind } from '../../game/types';
 import { createTile } from '../../game/tileUtils';
 import type { DiscardSourceCapture, DiscardSourceSnapshot } from '../../presentation/handAnimation/DiscardSourceSnapshot';
@@ -14,6 +14,8 @@ import { PlayerAvatar } from '../PlayerAvatar';
 import { Tile } from '../Tile';
 import { LocalHandSnapshot, LocalDiscardProxy } from './LocalHandSnapshot';
 import { LocalAnimationHand } from './LocalAnimationHand';
+import { waitForLocalHandPresentation } from './localHandPresentationReady';
+import type { HandPack } from '../../hand/handPacks';
 
 interface LocalHandAreaProps {
   player: PlayerState;
@@ -42,6 +44,8 @@ interface LocalHandAreaProps {
   retainDiscardSourceSnapshot?: boolean;
   discardSnapshot?: DiscardSourceSnapshot | null;
   localHandAnimation?: LocalHandAnimation3DState | null;
+  onPresentationReady?: () => void;
+  handPack?: HandPack;
 }
 
 const windNames: Record<Wind, string> = {
@@ -51,7 +55,8 @@ const windNames: Record<Wind, string> = {
   north: '北',
 };
 
-export function LocalHandArea({ player, identityPlayer = player, meldPlayer = player, isCurrent, canDiscard, allowedDiscardInstanceIds, kuikaeForbiddenTileIds = [], doraIndicators = [], doraGlowEnabled = true, doraBorderEnabled = true, doraBreathingEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, concealHand = false, onDiscardPreviewChange, onDiscardSourceCapture, onDiscard, playerProfile, presentation, interactionActions, screenSpaceOverlay = false, retainDiscardSourceSnapshot = false, discardSnapshot = null, localHandAnimation = null }: LocalHandAreaProps) {
+export function LocalHandArea({ player, identityPlayer = player, meldPlayer = player, isCurrent, canDiscard, allowedDiscardInstanceIds, kuikaeForbiddenTileIds = [], doraIndicators = [], doraGlowEnabled = true, doraBorderEnabled = true, doraBreathingEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, concealHand = false, onDiscardPreviewChange, onDiscardSourceCapture, onDiscard, playerProfile, presentation, interactionActions, screenSpaceOverlay = false, retainDiscardSourceSnapshot = false, discardSnapshot = null, localHandAnimation = null, onPresentationReady, handPack }: LocalHandAreaProps) {
+  const rootRef = useRef<HTMLElement>(null);
   const drawnTileId = player.drawnTile?.instanceId;
   const presentationTiles = presentation?.tiles.map((entry) => entry.tile) ?? player.hand;
   const presentationById = new Map(presentation?.tiles.map((entry) => [entry.tile.instanceId, entry]));
@@ -75,11 +80,13 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
   const displayName = playerProfile?.nickname ?? identityPlayer.name;
   const handleDiscard = (tile: TileModel, sourceElement: HTMLButtonElement) => {
     const tileInstanceId = tile.instanceId;
+    const drawnElement = rootRef.current?.querySelector('.drawn-tile-gap .tile');
     const clearSourceSnapshot = onDiscardSourceCapture?.({
       playerId: player.id,
       tileInstanceId,
       tile: { id: tile.id, red: tile.red },
       sourceTileRect: copyRect(sourceElement.getBoundingClientRect()),
+      drawnTileRect: drawnElement ? copyRect(drawnElement.getBoundingClientRect()) : undefined,
     });
     selectTile(null);
     onHoveredTileTypeChange?.(null);
@@ -101,9 +108,21 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
     : null;
   const localHandScreenOffset = getLocalHandScreenOffset();
 
+  useEffect(() => {
+    if (!screenSpaceOverlay || !onPresentationReady) return;
+    const controller = new AbortController();
+    const getImages = () => rootRef.current
+      ? [...rootRef.current.querySelectorAll<HTMLImageElement>('.tile-image')]
+      : [];
+    void waitForLocalHandPresentation(getImages, undefined, controller.signal).then((ready) => {
+      if (ready) onPresentationReady();
+    });
+    return () => controller.abort();
+  }, [onPresentationReady, screenSpaceOverlay]);
+
   return (
     <>
-    <section className={`local-hand-area ${isCurrent ? 'local-hand-area--active' : ''} ${isCurrent && (presentation?.canDiscard ?? canDiscard) ? 'local-hand-area--interactive' : ''} ${screenSpaceOverlay ? 'local-hand-area--screen-space' : ''} ${screenSpaceOverlay && !doraBorderEnabled ? 'local-hand-area--dora-border-disabled' : ''} ${screenSpaceOverlay && !doraBreathingEnabled ? 'local-hand-area--dora-breathing-disabled' : ''}`} aria-label="本家手牌" data-local-player={player.id} data-table-presentation={presentation ? 'shared' : 'legacy'} data-local-hand-space={screenSpaceOverlay ? 'screen' : 'table'} data-local-hand-animation-event={localHandAnimation?.eventId} data-local-hand-animation-kind={localHandAnimation?.kind} data-local-hand-animation-phase={localHandAnimation?.phase} style={screenSpaceOverlay ? {
+    <section ref={rootRef} className={`local-hand-area ${isCurrent ? 'local-hand-area--active' : ''} ${isCurrent && (presentation?.canDiscard ?? canDiscard) ? 'local-hand-area--interactive' : ''} ${screenSpaceOverlay ? 'local-hand-area--screen-space' : ''} ${screenSpaceOverlay && !doraBorderEnabled ? 'local-hand-area--dora-border-disabled' : ''} ${screenSpaceOverlay && !doraBreathingEnabled ? 'local-hand-area--dora-breathing-disabled' : ''}`} aria-label="本家手牌" data-local-player={player.id} data-table-presentation={presentation ? 'shared' : 'legacy'} data-local-hand-space={screenSpaceOverlay ? 'screen' : 'table'} data-local-hand-animation-event={localHandAnimation?.eventId} data-local-hand-animation-kind={localHandAnimation?.kind} data-local-hand-animation-phase={localHandAnimation?.phase} style={screenSpaceOverlay ? {
       '--local-hand-tuning-x': `${localHandScreenOffset.x}px`,
       '--local-hand-tuning-y': `${localHandScreenOffset.y}px`,
     } as CSSProperties : undefined}>
@@ -177,7 +196,7 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
     </section>
     {handFrame && localHandAnimation?.discardMotion ? <LocalDiscardProxy frame={handFrame} motion={localHandAnimation.discardMotion} /> : null}
     {screenSpaceOverlay && localHandAnimation && (localHandAnimation.kind === 'draw' || localHandAnimation.discardMotion)
-      ? <LocalAnimationHand animation={localHandAnimation} /> : null}
+      ? <LocalAnimationHand animation={localHandAnimation} pack={handPack} playerId={identityPlayer.id} /> : null}
     {!handFrame && screenSpaceOverlay && discardSnapshot && snapshotTile ? (
       <div
         className="local-hand-discard-snapshot"

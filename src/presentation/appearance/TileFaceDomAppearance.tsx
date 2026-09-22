@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { appearanceAssetUrlCache } from './appearanceAssetResolver';
 import { TILE_APPEARANCE_IDS, type AppearanceAssetRef, type AppearanceSettings, type TileAppearanceId } from './appearanceSettings';
 import { getTileAssetKeyById } from '../../game/tileAssets';
@@ -13,21 +13,30 @@ export function resolveTileAppearanceId(id: TileId, red = false): TileAppearance
 type Sources = Partial<Record<TileAppearanceId, { source: string; sideColor: string }>>;
 const Context = createContext<Sources>({});
 /** Opt-in only around 3D DOM consumers; legacy tiles never read custom assets. */
-export function TileFaceDomAppearance({ settings, children }: { settings?: AppearanceSettings; children: ReactNode }) {
-  const signature = JSON.stringify(settings ? TILE_APPEARANCE_IDS.map(key => settings.tileFaces[key].face) : []);
+export function TileFaceDomAppearance({ settings, children, onReady, appearanceIds = TILE_APPEARANCE_IDS }: {
+  settings?: AppearanceSettings;
+  children: ReactNode;
+  onReady?: () => void;
+  appearanceIds?: readonly TileAppearanceId[];
+}) {
+  const signature = JSON.stringify(settings ? appearanceIds.map(key => [key, settings.tileFaces[key].face]) : []);
   const [loaded, setLoaded] = useState<{ signature: string; sources: string[] }>({ signature: '', sources: [] });
   useEffect(() => {
     let active = true;
-    const leases = (JSON.parse(signature) as AppearanceAssetRef[]).map(ref => appearanceAssetUrlCache.acquire(ref, ''));
+    const leases = (JSON.parse(signature) as [TileAppearanceId, AppearanceAssetRef][]).map(([, ref]) => appearanceAssetUrlCache.acquire(ref, ''));
     void Promise.all(leases.map(lease => lease.promise)).then(sources => {
       if (active) setLoaded({ signature, sources });
     });
     return () => { active = false; leases.forEach(lease => lease.release()); };
   }, [signature]);
-  const sources: Sources = settings ? Object.fromEntries(TILE_APPEARANCE_IDS.map((key, i) => [key, {
+  useEffect(() => {
+    if (loaded.signature === signature) onReady?.();
+  }, [loaded.signature, onReady, signature]);
+  // R3F bridges ancestor contexts; unrelated UI/audio refreshes must not invalidate a quiet scene.
+  const sources: Sources = useMemo(() => settings ? Object.fromEntries(appearanceIds.map((key, i) => [key, {
     source: loaded.signature === signature ? loaded.sources[i] ?? '' : '',
     sideColor: settings.tileFaces[key].sideColor,
-  }])) : {};
+  }])) : {}, [settings, appearanceIds, loaded, signature]);
   return <Context.Provider value={sources}>{children}</Context.Provider>;
 }
 export function useTileFaceDomAppearance(id?: TileId, red = false) {

@@ -1,0 +1,87 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ❯ src/presentation/manualGateFixes.test.ts (8 tests | 3 failed) 33ms
+   × riichi right travel/release/static share the same stick target without tile grounding jump 6ms
+     → expected [ 4.15, 0.8085, 2.000000000000001 ] to deeply equal [ 4.15, 0.8085, 2.0000000000000004 ]
+   × riichi top travel/release/static share the same stick target without tile grounding jump 3ms
+     → expected [ 8.881784197001252e-16, 0.8085, …(1) ] to deeply equal [ 5.082284216461516e-16, 0.8085, …(1) ]
+   × riichi left travel/release/static share the same stick target without tile grounding jump 3ms
+     → expected [ -4.15, 0.8085, 2 ] to deeply equal [ -4.15, 0.8085, 2.0000000000000004 ]
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/presentation/manualGateFixes.test.ts > riichi right travel/release/static share the same stick target without tile grounding jump
+AssertionError: expected [ 4.15, 0.8085, 2.000000000000001 ] to deeply equal [ 4.15, 0.8085, 2.0000000000000004 ]
+
+- Expected
++ Received
+
+  Array [
+    4.15,
+    0.8085,
+-   2.0000000000000004,
++   2.000000000000001,
+  ]
+
+ ❯ src/presentation/manualGateFixes.test.ts:63:73
+     61|   const plan = resolveTableAnimation3DPlan({ type: 'riichi_declared', …
+     62|   expect(plan.destination).toEqual(getRiichiStickTransform(seat).posit…
+     63|   expect(resolveTableAnimation3DMotion(plan, 'travel', 1).tilePosition…
+       |                                                                         ^
+     64|   expect(resolveTableAnimation3DMotion(plan, 'release', 0).tilePositio…
+     65|   expect(resolveTableAnimation3DMotion(plan, 'release', 1).tilePositio…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/presentation/manualGateFixes.test.ts > riichi top travel/release/static share the same stick target without tile grounding jump
+AssertionError: expected [ 8.881784197001252e-16, 0.8085, …(1) ] to deeply equal [ 5.082284216461516e-16, 0.8085, …(1) ]
+
+- Expected
++ Received
+
+  Array [
+-   5.082284216461516e-16,
++   8.881784197001252e-16,
+    0.8085,
+    -2.1500000000000004,
+  ]
+
+ ❯ src/presentation/manualGateFixes.test.ts:63:73
+     61|   const plan = resolveTableAnimation3DPlan({ type: 'riichi_declared', …
+     62|   expect(plan.destination).toEqual(getRiichiStickTransform(seat).posit…
+     63|   expect(resolveTableAnimation3DMotion(plan, 'travel', 1).tilePosition…
+       |                                                                         ^
+     64|   expect(resolveTableAnimation3DMotion(plan, 'release', 0).tilePositio…
+     65|   expect(resolveTableAnimation3DMotion(plan, 'release', 1).tilePositio…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/presentation/manualGateFixes.test.ts > riichi left travel/release/static share the same stick target without tile grounding jump
+AssertionError: expected [ -4.15, 0.8085, 2 ] to deeply equal [ -4.15, 0.8085, 2.0000000000000004 ]
+
+- Expected
++ Received
+
+  Array [
+    -4.15,
+    0.8085,
+-   2.0000000000000004,
++   2,
+  ]
+
+ ❯ src/presentation/manualGateFixes.test.ts:63:73
+     61|   const plan = resolveTableAnimation3DPlan({ type: 'riichi_declared', …
+     62|   expect(plan.destination).toEqual(getRiichiStickTransform(seat).posit…
+     63|   expect(resolveTableAnimation3DMotion(plan, 'travel', 1).tilePosition…
+       |                                                                         ^
+     64|   expect(resolveTableAnimation3DMotion(plan, 'release', 0).tilePositio…
+     65|   expect(resolveTableAnimation3DMotion(plan, 'release', 1).tilePositio…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 5 passed (8)
+   Start at  02:03:12
+   Duration  1.27s (transform 344ms, setup 0ms, collect 949ms, tests 33ms, environment 0ms, prepare 79ms)
+

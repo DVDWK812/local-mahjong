@@ -1,0 +1,12 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/audio/AudioPresentationConsumer.test.ts (5 tests) 4ms
+ ✓ src/presentation/handAnimation/HandAnimationConsumer.test.ts (8 tests) 6ms
+ ✓ src/presentation/PresentationAudioCue.test.ts (13 tests) 16ms
+
+ Test Files  3 passed (3)
+      Tests  26 passed (26)
+   Start at  16:24:45
+   Duration  368ms (transform 103ms, setup 0ms, collect 175ms, tests 26ms, environment 0ms, prepare 247ms)
+

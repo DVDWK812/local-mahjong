@@ -9,27 +9,35 @@ describe('UI-5A scene boundaries', () => {
   it('uses a fixed, R3F-interactive, demand-rendered canvas', () => {
     const source = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
 
-    expect(source).toContain('frameloop="demand"');
-    expect(source).toContain('dpr={[1, 1.75]}');
+    const host = readFileSync(sourcePath('./session/SceneCanvasHost.tsx'), 'utf8');
+    expect(source).toContain('<SceneCanvasHost');
+    expect(source).not.toContain('<Canvas');
+    expect(host).toContain('frameloop="demand"');
+    expect(host).toContain('dpr={[1, 1.75]}');
     expect(source).not.toContain('OrbitControls');
     expect(source).not.toContain('Raycaster');
     expect(source).not.toContain('buildTableSceneState');
     expect(source).toContain('sceneState: TableSceneState');
-    expect(source).toContain("args={['#071712', 42, 58]}");
-    expect(source).toContain('rotation={[-Math.PI / 2, 0, 0]} receiveShadow');
+    expect(source).toContain('<TableEnvironment />');
+    const environment = readFileSync(sourcePath('./table/TableEnvironment.tsx'), 'utf8');
+    expect(environment).toContain("args={['#071712', 42, 58]}");
+    expect(environment).toContain('rotation={[-Math.PI / 2, 0, 0]} receiveShadow');
   });
 
-  it('keeps the Canvas fallback node pure and reports readiness only from onCreated', () => {
-    const source = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
-    const fallbackStart = source.indexOf('export function CanvasUnavailable()');
-    const sceneStart = source.indexOf('export function Table3DScene(');
-    const fallbackSource = source.slice(fallbackStart, sceneStart);
-
+  it('keeps the Canvas fallback node pure and does not equate onCreated with scene readiness', () => {
+    const source = readFileSync(sourcePath('./session/SceneCanvasHost.tsx'), 'utf8');
+    const commit = readFileSync(sourcePath('./session/initialFrameCommit.ts'), 'utf8');
+    const fallbackSource = source.slice(source.indexOf('export function CanvasUnavailable()'));
     expect(source).toContain('fallback={<CanvasUnavailable />}');
     expect(fallbackSource).not.toContain('onUnavailable');
     expect(fallbackSource).not.toContain('useEffect');
     expect(fallbackSource).not.toContain('tagTableRendererError');
-    expect(source).toContain('onReady?.();');
+    expect(source).toContain('setRendererReady(true);');
+    expect(source).toContain('afterFrame: addAfterEffect');
+    expect(source).toContain('hasRendered: () => gl.info.render.frame > beforeFrame');
+    expect(commit.indexOf('onReady();')).toBeGreaterThan(commit.indexOf('afterFrame(() => {'));
+    const onCreatedSource = source.slice(source.indexOf('onCreated={({ gl }) => {'), source.indexOf('<SceneSessionContext.Provider'));
+    expect(onCreatedSource).not.toContain('onReady?.();');
     expect(source).toContain("tagTableRendererError(cause, 'webgl-init-failure')");
     expect(source).toContain("addEventListener('webglcontextlost', onContextLost)");
     expect(source).toContain('WebglContextLossRecovery onUnavailable={onUnavailable}');
@@ -69,12 +77,16 @@ describe('UI-5A scene boundaries', () => {
     expect(source).toContain('winningRiverIndex={winningRiverTarget?.playerId === sceneState.seats[seat].playerId');
     expect(riverSource).toContain('const winning = tile.riverIndex === winningRiverIndex;');
     expect(riverSource).not.toContain('const winning = tile.layoutIndex === winningRiverIndex;');
-    expect(source).toContain('<AppearanceResources3D settings={appearanceSettings}>');
+    expect(source).toContain('<AppearanceResources3D');
+    expect(source).toContain('settings={appearanceSettings}');
+    expect(source).toContain('criticalAssetsReady');
+    expect(source).toContain('onTileLayerReady={handleTileLayerReady}');
+    expect(source).toContain('<SceneLayerReady onReady={handleRiichiLayerReady} />');
     expect(source).toContain('riichiStickAppearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }}');
     expect(source).toContain('const StableTableScene = memo(function StableTableScene(');
-    expect(source).toContain('<CentralConsoleHudAnchor3D>{centralHud}</CentralConsoleHudAnchor3D>');
+    expect(source).toContain('<CentralConsoleHudAnchor3D riichiLanes>{centralHud}</CentralConsoleHudAnchor3D>');
     expect(source).toContain('hiddenTileKeys={hiddenMeldTileKeys}');
-    expect(source).toContain('appearance={riichiStickAppearance}');
+    expect(source).toContain('appearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }}');
     expect(source).toContain('<TileTextureWarmup />');
     expect(source.indexOf('</StableTableScene>')).toBe(-1);
     expect(source.match(/<Suspense fallback=\{null\}>/g)).toHaveLength(3);
@@ -92,7 +104,7 @@ describe('UI-5A scene boundaries', () => {
     expect(sceneSource.indexOf('const animation = useTableAnimation3D({'))
       .toBeGreaterThan(sceneSource.indexOf('export function Table3DScene('));
     expect(sceneSource.indexOf('const animation = useTableAnimation3D({'))
-      .toBeLessThan(sceneSource.indexOf('<Canvas'));
+      .toBeLessThan(sceneSource.indexOf('<SceneCanvasHost'));
   });
 
   it('keeps gameplay wall and world Dora rendering hidden while preserving debug Dora3D', () => {
@@ -131,7 +143,7 @@ describe('UI-5A scene boundaries', () => {
     const handSource = readFileSync(sourcePath('./hand/Hand3D.tsx'), 'utf8');
     const tileSource = readFileSync(sourcePath('./tile/Tile3D.tsx'), 'utf8');
 
-    expect(handSource).toContain('rotationX={transform.rotationX + winMotion.tiltX}');
+    expect(handSource).toContain('rotationX={tile.drawn && slap ? slap.rotationX : ronFlat ? 0 : transform.rotationX + winMotion.tiltX}');
     expect(handSource).toContain("region: 'hand'");
     expect(handSource).toContain('tileKey: tile.key');
     expect(handSource).toContain('index,');

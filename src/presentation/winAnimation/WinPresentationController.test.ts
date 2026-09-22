@@ -2,7 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AnimationScheduler } from '../animation/AnimationScheduler';
 import { PresentationPacingGate } from '../pacing/PresentationPacingGate';
 import type { WinPresentationAction, WinPresentationPhase, WinPresentationTarget } from './WinPresentationController';
-import { WinPresentationController } from './WinPresentationController';
+import { TSUMO_REVEAL_HOLD_MS, WinPresentationController } from './WinPresentationController';
+import { presentationAudioCues } from '../PresentationAudioCue';
 
 function action(overrides: Partial<WinPresentationAction> = {}): WinPresentationAction {
   return {
@@ -29,11 +30,60 @@ function target(log: string[], prepareResult: boolean | Error = true): WinPresen
 }
 
 afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
   vi.useRealTimers();
 });
 
 describe('WinPresentationController', () => {
-  it('等待先前 Draw/Discard pacing，再按 slam → push → announce → hold 清理', async () => {
+  it.each(['complete', 'skip', 'cancel'] as const)('Tsumo retains final-state pacing for its finite hold, or releases on %s', async mode => {
+    vi.useFakeTimers();
+    expect(TSUMO_REVEAL_HOLD_MS).toBe(2000);
+    const current = action({ eventId: `tsumo-hold-${mode}` });
+    const gate = new PresentationPacingGate(); gate.begin(current);
+    const log: string[] = [];
+    const cues = vi.fn(); const disconnect = presentationAudioCues.connect(cues);
+    const controller = new WinPresentationController(target(log), new AnimationScheduler(), gate, {
+      onSettled: settled => gate.complete(settled.eventId),
+    });
+    controller.enqueue(current);
+    await vi.advanceTimersByTimeAsync(520); // unchanged approach + slap + retract
+    expect(log[log.length - 1]).toBe('hold');
+    expect(cues).toHaveBeenCalledTimes(1);
+    if (mode === 'complete') {
+      await vi.advanceTimersByTimeAsync(TSUMO_REVEAL_HOLD_MS - 1);
+      expect(log[log.length - 1]).toBe('hold');
+      expect(gate.pendingCount).toBe(1);
+    } else if (mode === 'skip') controller.setSkip(true);
+    else controller.cancelAll();
+    await vi.runAllTimersAsync(); await controller.whenIdle();
+    expect(log).not.toContain('push');
+    expect(log.filter(phase => phase === 'finish')).toHaveLength(1);
+    expect(gate.pendingCount).toBe(0);
+    expect(cues).toHaveBeenCalledTimes(1);
+    controller.dispose(); disconnect();
+  });
+  it('single-tile Tsumo enters each phase once while its scheduler supplies all contact frames', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(performance, 'now').mockImplementation(() => Date.now());
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => setTimeout(() => callback(performance.now()), 16));
+    vi.stubGlobal('cancelAnimationFrame', (handle: ReturnType<typeof setTimeout>) => clearTimeout(handle));
+    const prepare = vi.fn(() => true);
+    const setPhase = vi.fn(); const setProgress = vi.fn(); const finish = vi.fn();
+    const cues = vi.fn(); const disconnect = presentationAudioCues.connect(cues);
+    const controller = new WinPresentationController({ prepare, setPhase, setProgress, finish, clear: () => {} },
+      new AnimationScheduler(), new PresentationPacingGate());
+    controller.enqueue(action({ eventId: 'continuous-tsumo' }));
+    await vi.runAllTimersAsync(); await controller.whenIdle();
+    expect(prepare).toHaveBeenCalledTimes(1);
+    expect(setPhase.mock.calls.map(call => call[1])).toEqual(['approach', 'slam', 'announce', 'hold', 'cleanup']);
+    expect(setProgress.mock.calls.filter(call => call[1] === 'slam').length).toBeGreaterThan(2);
+    expect(cues).toHaveBeenCalledTimes(1);
+    expect(cues.mock.calls[0][0]).toMatchObject({ kind: 'win-impact', phase: 'slam', progress: 1 });
+    expect(finish).toHaveBeenCalledTimes(1);
+    controller.dispose(); disconnect();
+  });
+  it('等待先前 Draw/Discard pacing，再按 slam → announce → hold（不再整手推倒） 清理', async () => {
     vi.useFakeTimers();
     const log: string[] = [];
     const gate = new PresentationPacingGate();
@@ -50,7 +100,7 @@ describe('WinPresentationController', () => {
     await vi.runAllTimersAsync();
     await controller.whenIdle();
 
-    expect(log).toEqual(['prepare', 'slam', 'push', 'announce', 'hold', 'cleanup', 'finish']);
+    expect(log).toEqual(['prepare', 'approach', 'slam', 'announce', 'hold', 'cleanup', 'finish']);
     expect(gate.pendingCount).toBe(0);
   });
 

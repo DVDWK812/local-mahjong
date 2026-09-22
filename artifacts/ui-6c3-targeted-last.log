@@ -1,0 +1,13 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation/eventOverlay/EventOverlayController.test.ts (5 tests) 8ms
+ ✓ src/presentation/winAnimation/WinPresentationController.test.ts (5 tests) 6ms
+ ✓ src/presentation/PresentationAudioCue.test.ts (13 tests) 13ms
+ ✓ src/presentation/manualGateFixes.test.ts (19 tests) 38ms
+
+ Test Files  4 passed (4)
+      Tests  42 passed (42)
+   Start at  02:51:56
+   Duration  1.36s (transform 499ms, setup 0ms, collect 1.25s, tests 65ms, environment 0ms, prepare 381ms)
+

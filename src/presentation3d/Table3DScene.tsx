@@ -1,12 +1,7 @@
-import { Canvas, useThree } from '@react-three/fiber';
-import { memo, Suspense, useCallback, useEffect, useRef, type ReactNode } from 'react';
-import {
-  ACESFilmicToneMapping,
-  PCFShadowMap,
-  SRGBColorSpace,
-  type Texture,
-  WebGLRenderer,
-} from 'three';
+import { memo, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import type { Texture } from 'three';
+import { SceneCanvasHost, SceneContentReady } from './session/SceneCanvasHost';
+export { CanvasUnavailable } from './session/SceneCanvasHost';
 import { FixedTableCamera, TABLE_CAMERA } from './camera/FixedTableCamera';
 import type { Table3DSeat } from './coordinates/seatTransforms';
 import { Hand3D } from './hand/Hand3D';
@@ -15,8 +10,8 @@ import { Meld3D } from './meld/Meld3D';
 import { River3D } from './river/River3D';
 import type { TableSceneState } from './sceneState/tableSceneTypes';
 import { TableMesh } from './table/TableMesh';
+import { TableEnvironment } from './table/TableEnvironment';
 import { DEFAULT_TABLE_VISUAL_THEME, type TableVisualTheme } from './table/tableVisualTheme';
-import { tagTableRendererError } from './rendererDiagnostics';
 import { HandAction3D } from './animation/HandAction3D';
 import { DiscardSource3DStore } from './animation/DiscardSource3D';
 import { useTableAnimation3D } from './animation/useTableAnimation3D';
@@ -39,6 +34,7 @@ import { resolveDoraSweep3DTrigger } from './dora/doraSweep3DTrigger';
 import { AppearanceResources3D } from './appearance/AppearanceResources3D';
 import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
 import { AvatarFrameTuningPanel } from './table/AvatarFrameTuningPanel';
+import { resolveHandPackForPlayer, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
 
 type Table3DSceneProps = Readonly<{
   sceneState: TableSceneState;
@@ -71,39 +67,35 @@ const StableTableScene = memo(function StableTableScene({
   handPresentation,
   hiddenRiverKeys,
   hiddenMeldTileKeys,
-  hiddenRiichiSeats,
   winPresentation3D,
+  winHandPack,
   tableVisualTheme,
   tileVisualContext,
-  riichiStickAppearance,
   feltTexture,
-  riichiVisibilityKey,
   centralHud,
+  onTileLayerReady,
 }: Readonly<{
   sceneState: TableSceneState;
   hiddenHandKeys: TableAnimation3DRenderState['hiddenHandKeys'];
   handPresentation?: import('../presentation/handAnimation/HandPresentationSnapshot').HandPresentationFrame;
   hiddenRiverKeys: TableAnimation3DRenderState['hiddenRiverKeys'];
   hiddenMeldTileKeys: TableAnimation3DRenderState['hiddenMeldTileKeys'];
-  hiddenRiichiSeats: TableAnimation3DRenderState['hiddenRiichiSeats'];
   winPresentation3D?: WinPresentation3DState | null;
+  winHandPack?: import('../hand/handPacks').HandPack;
   tableVisualTheme: TableVisualTheme;
   tileVisualContext?: TileVisualSemanticContext;
-  riichiStickAppearance?: RiichiStick3DAppearance;
   feltTexture?: Texture;
-  riichiVisibilityKey: string;
   centralHud?: ReactNode;
+  onTileLayerReady?: () => void;
 }>) {
-  void riichiVisibilityKey;
   const winningRiverTarget = resolveWinningRiverTarget3D(winPresentation3D ?? null);
   return (
     <>
-      <color attach="background" args={['#071712']} />
-      <fog attach="fog" args={['#071712', 42, 58]} />
+      <TableEnvironment />
       <FixedTableCamera />
       <TableLighting />
       <TableMesh theme={tableVisualTheme} feltTexture={feltTexture} />
-      {centralHud ? <CentralConsoleHudAnchor3D>{centralHud}</CentralConsoleHudAnchor3D> : null}
+      {centralHud ? <CentralConsoleHudAnchor3D riichiLanes>{centralHud}</CentralConsoleHudAnchor3D> : null}
       <Suspense fallback={null}>
         <TileTextureWarmup />
         {SEAT_ORDER.map((seat) => (
@@ -111,9 +103,10 @@ const StableTableScene = memo(function StableTableScene({
             {seat === 'bottom' ? null : (
               <Hand3D
                 seatState={sceneState.seats[seat]}
+                winHandPack={winHandPack}
                 handPresentation={handPresentation?.snapshot.playerId === sceneState.seats[seat].playerId ? handPresentation : undefined}
                 hiddenTileKeys={hiddenHandKeys}
-                winPresentation={winPresentation3D?.action.playerId === sceneState.seats[seat].playerId
+                winPresentation={winPresentation3D?.action.playerId === sceneState.seats[seat].playerId || winPresentation3D?.revealedPlayerIds?.includes(sceneState.seats[seat].playerId)
                   ? winPresentation3D
                   : null}
                 visualContext={tileVisualContext}
@@ -134,38 +127,15 @@ const StableTableScene = memo(function StableTableScene({
             />
           </group>
         ))}
+        <SceneLayerReady onReady={onTileLayerReady} />
       </Suspense>
-      <Suspense fallback={null}>
-        <RiichiSticks3D
-          sceneState={sceneState}
-          hiddenSeats={hiddenRiichiSeats}
-          appearance={riichiStickAppearance}
-        />
-      </Suspense>
-      <mesh position={[0, -0.88, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[42, 34]} />
-        <meshStandardMaterial color="#06100d" roughness={1} />
-      </mesh>
     </>
   );
 });
 
-/** Safely hand control back to the legacy renderer instead of leaving a lost WebGL canvas black. */
-function WebglContextLossRecovery({ onUnavailable }: Readonly<{ onUnavailable?: (error: Error) => void }>) {
-  const gl = useThree((state) => state.gl);
-  useEffect(() => {
-    const onContextLost = (event: Event) => {
-      event.preventDefault();
-      onUnavailable?.(tagTableRendererError(new Error('WebGL context lost while rendering appearance assets.'), 'webgl-init-failure'));
-    };
-    gl.domElement.addEventListener('webglcontextlost', onContextLost);
-    return () => gl.domElement.removeEventListener('webglcontextlost', onContextLost);
-  }, [gl, onUnavailable]);
+function SceneLayerReady({ onReady }: Readonly<{ onReady?: () => void }>) {
+  useEffect(() => { onReady?.(); }, [onReady]);
   return null;
-}
-
-export function CanvasUnavailable() {
-  return <div className="table-3d-unavailable">当前设备无法启动 3D 牌桌，正在恢复经典牌桌。</div>;
 }
 
 export function Table3DScene({
@@ -184,6 +154,10 @@ export function Table3DScene({
   onReady,
   onUnavailable,
 }: Table3DSceneProps) {
+  const [rendererReady, setRendererReady] = useState(false);
+  const [tileLayerReady, setTileLayerReady] = useState(false);
+  const [riichiLayerReady, setRiichiLayerReady] = useState(false);
+  const playerSlotAppearances = usePlayerSlotAppearances();
   const winningRiverTarget = resolveWinningRiverTarget3D(winPresentation3D ?? null);
   const winningRevealSeat = winPresentation3D
     ? SEAT_ORDER.find((seat) => sceneState.seats[seat].playerId === winPresentation3D.action.playerId)
@@ -236,6 +210,17 @@ export function Table3DScene({
     sceneState.seats,
     animation.hiddenRiichiSeats,
   );
+  const tableSceneReady = tileLayerReady && riichiLayerReady;
+  const criticalPlayerIds = SEAT_ORDER.map((seat) => sceneState.seats[seat].playerId);
+  const criticalRiichiPlayerIds = visibleRiichiSeats.map((seat) => sceneState.seats[seat].playerId);
+  const handleRendererReady = useCallback(() => setRendererReady(true), []);
+  const handleTileLayerReady = useCallback(() => setTileLayerReady(true), []);
+  const handleRiichiLayerReady = useCallback(() => setRiichiLayerReady(true), []);
+  const activeHandPack = resolveHandPackForPlayer(
+    animation.active?.plan.action.playerId,
+    playerSlotAppearances,
+    appearanceSettings,
+  );
   return (
     <section
       ref={sceneElementRef}
@@ -270,45 +255,21 @@ export function Table3DScene({
       data-dora-sweep-last-target-count="0"
       data-dora-sweep-last-duration-ms="0"
       data-dora-sweep-last-frame-count="0"
+      data-renderer-ready={rendererReady ? 'true' : 'false'}
+      data-table-scene-ready={tableSceneReady ? 'true' : 'false'}
     >
-      <Canvas
-        shadows="basic"
-        frameloop="demand"
-        dpr={[1, 1.75]}
+      <SceneCanvasHost
+        sessionKey={animationSessionKey}
         camera={{
           position: TABLE_CAMERA.position,
           fov: TABLE_CAMERA.fov,
           near: TABLE_CAMERA.near,
           far: TABLE_CAMERA.far,
         }}
-        gl={(defaultProps) => {
-          try {
-            return new WebGLRenderer({
-              ...defaultProps,
-              antialias: true,
-              alpha: false,
-              powerPreference: 'high-performance',
-            });
-          } catch (cause) {
-            const error = tagTableRendererError(cause, 'webgl-init-failure');
-            if (import.meta.env.DEV) {
-              console.error('[TableRenderer] WebGL renderer initialization failed.', error);
-            }
-            onUnavailable?.(error);
-            throw error;
-          }
-        }}
-        fallback={<CanvasUnavailable />}
-        onCreated={({ gl }) => {
-          gl.outputColorSpace = SRGBColorSpace;
-          gl.toneMapping = ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1.05;
-          gl.shadowMap.enabled = true;
-          gl.shadowMap.type = PCFShadowMap;
-          onReady?.();
-        }}
+        onReady={onReady}
+        onRendererReady={handleRendererReady}
+        onUnavailable={onUnavailable}
       >
-        <WebglContextLossRecovery onUnavailable={onUnavailable} />
         <DoraSweep3DProvider
           trigger={doraSweepTrigger}
           sessionKey={animationSessionKey}
@@ -316,8 +277,12 @@ export function Table3DScene({
           onPulseStart={handleDoraSweepStart}
           onPulseComplete={handleDoraSweepComplete}
         >
-          <AppearanceResources3D settings={appearanceSettings}>
-            {({ feltTexture, riichiStickAppearance: resolvedRiichiStickAppearance }) => (
+          <AppearanceResources3D
+            settings={appearanceSettings}
+            criticalPlayerIds={criticalPlayerIds}
+            criticalRiichiPlayerIds={criticalRiichiPlayerIds}
+          >
+            {({ feltTexture, riichiStickAppearance: resolvedRiichiStickAppearance, criticalAssetsReady }) => (
               <>
                 <StableTableScene
                   sceneState={sceneState}
@@ -325,25 +290,33 @@ export function Table3DScene({
                   handPresentation={animation.active?.handPresentation}
                   hiddenRiverKeys={animation.hiddenRiverKeys}
                   hiddenMeldTileKeys={animation.hiddenMeldTileKeys}
-                  hiddenRiichiSeats={animation.hiddenRiichiSeats}
                   winPresentation3D={winPresentation3D}
+                  winHandPack={resolveHandPackForPlayer(winPresentation3D?.action.playerId ?? 0, playerSlotAppearances, appearanceSettings)}
                   tableVisualTheme={tableVisualTheme}
                   tileVisualContext={tileVisualContext}
-                  riichiStickAppearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }}
                   feltTexture={feltTexture}
-                  riichiVisibilityKey={visibleRiichiSeats.join(',')}
                   centralHud={centralHud}
+                  onTileLayerReady={handleTileLayerReady}
                 />
                 <Suspense fallback={null}>
                   {animation.active ? (
-                    <HandAction3D active={animation.active} riichiStickAppearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }} />
+                    <HandAction3D active={animation.active} handPack={activeHandPack} riichiStickAppearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }} />
                   ) : null}
                 </Suspense>
+                <Suspense fallback={null}>
+                  <RiichiSticks3D
+                    sceneState={sceneState}
+                    hiddenSeats={animation.hiddenRiichiSeats}
+                    appearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }}
+                  />
+                  <SceneLayerReady onReady={handleRiichiLayerReady} />
+                </Suspense>
+                <SceneContentReady sceneReady={tableSceneReady} criticalAssetsReady={criticalAssetsReady} />
               </>
             )}
           </AppearanceResources3D>
         </DoraSweep3DProvider>
-      </Canvas>
+      </SceneCanvasHost>
       <div className="table-3d-badge" aria-hidden="true">3D 技术样板</div>
       {isAvatarFrameTuningEnabled() ? <AvatarFrameTuningPanel /> : null}
     </section>

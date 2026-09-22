@@ -21,6 +21,8 @@ interface AudioSettingsPanelProps {
   onRelink: (category: MusicCategory, trackId: MusicTrackId) => void;
   onReorder: (category: MusicCategory, orderedIds: MusicTrackId[]) => void;
   onReorderSfxGroup: (group: GameSfxGroup, orderedIds: MusicTrackId[]) => void;
+  onSfxSelectionChange?: (group: GameSfxGroup, ids: readonly MusicTrackId[]) => void;
+  onResetSfxGroup?: (group: GameSfxGroup) => void;
   onSfxPlaybackModeChange: (group: GameSfxGroup, mode: PlaybackMode) => void;
   onPlaybackModeChange: (category: MusicCategory, mode: PlaybackMode) => void;
   onPreview: (track: MusicTrackDefinition) => void;
@@ -69,6 +71,8 @@ export function AudioSettingsPanel({
   onRelink,
   onReorder,
   onReorderSfxGroup,
+  onSfxSelectionChange,
+  onResetSfxGroup,
   onSfxPlaybackModeChange,
   onPlaybackModeChange,
   onPreview,
@@ -119,6 +123,8 @@ export function AudioSettingsPanel({
             onReauthorize={onReauthorize}
             onRelink={onRelink}
             onReorderSfxGroup={onReorderSfxGroup}
+            onSfxSelectionChange={onSfxSelectionChange}
+            onResetSfxGroup={onResetSfxGroup}
             onSfxPlaybackModeChange={onSfxPlaybackModeChange}
             onPreview={onPreview}
             onStopPreview={onStopPreview}
@@ -338,6 +344,9 @@ const SFX_GROUP_LABELS: ReadonlyArray<[GameSfxGroup, string]> = Object.freeze([
   ['draw', '摸牌音效'],
   ['discard', '弃牌音效'],
   ['meld', '鸣牌音效'],
+  ['riichi', '立直棒音效'],
+  ['dora', '宝牌音效'],
+  ['rong', '和牌音效'],
 ]);
 
 function SfxCategoryCard({
@@ -352,6 +361,8 @@ function SfxCategoryCard({
   onReauthorize,
   onRelink,
   onReorderSfxGroup,
+  onSfxSelectionChange,
+  onResetSfxGroup,
   onSfxPlaybackModeChange,
   onPreview,
   onStopPreview,
@@ -367,6 +378,8 @@ function SfxCategoryCard({
   onReauthorize: (category: MusicCategory, trackId: MusicTrackId) => void;
   onRelink: (category: MusicCategory, trackId: MusicTrackId) => void;
   onReorderSfxGroup: (group: GameSfxGroup, orderedIds: MusicTrackId[]) => void;
+  onSfxSelectionChange?: (group: GameSfxGroup, ids: readonly MusicTrackId[]) => void;
+  onResetSfxGroup?: (group: GameSfxGroup) => void;
   onSfxPlaybackModeChange: (group: GameSfxGroup, mode: PlaybackMode) => void;
   onPreview: (track: MusicTrackDefinition) => void;
   onStopPreview: () => void;
@@ -390,7 +403,7 @@ function SfxCategoryCard({
         disabled={!(settings[enabledKey] as boolean)}
         onChange={(value) => onChange({ ...settings, [volumeKey]: Number(value) / 100 })}
       />
-      <div className="music-card__sfx-groups">
+      <div className="music-card__sfx-groups" role="region" aria-label="游戏音效分类列表" tabIndex={0}>
         {SFX_GROUP_LABELS.map(([group, label]) => (
           <SfxGroupSection
             key={group}
@@ -409,6 +422,8 @@ function SfxCategoryCard({
             onReauthorize={onReauthorize}
             onRelink={onRelink}
             onReorderSfxGroup={onReorderSfxGroup}
+            onSfxSelectionChange={onSfxSelectionChange}
+            onResetSfxGroup={onResetSfxGroup}
             onSfxPlaybackModeChange={onSfxPlaybackModeChange}
             onPreview={onPreview}
             onStopPreview={onStopPreview}
@@ -433,6 +448,8 @@ function SfxGroupSection({
   onReauthorize,
   onRelink,
   onReorderSfxGroup,
+  onSfxSelectionChange,
+  onResetSfxGroup,
   onSfxPlaybackModeChange,
   onPreview,
   onStopPreview,
@@ -450,6 +467,8 @@ function SfxGroupSection({
   onReauthorize: (category: MusicCategory, trackId: MusicTrackId) => void;
   onRelink: (category: MusicCategory, trackId: MusicTrackId) => void;
   onReorderSfxGroup: (group: GameSfxGroup, orderedIds: MusicTrackId[]) => void;
+  onSfxSelectionChange?: (group: GameSfxGroup, ids: readonly MusicTrackId[]) => void;
+  onResetSfxGroup?: (group: GameSfxGroup) => void;
   onSfxPlaybackModeChange: (group: GameSfxGroup, mode: PlaybackMode) => void;
   onPreview: (track: MusicTrackDefinition) => void;
   onStopPreview: () => void;
@@ -459,8 +478,15 @@ function SfxGroupSection({
   return (
     <div className="music-card__sfx-group">
       <h4 className="music-card__sfx-group-title">{label}</h4>
+      <p className="music-card__sfx-summary">{PLAYBACK_MODE_LABELS[playbackMode]} · 已选 {(library.sfxSelectedTrackIds?.(group) ?? tracks.map(track => track.id)).length} 个音效</p>
+      <button type="button" onClick={() => onResetSfxGroup?.(group)} aria-label={`恢复默认（${label}）`}>恢复默认</button>
       <MusicTrackList
         category="effects"
+        selectedIds={library.sfxSelectedTrackIds?.(group) ?? tracks.map(track => track.id)}
+        onSelect={(id, checked) => {
+          const current = library.sfxSelectedTrackIds?.(group) ?? tracks.map(track => track.id);
+          onSfxSelectionChange?.(group, checked ? [...current, id] : current.filter(item => item !== id));
+        }}
         tracks={tracks}
         repeatTargetId={repeatTargetId}
         previewTrackId={previewTrackId}
@@ -499,6 +525,14 @@ function SfxGroupSection({
           }}
         />
       </div>
+      {playbackMode === 'repeat-one' && <label className="audio-settings__field">单曲音效
+        <select aria-label={`单曲音效（${label}）`} value={
+          (library.sfxSelectedTrackIds?.(group) ?? tracks.map(track => track.id)).includes(repeatTargetId ?? '')
+            ? repeatTargetId ?? '' : library.sfxSelectedTrackIds?.(group)[0] ?? tracks[0]?.id ?? ''
+        } onChange={event => onSfxSelectionChange?.(group, [event.target.value])}>
+          {tracks.map(track => <option key={track.id} value={track.id}>{track.name}</option>)}
+        </select>
+      </label>}
       <PlaybackModeControl
         name={`music-mode-sfx-${group}`}
         value={playbackMode}
@@ -509,6 +543,8 @@ function SfxGroupSection({
 }
 
 function MusicTrackList({
+  selectedIds,
+  onSelect,
   category,
   tracks,
   repeatTargetId,
@@ -521,6 +557,8 @@ function MusicTrackList({
   onPreview,
   onStopPreview,
 }: {
+  selectedIds?: readonly MusicTrackId[];
+  onSelect?: (id: MusicTrackId, checked: boolean) => void;
   category: MusicCategory;
   tracks: readonly MusicTrackDefinition[];
   repeatTargetId: MusicTrackId | null;
@@ -571,6 +609,9 @@ function MusicTrackList({
               setDraggingId(null);
             }}
           >
+            {onSelect && <input type="checkbox" aria-label={`选用 ${track.name}`} checked={selectedIds?.includes(track.id) ?? false}
+              disabled={selectedIds?.length === 1 && selectedIds.includes(track.id)}
+              onChange={event => onSelect(track.id, event.target.checked)} />}
             {previewTrackId === track.id ? (
               <button
                 type="button"
@@ -598,7 +639,7 @@ function MusicTrackList({
                     : <small className="music-track__source">外部文件</small>
               ) : track.sourceType === 'copied'
                 ? <small className="music-track__source">游戏库副本</small>
-                : null}
+                : category === 'effects' ? <small className="music-track__source">内置音效</small> : null}
             </span>
             <button
               type="button"

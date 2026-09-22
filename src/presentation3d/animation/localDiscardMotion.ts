@@ -4,7 +4,7 @@ import type { TableAnimation3DPlan } from './tableAnimation3D';
 import { TABLE_CAMERA } from '../camera/FixedTableCamera';
 import { MAHJONG_TILE_DIMENSIONS } from '../tile/tileGeometry';
 
-export type LocalDiscardMotion = Readonly<{ source: PresentationRect; destination: PresentationRect }>;
+export type LocalDiscardMotion = Readonly<{ source: PresentationRect; destination: PresentationRect; drawnSource?: PresentationRect }>;
 
 /** DOM-to-river bridge only; uses the frozen camera and final river transform. */
 export function captureLocalDiscardMotion(plan: TableAnimation3DPlan, source?: PresentationRect): LocalDiscardMotion | undefined {

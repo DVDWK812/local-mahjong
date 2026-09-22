@@ -1,0 +1,74 @@
+import type { PresentationEvent } from './PresentationEventBus';
+
+export type PresentationAudioCueKind = 'draw-contact' | 'discard-impact' | 'meld-impact'
+  | 'riichi-stick-impact' | 'dora-reveal' | 'win-impact';
+export type PresentationAudioCue = Readonly<{
+  event: PresentationEvent;
+  kind: PresentationAudioCueKind;
+  generation: number;
+  phase: string;
+  progress: number;
+}>;
+export type AnimationCueFrame = (phase: string, progress: number, profile?: 'standard' | 'snapshot' | 'candidate') => void;
+
+/** One callback slot, not an event bus or clock. Owners invalidate their run on cancel. */
+export class PresentationAudioCues {
+  private sink: ((cue: PresentationAudioCue) => void) | null = null;
+  private generation = 0;
+  private readonly consumed = new Map<string, number>();
+  private retiredThroughSequence = -1;
+
+  connect(sink: (cue: PresentationAudioCue) => void): () => void {
+    this.sink = sink;
+    const generation = ++this.generation;
+    return () => {
+      if (generation !== this.generation) return;
+      this.sink = null;
+      ++this.generation;
+    };
+  }
+
+  run(event: PresentationEvent) {
+    const generation = this.generation;
+    let live = true;
+    return {
+      close: () => { live = false; this.remember(`${event.eventId}:closed`, event.sequence); },
+      emit: (kind: PresentationAudioCueKind, phase: string, progress: number) => {
+        if (!live || generation !== this.generation || event.sequence <= this.retiredThroughSequence) return;
+        // Event IDs are globally unique, including across sessions and StrictMode rebuilds.
+        const key = `${event.eventId}:${kind}`;
+        if (this.consumed.has(key) || this.consumed.has(`${event.eventId}:closed`)) return;
+        this.remember(key, event.sequence);
+        try { this.sink?.({ event, kind, generation, phase, progress }); }
+        catch { /* Audio failure must never escape into pacing. */ }
+      },
+    };
+  }
+
+  private remember(key: string, sequence: number): void {
+    this.consumed.set(key, sequence);
+    if (this.consumed.size <= 2048) return;
+    this.retiredThroughSequence = Math.max(this.retiredThroughSequence, Math.min(...this.consumed.values()));
+    this.consumed.forEach((value, identity) => {
+      if (value <= this.retiredThroughSequence) this.consumed.delete(identity);
+    });
+  }
+}
+
+export const presentationAudioCues = new PresentationAudioCues();
+
+/** Keyframes from existing motion contracts; no elapsed-time offsets. */
+export function handAudioCue(event: PresentationEvent, phase: string, progress: number,
+  profile: 'standard' | 'snapshot' | 'candidate' = 'standard'): PresentationAudioCueKind | undefined {
+  if (event.type === 'tile_drawn' && phase === 'grasp' && progress === 0) return 'draw-contact';
+  if (event.type === 'tile_discarded') {
+    if (profile === 'snapshot' && phase === 'river-settle' && progress === 0) return 'discard-impact';
+    if (profile === 'candidate' && phase === 'release' && progress === 0) return 'discard-impact';
+    if (profile === 'standard' && phase === 'release' && progress === 1) return 'discard-impact';
+  }
+  if (phase === 'release' && progress === 1) {
+    if (event.type === 'meld_declared') return 'meld-impact';
+    if (event.type === 'riichi_declared') return 'riichi-stick-impact';
+  }
+  return undefined;
+}

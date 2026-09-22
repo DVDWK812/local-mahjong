@@ -2,7 +2,7 @@ import type { AudioChannel } from './audioSettings';
 import defaultTileSfxUrl from '../music/effects/default-tile.wav';
 
 export type BgmTrackId = 'home' | 'game' | 'riichi';
-export type SfxId = 'discard' | 'riichi' | 'draw' | 'chi' | 'pon' | 'kan' | 'win';
+export type SfxId = 'discard' | 'riichi' | 'draw' | 'chi' | 'pon' | 'kan' | 'rong' | 'win' | 'dora';
 export type VoiceId = 'round-start' | 'win';
 
 export interface AudioAssetDefinition {

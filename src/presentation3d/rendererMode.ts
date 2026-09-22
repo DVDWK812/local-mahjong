@@ -31,9 +31,12 @@ export function resolveTableRenderer(
   search = '',
   storage: RendererStorage | null = getBrowserStorage(),
 ): TableRendererMode {
-  const table3d = new URLSearchParams(search).get('table3d');
+  const parameters = new URLSearchParams(search);
+  const table3d = parameters.get('table3d');
   if (table3d === '1') return '3d';
   if (table3d === '0') return '2d';
+  // Automated 3D fixtures must be deterministic and cannot inherit a user's Legacy preference.
+  if (parameters.get('testMode') === '1' || parameters.get('testAnimations') === '1') return '3d';
   return getStoredTableRendererPreference(storage) ?? '3d';
 }
 

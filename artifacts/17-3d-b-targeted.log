@@ -1,0 +1,26 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation3d/Table3DScene.test.ts (10 tests) 9ms
+ ✓ src/presentation3d/initialSceneReady.test.ts (2 tests) 2ms
+ ✓ src/presentation3d/session/SceneCanvasHost.test.tsx (7 tests) 19ms
+ ✓ src/game/seventeenSteps.test.ts (22 tests) 32ms
+ ✓ src/presentation3d/appearance/AppearanceTextureCache.test.ts (7 tests) 6ms
+ ✓ src/presentation3d/participants/participantPresentation.test.tsx (7 tests) 34ms
+ ✓ src/presentation3d/appearance/AppearanceResources3D.test.ts (5 tests) 2ms
+ ✓ src/presentation3d/appearance/playerAppearanceConsumers.test.tsx (2 tests) 48ms
+stderr | src/presentation3d/appearance/playerAppearanceConsumers.test.tsx > real 3D consumer owner contracts > riichi animation/release and static sticks consume the same actor texture for all four players
+React does not recognize the `userData` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `userdata` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
+Received `true` for a non-boolean attribute `visible`.
+
+If you want to write it to the DOM, pass a string instead: visible="true" or visible={value.toString()}.
+
+ ✓ src/presentation3d/TableRenderer.test.ts (15 tests) 94ms
+ ✓ src/components/SeventeenStepsScreen.test.tsx (4 tests) 529ms
+   ✓ 17步正式游戏界面接入 > 进入正式 game-screen，并且只显示上下两个有效座位 415ms
+
+ Test Files  10 passed (10)
+      Tests  81 passed (81)
+   Start at  00:52:03
+   Duration  1.83s (transform 1.63s, setup 0ms, collect 6.41s, tests 776ms, environment 2ms, prepare 1.36s)
+

@@ -1,0 +1,21 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import { finalGateRoute } from './dev/finalGate/route';
+const FinalGate = finalGateRoute(location.search, import.meta.env.DEV).enabled
+  ? React.lazy(() => import('./dev/finalGate/FinalGate')) : null;
+const RealAppGate = import.meta.env.DEV && !new URLSearchParams(location.search).has('testMode') && new URLSearchParams(location.search).get('appFinalGate') === '17-ron'
+  ? React.lazy(() => import('./dev/finalGate/RealAppSeventeenGate')) : null;
+import './styles/tokens.css';
+import './styles.css';
+
+const ParticipantPreview = import.meta.env.DEV && new URLSearchParams(location.search).get('layoutPreview') === 'three'
+  ? React.lazy(() => import('./dev/ParticipantLayoutPreview')) : null;
+const SeventeenPreview = import.meta.env.DEV && new URLSearchParams(location.search).has('seventeenFixture')
+  ? React.lazy(() => import('./dev/SeventeenPresentationPreview')) : null;
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    {RealAppGate ? <React.Suspense fallback={<p>正在准备正式 App 验收…</p>}><RealAppGate /></React.Suspense> : FinalGate ? <React.Suspense fallback={<p>正在准备最终验收…</p>}><FinalGate /></React.Suspense> : ParticipantPreview ? <React.Suspense fallback={<p>正在准备布局预览…</p>}><ParticipantPreview /></React.Suspense> : SeventeenPreview ? <React.Suspense fallback={<p>正在准备测试场景…</p>}><SeventeenPreview /></React.Suspense> : <App />}
+  </React.StrictMode>,
+);

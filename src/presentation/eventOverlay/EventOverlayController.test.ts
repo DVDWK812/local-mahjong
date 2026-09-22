@@ -152,8 +152,8 @@ describe('EventOverlayController', () => {
       action({ type: 'round_end_announced', settlementType: 'abortive-draw', reason: 'suukan-sanra' }),
       action({ type: 'round_end_announced', settlementType: 'abortive-draw', reason: 'sanchahou' }),
     ];
-    expect(variants.map(eventOverlayLabel)).toEqual(['立直', '吃', '碰', '杠', '荣和', '自摸', '流局', '九种九牌', '四风连打', '四家立直', '四杠散了', '三家和']);
-    expect(variants.map(eventOverlayIntensity)).toEqual(['medium', 'light', 'light', 'medium', 'strong', 'strong', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium']);
+    expect(variants.map(eventOverlayLabel)).toEqual(['立直', '吃', '碰', '杠', '荣和', '自摸', '流局', '流局', '流局', '流局', '流局', '流局']);
+    expect(variants.map(eventOverlayIntensity)).toEqual(['medium', 'light', 'light', 'medium', 'strong', 'strong', 'strong', 'strong', 'strong', 'strong', 'strong', 'strong']);
     variants.forEach((variant) => expect(overlayPhases(variant).map((phase) => phase.phase)).toEqual(['lead-in', 'enter', 'hold', 'exit']));
   });
 });

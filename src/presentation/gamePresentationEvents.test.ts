@@ -10,6 +10,19 @@ import { GamePresentationEventObserver } from './gamePresentationEvents';
 import { voiceEventFromPresentation } from '../audio/voice/voiceEvents';
 
 describe('confirmed win presentation events', () => {
+  it('Dora initial/scene re-observe is silent; only new appended reveal emits once', () => {
+    const initial = createInitialGameState();
+    const bus = new PresentationEventBus(); const events: PresentationEvent[] = [];
+    bus.subscribe(event => events.push(event));
+    const observer = new GamePresentationEventObserver(initial, bus);
+    observer.observe(initial); observer.observe(initial);
+    expect(events.filter(e => e.type === 'dora_revealed')).toHaveLength(0);
+    const next = { ...initial, doraIndicators: [...initial.doraIndicators, createTile(5, 90001)] };
+    observer.observe(next); observer.observe(next);
+    expect(events.filter(e => e.type === 'dora_revealed')).toHaveLength(1);
+    observer.observe({ ...initial, doraIndicators: [createTile(8, 90002)] });
+    expect(events.filter(e => e.type === 'dora_revealed')).toHaveLength(1);
+  });
   it('规则结算出的 ron / tsumo 各发布一次，并且重复 observe 不重播', () => {
     const initial = createInitialGameState();
     const bus = new PresentationEventBus(); const events: PresentationEvent[] = [];

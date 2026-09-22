@@ -1,0 +1,48 @@
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { HandAnimationController } from '../../presentation/handAnimation/HandAnimationController';
+import { HandAnimationConsumer } from '../../presentation/handAnimation/HandAnimationConsumer';
+import { AnimationScheduler } from '../../presentation/animation/AnimationScheduler';
+import { presentationPacingGate } from '../../presentation/pacing/PresentationPacingGate';
+import { getPresentationFeatures } from '../../config/presentationFeatures';
+import { CandidateAnimationTarget, type CandidateDiscard, type CandidateFrame } from './candidateAnimation';
+
+export function useCandidateAnimation(session: string, enabled: boolean, speed = 1) {
+  const [frame, setFrame] = useState<CandidateFrame | null>(null);
+  const target = useRef<CandidateAnimationTarget | null>(null);
+  const controller = useRef<HandAnimationController | null>(null);
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
+  useLayoutEffect(() => {
+    let live = true;
+    const current = new CandidateAnimationTarget(value => { if (live) setFrame(value); }, id => presentationPacingGate.complete(id));
+    const animation = new HandAnimationController(current, new AnimationScheduler(), {
+      snapOnPlaybackChange: true, maxQueuedActions: 1, onError: () => current.clear(),
+    });
+    target.current = current; controller.current = animation;
+    const consumer = new HandAnimationConsumer(animation, undefined, () => enabledRef.current, undefined,
+      event => event.type === 'tile_discarded' && current.matches(event) ? { ...event, handHistory: undefined } : undefined,
+      presentationPacingGate);
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => animation.setReducedMotion(motion.matches);
+    update(); motion.addEventListener('change', update);
+    return () => { live = false; consumer.dispose(); animation.dispose(); current.clear(); motion.removeEventListener('change', update); target.current = null; controller.current = null; };
+  }, [session]);
+  useLayoutEffect(() => { controller.current?.setSpeed(speed); }, [speed, session]);
+  useLayoutEffect(() => { if (!enabled) controller.current?.cancelAll(); }, [enabled]);
+  const capture = useCallback((snapshot: CandidateDiscard) => {
+    const features = getPresentationFeatures();
+    if (!enabledRef.current || !features.presentationEvents || !features.handAnimations) return false;
+    return target.current?.capture(snapshot) ?? false;
+  }, []);
+  const cancel = useCallback(() => controller.current?.cancelAll(), []);
+  const prepared = useCallback((eventId: string) => target.current?.prepared(eventId), []);
+  const isBusy = useCallback(() => Boolean(target.current?.frame), []);
+  // Existing fail-open deadline also cancels a consumer stalled during prepare/decode.
+  useLayoutEffect(() => {
+    if (!frame?.event) return;
+    let live = true;
+    void presentationPacingGate.waitUntilClear().then(status => { if (live && status === 'timed-out') controller.current?.cancelAll(); });
+    return () => { live = false; };
+  }, [frame?.event?.eventId]);
+  return { frame: frame?.snapshot.session === session ? frame : null, capture, cancel, isBusy, prepared };
+}

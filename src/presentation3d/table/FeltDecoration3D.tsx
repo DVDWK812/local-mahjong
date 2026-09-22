@@ -2,11 +2,11 @@ import { useThree } from '@react-three/fiber';
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { Color, Object3D, type InstancedMesh } from 'three';
 import {
-  getCenterDecorationCenter,
   TABLE_PRESENTATION_TUNING,
 } from './tablePresentationTuning';
 import { TABLE_FELT_TOP_Y } from './tableSurfaceSpec';
 import type { TableVisualTheme } from './tableVisualTheme';
+import { getCentralConsoleLayout } from './centralConsoleLayout';
 
 const { centerDecoration } = TABLE_PRESENTATION_TUNING;
 export const FELT_DECORATION_Y_EPSILON = centerDecoration.segmentHeight / 2
@@ -25,9 +25,10 @@ export function buildFeltDecorationSegments(
   preset: TableVisualTheme['decoration']['preset'],
 ): readonly FeltDecorationSegment[] {
   if (preset === 'none') return [];
-  const innerHalfSpan = centerDecoration.innerSquareSize / 2;
+  const assembly = getCentralConsoleLayout();
+  const innerHalfSpan = assembly.outerFrame.size / 2;
   const outerHalfSpan = centerDecoration.outerSquareSize / 2;
-  const decorationCenter = getCenterDecorationCenter();
+  const decorationCenter = assembly.outerFrame.center;
   const innerCorners = squareCorners(innerHalfSpan, decorationCenter);
   const outerCorners = squareCorners(outerHalfSpan, decorationCenter);
   return [

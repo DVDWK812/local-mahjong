@@ -2,6 +2,7 @@ import { getPresentationFeatures, type PresentationFeatureFlagsSource } from '..
 import { PresentationEventBus, presentationEventBus, type PresentationEvent } from '../PresentationEventBus';
 import type { PresentationPacingGate } from '../pacing/PresentationPacingGate';
 import type { HandAnimationAction, HandAnimationController } from './HandAnimationController';
+import { handAudioCue, presentationAudioCues } from '../PresentationAudioCue';
 
 export class HandAnimationConsumer {
   private readonly unsubscribe: () => void;
@@ -22,7 +23,19 @@ export class HandAnimationConsumer {
   }
 
   private readonly handleEvent = (event: PresentationEvent) => {
-    if (!this.shouldHandleEvent() || !this.featureFlagsSource().handAnimations) return;
+    const features = this.featureFlagsSource();
+    if (!this.shouldHandleEvent() || !features.presentationEvents) return;
+    if (!features.handAnimations) {
+      // The authoritative visual is already committed when animation is disabled.
+      // Preserve the independent SFX policy without enqueueing or a second clock.
+      const cue = handAudioCue(event, event.type === 'tile_drawn' ? 'grasp' : 'release', event.type === 'tile_drawn' ? 0 : 1);
+      if (cue) {
+        const run = presentationAudioCues.run(event);
+        run.emit(cue, 'static-settled', 1);
+        run.close();
+      }
+      return;
+    }
     const action = this.mapEvent(event);
     if (!isHandAnimationAction(action)) return;
     this.pacingGate?.begin(event);
@@ -31,5 +44,6 @@ export class HandAnimationConsumer {
 }
 
 function isHandAnimationAction(event: PresentationEvent | undefined): event is HandAnimationAction {
-  return event !== undefined && event.type !== 'win_declared';
+  return event?.type === 'tile_drawn' || event?.type === 'tile_discarded'
+    || event?.type === 'meld_declared' || event?.type === 'riichi_declared';
 }

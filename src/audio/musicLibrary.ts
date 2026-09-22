@@ -24,6 +24,7 @@ export interface MusicLibraryUi {
   readonly initialized: boolean;
   tracks(category: MusicCategory): readonly MusicTrackDefinition[];
   tracksBySfxGroup(group: GameSfxGroup): readonly MusicTrackDefinition[];
+  sfxSelectedTrackIds?(group: GameSfxGroup): readonly MusicTrackId[];
   playbackMode(category: MusicCategory): PlaybackMode;
   sfxPlaybackMode(group: GameSfxGroup): PlaybackMode;
   lastSelectedTrackId(category: MusicCategory): MusicTrackId | null;
@@ -194,8 +195,13 @@ export class MusicLibrary implements MusicLibraryView {
         sfxLastSelectedTrackId[group] = this.tracksBySfxGroup(group)[0]?.id ?? null;
       }
     });
+    const sfxAssetIds = { ...this.preferences.sfxAssetIds };
+    GAME_SFX_GROUPS.forEach(group => {
+      if (sfxAssetIds[group]) sfxAssetIds[group] = sfxAssetIds[group]!.filter(isValid);
+    });
     this.preferences = {
       ...this.preferences,
+      sfxAssetIds,
       disabledBuiltinTrackIds,
       order,
       lastSelectedTrackId,
@@ -251,6 +257,38 @@ export class MusicLibrary implements MusicLibraryView {
       if (!seen.has(track.id)) ordered.push(track);
     });
     return ordered;
+  }
+
+  sfxSelectedTrackIds(group: GameSfxGroup): readonly MusicTrackId[] {
+    const tracks = this.tracksBySfxGroup(group);
+    const saved = this.preferences.sfxAssetIds?.[group];
+    if (!saved) return tracks.map(track => track.id);
+    const valid = saved.filter(id => tracks.some(track => track.id === id));
+    return valid.length ? valid : tracks.filter(track => track.sourceType === 'builtin').map(track => track.id);
+  }
+
+  setSfxSelection(group: GameSfxGroup, ids: readonly MusicTrackId[]): void {
+    const valid = this.tracksBySfxGroup(group);
+    this.preferences = { ...this.preferences, sfxAssetIds: { ...this.preferences.sfxAssetIds,
+      [group]: [...new Set(ids)].filter(id => valid.some(track => track.id === id)),
+    }, sfxLastSelectedTrackId: ids.length === 1 && valid.some(track => track.id === ids[0])
+      ? { ...this.preferences.sfxLastSelectedTrackId, [group]: ids[0] }
+      : this.preferences.sfxLastSelectedTrackId };
+
+    this.persistPreferences();
+  }
+
+  resetSfxGroup(group: GameSfxGroup): void {
+    const builtin = BUILTIN_MUSIC_TRACKS.filter(track => track.gameSfxGroup === group);
+    const ids = builtin.map(track => track.id);
+    this.preferences = { ...this.preferences,
+      disabledBuiltinTrackIds: this.preferences.disabledBuiltinTrackIds.filter(id => !ids.includes(id)),
+      sfxAssetIds: { ...this.preferences.sfxAssetIds, [group]: ids },
+      sfxOrder: { ...this.preferences.sfxOrder, [group]: ids },
+      sfxPlaybackMode: { ...this.preferences.sfxPlaybackMode, [group]: 'sequential' },
+      sfxLastSelectedTrackId: { ...this.preferences.sfxLastSelectedTrackId, [group]: ids[0] ?? null },
+    };
+    this.persistPreferences();
   }
 
   playbackMode(category: MusicCategory): PlaybackMode {
@@ -490,6 +528,9 @@ export class MusicLibrary implements MusicLibraryView {
           [track.category]: fallback?.id ?? null,
         },
       };
+    }
+    if (track.gameSfxGroup && this.preferences.sfxAssetIds?.[track.gameSfxGroup]) {
+      this.setSfxSelection(track.gameSfxGroup, this.preferences.sfxAssetIds[track.gameSfxGroup]!.filter(id => id !== trackId));
     }
     this.persistPreferences();
   }

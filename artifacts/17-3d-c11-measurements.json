@@ -1,0 +1,303 @@
+{
+  "method": "Built-in browser 1, initial fixture, split female/male packs, explicit table3d=1, candidateTrace=1 and temporary candidateCold=1 probe. Reload each round; three real local six-man clicks and three automatic opponent actions. No screenshots/screencast/CPU profiler during timed runs. Page reload cold, browser/GPU/disk caches NOT reset.",
+  "frameMetric": "Maximum interval between existing scheduler frame callbacks, not GPU duration or display presentation interval.",
+  "runs": [
+    {
+      "cssWidth": 1280,
+      "cssHeight": 720,
+      "round": 1,
+      "presentationReadySinceNavigationMs": 979,
+      "localMaxIntervalMs": [
+        14.8,
+        9.3,
+        9.4
+      ],
+      "opponentMaxIntervalMs": [
+        10.1,
+        9.8,
+        8.8
+      ],
+      "localPrepareMs": [
+        20.3,
+        5.1,
+        5.1
+      ],
+      "decodeAfterFirstClick": 0,
+      "firstActionProgramLinks": 2,
+      "warmActionProgramLinks": 0
+    },
+    {
+      "cssWidth": 1280,
+      "cssHeight": 720,
+      "round": 2,
+      "presentationReadySinceNavigationMs": 952.7,
+      "localMaxIntervalMs": [
+        14.2,
+        9.9,
+        9.7
+      ],
+      "opponentMaxIntervalMs": [
+        9.2,
+        8.8,
+        7.6
+      ],
+      "localPrepareMs": [
+        19.7,
+        5,
+        4.6
+      ],
+      "decodeAfterFirstClick": 0,
+      "firstActionProgramLinks": 2,
+      "warmActionProgramLinks": 0
+    },
+    {
+      "cssWidth": 1280,
+      "cssHeight": 720,
+      "round": 3,
+      "presentationReadySinceNavigationMs": 902.7,
+      "localMaxIntervalMs": [
+        15.1,
+        10.2,
+        9.2
+      ],
+      "opponentMaxIntervalMs": [
+        8.8,
+        9.2,
+        7.6
+      ],
+      "localPrepareMs": [
+        20.9,
+        5,
+        4.9
+      ],
+      "decodeAfterFirstClick": 0,
+      "firstActionProgramLinks": 2,
+      "warmActionProgramLinks": 0
+    },
+    {
+      "cssWidth": 1280,
+      "cssHeight": 720,
+      "round": 4,
+      "presentationReadySinceNavigationMs": 949.5,
+      "localMaxIntervalMs": [
+        15,
+        9.8,
+        9.1
+      ],
+      "opponentMaxIntervalMs": [
+        9.5,
+        8.1,
+        9.7
+      ],
+      "localPrepareMs": [
+        20.9,
+        5.2,
+        4.8
+      ],
+      "decodeAfterFirstClick": 0,
+      "firstActionProgramLinks": 2,
+      "warmActionProgramLinks": 0
+    },
+    {
+      "cssWidth": 1280,
+      "cssHeight": 720,
+      "round": 5,
+      "presentationReadySinceNavigationMs": 926.4,
+      "localMaxIntervalMs": [
+        13.8,
+        10.7,
+        11.1
+      ],
+      "opponentMaxIntervalMs": [
+        9.7,
+        8.3,
+        7.7
+      ],
+      "localPrepareMs": [
+        19.3,
+        5.5,
+        4.8
+      ],
+      "decodeAfterFirstClick": 0,
+      "firstActionProgramLinks": 2,
+      "warmActionProgramLinks": 0
+    },
+    {
+      "cssWidth": 1920,
+      "cssHeight": 1080,
+      "round": 1,
+      "presentationReadySinceNavigationMs": 934.6,
+      "localMaxIntervalMs": [
+        14.3,
+        10.1,
+        10.1
+      ],
+      "opponentMaxIntervalMs": [
+        8.5,
+        9.1,
+        11.1
+      ],
+      "localPrepareMs": [
+        21.5,
+        4.9,
+        4.9
+      ],
+      "decodeAfterFirstClick": 0,
+      "firstActionProgramLinks": 2,
+      "warmActionProgramLinks": 0
+    },
+    {
+      "cssWidth": 1920,
+      "cssHeight": 1080,
+      "round": 2,
+      "presentationReadySinceNavigationMs": 1150.3,
+      "localMaxIntervalMs": [
+        18.1,
+        10.4,
+        11
+      ],
+      "opponentMaxIntervalMs": [
+        10.4,
+        13.1,
+        10
+      ],
+      "localPrepareMs": [
+        28,
+        5.8,
+        5.8
+      ],
+      "decodeAfterFirstClick": 0,
+      "firstActionProgramLinks": 2,
+      "warmActionProgramLinks": 0
+    },
+    {
+      "cssWidth": 1920,
+      "cssHeight": 1080,
+      "round": 3,
+      "presentationReadySinceNavigationMs": 1088.2,
+      "localMaxIntervalMs": [
+        15.5,
+        12.8,
+        8.8
+      ],
+      "opponentMaxIntervalMs": [
+        10.3,
+        9,
+        9.1
+      ],
+      "localPrepareMs": [
+        20.7,
+        5.5,
+        6.8
+      ],
+      "decodeAfterFirstClick": 0,
+      "firstActionProgramLinks": 2,
+      "warmActionProgramLinks": 0
+    },
+    {
+      "cssWidth": 1920,
+      "cssHeight": 1080,
+      "round": 4,
+      "presentationReadySinceNavigationMs": 1053.8,
+      "localMaxIntervalMs": [
+        17.4,
+        13.7,
+        10.1
+      ],
+      "opponentMaxIntervalMs": [
+        11.4,
+        10,
+        9.5
+      ],
+      "localPrepareMs": [
+        23.6,
+        5.5,
+        5.2
+      ],
+      "decodeAfterFirstClick": 0,
+      "firstActionProgramLinks": 2,
+      "warmActionProgramLinks": 0
+    },
+    {
+      "cssWidth": 1920,
+      "cssHeight": 1080,
+      "round": 5,
+      "presentationReadySinceNavigationMs": 1048.6,
+      "localMaxIntervalMs": [
+        15.6,
+        9.7,
+        9.3
+      ],
+      "opponentMaxIntervalMs": [
+        9.9,
+        10.5,
+        8
+      ],
+      "localPrepareMs": [
+        22.7,
+        5.3,
+        5.9
+      ],
+      "decodeAfterFirstClick": 0,
+      "firstActionProgramLinks": 2,
+      "warmActionProgramLinks": 0
+    }
+  ],
+  "outlier": {
+    "viewport": [
+      1920,
+      1080
+    ],
+    "round": 2,
+    "longTaskStartMs": 1230.8,
+    "longTaskDurationMs": 52,
+    "clickMs": 1231.1,
+    "prepareStartMs": 1240.8,
+    "prepareEndMs": 1268.8,
+    "approachStartMs": 1268.9,
+    "firstShaderCompileMs": null,
+    "attribution": "Crosses click/prepare/approach; no exact CPU stack attribution. Not the historical 83ms frame."
+  },
+  "limits": {
+    "measurementMaxMs": 1.2,
+    "handUpdateMaxMs": 0.6,
+    "stableWindowMs": 17167.9,
+    "drawDelta": 0,
+    "clearDelta": 0,
+    "spriteCount": 0,
+    "canvasBeforeExit": 1,
+    "canvasAfterExit": 0,
+    "loadingAfterExit": 0,
+    "spriteAfterExit": 0,
+    "proxyStableDirectCount": "not measured"
+  },
+  "first720TimelineMs": {
+    "packReady": 809.3,
+    "presentationReady": 979,
+    "click": 1051.2,
+    "confirmed": 1051.5,
+    "snapshot": 1051.6,
+    "prepareStart": 1059,
+    "handCreateAndConsumerMount": 1071.4,
+    "firstHandDomUpdateAndInvalidate": 1071.6,
+    "createTexture": [
+      1071.8,
+      1072
+    ],
+    "prepareEnd": 1079.3,
+    "approachStart": 1079.3,
+    "approachEndAndGraspStart": 1233.9,
+    "linkProgram": [
+      1242.1,
+      1246.3
+    ],
+    "graspEnd": 1331,
+    "travelStart": 1331.1,
+    "travelEnd": 1574,
+    "settleAndReleaseStart": 1574.1,
+    "releaseEnd": 1673.5,
+    "retreatAndStaticTakeover": 1673.6,
+    "retreatEnd": 1845.6,
+    "cleanup": 1845.7
+  }
+}

@@ -32,8 +32,9 @@ import type { LocalHandAnimation3DState } from '../../presentation3d/animation/t
 import { WinPresentationOverlay } from './WinPresentationOverlay';
 import type { WinPresentation3DState } from '../../presentation3d/win/winPresentation3D';
 import { TABLE_PRESENTATION_TUNING } from '../../presentation3d/table/tablePresentationTuning';
-import type { AppearanceSettings } from '../../presentation/appearance/appearanceSettings';
+import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../../presentation/appearance/appearanceSettings';
 import { resolvePlayerSlotNickname, usePlayerSlotNicknames } from '../../presentation/appearance/playerSlotAvatars';
+import { resolveHandPackForPlayer, usePlayerSlotAppearances } from '../../presentation/appearance/playerSlotAppearance';
 
 const ROUND_END_PRESENTATION_FAIL_OPEN_MS = 15_000;
 
@@ -105,8 +106,11 @@ export function GameScreen({
   appearanceSettings,
 }: GameScreenProps) {
   const slotNicknames = usePlayerSlotNicknames();
+  const playerSlotAppearances = usePlayerSlotAppearances();
   const [handPreviewDiscardInstanceId, setHandPreviewDiscardInstanceId] = useState<string | null>(null);
   const [activeTableRenderer, setActiveTableRenderer] = useState<TableRendererMode>('2d');
+  const [localHandLayoutReady, setLocalHandLayoutReady] = useState(false);
+  const [localHandAssetsReady, setLocalHandAssetsReady] = useState(false);
   const [localHandAnimation, setLocalHandAnimation] = useState<LocalHandAnimation3DState | null>(null);
   const [localDiscardSnapshot, setLocalDiscardSnapshot] = useState<DiscardSourceSnapshot | null>(null);
   const [winPresentation3D, setWinPresentation3D] = useState<WinPresentation3DState | null>(null);
@@ -115,6 +119,11 @@ export function GameScreen({
   const discardSourceSnapshots = discardSourceSnapshotsRef.current;
   const localPlayer = gameState.players[localPlayerId];
   const fixedBottomPlayer = gameState.players[tableBottomPlayerId];
+  const localHandPack = resolveHandPackForPlayer(
+    tableBottomPlayerId,
+    playerSlotAppearances,
+    appearanceSettings ?? DEFAULT_APPEARANCE_SETTINGS,
+  );
   const baseTablePresentationState = useMemo(() => tablePresentationState
     ?? buildTablePresentationState(gameState, {
       localPlayerId,
@@ -162,6 +171,9 @@ export function GameScreen({
     setLocalHandAnimation(next);
     if (!next || next.handPresentation || (next.kind === 'discard' && next.phase === 'proxy-ready')) setLocalDiscardSnapshot(null);
   }, []);
+  const handleLocalHandLayoutReady = useCallback(() => setLocalHandLayoutReady(true), []);
+  const handleLocalHandAssetsReady = useCallback(() => setLocalHandAssetsReady(true), []);
+  const localPresentationReady = localHandLayoutReady && localHandAssetsReady;
   const handleWinPresentation3DChange = useCallback((next: WinPresentation3DState | null) => {
     setWinPresentation3D(activeTableRenderer === '3d' ? next : null);
   }, [activeTableRenderer]);
@@ -182,10 +194,8 @@ export function GameScreen({
     eventOverlayEnabled,
     completedRoundEndPresentationKey,
   );
-  const realtimeHandAnimationsEnabled = handAnimationsEnabled && (
-    winPresentationKey !== null
-    || (gameState.phase !== 'round-ended' && gameState.phase !== 'exhaustive-draw')
-  );
+  // The terminal commit can include the last discard. Keep its owner alive through settle.
+  const realtimeHandAnimationsEnabled = handAnimationsEnabled;
   const tenpaiDisplay = showTenpaiWaitsEnabled
     || tenpaiPreviewDiscardInstanceId
     ? buildTenpaiDisplay(
@@ -256,6 +266,7 @@ export function GameScreen({
       className="game-screen"
       data-testid="game-screen"
       data-round-end-presentation-pending={roundEndPresentationPending ? 'true' : 'false'}
+      data-local-presentation-ready={localPresentationReady ? 'true' : 'false'}
     >
       <GameTopBar
         currentPlayerDisplayName={activeTableRenderer === '3d' ? resolvePlayerSlotNickname(gameState.currentPlayer, playerProfile?.nickname, slotNicknames, gameState.players[gameState.currentPlayer].name) : undefined}
@@ -267,8 +278,8 @@ export function GameScreen({
         onToggleAnalysis={onToggleAnalysis}
         onReturnMenu={onReturnMenu}
       />
-      <TableRenderer gameState={gameState} matchState={matchState} bottomPlayerId={tableBottomPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} presentationState={sharedTablePresentationState} interactionActions={tableInteractionActions} animationsEnabled={realtimeHandAnimationsEnabled} animationSessionKey={handAnimationSessionKey} animationTurn={gameState.turn} localDiscardSnapshots={discardSourceSnapshots} onLocalHandAnimationChange={handleLocalHandAnimationChange} winPresentation3D={winPresentation3D} appearanceSettings={appearanceSettings} playerProfile={playerProfile} onActiveRendererChange={setActiveTableRenderer} />
-      <TileFaceDomAppearance settings={activeTableRenderer === '3d' ? appearanceSettings : undefined}>
+      <TableRenderer gameState={gameState} matchState={matchState} bottomPlayerId={tableBottomPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} presentationState={sharedTablePresentationState} interactionActions={tableInteractionActions} animationsEnabled={realtimeHandAnimationsEnabled} animationSessionKey={handAnimationSessionKey} animationTurn={gameState.turn} localDiscardSnapshots={discardSourceSnapshots} onLocalHandAnimationChange={handleLocalHandAnimationChange} winPresentation3D={winPresentation3D} appearanceSettings={appearanceSettings} playerProfile={playerProfile} onActiveRendererChange={setActiveTableRenderer} localPresentationReady={localPresentationReady} />
+      <TileFaceDomAppearance settings={activeTableRenderer === '3d' ? appearanceSettings : undefined} onReady={activeTableRenderer === '3d' ? handleLocalHandAssetsReady : undefined}>
       <LocalHandArea
         player={localPlayer}
         identityPlayer={fixedBottomPlayer}
@@ -294,6 +305,19 @@ export function GameScreen({
         retainDiscardSourceSnapshot={activeTableRenderer === '3d'}
         discardSnapshot={activeTableRenderer === '3d' ? localDiscardSnapshot : null}
         localHandAnimation={activeTableRenderer === '3d' ? localHandAnimation : null}
+        onPresentationReady={activeTableRenderer === '3d' ? handleLocalHandLayoutReady : undefined}
+        handPack={localHandPack}
+      />
+      <WinPresentationOverlay
+        gameState={gameState}
+        sessionKey={handAnimationSessionKey}
+        doraGlowEnabled={doraGlowEnabled}
+        appearanceSettings={appearanceSettings}
+        bottomPlayerId={tableBottomPlayerId}
+        enabled={winPresentationEnabled}
+        rendererMode={activeTableRenderer}
+        on3DPresentationChange={handleWinPresentation3DChange}
+        onRoundEndSettled={settleRoundEndPresentation}
       />
       </TileFaceDomAppearance>
       <HandAnimationOverlay
@@ -302,14 +326,6 @@ export function GameScreen({
         enabled={realtimeHandAnimationsEnabled && activeTableRenderer === '2d'}
         sessionKey={handAnimationSessionKey}
         turn={gameState.turn}
-      />
-      <WinPresentationOverlay
-        gameState={gameState}
-        bottomPlayerId={tableBottomPlayerId}
-        enabled={winPresentationEnabled}
-        rendererMode={activeTableRenderer}
-        on3DPresentationChange={handleWinPresentation3DChange}
-        onRoundEndSettled={settleRoundEndPresentation}
       />
       <GameEventOverlay bottomPlayerId={tableBottomPlayerId} enabled={eventOverlayEnabled} onRoundEndSettled={settleRoundEndPresentation} />
       {actionPrompt ? (

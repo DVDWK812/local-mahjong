@@ -1,0 +1,79 @@
+
+> local-mahjong-trainer@0.1.0 pretest
+> npm run generate:voice-packs && npm run test:voice-pack-index
+
+
+> local-mahjong-trainer@0.1.0 generate:voice-packs
+> node scripts/generateVoicePackIndex.mjs
+
+Generated Voice Pack index: 3 valid pack(s), 0 skipped.
+
+> local-mahjong-trainer@0.1.0 test:voice-pack-index
+> node scripts/verifyVoicePackIndex.mjs
+
+Voice Pack index lifecycle test passed.
+
+> local-mahjong-trainer@0.1.0 test
+> vitest run --run src/presentation/manualGateFixes.test.ts
+
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ❯ src/presentation/manualGateFixes.test.ts (17 tests | 2 failed) 44ms
+   × local insertion retains the drawn source until grab, then goes directly to final slot without a second sweep 18ms
+     → expected { tile: { id: 33, …(4) }, …(6) } to deeply equal { tile: { id: 33, …(4) }, …(6) }
+   × 17-step official Ron feeds shared overlay, win controller and the production audio consumer once 6ms
+     → Invalid Chai property: toHaveBeenCalledExactlyOnceWith
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/presentation/manualGateFixes.test.ts > local insertion retains the drawn source until grab, then goes directly to final slot without a second sweep
+AssertionError: expected { tile: { id: 33, …(4) }, …(6) } to deeply equal { tile: { id: 33, …(4) }, …(6) }
+
+- Expected
++ Received
+
+  Object {
+    "drawnGap": 0,
+    "finalIndex": 12,
+    "hidden": false,
+    "index": 13,
+-   "lift": 1.2246467991473532e-16,
++   "lift": 0,
+    "slot": 12,
+    "tile": Object {
+      "id": 33,
+      "instanceId": "final-gate-132",
+      "rank": 7,
+      "red": false,
+      "suit": "honor",
+    },
+  }
+
+ ❯ src/presentation/manualGateFixes.test.ts:48:43
+     46|   expect(inserted.slot).toBe(inserted.finalIndex);
+     47|   expect(inserted.slot).not.toBe(snapshot.discardVisualSlot);
+     48|   expect(slots('reorder', 0)[drawnIndex]).toEqual(inserted);
+       |                                           ^
+     49|   expect(slots('reorder', 1)[drawnIndex]).toEqual(inserted);
+     50| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/presentation/manualGateFixes.test.ts > 17-step official Ron feeds shared overlay, win controller and the production audio consumer once
+Error: Invalid Chai property: toHaveBeenCalledExactlyOnceWith
+ ❯ src/presentation/manualGateFixes.test.ts:70:17
+     68|   expect(overlayPrepare).toHaveBeenCalledOnce();
+     69|   expect(overlayPrepare.mock.calls[0][0]).toMatchObject({ type: 'win_d…
+     70|   expect(playSfx).toHaveBeenCalledExactlyOnceWith('win');
+       |                 ^
+     71|   expect(gate.pendingCount).toBeGreaterThan(0);
+     72|   await vi.runAllTimersAsync(); await win.whenIdle(); await overlay.wh…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 15 passed (17)
+   Start at  02:29:16
+   Duration  1.44s (transform 415ms, setup 0ms, collect 1.07s, tests 44ms, environment 0ms, prepare 99ms)
+

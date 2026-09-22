@@ -1,10 +1,6 @@
 import type { WorldPoint3D } from '../animation/DiscardSource3D';
-import { canonicalToSeat } from '../coordinates/sceneTransforms';
 import type { Table3DSeat } from '../coordinates/seatTransforms';
-import {
-  getCenterDecorationCenter,
-  TABLE_PRESENTATION_TUNING,
-} from '../table/tablePresentationTuning';
+import { getCentralConsoleLayout } from '../table/centralConsoleLayout';
 import { TABLE_FELT_TOP_Y } from '../table/tableSurfaceSpec';
 
 export type RiichiStickTransform = Readonly<{
@@ -17,20 +13,13 @@ export function getRiichiStickTransform(
   height: number,
   epsilon: number,
 ): RiichiStickTransform {
-  const { laneOffset, seatOffsets } = TABLE_PRESENTATION_TUNING.riichiStickLayout;
-  const { inline, radial } = seatOffsets[seat];
-  const seatLocal = canonicalToSeat(seat, [
-    inline,
-    TABLE_FELT_TOP_Y + height / 2 + epsilon,
-    laneOffset + radial,
-  ]);
-  const [centerX, centerZ] = getCenterDecorationCenter();
+  const lane = getCentralConsoleLayout().riichiLanes[seat];
   return {
     position: [
-      seatLocal.position[0] + centerX,
-      seatLocal.position[1],
-      seatLocal.position[2] + centerZ,
+      lane.position[0],
+      TABLE_FELT_TOP_Y + height / 2 + epsilon,
+      lane.position[2],
     ],
-    rotationY: seatLocal.rotationY,
+    rotationY: lane.rotationY,
   };
 }

@@ -21,6 +21,8 @@ interface AudioSettingsDialogProps {
   onRelink: (category: MusicCategory, trackId: MusicTrackId) => void;
   onReorder: (category: MusicCategory, orderedIds: MusicTrackId[]) => void;
   onReorderSfxGroup: (group: GameSfxGroup, orderedIds: MusicTrackId[]) => void;
+  onSfxSelectionChange?: (group: GameSfxGroup, ids: readonly MusicTrackId[]) => void;
+  onResetSfxGroup?: (group: GameSfxGroup) => void;
   onSfxPlaybackModeChange: (group: GameSfxGroup, mode: PlaybackMode) => void;
   onPlaybackModeChange: (category: MusicCategory, mode: PlaybackMode) => void;
   onPreview: (track: MusicTrackDefinition) => void;
@@ -50,6 +52,8 @@ export function AudioSettingsDialog({
   onRelink,
   onReorder,
   onReorderSfxGroup,
+  onSfxSelectionChange,
+  onResetSfxGroup,
   onSfxPlaybackModeChange,
   onPlaybackModeChange,
   onPreview,
@@ -115,6 +119,8 @@ export function AudioSettingsDialog({
             onRelink={onRelink}
             onReorder={onReorder}
             onReorderSfxGroup={onReorderSfxGroup}
+            onSfxSelectionChange={onSfxSelectionChange}
+            onResetSfxGroup={onResetSfxGroup}
             onSfxPlaybackModeChange={onSfxPlaybackModeChange}
             onPlaybackModeChange={onPlaybackModeChange}
             onPreview={onPreview}

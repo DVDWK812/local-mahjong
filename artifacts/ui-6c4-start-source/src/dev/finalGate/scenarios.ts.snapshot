@@ -1,0 +1,96 @@
+import { getBuiltInTestScenario } from '../../game/testMode/builtInScenarios';
+import { loadTestScenarioState } from '../../game/testMode/scenario';
+import { applyOfficialTestModeAction, type OfficialTestModeAction } from '../../game/testMode/actions';
+import type { GameState, PlayerId, TileId } from '../../game/types';
+import { buildWall } from '../../game/wall';
+import { createSeventeenPresentationFixture } from '../seventeenPresentationFixtures';
+import { discardCandidate, passSeventeenStepsRon } from '../../game/seventeenSteps';
+
+const names = ['本家摸牌', '对手摸牌', '本家摸切', '本家手切', '下席弃牌', '右席弃牌', '上席弃牌', '左席弃牌', '吃', '碰', '暗杠', '立直', '新增宝牌', '荣和', '自摸', '17步本家弃牌', '17步对家弃牌', '17步荣和', '17步最终流局'];
+const expected = ['draw', 'draw', 'draw → discard', 'discard → 直接返回新摸牌 → 抓取并插入；不晃手', 'discard', 'discard', 'discard', 'discard', 'meld', 'meld', 'meld → dora → draw；补牌动画接管期间不提前静态显示', 'discard → riichi', 'meld → dora → draw；初始指示牌与扫光无声音', 'discard → 荣和完整倒牌 + rong → 保持约3秒 → 结算', '仅拍新摸的和牌张 → rong；不再整手推倒', 'discard（对手随后也弃牌）', 'discard', '荣和 → 权威13张+和牌张 → rong → 结算', 'discard → discard → 流局大字 → 结算；无 rong'];
+export const finalGateScenarios = [
+  ...names.map((name, index) => ({ id: `AV-${String(index + 1).padStart(2, '0')}`, name, section: 'A. 音画同步', expected: expected[index] })),
+  ...['720p 双方17张牌河', '12→13 紧凑过渡', '1080p 双方17张牌河', '1080p→720p 同场景缩放'].map((name, index) => ({ id: `VIS-0${index + 1}`, name, section: 'B. 17步视觉', expected: '检查无遮挡、正确落点、平滑交接；初始状态无声音' })),
+  ...['临时音效开关', '落点前取消', '落点后退出', '临时减少动态效果'].map((name, index) => ({ id: `QA-0${index + 1}`, name, section: 'C. 清理与策略', expected: '动作继续；无历史补播、无残留或延迟声音' })),
+];
+
+/** Fresh deterministic tile allocation, using the existing validated scenario as the schema. */
+function fourFixture(seat: PlayerId, kind: 'discard' | 'draw' | 'chi' | 'pon' | 'ron' | 'tsumo'): GameState {
+  const state = loadTestScenarioState(getBuiltInTestScenario('STAB-001-ANKAN')!);
+  const deck = buildWall().map((tile, index) => ({ ...tile, instanceId: `final-gate-${index}` }));
+  const take = (id: number) => {
+    const index = deck.findIndex(tile => tile.id === id);
+    if (index < 0) throw new Error(`Final Gate: missing tile ${id}`);
+    return deck.splice(index, 1)[0];
+  };
+  const winningHand = [1, 2, 3, 10, 11, 12, 19, 20, 21, 4, 5, 6, 14];
+  const special = kind === 'chi' ? [0, 1] : kind === 'pon' ? [31, 31] : kind === 'ron' || kind === 'tsumo' ? winningHand : [];
+  const receiver = kind === 'tsumo' ? 0 : 1;
+  const specialTiles = special.map(take);
+  const target = take(kind === 'chi' ? 2 : kind === 'pon' ? 31 : kind === 'ron' || kind === 'tsumo' ? 14 : 33);
+  state.players.forEach(player => {
+    player.hand = player.id === receiver ? specialTiles : [];
+    while (player.hand.length < 13) {
+      const wanted = [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 28, 29, 30][player.hand.length];
+      const index = deck.findIndex(tile => tile.id === wanted);
+      player.hand.push(deck.splice(index < 0 ? 0 : index, 1)[0]);
+    }
+    player.drawnTile = null;
+  });
+  state.currentPlayer = seat;
+  state.phase = kind === 'draw' ? 'draw' : 'discard';
+  if (kind !== 'draw') { state.players[seat].hand.push(target); state.players[seat].drawnTile = target; }
+  else deck.unshift(target);
+  state.deadWall = deck.splice(-14);
+  state.doraIndicators = [state.deadWall[4]];
+  state.wall = deck;
+  return state;
+}
+
+export function createFourGateFixture(id: string): GameState {
+  if (id === 'AV-11' || id === 'AV-13') return loadTestScenarioState(getBuiltInTestScenario('STAB-001-ANKAN')!);
+  if (id === 'AV-12') return loadTestScenarioState(getBuiltInTestScenario('RIICHI-DISCARD-MUST-TENPAI')!);
+  if (id === 'AV-09' || id === 'AV-10') {
+    const state = fourFixture(0, id === 'AV-09' ? 'chi' : 'pon');
+    return applyOfficialTestModeAction(state, { type: 'discard', playerId: 0, tileInstanceId: state.players[0].drawnTile!.instanceId });
+  }
+  const seat = id === 'AV-02' ? 2 : id === 'AV-06' ? 1 : id === 'AV-07' ? 2 : id === 'AV-08' ? 3 : 0;
+  return fourFixture(seat, id === 'AV-01' || id === 'AV-02' || id === 'AV-03' ? 'draw' : id === 'AV-14' ? 'ron' : id === 'AV-15' ? 'tsumo' : 'discard');
+}
+
+export function gateAction(id: string, state: GameState): OfficialTestModeAction {
+  if (state.phase === 'draw') return { type: 'draw' };
+  if (id === 'AV-09') return { type: 'chi', playerId: 1, optionIndex: 0 };
+  if (id === 'AV-10') return { type: 'pon', playerId: 1 };
+  if (id === 'AV-11' || id === 'AV-13') return { type: 'kan', playerId: 0, kanType: 'ankan', tileId: 0 as TileId };
+  if (id === 'AV-14' && state.phase === 'ron-window') return { type: 'ron', playerId: 1 };
+  if (id === 'AV-15') return { type: 'tsumo', playerId: 0 };
+  const player = state.players[state.currentPlayer];
+  return { type: id === 'AV-12' ? 'riichi' : 'discard', playerId: player.id,
+    tileInstanceId: (id === 'AV-04' ? player.hand[0] : player.drawnTile ?? player.hand[player.hand.length - 1]).instanceId };
+}
+
+export const isSeventeenGate = (id: string) => id.startsWith('VIS-') || ['AV-16', 'AV-17', 'AV-18', 'AV-19'].includes(id);
+function seventeenFixture(id: string) {
+  if (id === 'AV-18') return createSeventeenPresentationFixture('ron');
+  if (id === 'AV-19') return createSeventeenPresentationFixture('last-turn');
+  let state = createSeventeenPresentationFixture('initial');
+  const turns = id === 'VIS-01' || id === 'VIS-03' ? 34 : id.startsWith('VIS-') ? 24 : 0;
+  for (let i = 0; i < turns; i++) {
+    const player = state.players[state.currentPlayerId];
+    state = discardCandidate(state, player.id, player.discardCandidates[0].instanceId);
+    if (state.phase === 'ron-window' && state.pendingRon) state = passSeventeenStepsRon(state, state.pendingRon.winnerId);
+  }
+  if (id === 'AV-16') {
+    const safe = state.players[0].discardCandidates.find(tile => discardCandidate(state, 0, tile.instanceId).phase === 'active');
+    if (!safe) throw new Error('No safe candidate in AV-16');
+    state.players[0].discardCandidates = [safe, ...state.players[0].discardCandidates.filter(tile => tile !== safe)];
+  }
+  return id === 'AV-17' ? { ...state, currentPlayerId: 1 as const } : state;
+}
+
+/** Stable tile identities across resets, preserving all shared tile references. */
+export function createSeventeenGateFixture(id: string) {
+  return JSON.parse(JSON.stringify(seventeenFixture(id), (key, value) => key === 'instanceId' && typeof value === 'string'
+    ? `final-gate-17-${value.split('-').slice(0, 2).join('-')}` : value)) as ReturnType<typeof seventeenFixture>;
+}

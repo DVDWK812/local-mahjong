@@ -10,7 +10,7 @@ import {
 } from './audioRegistry';
 import { normalizeAudioSettings, type AudioChannel, type AudioSettings } from './audioSettings';
 import type { MusicLibraryView } from './musicLibrary';
-import { DEFAULT_TILE_SFX_TRACK_ID, GAME_SFX_GROUP_BY_ACTION } from './musicRegistry';
+import { BUILTIN_MUSIC_TRACKS, DEFAULT_TILE_SFX_TRACK_ID, GAME_SFX_GROUP_BY_ACTION } from './musicRegistry';
 import type { GameSfxGroup, GameSfxId, MusicCategory, MusicTrackDefinition, MusicTrackId, PlaybackMode } from './musicTypes';
 import { isGameSfxId } from './musicTypes';
 
@@ -110,11 +110,15 @@ export class AudioManager {
   private temporaryReturnPolicy: TemporaryPlaybackReturnPolicy = 'resume-suspended-track';
   private suspendedRuntime: SuspendedRuntime | null = null;
   private readonly activeSfx = new Set<AudioPlaybackHandle>();
+  private sfxGeneration = 0;
+  private previewGeneration = 0;
+  private sfxPreview: AudioPlaybackHandle | null = null;
+  private sfxPreviewEnded: (() => void) | undefined;
   private readonly activeVoice = new Set<AudioPlaybackHandle>();
   private readonly releaseCallbacks = new Map<AudioPlaybackHandle, () => void>();
   private readonly playbackListeners = new Set<() => void>();
-  private readonly sfxCursors: Record<GameSfxGroup, number> = { draw: 0, discard: 0, meld: 0 };
-  private readonly sfxLastPlayed: Record<GameSfxGroup, MusicTrackId | null> = { draw: null, discard: null, meld: null };
+  private readonly sfxCursors: Record<GameSfxGroup, number> = { draw: 0, discard: 0, meld: 0, riichi: 0, dora: 0, rong: 0 };
+  private readonly sfxLastPlayed: Record<GameSfxGroup, MusicTrackId | null> = { draw: null, discard: null, meld: null, riichi: null, dora: null, rong: null };
 
   constructor(
     initialSettings: AudioSettings,
@@ -201,6 +205,7 @@ export class AudioManager {
   setSettings(settings: AudioSettings): void {
     const previous = this.settings;
     this.settings = normalizeAudioSettings(settings);
+    if (this.getEffectiveVolume('sfx') <= 0) this.stopSfx();
     if (this.bgmHandle && this.currentBgmId) {
       this.bgmHandle.setVolume(this.getEffectiveCategoryVolume(bgmCategoryFor(this.currentBgmId)));
     }
@@ -311,9 +316,9 @@ export class AudioManager {
   }
 
   playSfx(soundId: SfxId): void {
-    if (this.disposed || !this.settings.sfxEnabled) return;
+    if (this.disposed || this.getEffectiveVolume('sfx') <= 0) return;
     if (this.music && isGameSfxId(soundId)) {
-      void this.playGameSfxInternal(soundId);
+      void this.playGameSfxInternal(soundId).catch(() => undefined);
       return;
     }
     const asset = this.registry.sfx[soundId];
@@ -321,8 +326,20 @@ export class AudioManager {
   }
 
   playGameSfx(gameSfxId: GameSfxId): void {
-    if (this.disposed || !this.settings.sfxEnabled) return;
-    void this.playGameSfxInternal(gameSfxId);
+    if (this.disposed || this.getEffectiveVolume('sfx') <= 0) return;
+    void this.playGameSfxInternal(gameSfxId).catch(() => undefined);
+  }
+
+  /** Cancel pending resolutions and current one-shots without touching BGM/Voice. */
+  stopSfx(): void {
+    this.stopSfxPreview();
+    ++this.sfxGeneration;
+    this.activeSfx.forEach(handle => {
+      this.releaseCallbacks.get(handle)?.();
+      this.releaseCallbacks.delete(handle);
+      handle.dispose();
+    });
+    this.activeSfx.clear();
   }
 
   playVoice(voiceId: VoiceId): void {
@@ -460,6 +477,7 @@ export class AudioManager {
   }
 
   dispose(): void {
+    this.stopSfxPreview();
     if (this.disposed) return;
     this.disposed = true;
     this.disposeTemporaryHandle();
@@ -548,27 +566,73 @@ export class AudioManager {
   }
 
   private async playGameSfxInternal(gameSfxId: GameSfxId): Promise<void> {
+    const generation = this.sfxGeneration;
     const music = this.music;
     if (!music) return;
     const group = GAME_SFX_GROUP_BY_ACTION[gameSfxId];
-    const groupTracks = [...music.tracksBySfxGroup(group)];
-    const track = this.pickSfxTrack(group, groupTracks)
-      ?? music.tracks('effects').find((candidate) => candidate.id === DEFAULT_TILE_SFX_TRACK_ID)
-      ?? music.tracks('effects')[0];
+    const selected = music.sfxSelectedTrackIds?.(group);
+    const groupTracks = music.tracksBySfxGroup(group).filter(track => !selected || selected.includes(track.id));
+    const fallback = BUILTIN_MUSIC_TRACKS.find(track => track.gameSfxGroup === group);
+    const track = this.pickSfxTrack(group, groupTracks) ?? fallback
+      ?? music.tracks('effects').find(candidate => candidate.id === DEFAULT_TILE_SFX_TRACK_ID);
     if (!track) return;
-    const resolved = await music.resolveTrack(track);
-    if (!resolved || this.disposed) {
-      resolved?.release();
-      return;
-    }
-    const handle = this.backend.createPlayback({
-      id: track.id,
-      channel: 'sfx',
-      src: resolved.url,
-      loop: false,
-      source: track.sourceType === 'builtin' ? 'project-local' : 'self-generated',
-    });
-    this.playOneShotHandle(handle, 'sfx', () => resolved.release());
+    const valid = () => !this.disposed && generation === this.sfxGeneration && this.getEffectiveVolume('sfx') > 0;
+    await this.playResolvedSfx(track, valid, track.sourceType !== 'builtin' ? fallback : undefined);
+  }
+
+  private async playResolvedSfx(
+    track: MusicTrackDefinition,
+    valid: () => boolean,
+    fallback?: MusicTrackDefinition,
+    preview = false,
+  ): Promise<void> {
+    if (!valid()) { if (preview) this.finishSfxPreview(); return; }
+    const retry = () => {
+      if (fallback && valid()) void this.playResolvedSfx(fallback, valid, undefined, preview).catch(() => undefined);
+    };
+    const resolved = await this.music?.resolveTrack(track).catch(() => null);
+    if (!resolved) { if (preview && valid()) this.finishSfxPreview(); retry(); return; }
+    if (!valid()) { resolved.release(); return; }
+    let handle: AudioPlaybackHandle;
+    try {
+      handle = this.backend.createPlayback({ id: track.id, channel: 'sfx', src: resolved.url,
+        loop: false, source: track.sourceType === 'builtin' ? 'project-local' : 'self-generated' });
+    } catch { resolved.release(); if (preview && valid()) this.finishSfxPreview(); retry(); return; }
+    if (preview) this.sfxPreview = handle;
+    this.playOneShotHandle(handle, 'sfx', () => {
+      if (this.sfxPreview === handle) { this.sfxPreview = null; this.finishSfxPreview(); }
+      resolved.release();
+    }, retry);
+  }
+
+  /** Managed one-shot preview: no playlist cursor, semantic cue or BGM state changes. */
+  playSfxPreview(track: MusicTrackDefinition, onEnded?: () => void): void {
+    this.stopSfxPreview();
+    this.sfxPreviewEnded = onEnded;
+    const previewGeneration = this.previewGeneration;
+    const generation = this.sfxGeneration;
+    const valid = () => !this.disposed && generation === this.sfxGeneration
+      && previewGeneration === this.previewGeneration && this.getEffectiveVolume('sfx') > 0;
+    void this.playResolvedSfx(track, valid, undefined, true).catch(() => undefined);
+  }
+
+  private finishSfxPreview(): void {
+    const onEnded = this.sfxPreviewEnded;
+    this.sfxPreviewEnded = undefined;
+    onEnded?.();
+  }
+
+  stopSfxPreview(): void {
+    ++this.previewGeneration;
+    const handle = this.sfxPreview;
+    this.sfxPreview = null;
+    this.finishSfxPreview();
+    this.sfxPreviewEnded = undefined;
+    if (!handle) return;
+    this.releaseCallbacks.get(handle)?.();
+    this.releaseCallbacks.delete(handle);
+    this.activeSfx.delete(handle);
+    handle.dispose();
   }
 
   private pickSfxTrack(
@@ -814,6 +878,7 @@ export class AudioManager {
     handle: AudioPlaybackHandle,
     channel: 'sfx' | 'voice',
     release?: () => void,
+    onFailure?: () => void,
   ): void {
     const active = channel === 'sfx' ? this.activeSfx : this.activeVoice;
     const limit = channel === 'sfx' ? MAX_ACTIVE_SFX : MAX_ACTIVE_VOICE;
@@ -826,19 +891,30 @@ export class AudioManager {
         active.delete(oldest);
       }
     }
-    if (release) this.releaseCallbacks.set(handle, release);
 
     active.add(handle);
     handle.setVolume(this.getEffectiveVolume(channel));
+    let removeError: () => void = () => undefined;
     let removeEnded: () => void = () => undefined;
+    let released = false;
     const finalRelease = () => {
+      if (released) return;
+      released = true;
       removeEnded();
+      removeError();
       active.delete(handle);
       this.releaseCallbacks.delete(handle);
       release?.();
       handle.dispose();
     };
+    this.releaseCallbacks.set(handle, finalRelease);
     removeEnded = handle.onEnded(finalRelease);
-    void handle.play().catch(finalRelease);
+    const fail = () => {
+      if (released) return;
+      finalRelease();
+      onFailure?.();
+    };
+    removeError = handle.onError?.(fail) ?? (() => undefined);
+    void handle.play().catch(fail);
   }
 }

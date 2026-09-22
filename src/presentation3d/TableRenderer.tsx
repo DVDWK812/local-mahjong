@@ -1,5 +1,4 @@
 import {
-  Component,
   lazy,
   memo,
   Suspense,
@@ -8,10 +7,11 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { LegacyTable2D, type LegacyTable2DProps } from '../components/game/LegacyTable2D';
-import { preloadHandAssets } from '../hand/handAssets';
+import { preloadHandPacks, type HandPackId } from '../hand/handPacks';
 import {
   buildDoraIndicatorSlots,
   buildTablePresentationState,
@@ -35,7 +35,8 @@ import type { DiscardSourceSnapshotStore } from '../presentation/handAnimation/D
 import type { LocalHandAnimation3DState } from './animation/tableAnimation3D';
 import type { TableVisualTheme } from './table/tableVisualTheme';
 import type { RiichiStick3DAppearance } from './riichi/riichiStickAppearance';
-import type { AppearanceSettings } from '../presentation/appearance/appearanceSettings';
+import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
+import { resolveEffectiveHandPackIds, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
 import { TileFaceDomAppearance } from '../presentation/appearance/TileFaceDomAppearance';
 import type { PlayerProfile } from '../profile/playerProfile';
 import { buildTableSceneState } from './sceneState/buildTableSceneState';
@@ -44,6 +45,8 @@ import {
   resolveWinnerRevealPlayerId3D,
   type WinPresentation3DState,
 } from './win/winPresentation3D';
+import { isInitialPresentationReady } from './initialSceneReady';
+import { SceneErrorBoundary, SceneLoading } from './session/SceneErrorBoundary';
 
 const LazyTable3DScene = lazy(async () => {
   try {
@@ -55,30 +58,6 @@ const LazyTable3DScene = lazy(async () => {
 });
 
 type MahjongTableProps = LegacyTable2DProps;
-
-type SceneErrorBoundaryProps = Readonly<{
-  children: ReactNode;
-  fallback: ReactNode;
-  onError: (error: Error, info: ErrorInfo) => void;
-}>;
-
-type SceneErrorBoundaryState = Readonly<{ failed: boolean }>;
-
-class SceneErrorBoundary extends Component<SceneErrorBoundaryProps, SceneErrorBoundaryState> {
-  state: SceneErrorBoundaryState = { failed: false };
-
-  static getDerivedStateFromError(): SceneErrorBoundaryState {
-    return { failed: true };
-  }
-
-  componentDidCatch(error: Error, info: ErrorInfo) {
-    this.props.onError(error, info);
-  }
-
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
-  }
-}
 
 type TableRendererProps = MahjongTableProps & Readonly<{
   renderer?: TableRendererMode;
@@ -95,9 +74,15 @@ type TableRendererProps = MahjongTableProps & Readonly<{
   appearanceSettings?: AppearanceSettings;
   playerProfile?: PlayerProfile;
   onActiveRendererChange?: (renderer: TableRendererMode) => void;
+  localPresentationReady?: boolean;
 }>;
 
-export function TableRenderer({
+/** Session changes cancel the old scene, preload callbacks and error boundary together. */
+export function TableRenderer(props: TableRendererProps) {
+  return <TableRendererSession key={props.animationSessionKey ?? 'table-3d'} {...props} />;
+}
+
+function TableRendererSession({
   renderer,
   presentationState,
   interactionActions,
@@ -112,13 +97,16 @@ export function TableRenderer({
   appearanceSettings,
   playerProfile,
   onActiveRendererChange,
+  localPresentationReady = true,
   ...tableProps
 }: TableRendererProps) {
   const resolveCurrentMode = () => renderer ?? resolveTableRenderer(typeof window === 'undefined' ? '' : window.location.search);
   const [mode, setMode] = useState<TableRendererMode>(resolveCurrentMode);
   const [runtimeFailure, setRuntimeFailure] = useState<Exclude<TableRendererFallbackReason, 'none'> | null>(null);
   const [sceneReady, setSceneReady] = useState(false);
-  useEffect(() => { if (mode === '3d') void preloadHandAssets(); }, [mode]);
+  const [criticalHandPacksReady, setCriticalHandPacksReady] = useState(false);
+  const handPackReadyGeneration = useRef(0);
+  const playerSlotAppearances = usePlayerSlotAppearances();
   const standardFourPlayer = useMemo(
     () => inspectStandardFourPlayerState(tableProps.gameState),
     [tableProps.gameState.players],
@@ -146,12 +134,13 @@ export function TableRenderer({
   const winnerRevealPlayerId = resolveWinnerRevealPlayerId3D(winPresentation3D, bottomPlayerId);
   const sceneState = useMemo(() => {
     if (!sharedPresentationState) return null;
-    if (winnerRevealPlayerId === undefined) return sharedPresentationState.scene;
+    if (winnerRevealPlayerId === undefined && !winPresentation3D?.revealedPlayerIds?.length) return sharedPresentationState.scene;
     return buildTableSceneState(tableProps.gameState, {
       bottomPlayerId,
       seatMapping: tableProps.seatMapping,
       revealOpponentHands: tableProps.revealOpponentHands,
       revealedPlayerId: winnerRevealPlayerId,
+      revealedPlayerIds: winPresentation3D?.revealedPlayerIds,
     });
   }, [
     sharedPresentationState,
@@ -160,7 +149,26 @@ export function TableRenderer({
     tableProps.revealOpponentHands,
     tableProps.seatMapping,
     winnerRevealPlayerId,
+    winPresentation3D?.revealedPlayerIds,
   ]);
+  const effectiveHandPackIds = useMemo(() => {
+    if (!sceneState) return [] as HandPackId[];
+    const settings = appearanceSettings ?? DEFAULT_APPEARANCE_SETTINGS;
+    return resolveEffectiveHandPackIds(
+      Object.values(sceneState.seats).map((seat) => seat.playerId),
+      playerSlotAppearances,
+      settings,
+    );
+  }, [appearanceSettings, playerSlotAppearances, sceneState]);
+  const effectiveHandPackKey = effectiveHandPackIds.join(',');
+  useEffect(() => {
+    if (mode !== '3d' || effectiveHandPackIds.length === 0) return undefined;
+    const generation = ++handPackReadyGeneration.current;
+    void preloadHandPacks(effectiveHandPackIds).then(() => {
+      if (generation === handPackReadyGeneration.current) setCriticalHandPacksReady(true);
+    });
+    return () => { handPackReadyGeneration.current += 1; };
+  }, [effectiveHandPackKey, mode]);
   const attempted3dMount = mode === '3d' && standardFourPlayer.supported && runtimeFailure === null;
   const diagnostics = resolveTableRendererDiagnostics(
     mode,
@@ -174,6 +182,7 @@ export function TableRenderer({
     setMode(resolveCurrentMode());
     setRuntimeFailure(null);
     setSceneReady(false);
+    setCriticalHandPacksReady(false);
   }, [renderer]);
 
   useEffect(() => {
@@ -186,6 +195,7 @@ export function TableRenderer({
       setMode(resolveTableRenderer(window.location.search));
       setRuntimeFailure(null);
       setSceneReady(false);
+      setCriticalHandPacksReady(false);
     };
     window.addEventListener('popstate', syncMode);
     return () => window.removeEventListener('popstate', syncMode);
@@ -273,13 +283,17 @@ export function TableRenderer({
   if (!render3D || !sharedPresentationState || !sceneState) {
     return <LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />;
   }
+  const initialPresentationReady = isInitialPresentationReady(
+    sceneReady && criticalHandPacksReady,
+    localPresentationReady,
+  );
 
   const content: ReactNode = (
       <SceneErrorBoundary
         fallback={<LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />}
         onError={handleSceneError}
       >
-        <Suspense fallback={<LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />}>
+        <Suspense fallback={null}>
           <div className="table-renderer-layer table-renderer-layer--3d" data-table-renderer="3d">
             <LazyTable3DScene
               sceneState={sceneState}
@@ -316,8 +330,15 @@ export function TableRenderer({
       data-table-renderer-player-count={standardFourPlayer.playerCount}
       data-table-renderer-player-ids={standardFourPlayer.playerIds.join(',')}
       data-table-interaction-contract={interactionActions ? 'shared' : 'none'}
+      data-initial-scene-ready={sceneReady ? 'true' : 'false'}
+      data-local-presentation-ready={localPresentationReady ? 'true' : 'false'}
+      data-critical-hand-packs-ready={criticalHandPacksReady ? 'true' : 'false'}
+      data-effective-hand-packs={effectiveHandPackKey}
+      data-presentation-revealed={initialPresentationReady ? 'true' : 'false'}
+      aria-busy={initialPresentationReady ? 'false' : 'true'}
     >
       {content}
+      {initialPresentationReady ? null : <SceneLoading />}
     </div>
   );
 }

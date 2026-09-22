@@ -1,0 +1,213 @@
+import { readFileSync } from 'node:fs';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { describe, expect, it } from 'vitest';
+import { createInitialGameState } from '../game/engine';
+import { MahjongTable } from '../components/game/MahjongTable';
+import { supports3DGameState, TableRenderer } from './TableRenderer';
+import {
+  classifyTableRendererError,
+  inspectStandardFourPlayerState,
+  resolveTableRendererDiagnostics,
+  tagTableRendererError,
+} from './rendererDiagnostics';
+import {
+  resolveTableRenderer,
+  TABLE_RENDERER_PREFERENCE_KEY,
+  shouldRender3DTable,
+} from './rendererMode';
+
+function sourcePath(relativePath: string): string {
+  return decodeURIComponent(new URL(relativePath, import.meta.url).pathname).replace(/^\/([A-Za-z]:)/, '$1');
+}
+
+describe('3D table renderer selection', () => {
+  it('renders Loading, not the Legacy table, while the default 3D chunk is pending', () => {
+    const markup = renderToStaticMarkup(createElement(TableRenderer, { gameState: createInitialGameState(), renderer: '3d' }));
+    expect(markup).toContain('data-table-renderer-requested="3d"');
+    expect(markup).toContain('data-presentation-revealed="false"');
+    expect(markup).toContain('正在准备牌桌…');
+    expect(markup).not.toContain('class="mahjong-table"');
+  });
+  it('uses 3D by default and keeps the explicit Legacy Compatibility URL', () => {
+    expect(resolveTableRenderer('', null)).toBe('3d');
+    expect(resolveTableRenderer('?table3d=0')).toBe('2d');
+    expect(resolveTableRenderer('?presentationEvents=1', null)).toBe('3d');
+  });
+
+  it('keeps test-mode and animation fixtures on 3D unless their URL explicitly selects Legacy', () => {
+    const legacyStorage = { getItem: (key: string) => key === TABLE_RENDERER_PREFERENCE_KEY ? '2d' : null };
+    expect(resolveTableRenderer('?testMode=1', legacyStorage)).toBe('3d');
+    expect(resolveTableRenderer('?testAnimations=1', legacyStorage)).toBe('3d');
+    expect(resolveTableRenderer('?testMode=1&testAnimations=1', legacyStorage)).toBe('3d');
+    expect(resolveTableRenderer('?testMode=1&table3d=1', legacyStorage)).toBe('3d');
+    expect(resolveTableRenderer('?testAnimations=1&table3d=0', legacyStorage)).toBe('2d');
+  });
+
+  it('honors a saved renderer preference unless an explicit URL overrides it', () => {
+    const legacyStorage = { getItem: (key: string) => key === TABLE_RENDERER_PREFERENCE_KEY ? '2d' : null };
+    const threeDStorage = { getItem: (key: string) => key === TABLE_RENDERER_PREFERENCE_KEY ? '3d' : null };
+    expect(resolveTableRenderer('', legacyStorage)).toBe('2d');
+    expect(resolveTableRenderer('', threeDStorage)).toBe('3d');
+    expect(resolveTableRenderer('?table3d=1', legacyStorage)).toBe('3d');
+    expect(resolveTableRenderer('?table3d=0', threeDStorage)).toBe('2d');
+  });
+
+  it('supports 3D → Legacy → 3D URL transitions and existing 3D links', () => {
+    expect(resolveTableRenderer('?table3d=1')).toBe('3d');
+    expect(resolveTableRenderer('?table3d=0')).toBe('2d');
+    expect(resolveTableRenderer('?table3d=1')).toBe('3d');
+    expect(resolveTableRenderer('?foo=bar&table3d=1')).toBe('3d');
+    expect(shouldRender3DTable('3d', false)).toBe(true);
+    expect(shouldRender3DTable('2d', false)).toBe(false);
+    expect(shouldRender3DTable('3d', true)).toBe(false);
+  });
+
+  it('retains an error fallback and unmount-safe popstate cleanup', () => {
+    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
+
+    expect(source).toContain('fallback={<LegacyTable2D');
+    expect(source).toContain("window.removeEventListener('popstate', syncMode)");
+    expect(source).toContain('shouldRender3DTable(mode, runtimeFailure !== null)');
+  });
+
+  it('loads the WebGL implementation only after 3D is selected', () => {
+    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
+
+    expect(source).toContain("await import('./Table3DScene')");
+    expect(source).toContain('default: memo(module.Table3DScene)');
+    expect(source).not.toContain("from './Table3DScene'");
+  });
+
+  it('keeps incomplete and 17-step-shaped tables on the legacy renderer', () => {
+    const fourPlayer = createInitialGameState();
+    expect(supports3DGameState(fourPlayer)).toBe(true);
+    expect(supports3DGameState({ ...fourPlayer, players: fourPlayer.players.slice(0, 2) })).toBe(false);
+  });
+
+  it('reports the precise standard-four-player guard inputs', () => {
+    const fourPlayer = createInitialGameState();
+    expect(inspectStandardFourPlayerState(fourPlayer)).toEqual({
+      supported: true,
+      playerCount: 4,
+      playerIds: [0, 1, 2, 3],
+      missingPlayerIds: [],
+      duplicatePlayerIds: [],
+    });
+    expect(inspectStandardFourPlayerState({
+      ...fourPlayer,
+      players: [fourPlayer.players[0], fourPlayer.players[1]],
+    })).toMatchObject({
+      supported: false,
+      playerCount: 2,
+      playerIds: [0, 1],
+      missingPlayerIds: [2, 3],
+    });
+  });
+
+  it('keeps the default and unsupported fallback as an unwrapped legacy table', () => {
+    const gameState = createInitialGameState();
+    const legacy = renderToStaticMarkup(createElement('main', { className: 'game-screen' },
+      createElement(TableRenderer, { gameState, renderer: '2d' })));
+    expect(legacy).toContain('<main class="game-screen"><section class="mahjong-table"');
+    expect(legacy).not.toContain('table-renderer-diagnostics');
+
+    const directLegacy = renderToStaticMarkup(createElement(MahjongTable, { gameState }));
+    expect(renderToStaticMarkup(createElement(TableRenderer, { gameState, renderer: '2d' })))
+      .toBe(directLegacy);
+
+    const nonStandard = renderToStaticMarkup(createElement(TableRenderer, {
+      gameState: {
+        ...gameState,
+        players: gameState.players.map((player, index) =>
+          index === 3 ? { ...player, id: 2 as const } : player),
+      },
+      renderer: '3d',
+    }));
+    expect(nonStandard).toContain('class="mahjong-table"');
+    expect(nonStandard).not.toContain('table-renderer-diagnostics');
+  });
+
+  it('does not claim 3D active before readiness and falls back after WebGL failure', () => {
+    expect(resolveTableRendererDiagnostics('3d', true, true, false, null)).toEqual({
+      requested: '3d',
+      active: '2d',
+      standardFourPlayer: true,
+      attempted3dMount: true,
+      fallbackReason: 'none',
+    });
+    expect(resolveTableRendererDiagnostics('3d', true, false, false, 'webgl-init-failure'))
+      .toEqual({
+        requested: '3d',
+        active: '2d',
+        standardFourPlayer: true,
+        attempted3dMount: false,
+        fallbackReason: 'webgl-init-failure',
+      });
+    expect(resolveTableRendererDiagnostics('3d', true, true, true, null))
+      .toMatchObject({ active: '3d', fallbackReason: 'none' });
+  });
+
+  it('separates real renderer initialization failures from scene render errors', () => {
+    const webglError = tagTableRendererError(new Error('context creation failed'), 'webgl-init-failure');
+    expect(classifyTableRendererError(webglError)).toBe('webgl-init-failure');
+    expect(classifyTableRendererError(new Error('scene render failed'))).toBe('scene-render-error');
+  });
+
+  it('coexists with the DOM HUD and switches the shared local hand to a transparent screen-space overlay only after 3D is active', () => {
+    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
+    const gameScreenSource = readFileSync(sourcePath('../components/game/GameScreen.tsx'), 'utf8');
+    const css = readFileSync(sourcePath('./table3d.css'), 'utf8')
+      + readFileSync(sourcePath('./session/sceneSession.css'), 'utf8');
+    expect(source).toContain('table-renderer-layer--3d');
+    expect(source).toContain('<Table3DHud {...tableProps} doraIndicatorSlots={doraIndicatorSlots} playerProfile={playerProfile} />');
+    expect(source).toContain('centralHud={centralHud}');
+    expect(source).toContain('return <LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />');
+    expect(source).not.toContain('hudOnly');
+    expect(source).toContain('standardFourPlayer.supported');
+    expect(source).toContain('sharedPresentationState.scene');
+    expect(source).toContain('sharedPresentationState?.doraIndicatorSlots');
+    expect(source).not.toContain('doraIndicatorSlots={doraIndicatorSlots}\n              localHandPresentation');
+    expect(source).toContain("data-table-interaction-contract={interactionActions ? 'shared' : 'none'}");
+    expect(gameScreenSource).toContain("screenSpaceOverlay={activeTableRenderer === '3d'}");
+    expect(css).toContain('.local-hand-area--screen-space');
+    expect(css).toContain('position: fixed');
+    expect(css).toContain('background: transparent');
+    expect(css).toContain('transform: translateX(-50%)');
+  });
+
+  it('covers the mounted renderer until scene and local presentation are both ready', () => {
+    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
+    const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
+    const css = readFileSync(sourcePath('./table3d.css'), 'utf8')
+      + readFileSync(sourcePath('./session/sceneSession.css'), 'utf8');
+
+    expect(source).toContain('sceneReady && criticalHandPacksReady');
+    expect(source).toContain('data-critical-hand-packs-ready={criticalHandPacksReady');
+    expect(source).toContain('resolveEffectiveHandPackIds(');
+    expect(source).toContain('preloadHandPacks(effectiveHandPackIds)');
+    expect(source).toContain('data-presentation-revealed={initialPresentationReady');
+    const loadingSource = readFileSync(sourcePath('./session/SceneErrorBoundary.tsx'), 'utf8');
+    const hostSource = readFileSync(sourcePath('./session/SceneCanvasHost.tsx'), 'utf8');
+    const commitSource = readFileSync(sourcePath('./session/initialFrameCommit.ts'), 'utf8');
+    expect(source).toContain('<SceneLoading />');
+    expect(source).toContain('<Suspense fallback={null}>');
+    expect(source).not.toContain('<Suspense fallback={<LegacyTable2D');
+    expect(loadingSource).toContain('className="table-presentation-loading"');
+    expect(loadingSource).toContain('正在准备牌桌…');
+    expect(sceneSource).toContain('<SceneContentReady sceneReady={tableSceneReady} criticalAssetsReady={criticalAssetsReady} />');
+    expect(hostSource).toContain('afterFrame: addAfterEffect');
+    expect(commitSource).toContain('invalidate();');
+    expect(sceneSource).not.toContain('requestAnimationFrame');
+    expect(css).toContain('.table-presentation-loading');
+    expect(css).toContain('position: fixed');
+    expect(css).not.toContain('transition: opacity');
+  });
+
+  it('lets Replay share the same visibility-aware renderer while 17-step stays isolated', () => {
+    const replaySource = readFileSync(sourcePath('../components/ReplayScreen.tsx'), 'utf8');
+    const seventeenStepsSource = readFileSync(sourcePath('../components/SeventeenStepsScreen.tsx'), 'utf8');
+    expect(replaySource).toContain('<TableRenderer');
+    expect(seventeenStepsSource).not.toContain('<TableRenderer');
+  });
+});

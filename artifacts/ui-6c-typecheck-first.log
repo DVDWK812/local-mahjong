@@ -1,0 +1,10 @@
+src/audio/AudioPresentationConsumer.test.ts(9,65): error TS2345: Argument of type 'PresentationEventBus' is not assignable to parameter of type 'PresentationAudioCues'.
+  Type 'PresentationEventBus' is missing the following properties from type 'PresentationAudioCues': sink, generation, consumed, connect, run
+src/audio/AudioPresentationConsumer.test.ts(26,65): error TS2345: Argument of type 'PresentationEventBus' is not assignable to parameter of type 'PresentationAudioCues'.
+  Type 'PresentationEventBus' is missing the following properties from type 'PresentationAudioCues': sink, generation, consumed, connect, run
+src/audio/AudioPresentationConsumer.test.ts(46,65): error TS2345: Argument of type 'PresentationEventBus' is not assignable to parameter of type 'PresentationAudioCues'.
+  Type 'PresentationEventBus' is missing the following properties from type 'PresentationAudioCues': sink, generation, consumed, connect, run
+src/audio/AudioPresentationConsumer.test.ts(57,65): error TS2345: Argument of type 'PresentationEventBus' is not assignable to parameter of type 'PresentationAudioCues'.
+  Type 'PresentationEventBus' is missing the following properties from type 'PresentationAudioCues': sink, generation, consumed, connect, run
+src/audio/AudioPresentationConsumer.test.ts(71,65): error TS2345: Argument of type 'PresentationEventBus' is not assignable to parameter of type 'PresentationAudioCues'.
+  Type 'PresentationEventBus' is missing the following properties from type 'PresentationAudioCues': sink, generation, consumed, connect, run

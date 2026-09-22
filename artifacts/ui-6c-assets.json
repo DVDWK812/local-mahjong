@@ -1,0 +1,93 @@
+[
+  {
+    "file": "src/music/effects/default-tile.wav",
+    "bytes": 1004,
+    "format": "WAV PCM",
+    "seconds": 0.06,
+    "sampleRate": 8000,
+    "channels": 1,
+    "bits": 16,
+    "peak": 0.3961181640625,
+    "leadingBelowMinus60dBMs": 0.0,
+    "fullScaleSamples": 0,
+    "status": "technical fallback"
+  },
+  {
+    "file": "src/music/effects/discard/discard1.wav",
+    "bytes": 192078,
+    "format": "WAV PCM",
+    "seconds": 1.0,
+    "sampleRate": 48000,
+    "channels": 2,
+    "bits": 16,
+    "peak": 1.0,
+    "leadingBelowMinus60dBMs": 16.270833333333336,
+    "fullScaleSamples": 57,
+    "status": "project-local; final approval not documented"
+  },
+  {
+    "file": "src/music/effects/discard/discard2.wav",
+    "bytes": 192078,
+    "format": "WAV PCM",
+    "seconds": 1.0,
+    "sampleRate": 48000,
+    "channels": 2,
+    "bits": 16,
+    "peak": 0.176361083984375,
+    "leadingBelowMinus60dBMs": 89.35416666666667,
+    "fullScaleSamples": 0,
+    "status": "project-local; final approval not documented"
+  },
+  {
+    "file": "src/music/effects/draw/draw1.wav",
+    "bytes": 192078,
+    "format": "WAV PCM",
+    "seconds": 1.0,
+    "sampleRate": 48000,
+    "channels": 2,
+    "bits": 16,
+    "peak": 0.361663818359375,
+    "leadingBelowMinus60dBMs": 386.5208333333333,
+    "fullScaleSamples": 0,
+    "status": "project-local; final approval not documented"
+  },
+  {
+    "file": "src/music/effects/draw/draw2.wav",
+    "bytes": 192078,
+    "format": "WAV PCM",
+    "seconds": 1.0,
+    "sampleRate": 48000,
+    "channels": 2,
+    "bits": 16,
+    "peak": 0.063690185546875,
+    "leadingBelowMinus60dBMs": 179.15625,
+    "fullScaleSamples": 0,
+    "status": "project-local; final approval not documented"
+  },
+  {
+    "file": "src/music/effects/meld/meld1.wav",
+    "bytes": 192078,
+    "format": "WAV PCM",
+    "seconds": 1.0,
+    "sampleRate": 48000,
+    "channels": 2,
+    "bits": 16,
+    "peak": 1.0,
+    "leadingBelowMinus60dBMs": 0.0,
+    "fullScaleSamples": 15,
+    "status": "project-local; final approval not documented"
+  },
+  {
+    "file": "src/music/effects/meld/meld2.wav",
+    "bytes": 192078,
+    "format": "WAV PCM",
+    "seconds": 1.0,
+    "sampleRate": 48000,
+    "channels": 2,
+    "bits": 16,
+    "peak": 1.0,
+    "leadingBelowMinus60dBMs": 0.0,
+    "fullScaleSamples": 36,
+    "status": "project-local; final approval not documented"
+  }
+]

@@ -417,7 +417,8 @@ describe('meld_declared presentation event', () => {
 
     expect(events.filter((event) => event.type === 'meld_declared')).toHaveLength(1);
     expect(events[0]).toMatchObject({ type: 'meld_declared', playerId: 0, meldType: 'kan', kanType: 'minkan' });
-    expect(events[1]).toMatchObject({ type: 'tile_drawn', playerId: 0 });
+    expect(events[1]).toMatchObject({ type: 'dora_revealed' });
+    expect(events[2]).toMatchObject({ type: 'tile_drawn', playerId: 0 });
     expect(events.some((event) => event.type === 'tile_discarded')).toBe(false);
   });
 

@@ -5,6 +5,7 @@ export interface AudioPlaybackHandle {
   pause(): void;
   setVolume(volume: number): void;
   onEnded(listener: () => void): () => void;
+  onError?(listener: () => void): () => void;
   dispose(): void;
   getCurrentTime?(): number;
   getDuration?(): number;
@@ -41,6 +42,7 @@ export class NoopAudioBackend implements AudioBackend {
 }
 
 class BrowserAudioPlaybackHandle implements AudioPlaybackHandle {
+  private readonly errorListeners = new Set<() => void>();
   private readonly endedListeners = new Set<() => void>();
   private readonly timeUpdateListeners = new Set<() => void>();
   private readonly playListeners = new Set<() => void>();
@@ -53,6 +55,7 @@ class BrowserAudioPlaybackHandle implements AudioPlaybackHandle {
     private readonly onDispose: (handle: BrowserAudioPlaybackHandle) => void,
   ) {
     this.audio.addEventListener('ended', this.handleEnded);
+    this.audio.addEventListener('error', this.handleError);
     this.audio.addEventListener('timeupdate', this.handleTimeUpdate);
     this.audio.addEventListener('play', this.handlePlay);
     this.audio.addEventListener('pause', this.handlePause);
@@ -78,6 +81,11 @@ class BrowserAudioPlaybackHandle implements AudioPlaybackHandle {
   onEnded(listener: () => void): () => void {
     this.endedListeners.add(listener);
     return () => this.endedListeners.delete(listener);
+  }
+
+  onError(listener: () => void): () => void {
+    this.errorListeners.add(listener);
+    return () => this.errorListeners.delete(listener);
   }
 
   onTimeUpdate(listener: () => void): () => void {
@@ -121,17 +129,24 @@ class BrowserAudioPlaybackHandle implements AudioPlaybackHandle {
     this.playing = false;
     this.audio.pause();
     this.audio.removeEventListener('ended', this.handleEnded);
+    this.audio.removeEventListener('error', this.handleError);
     this.audio.removeEventListener('timeupdate', this.handleTimeUpdate);
     this.audio.removeEventListener('play', this.handlePlay);
     this.audio.removeEventListener('pause', this.handlePause);
     this.audio.removeAttribute('src');
     this.audio.load();
     this.endedListeners.clear();
+    this.errorListeners.clear();
     this.timeUpdateListeners.clear();
     this.playListeners.clear();
     this.pauseListeners.clear();
     this.onDispose(this);
   }
+
+  private readonly handleError = () => {
+    this.playing = false;
+    [...this.errorListeners].forEach(listener => listener());
+  };
 
   private readonly handleEnded = () => {
     this.playing = false;
@@ -159,8 +174,11 @@ class BrowserAudioPlaybackHandle implements AudioPlaybackHandle {
 export class BrowserAudioBackend implements AudioBackend {
   private readonly handles = new Set<BrowserAudioPlaybackHandle>();
 
+  constructor(private readonly automationMuted = false) {}
+
   createPlayback(asset: AudioAssetDefinition): AudioPlaybackHandle {
     const audio = new Audio(asset.src);
+    if (this.automationMuted) audio.muted = true;
     audio.loop = asset.loop;
     audio.preload = 'auto';
     const handle = new BrowserAudioPlaybackHandle(audio, (disposed) => this.handles.delete(disposed));
@@ -175,5 +193,10 @@ export class BrowserAudioBackend implements AudioBackend {
 }
 
 export function createDefaultAudioBackend(): AudioBackend {
-  return typeof Audio === 'undefined' ? new NoopAudioBackend() : new BrowserAudioBackend();
+  return typeof Audio === 'undefined' ? new NoopAudioBackend()
+    : new BrowserAudioBackend(isAutomationMuteEnabled(typeof window === 'undefined' ? '' : window.location.search));
+}
+
+export function isAutomationMuteEnabled(search: string): boolean {
+  return new URLSearchParams(search).get('mute') === '1';
 }

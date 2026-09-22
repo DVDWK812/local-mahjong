@@ -2,8 +2,25 @@ import { describe, expect, it, vi } from 'vitest';
 import { PresentationEventBus } from '../PresentationEventBus';
 import { DiscardSourceSnapshotStore } from './DiscardSourceSnapshot';
 import { HandAnimationConsumer } from './HandAnimationConsumer';
+import { presentationAudioCues } from '../PresentationAudioCue';
 
 describe('HandAnimationConsumer', () => {
+  it('animation disabled preserves static SFX; presentation disabled suppresses it', () => {
+    const bus = new PresentationEventBus();
+    const played = vi.fn(); const disconnect = presentationAudioCues.connect(played);
+    const enqueue = vi.fn();
+    let presentationEvents = true;
+    const consumer = new HandAnimationConsumer({ enqueue }, bus, () => true,
+      () => ({ presentationEvents, handAnimations: false }));
+    bus.publish({ type: 'tile_drawn', playerId: 0 });
+    expect(played).toHaveBeenCalledTimes(1);
+    expect(played.mock.calls[0][0]).toMatchObject({ kind: 'draw-contact', phase: 'static-settled' });
+    presentationEvents = false;
+    bus.publish({ type: 'tile_drawn', playerId: 0 });
+    expect(played).toHaveBeenCalledTimes(1);
+    expect(enqueue).not.toHaveBeenCalled();
+    consumer.dispose(); disconnect();
+  });
   it('在 enqueue 前同步注册 event identity，避免自动 effect 抢跑', () => {
     const bus = new PresentationEventBus();
     const enqueue = vi.fn(() => true);

@@ -1,0 +1,1330 @@
+[
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\WinPresentationOverlay.tsx",
+    "Hash": "6656D97B23F5D4C74B8102D366A26E5EF4E3A8597252342455EF8810B057121C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\WinPresentationOverlay.test.tsx",
+    "Hash": "EA126C5A9204CCD540CEB62601F38A05AD0E021B42108569C9B5E687E349799C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\winPresentationOverlay.css",
+    "Hash": "83C8ADD79C486B10334DB73F9FF2DE5B60F9879CD114BC9E77D77A8436C740EB"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\TableLayoutRegression.test.tsx",
+    "Hash": "AD41747D9DC66CBBFA4040132EC3CEE758A11D66BFF104073773072233D88D98"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\TableCenter.tsx",
+    "Hash": "E88649C1FFB701577112BA4664E4ADF29860482312ABA0705C59D2291239DC6B"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\TableCenter.test.tsx",
+    "Hash": "9A7AC23BBB98C0BC7747D529F25822487B8B69962D31E54F87A01F6AB82EB491"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\RiichiStick.tsx",
+    "Hash": "CBF58413166A8A110BFC38BD8C3B5889FC6E31EF8D74039F8F9D9F1B5A2FD75E"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\RiichiStick.test.tsx",
+    "Hash": "775FFBC93AA125CCD9063B53A3E42F2015289C957D8FDFA4D8C1471F2938A95D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\PlayerZone.tsx",
+    "Hash": "2D04AD0934A08EC501BB5A94C9A177A9FEF1B4B028F9A0AAD25DB2ECFEA033DD"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\PlayerZone.test.tsx",
+    "Hash": "733278155570A0BD69F691C2CADA13D4E2727F74AB00FB98D8D9E960B544BD80"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\MahjongTable.tsx",
+    "Hash": "2820ECEEABC0AB8A76AB655650719AD5FC375E736CB345BCBD03D608A791BCA2"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\MahjongTable.test.tsx",
+    "Hash": "443CF59C5C1521A59FF775848F6FF9D4C25C0243CAE93380BB17D33E103CFEC5"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\LocalHandSnapshot.tsx",
+    "Hash": "0DE07F1C76A460FB83DE00B77B56D2988F728C215EFD253CE0C10C67A773A39F"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\localHandPresentationReady.ts",
+    "Hash": "7B9F0010E6F94457A70A96EF7EA21975EF0A8A0E5E2378E45DDCD7732D6C2840"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\localHandPresentationReady.test.ts",
+    "Hash": "5364169A82CFE856A2805EAB9349ACFF8477EE97AA69569FB7297842E06CF91C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\LocalHandArea.tsx",
+    "Hash": "C2D7BDBFC298AFBE7073960DD613A8E1E1FB44EB5886EDFEC8E00BF0DB02AD5F"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\LocalHandArea.test.tsx",
+    "Hash": "75A90C92F51F3E34646C924013D298939F835AA6B2D2CBB51AB0D297C908801F"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\LocalAnimationHand.tsx",
+    "Hash": "835A3805AEEB1131CB4C9AE7FD36B9AB238391F4DB65BE223B811CEF1014B62A"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\LegacyTable2D.tsx",
+    "Hash": "EF0695970F2D999FC98A6279A6F2C10E3B0044D313681AB5C73DE52FBF8D7B6C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\HandTrack.tsx",
+    "Hash": "4194908A21A19CF74763BB6C1A069CC1EE8AAFACA215FEF67CE51706CE8D06BC"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\HandTrack.test.tsx",
+    "Hash": "B0D64F11EB7EAD13FD4EE6680D49A2E178A491E12EA78811EAE195DB6AD6D4A4"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\HandAnimationOverlay.tsx",
+    "Hash": "3F775C4EAC7F782A385106A477F3479C1A4368673550BE1FDE924ED4D569D441"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\HandAnimationOverlay.test.tsx",
+    "Hash": "ABFFD647D7E40A24B6460CC5BC2F2931CFBCAC17DFAA24090BE98AECF4D019D1"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\handAnimationOverlay.css",
+    "Hash": "5575E0B8CA759328500D28012A69394D6FCBF8C3E1B3EF314F53D500ED03222F"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\GameTopBar.tsx",
+    "Hash": "7760C1814869557D9B92A11451A0BD933592EA5AE3CF550F3B1C1794420F2764"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\GameScreen.tsx",
+    "Hash": "7B55ACC159CD1604A47EDAA207BE1589AFA3EDC4110E3A24E4985A32E19BD46E"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\GameScreen.test.tsx",
+    "Hash": "2340A4747FA539A435AE1C72855F0E670E3F176DA5CDC846F31126A453D3F900"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\GameResponsiveLayout.test.tsx",
+    "Hash": "9D6E2AFB1E79B802C51B8B036C3F4261EEDCE5E5D4ED838FBAB9F9491ADB1975"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\GameEventOverlay.tsx",
+    "Hash": "CA1EB962B3979CE77D82DC5F90B5C8CE4E271D55C5D8008D29B27F3258E336F2"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\GameEventOverlay.test.tsx",
+    "Hash": "8BAEB48B77DB29FDAB37A06EC11C176090723BACDCFD7EC72F149276AEE9874A"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\gameEventOverlay.css",
+    "Hash": "4E79847B0538C896385747AF1F99C86A1407B72F1D7E76B253706A2A3780EFB5"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\DoraIndicatorStack.tsx",
+    "Hash": "3DCDE129464D0706893C10631106C41E3A3AFF4F55A40C3291424236863870AF"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\DoraIndicatorStack.test.tsx",
+    "Hash": "E430056AF190F909D6A61BF761E971A1377928461EA8687AECD650FDFE67B9E3"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\DiscardRiverRiichiClaimed.test.tsx",
+    "Hash": "5A386751FEF1F664B872677D0423BEB2DC87B110AD97AF093731BF2CD2846B7F"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\DiscardRiver.tsx",
+    "Hash": "56B0A834B30EC29A5D71F4E14ECF4E416A78662604835FFADE863A231215A583"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\DiscardRiver.test.tsx",
+    "Hash": "5CE3AB02463CF0464E3849EB156C37D0AB21150C132657E81F4AE779F6978838"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\AnalysisToggle.tsx",
+    "Hash": "A0DDAC08F844A154BC929D06E417F0D01DF4B9E2454A80909CCCAC01FDBD8F0B"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\AnalysisDrawer.tsx",
+    "Hash": "A9C06F7E221E57037D12C2B24EAE4767FFD8336A882034C358DD1F554D0422AE"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\game\\AnalysisDrawer.test.tsx",
+    "Hash": "D227B05F9AC4325AB4447DAD7E5B4F83D7480A7742E46090639026BEB2A48A12"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\kuikae.test.ts",
+    "Hash": "E5AFBE41C4F651E3C08F29689C41F4B4AC124069246092C6F1F0D9462C8D55D8"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\kanChecker.ts",
+    "Hash": "47575C439FCE26DB056FCAD98DDA7DCF3BB8C429E4DF616B435A729DE55B72D9"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\kanChecker.test.ts",
+    "Hash": "A5CE4E7A735E8833FFB1117D79BBDF5796C03783443B5FF5F7F288693679E67A"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\interactionFlow.test.ts",
+    "Hash": "0A84E71C2BCBFAFDBEAEA9265ED608851B1D9842DA7A510CE9F5A9A5B524BC76"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\interaction.ts",
+    "Hash": "4CBF3E7C0B85273B10A91832B4CE13F7F01642EFB1C8FDBDEE2007D92801E7DC"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\furiten.ts",
+    "Hash": "C87B761885927C57637E257D355E9FC653F536F1362BB3DBE2A36FD2D4D54BAB"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\furiten.test.ts",
+    "Hash": "45C81A80CA807E05D2B93B19D6D51C0E053B3ED6718BAAAEA4934A0E312434BD"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\exhaustiveDrawIntegration.test.ts",
+    "Hash": "AE0B336EED194EE180191D3B294189DBB5D065875DBB89F489597FB0D3123CC2"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\exhaustiveDraw.ts",
+    "Hash": "888A46018F13B6BCB9DCF39FBE5F2C78B24E751CDE8D75A5F768D065C672BB46"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\exhaustiveDraw.test.ts",
+    "Hash": "2DD0CF74B6F6AA6A341A73CAB5E309EFC714522B687FC4E05E9870E49B420631"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\engine.ts",
+    "Hash": "C91E41F3EF318296DD9914C389FA7C5F11995F0E87E09755BF6EB4F7C7458155"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\doraVisual.ts",
+    "Hash": "D734175945F1A792CD2437EFE209DF56422CFD04F0480E9ECCAABC13FEBC716B"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\chiChecker.ts",
+    "Hash": "EBB8F97E4EE38CA3B708F396F7DC54D04A257F7AE108A44928BA5B11A7DAEEA6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\chiChecker.test.ts",
+    "Hash": "68100862AAE71F1944B479F58EF0011217835A1F533F521F7AAC558C0E4AA4E5"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\chankan.test.ts",
+    "Hash": "DEB2EADF6B5F714DF438167B262F1A045740CD904914C64B3FCE72FE39E994AE"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\callChecker.ts",
+    "Hash": "6D97FBF0815F9ACC8B10F80AC52A120B30613D0656794DC795C744659C45F73D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\callChecker.test.ts",
+    "Hash": "6F6F0F1E7D78ABE848CCD212758F311939E260467F01C973A1D0E3B892553BD4"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\ai.ts",
+    "Hash": "72CDA8DA66FE4E4B7DD2465646A670568A2E52B82D7772B3B2930A4F68671A2F"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\ai.test.ts",
+    "Hash": "FC1914B0A320AB86948CC0071CA82327C8CD7EBC1AE776FC638B671B6C64F87D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\abortiveDrawIntegration.test.ts",
+    "Hash": "579A01CEF6D060229D0689DA60D0BE6021BCB011F1FC6CD12A272FE62FEC3B48"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\abortiveDraw.ts",
+    "Hash": "1C8267D33F8C7BFD46C6FAC88B46B94F03B9F8CC3FEF432C98A8EB3A40299D77"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\abortiveDraw.test.ts",
+    "Hash": "1DA1398B11D2A5D615FDB2B2F64F081C2EFC56B9208E6D45F9263358D579977D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\riichiDiscardLegality.test.ts",
+    "Hash": "FA63DB0FBB032D9AC0EB3BCBE7678D796915B32E9A84F0A4C9F93C13A2375EDB"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\riichiClaimedDiscard.test.ts",
+    "Hash": "CAE74C4C192A04F0F8ABD893EAF54E49FF42F2C921F96CC496F0C70C0DA32A94"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\riichiCallRestrictions.test.ts",
+    "Hash": "1BCF5D666089D1AA7F5A190D55B36BF2126C6FFCFDE1CD965CAB8ADB15F38A80"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\riichi.test.ts",
+    "Hash": "93A9737213C2F0609A6EFDC42B54C5802C46D691AB6C81F298B8A64E816CEAE9"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\win\\winPresentation3D.ts",
+    "Hash": "44925FAF7D7941564942681F062EE847FE8898C4AA559362EA90A606CA2993CE"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\win\\winPresentation3D.test.ts",
+    "Hash": "5F17C943A5C50390BF4FA58642AFECC1116E49B0A0356CA0BDC721E4BCBE128C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\winChecker.ts",
+    "Hash": "85BD14A16D084852DD3B03142B33974AC12AB0DAAA73A50FE3BB826183EC6871"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\winChecker.test.ts",
+    "Hash": "6A42961B74CE09002425CE3E31A34EDEBF3CB88A1B0CE31EFA8A1D897255F5DD"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\wall.ts",
+    "Hash": "69521E29055DC42F1F0995A47A84DB63DE7A559A715360BB8BF3450C276ECDD9"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\visibility.ts",
+    "Hash": "27F0ABF4638109DE071CFD915489D04A77A22AD9FAF57E4C68215482B0A10C54"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\types.ts",
+    "Hash": "4DABB76920679FAA847F9ED8F1A85526205624A977EB0626BCA21886AB3CC0F8"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\tileUtils.ts",
+    "Hash": "A2C52C50F3D1190C90C314E0C55D6BCF68E4A92ED6E735B21371F49E8E035E65"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\tileInstanceValidation.ts",
+    "Hash": "E3EB703515D9703B0B0AAA9D93824D520BEC8E792571139EF8E4605B3E3456EF"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\tileCounts.ts",
+    "Hash": "111CEB816A0E6B2FB5F2184A699E6ACAF9AE50804008A5BC645ABD7941E5FB54"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\tileAssets.ts",
+    "Hash": "1DB12BD7B3CED95FE2DE664470F2CDFEA271DEA24B7D0B6CBB04DAE2EEE03DE9"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\tileAssets.test.ts",
+    "Hash": "BFC9C0C3944BF6D17AD13A4DAC3D5F56AE878FA7223DCA5EA6DF533EB27B6F97"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\wall\\Wall3D.tsx",
+    "Hash": "7DEBDEA47B09C2ACE8983D909054F53D669A6647B6C723F36E1D0451B54CFD2F"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\validation.ts",
+    "Hash": "8A7EAA63C1A42D595690E5BA2BA3E8F28A7351CB26B9F8F8AAFF3870D545B698"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\types.ts",
+    "Hash": "613DBE7654B367DFD7F136AAE16E608A91B331E859BEB1C44C4DE5815663D8C3"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\serialization.ts",
+    "Hash": "A09421F574DC5673FD8ECF7F990BDE637571BEB723677B44E68B1CE891888CD0"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\roundReplay.ts",
+    "Hash": "DE65A7AC260C3D48B04AB30A9B7711E29B5DB34E2A836A901B8EBA7A0A3B411F"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\roundReplay.test.ts",
+    "Hash": "CD325296427C7D220264948E257563256E719861880441C8BB93D19B0C2E5EC7"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\replayTestUtils.ts",
+    "Hash": "C6801526F1BC43BB19E89E85F260EE308E92FF01E31BC7574960A9F3B42F4265"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\replayPlayback.ts",
+    "Hash": "ABBE1DD1BCCDC5B51564D4C7242FC282031E819BC12ED0270196853ABB8E4AA3"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\replayPlayback.test.ts",
+    "Hash": "4899EE96DDEF8213A756D40609A3D6CCE96DB41EF66F5A5E921DA91E9E1A85D5"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\replayIntegration.test.ts",
+    "Hash": "84DCA55F3105F1AED09D2F4939ACB2347E789029F8F6D34C8DFD1A2746A80209"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\replayEngine.ts",
+    "Hash": "3E9E7FA569219CB7A4F4C7117B7B92FE6BAC69839A2C98F94460F47FFE1B36CF"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\replayEngine.test.ts",
+    "Hash": "65A82B1ABBAC6F61D4C097931121F62B95A7A590C697D9C8CCE312A2693E4652"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\eventReducer.ts",
+    "Hash": "DA8B0B94D53A1386E5D31CCA2D41CA0D66FB1B16CBA3D97071D62F233B9A8CAC"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\eventReducer.test.ts",
+    "Hash": "A6A6584D0CEDCF32026DE72DE6BDCB84A9AA37E2998F49E7EBDAE2E8FD906D9C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\eventRecorder.ts",
+    "Hash": "318939012F12FCB80C6E8E3D1F5AD1FAE3FA8D0C53F4D200EB215E6FB7B58AC6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\replay\\eventRecorder.test.ts",
+    "Hash": "80242F75B43EA1226EEC125A26E5B216112550338AB563D9E2F8819301DB8A85"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\testMode\\types.ts",
+    "Hash": "2B4F12F17026CCA65FA837977227E269AD4F2E946F91866D4E72682FF68FDE81"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\testMode\\testMode.test.ts",
+    "Hash": "806D1CD9D005C1C79FFA74A0C7C0D87EB3A0507E3819AAB732DC8008E14E8FBB"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\testMode\\scenario.ts",
+    "Hash": "C5BEAC776753DF84D75ED7118A5CECEF2EFC47F0D93C8C54477C4C5B7BF0DC3D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\testMode\\resultsStorage.ts",
+    "Hash": "02D744775C96835CA4E1C76441927B3F36EDADF5086F6818D45DDD3701BA2560"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\testMode\\resultsStorage.test.ts",
+    "Hash": "5CC094525E42DFEF72A5F777945AC1F4529466DF2FBBEDD997098F6DCF3A4B5E"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\testMode\\catalog.ts",
+    "Hash": "05842EB4A77C87AA5AB1EF08E256766A699D85943B641672AC4350420C995E42"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\testMode\\builtInScenarios.ts",
+    "Hash": "C1A20A55F18BAF9C06C6136A92618BE0AD139FAC6A7F8DCE4DD0E7AAD98695E6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\testMode\\availability.ts",
+    "Hash": "9BD00E33EB30493039FC75C053B3ECE6E84F398801DFE4B772756F89377F99E5"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\testMode\\actions.ts",
+    "Hash": "0B2C9423E78BD643602CE53D971A1046F2C7C9D3D966415A79A3AC3DD28BED36"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\tenpaiDisplay.ts",
+    "Hash": "D4DB95DBF736809331BA9943D875A95FB36CBE4DED15A3A50D8803029B83ADA0"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\tenpaiDisplay.test.tsx",
+    "Hash": "AB56CF9252D180E3078F8D9F13C725EB5BCE7D7A09D3249C1B236226377DA046"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\suukanSanraSettlement.test.ts",
+    "Hash": "A10A9A8D24B344D4817552B3F1BF594649A3DCE0E2377213A33F8457E1A6ADA5"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\shanten.ts",
+    "Hash": "B0E62F7918AF711EC75C84D4987D7EAA1BC5911840737755933F8ADB632F2C8A"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\shanten.test.ts",
+    "Hash": "F8B18EC82E49BE3C298BF45C9E0F1511D3C7E8DC52A9F5FEDBFFF013B018D34D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\seventeenStepsMatch.ts",
+    "Hash": "1D7CCF635606146E78DDD55868845FAF185A71E4260FE76ABA71BEDD781962A4"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\seventeenStepsMatch.test.ts",
+    "Hash": "359ABE04E7455D0C252220665CDF47299493A01A955D13E8F37F1B0B974D904F"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\seventeenStepsAI.ts",
+    "Hash": "0D8780E25F4407FDA88E0DD47859CB434FA9B5EEB4587E675AEEEC2544E57BC7"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\seventeenStepsAI.test.ts",
+    "Hash": "5C90061A495786A724FFECCAC54D0E6A674D57860AD76F503A35A153027A0592"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\seventeenStepsAI.pressure.test.ts",
+    "Hash": "ECCE28045AF3935668EF10CBE44496CF7BAE664458322F2E859229DEE5ED6192"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\seventeenSteps.ts",
+    "Hash": "B7BFE1D54950A8993BB02CB512E7ED1577A561B6FAD2802B32C3F7BF26A0E9A6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\seventeenSteps.test.ts",
+    "Hash": "419120968C30EFB1230A9FC93AC72656A3F0BD9CA5DCD1BE08A8F40D91AA0F29"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\scoreCalculator.ts",
+    "Hash": "0157F7632F28CA3B7C1BCC34E808C33C05C81D2FF53827578D3CD16DE99C88F6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\scoreCalculator.test.ts",
+    "Hash": "026697BD12B147E8FCCF3E47BB38F2ECDE5F947EBF1D663A9DAB77891AE5A006"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileVisualAnatomy.test.ts",
+    "Hash": "68026A781A94CF573F1A979CC255857DAA6F7F51AC4EE0C03FB593B0E91D2298"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\TileTextureWarmup.tsx",
+    "Hash": "C040CD58D2994746784E39A80DA08140781A94E566AE2B13D07C2A40BC6914F6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileTextures.ts",
+    "Hash": "1944AE2650AE050B61AAA69A67588E36D148F008C5790FD846BDAB32078B73BA"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileTextures.test.ts",
+    "Hash": "BEDE8F5C5C36B4FFDB0B8861220F2AADF50D25FA184CBE52EF56C74CC63B65A7"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileSpacing.ts",
+    "Hash": "624B21ED5F66382446E3E105649DEE7D6DAE11B98561281E558E0F8D61601481"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileSpacing.test.ts",
+    "Hash": "BEDA507ED0E4ED298A65A76CE9B1C34A98487593B35C759F8BD8ADFDB757BF3C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileOrientation.ts",
+    "Hash": "7F8830315954FF3CC9C127FD132FEBA626A558FB2673AB99B2CCE7E2045FB440"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileOrientation.test.ts",
+    "Hash": "06E60A0F247DCE6147912F2ECCBFB3C0D93DF62E43AD22FC90493DDF42044063"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileMaterials.ts",
+    "Hash": "4A2A44088CA7571115AF6FDD1F71E19FEB3D3C9BB486EA06208791DF271A4389"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileMaterials.test.ts",
+    "Hash": "D4E832FE7E8180C62DE128EA894BBF518DCF8342D8CC4B114E83186481362B65"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileGrounding.ts",
+    "Hash": "C9CC5C94C84C93C13A6610906F727E61A0F94DC9633BA364B7400CA438F867DA"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileGrounding.test.ts",
+    "Hash": "46C10F667D2F3264AAAAD5B9701005435D84EE40FBCAB6EC59FC8C4B4BCAE1B2"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileGeometry.ts",
+    "Hash": "4A151E1B5854435067E9DB0E2EE47B5F6EFE43A11A21109C02E01592C6CE8415"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileGalleryData.ts",
+    "Hash": "A8EEBB361D25D20B4870B2D045342629CD4CE46B5DABD2D255C9A9289E24D8D4"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileGalleryData.test.ts",
+    "Hash": "DC0A78A4AF8E9AF890CF5173DF6F3FA566423187C787D6B727B5C684385393A9"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\TileGallery.tsx",
+    "Hash": "98C44D98FFC5D45E349787EFE0ECB23347400997150476326D2EF3DD55350D79"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileFootprintPacking.ts",
+    "Hash": "2AFC170F9F0702D181386E62943D843F9095251FCD2AF510464DE4089FE4C799"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileFootprintPacking.test.ts",
+    "Hash": "7BAE859357ED8DA668CC1CD34BF708E7B2E9643F074B2850EADCC5BC1AD339B5"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileFaceVisibility.test.tsx",
+    "Hash": "1CCFF22C28B952E90123272041BC80C484BA5DF95062C9169AAFFAE7CEE5F839"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileFaceTextures3d.ts",
+    "Hash": "4F3DC8DA5D57F263173D106680769A912EC59DCDA5FB98634CC7692358C15F71"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\tileFaceTextures3d.test.ts",
+    "Hash": "D3F4581F32017513DED511430EB523E8A5105600961B46E28337DE05BB1F84A4"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\Tile3D.tsx",
+    "Hash": "3C9C0D0B7F1ABF18AB130195B822F5C602A06FB36D87E459A46A048C1CDA3969"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\tile\\doraBreathingVisual.test.ts",
+    "Hash": "CEBE96116887D0D0B291C283FB48DB0D96D097CF84AB94ACB99B11567B3CA057"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\TableRenderer.tsx",
+    "Hash": "199413E118B3DF2DE30C0474898AD4EC69DD02769FA4CD86DDF543B1284EE84E"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\TableRenderer.test.ts",
+    "Hash": "EF0A1AE1F5CACB0DC4FB6C85C47050383B7B378F12355D4B8E1A588F8A505C42"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\Table3DScene.tsx",
+    "Hash": "DFABF61BE8524952E189CA6A3A872BB6119189697EEEC324D1222B974F380F68"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\Table3DScene.test.ts",
+    "Hash": "3E64E297BDBD7C70A20E97983C30E7DDF407F83DDF361D4C453FAF82ADE7515E"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\Table3DHudAvatar.test.tsx",
+    "Hash": "E637ADD8CB506498220151F4098FC5F45D6B06FA3FEEF8698C230076797BE8D0"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\Table3DHud.tsx",
+    "Hash": "2F6446C9883A89CB3F3656F4FB18A6402A03602A83B2691DA2E570AE3B32AE5D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\Table3DHud.test.tsx",
+    "Hash": "E55543FCA70FB1914F36DEBF70A26449B347CFF30D0577A7C5443FD865DF9A54"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table3d.css",
+    "Hash": "C3280D7B414B256510F728FD15F69D90DEF7837481FCB42015BAC3723477189D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\persistence\\storageValidation.ts",
+    "Hash": "1BFB3D3ADCA8F85A906B5BC6257CEA835F4CA57F4B439B5B7772371DC4EFE102"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\persistence\\storageValidation.test.ts",
+    "Hash": "539408FF683B2B22C4BEAB890C20E78DA8468EE9303B3F43FE40D85D9879431B"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\persistence\\storageTypes.ts",
+    "Hash": "00A302BF77BA46891D30D184383AC84F51879F4FCE3B24D9888D37A52EE4EB3C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\persistence\\saveTestUtils.ts",
+    "Hash": "832635580B7DE6CD365B8E79A28079A30EB322BC758F87A07570F0D6675339AA"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\persistence\\saveManager.ts",
+    "Hash": "DD7BE51244E6D0B87EA2D4B20CF72309F6F256D5E327842FACCFE35D542ECEDB"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\persistence\\saveManager.test.ts",
+    "Hash": "3827C1052503C7CC28833FCF9F6142F7F19345E57DD8C31D6B1E53AB564B05A3"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\persistence\\replayRecord.ts",
+    "Hash": "738EF5D0079CA473C05C4D3935528690D0F87C659C841FE52557ECB0A1F0A3AD"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\persistence\\migration.ts",
+    "Hash": "962C8732E6B0EC7862DE7CC7D1FADAFBBD90A3B99F44FDE623E136C2A8CF0BF6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\persistence\\migration.test.ts",
+    "Hash": "DFBC214319178869567F61C84288BE2F3601D4166EBFE01D140A0F5E09E402F3"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\northPlayerRiichi.test.ts",
+    "Hash": "7E9D5CFFA2F0E32A3600BFD59691D16340A8377B1B9955E4FE3477D11FC7F25D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\nextRoundReset.test.ts",
+    "Hash": "293257B32F6FDCF337CB5AFD4BB9F1BD27DD8337568190AD7BDF1CD5437E4C5D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\meldDisplayAdapter.ts",
+    "Hash": "9788E9FA2596CE3D80202C7B06111A9E489411A8DB2422DED0E91498CA04BF48"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\meldDisplayAdapter.test.ts",
+    "Hash": "AA65F2484F2471587131435D8E266B9709954ECABFA615CEAC7D31901E88F658"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\yakuhaiNames.test.ts",
+    "Hash": "6ABF267F7D48C4EB5315B9379281FDCCD9ACD5F969C7581879853D70059A6B7B"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\yakuChecker.ts",
+    "Hash": "BDD371D2F6B95152AD463D21B2432B059A3963C6DBE609F4B4DADD7DE5608F23"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\yakuChecker.test.ts",
+    "Hash": "260DEAFEE73F1D1A9406F5AEF7E020861A9EDE65D02FD2E61D7D4781FCB88571"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\match\\types.ts",
+    "Hash": "7C4AD43C05B9C6CBB36A832FD84FFA5F2F9E37A1511CD388A778E7BB1E551926"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\match\\testUtils.ts",
+    "Hash": "4E11400CA5A9AC6CDE2CC47BF6C45CA72FB9F77F7D8326E96D1B652705D5D0E9"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\match\\roundTransition.ts",
+    "Hash": "DA970264F5607C72960D3565AA8AD94620DBC103AF73537E9C324271B979AC96"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\match\\roundTransition.test.ts",
+    "Hash": "25AC2D91F1282E19ACF04D5B5B63668AAD8ED99CACE4ECA163C62A190C08AB3E"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\match\\matchRules.ts",
+    "Hash": "13CD785B19DB2C7839FF856A50B48A582E0630B52387A9FE81A24B821B1CCC8D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\match\\matchRules.test.ts",
+    "Hash": "AA38CFE60F749781FE491D2D185858A71749476D0400E1C9A47D2F0B5C328F71"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\match\\matchIntegration.test.ts",
+    "Hash": "1716D6702D6FF00A6EA06F6E13857DA0CBEBDCD02D505520604330A901F2E9A2"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\match\\matchEngine.ts",
+    "Hash": "457F41A778B00C70D32E40C3B3FC174F75173BBEF9E5BE6775D696DCF1E44A32"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\match\\matchEngine.test.ts",
+    "Hash": "2FD044E04CCDD493CB7736EFC98E76FC18CA0BB935C230BE5043B49F4126B6E6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\match\\finalRanking.ts",
+    "Hash": "B327A9523B4391F1BBB1FD9DFA507ED7B7582833CD8CFE6D63A3D7B41A20068C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\match\\finalRanking.test.ts",
+    "Hash": "F4ED191E54782E62EF5CD4238B253F89A4A690BA408C79ACA195424A627F30E7"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\match\\endConditions.test.ts",
+    "Hash": "7BA7935AD8E158105185A3A77FE6D9728C0ABB4F447DEC3B19F89FA0F19E446C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\match\\endChoice.test.ts",
+    "Hash": "BAB2B365AA4DBEACCF35925A06E1E67E507D772518629C6A60F777AE30D20C90"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\kuikae.ts",
+    "Hash": "B097C68436234AAF2FCD538F9836D87D36720A8C67BEA54EDDB4E3C1A31782D7"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\tableVisualTheme.ts",
+    "Hash": "5E13CABB8A0B124900C11798001F5773B1227C16C65BC4E6327D349E7E416D0E"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\tableSurfaceSpec.ts",
+    "Hash": "16DE5444F61F97B6C9318A09B20A9F4F764563ACD868983C82344DE09AE8FF3D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\tablePresentationTuning.ts",
+    "Hash": "6A4BDA8D682C7AD8B90B6BE4EC9F8C2FCEFAFB0AEAD9A8286BD11CB8F2D3C076"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\tablePresentationTuning.test.ts",
+    "Hash": "89BD356C2E2B4445570D097BEF3A89EA7F8A4B05AECEE18822659963AEA6EE05"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\TableMesh.tsx",
+    "Hash": "A4A3BDEC1C9CE539DC7CD2469543BB316DDE287089D0FDA86F6DE644E1789EEB"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\TableMesh.test.ts",
+    "Hash": "3EA6BF77486EE8D01D2D4C37435C71BCBA149A854F427407E4F07CDB9C591DE0"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\TableEnvironment.tsx",
+    "Hash": "010B7297F7FA710017B2CD4FCA238D8DFFC3A45C602BE49B72FE2CBAE0591307"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\feltSurfaceUv.ts",
+    "Hash": "B0B98A6B4F25A2F9517007C745A023B2EC48564438EAD40ECAF6BF9A836D79B4"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\feltSurfaceUv.test.ts",
+    "Hash": "8DFB2EE8BE57818080A012AC8FDD704D54C821FCE9D4B5ED81A8852B88F50DED"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\feltMainViewMapping.ts",
+    "Hash": "1ABE929260C3ABA3DED121F1301820A978CEB0D35E59467CE75CB521DEBEA0D6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\feltMainViewMapping.test.ts",
+    "Hash": "C66F9C1EECB9F507A4C2B00E11891753787E030432F8082F530E64340C5CA747"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\FeltDecoration3D.tsx",
+    "Hash": "8716B3EB5A9D33544034D3EF7D2C35EA55906776F0EB23DA5DCB6FEB2A915C77"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\FeltDecoration3D.test.ts",
+    "Hash": "ADC98E814BB4851E41A373E6D525E13CB09F7DA7FEE83FFEB239AC59A405E41B"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\CentralConsoleHudAnchor3D.tsx",
+    "Hash": "86C6365C37C47B80F66780289E43C0CCC29145D6C2B5F4C201195D93841E24F6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\CentralConsoleHudAnchor3D.test.ts",
+    "Hash": "289EF5F294911A747457AE8B0F82DB7D0A8492F2B4EEF3D98379A0B48242D345"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\CentralConsole3D.tsx",
+    "Hash": "63265659C8AD47450B3C6FB058C52FEA59E43F48A9463B3F2F017B6346E187B6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\table\\AvatarFrameTuningPanel.tsx",
+    "Hash": "99FBCC1800BEF0C5D28AE3F075C18670AC936D10C3AE42528316BA5CDC3A1444"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\yaku\\yakuman\\index.ts",
+    "Hash": "54BB1E8C54E1A0F63E7F95CC5C1AF289093B313CD092E8E9CD2A87AB32D21F8E"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\yaku\\types.ts",
+    "Hash": "FEE0DE5A0B69FA9DCFA47E95C027489E0B6C82D997DCEA85577D2F3AAE067C7A"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\yaku\\remainingModernYaku.test.ts",
+    "Hash": "9694EED15F0996C1CF7B74B2831365BA0BE8A3FAEACAD695F53598ECA814F9A6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\session\\sceneSessionContext.ts",
+    "Hash": "68213CF41412CCE2F78CD9A892DD2C8B593880E3E20A4F54459EA25E7C141944"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\session\\sceneSession.css",
+    "Hash": "6B9A6D575EE9B36447AC6963717E5DCF11727C57F7F447D8345921B5EE415AA4"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\session\\SceneErrorBoundary.tsx",
+    "Hash": "43E934D6B060DB982206857D78E10F718C00F4A1CC67431F46B13084358DC94D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\session\\SceneCanvasHost.tsx",
+    "Hash": "33A66D975BEF55CA68CD1DFDD055C0D4D413421830236579ABE64DDBB0987C5C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\session\\SceneCanvasHost.test.tsx",
+    "Hash": "110F369FDC2DC03A6251DB7220B7F0D37CEC5AB802A0E2D3B43433E729F73FFA"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\session\\initialFrameCommit.ts",
+    "Hash": "4F1F475A99E0286000AA8565B0BBEF424150825E7EE84512F0B35CAA0C8A9697"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\ancientYaku.test.ts",
+    "Hash": "ED39AEB7839E34990647B1BBACB5AE214B6BD036757B61E49B9389895EA5B43A"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\hanCalculator.ts",
+    "Hash": "1F7C3936B4FD50026D2F228F172C705AE49D29EB74F9B80F27D96B5644DE2B8B"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\riichiVisualState.test.ts",
+    "Hash": "341E5AAC8C575133A79B957EA3E822539B38D74C3467DBED7A538B3AE26F72B4"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\scoringContextIntegration.test.ts",
+    "Hash": "BE3E418342286BB1E4E5C878708FEAAE649ECF95612DABE44FDEA140D2FCA2D4"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\fuCalculator.ts",
+    "Hash": "87CC1832E80C6841E6355146B7F324FD85D4B8C4A382CC1C62FF4CE04BEEFCB5"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\pointCalculator.test.ts",
+    "Hash": "87DCDDC1D4EDA38A726980A8C32DBB0E4CEB90D37B469221161488CD9A5D97E1"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\pointCalculator.ts",
+    "Hash": "24A04A476F5FAF51672C0971634C3E55FEB05B4A92C6EB90F044015B1D5F0DFC"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\scoringAdapter.test.ts",
+    "Hash": "3F92C6F84BD9378E163D71B3B6D39BF4FBAB527DB0E71BE330757DF96118A707"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\sanankouProvenance.test.ts",
+    "Hash": "16E26310AFF608A970840CEA84B4984AC1AB27DB8C50F10B3381F8C814DB094C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\scoringAdapter.ts",
+    "Hash": "C85A6F0A20866575C76B1E06340E21E51AFC0E398347ED90F436C13849FCC658"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\scoringTypes.ts",
+    "Hash": "4DBAA5DA82961C620B96385DA9258EE36BF26931AB2C6AD08525D49DA1CE61FC"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\scoringIntegration.test.ts",
+    "Hash": "2CB1F6EFDF4E22138D6EC2FB9EDA715BF329336084F9A6659CCADB24E3EADED7"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\waitClassifier.ts",
+    "Hash": "41A9FCD0B07E4972FF4782BB338B225A86D58F4D58B82BC93BDBA6481022BD4C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\yaku\\normal\\index.ts",
+    "Hash": "5C5AEF40A60920BB9E07231FD21A8741CB24B80273F6C5A0C30E6072AE2EBA22"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\initialSceneReady.test.ts",
+    "Hash": "CDFFE411A2253AA0E33DF39122FC884FCFE77EE0057ABCED2D67E8DD5B86DC83"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\README.md",
+    "Hash": "2CF960D811EA62E2A82B1D5BFE46054BFF7EF8A116D544E373C578B249844F70"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\rules\\RuleConfig.ts",
+    "Hash": "AA6B1D892B5F68446F17D1A941C814466B9E23FD33217882603295EFF302F3E2"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\yaku\\ancient\\index.ts",
+    "Hash": "BFCE6DA749F516A8BDE95922E4D0ADB369C9D4C18C6BB167D406E77864FDC62E"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\rulesGuide\\yakuCatalog.ts",
+    "Hash": "B685B423B01655161ABA7C9C1A62B92F7DA6BEEA1A50BC9C072022F3CA76A699"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\rulesGuide\\fuPointsGuide.ts",
+    "Hash": "1282017A150794067E77B3B2F064E7B583D8208914B80761F0DE2EE46DE9C7FC"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\fu\\fuUtils.ts",
+    "Hash": "5ABA73BDBAEE93E0EB3ED3290B922944D3D09BB88ED214FCDF9F7FCC10D46AFF"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\fu\\fuRules.ts",
+    "Hash": "BD8978308B821A8B2BD26380C00503B8A03916246F582BBDDF837AE4D2A8FCB7"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\fu\\fuCalculator.ts",
+    "Hash": "1707D55F02DE7DBD50A29168B42239C2A1361E3946AF47A4101D32EAA5964524"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\score\\fu\\fuCalculator.test.ts",
+    "Hash": "F2A464F128C5CCE382BCA1646006DD91DF3250366D54C32D905F25A6E164DC0F"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\hand\\handSnapshotLayout.ts",
+    "Hash": "7CD2FA6FECA2B95BB83410E3B08A23F335EA4ED28A4E11077624AC268375C944"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\hand\\handSnapshot.css",
+    "Hash": "3FDEC689D1C800F05D1683A8CE771CCA4AEF7824CB8B4DFA2BDBE309C04CE3B6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\hand\\handInteraction.ts",
+    "Hash": "9CC2421EC799C702E589206EE4BA5FE4BFF66374D50407FDFB23CAE277430D11"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\hand\\handInteraction.test.ts",
+    "Hash": "A69DC6F59C6C3B7477746C4968C7ADA2EF534FB2659C3B33CA9CB54EE21FD99D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\hand\\Hand3D.tsx",
+    "Hash": "42EB1BE33D860A7D4E276348474C34412CC388C0EAC1C1CD3409B48B6B0E5973"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\rules\\ruleDescriptions.ts",
+    "Hash": "B82243EE8B6D68235CE8CE1DEEFDD2FC64A2F67231B8FAB39358F06B26F73DAF"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\AGENTS.md",
+    "Hash": "0A73EBA9FD208549AAEFFA7C28291DC67E51D7129B8EDE685C8AD03E7BE993F1"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\sceneState\\tableSceneTypes.ts",
+    "Hash": "A61801AEE9B9D5702B122827E6E809E16016F41878FFB8D5A077A839884175A1"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\sceneState\\buildTableSceneState.ts",
+    "Hash": "868E219102FB3DF3FAD6F1A8088BE28199DDFD07E90883EFFD58EFF52021A08F"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\sceneState\\buildTableSceneState.test.ts",
+    "Hash": "318FCAEBD182D23FF5C72FF3EDDFA0F298B8E8654F258D964F66D208BD9E0804"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\appearance\\TileAppearance3DContext.ts",
+    "Hash": "837DE67ABD1B1FE99D7D04D71BA600AF56A7CE1FE0EA866B6E7028B04BFF0ADB"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\appearance\\playerAppearanceConsumers.test.tsx",
+    "Hash": "0C87FC32DCCAF3ACC9D450AFD5C8CEDE0D2C966E92FE64BC56C76E2DE022D2CA"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\appearance\\AppearanceTextureCache.ts",
+    "Hash": "2E73D60BC38D22D5F93096070B310F1589E653F0AC939E235D47A0D7998528E2"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\appearance\\AppearanceTextureCache.test.ts",
+    "Hash": "A0BA39FAD71F063F261ACA7AD51ABCE6E3DB1685995586CC71A0B953D1A4BD47"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\appearance\\AppearanceResources3D.tsx",
+    "Hash": "E6A3E309255427675ADD52FF39182150729660ACEDF411EAA374118A17392547"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\appearance\\AppearanceResources3D.test.ts",
+    "Hash": "C3AD4B1F7EE672450BF833CCBA3B8DA27D4BD42EF29001C69B48AC9689666660"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\lighting\\TableLighting.tsx",
+    "Hash": "41BD232558F16FEA44D8D5427DB5AF9116A32597396FD487CC3BD79052A07206"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\lighting\\TableLighting.test.tsx",
+    "Hash": "86D3B697FFF0A87C10016566AB98FD45FBB010BA85AE8FB3CBBB1C08BA56783C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\initialSceneReady.ts",
+    "Hash": "19FB8CED95842EFEE07BE0BE2E29B6B65E98B7CE1D1DC5D526CA10AF9F5A5B92"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\animation\\flashLifecycle.test.tsx",
+    "Hash": "FB0FCCCCB1FFD9FE6271C1EDA6DABEC72977A371C368F748C0FBBD0BCEB5153F"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\animation\\DiscardSource3D.ts",
+    "Hash": "57CF79335932AEEC54134C3F7DB0051CC60D7528B46D8C53ABAC0756EB579A14"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\animation\\DiscardSource3D.test.ts",
+    "Hash": "239123D3A327656603BF5139EAE9E38A3CAC9515236BF166053EAFEA0EDF3CBD"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\animation\\discardHandLifecycle.ts",
+    "Hash": "C54BDC097A11EB0BF34A8FF1A4E7795E2031A739153A9768A8695939BE4308F0"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\animation\\DemandFrameInvalidator.ts",
+    "Hash": "8C852AA238E983ACB0715E0F9243AA7806F7689DC6FA07D5A6EE1E2CB17C24C4"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\animation\\animationRuntime.test.ts",
+    "Hash": "69F217999AAA809A7D9802CD3B6038F92D85489C6A698A9C46D22A914A6028CE"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\animation\\HandProxy3D.tsx",
+    "Hash": "23A47BFB7BE7D2DCBE55EE960B2522D007C22754A4CC2E661696863276DE8B75"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\animation\\handPresentation.test.tsx",
+    "Hash": "3ABA35131162E0AD018ED31F03F0B4CBA8B20525D89477543F35532CC5E1A5EC"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\animation\\HandAction3D.tsx",
+    "Hash": "7984FFFBE16DA715920D08B2CA387A98199481A494F769F5DECBD8534B58D715"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\animation\\PaintCommitBarrier.ts",
+    "Hash": "74BDEC0388D0301C2C31C7E02F4A8128B7F7216CCA80AA5671ED92DDF2D32441"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\animation\\localDiscardMotion.ts",
+    "Hash": "4E24C97F2114B0B1705DEE9BBBC78E4ABCF2024177890FCC0E70F6B813236D74"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\animation\\tableAnimation3D.test.ts",
+    "Hash": "BEC25F9F135EE9F2C66BD7A3891A34BDA1F0FDE62DF51EBC0A5D7430BA702E15"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\animation\\tableAnimation3D.ts",
+    "Hash": "A86DEB344414D5C0CC59A6662C53BD56AAA32082B25DEF8E2EB3B3562C4F0F59"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\rendererMode.ts",
+    "Hash": "03E181D3355BEC0203C13316A0506D94845FD8510BD91841E7A7527A855D096A"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\rendererDiagnostics.ts",
+    "Hash": "455E8CA6E47E5CE41A80CF0027EB005F447194CFCE24D9B67D1C4726A7550BB4"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\animation\\useTableAnimation3D.ts",
+    "Hash": "130D2ECF555AE240BD5AABFF45DD193ED629E20CCB70872156361F677234727B"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\game\\riichiFlowRegression.test.tsx",
+    "Hash": "85D963AD45DBADCFA4B2A86C9703888109017AF9AA2D200E13B0B2D84501D330"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\participants\\ParticipantTable.tsx",
+    "Hash": "CBEAACC500FF777FD2634C94539813C8B0E16D87EF1ADB0C1725DFAE4F178179"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\participants\\participantTable.css",
+    "Hash": "AD0C57E1FF869C45841735F31C0E25487EBD7DC8877700F573D76FCB137B20FF"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\participants\\ParticipantScene.tsx",
+    "Hash": "24EA4DDC2E4EDA51F6B078EF6B0B7AE2AC739EFD5BE98967856A921BC246BBED"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\participants\\participantPresentation.ts",
+    "Hash": "73EACA606B267D44FCA36070480FEFB89F130F97CC27C83CB2B25DC96FCBD610"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\participants\\participantPresentation.test.tsx",
+    "Hash": "C21D81EE42E133CB6B7C90FE264D4D476300D8030B78B7C8F1090E4CF1746863"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\participants\\participantLayout.ts",
+    "Hash": "B54B0C5537FC084F6A1621672E4C3ACC04EBBB5298E462F8696162D1D07B4265"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\participants\\participantBaseline.test.tsx",
+    "Hash": "07CCCC3CEE366417BDFED3F17C4C50F2561848D49F0F78FC39F32166CBA8BB97"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\participants\\DuelHud.tsx",
+    "Hash": "CF7983229AD60FFCFE6AD84B9A885F813AC9C17470D6CD4A811A76BD23833BAF"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\dora\\DoraHighlight3D.tsx",
+    "Hash": "63A0A3542B6C84E3E1672333B198DE08835B0E8B896FEA5CA1FD7E3C6DE422D7"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\dora\\Dora3D.tsx",
+    "Hash": "6844F7E1300A0063DEF1D0C35BF0E342D0327AFCD68C47EF67C9C76DCB215B8D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\dora\\doraLayout.test.ts",
+    "Hash": "7D213D7FBE173C4FA5BDE950C871E6BC84B4A5A1F4CBAC93684032D03950209A"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\dora\\doraLayout.ts",
+    "Hash": "352AB96C7D479B661D826280792F7CB4C8220861B2C0D453A4B74747C6DA4A36"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\dora\\DoraSweep3DController.test.ts",
+    "Hash": "50D45AE5834F6DF23A846C21B6B0F119492F075297672201D9EFD07B5FB36057"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\dora\\doraSweep3DTrigger.ts",
+    "Hash": "95305D812D74A0611E2227B0FEC17555A9FE1E1002D89F4240764038547A3252"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\dora\\doraSweep3DTrigger.test.ts",
+    "Hash": "5725407BD2690975B5D547C12FDCEA52B648CD314460A12F6B4217380611E94A"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\dora\\DoraSweep3DProvider.tsx",
+    "Hash": "91310B224605E0289A13DAA19270A69E77997FF07A45D79114071A0C2F8E4BC7"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\dora\\DoraSweep3DController.ts",
+    "Hash": "A00127DA5511E3E19805DFD4AB3DD78BBECE1F09AC1D42D0D5012F81E3B8C945"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\river\\River3D.tsx",
+    "Hash": "98B671C090AF0C843E76FC2FF4D6567C9B4C3C43D36774BD22E0C041CB3A1015"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\camera\\FixedTableCamera.tsx",
+    "Hash": "B779D5E359D4B29A07843403F5CC6C09053D345DECAC8ABC8B6CA983394D63CB"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\camera\\FixedTableCamera.test.ts",
+    "Hash": "9A61499CAC364CD6BCDF690D60CB4F2D0A863C101832E50F5F90C71E64DB1D5A"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\meld\\Meld3D.tsx",
+    "Hash": "A457E0A1E375FD2FE19AE70A7F13A7675DB874C86F6C2436C2EEA6040C1B36D3"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\riichi\\RiichiSticks3D.tsx",
+    "Hash": "5A54945987E8F3776F2A3EB47FCDCF614E69EF5DC72326CA8358B13487BED96C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\riichi\\RiichiSticks3D.test.ts",
+    "Hash": "A8C1F0744FAB2B3E21314915CF3E0ACE0AD4350E48CA2228EB13B97587E17B5C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\riichi\\riichiStickLayout.ts",
+    "Hash": "E9629B2BB4CAC844F41ACD4AB60CDF7A3328DAB225C9F513BB537F879CB64299"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\riichi\\riichiStickGeometry.ts",
+    "Hash": "D0272AA671DE5374D4DB4344894EC822F39019C0D4067AB9A8E67F701B8AE78E"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\riichi\\riichiStickAppearance.ts",
+    "Hash": "764646BD0F15A05E71A0CA5AAC2FEA861B2FC2E2B36F64A3F9F70CDDEFA57703"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\riichi\\RiichiStick3D.tsx",
+    "Hash": "173F383931009CA04405FA21622EF30489AD6782428C99E8E612C94638D6A0A8"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\riichi\\RiichiStick3D.test.ts",
+    "Hash": "8F8DFC29A40DC9C32F2D370A306146BBC2C5C2E378F99D803583B3CF00BE66C5"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\coordinates\\seatTransforms.ts",
+    "Hash": "2C1C9DFEBC1CC701F0575B3D0D543123D62E6BA329613FF8A190F8AA0FBDE01D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\coordinates\\seatTransforms.test.ts",
+    "Hash": "9D41CF0B83A45CB2E6A1A07CB60F48F429B9B1DD52EC59BCB0CC99F15923E677"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\coordinates\\sceneTransforms.ts",
+    "Hash": "AA49BA9B8EA7BA137891677D45B347110527245C4686872384CB39A920CE9C99"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\coordinates\\sceneTransforms.test.ts",
+    "Hash": "4C09533501F998425097B319262AE75032E7CBB0799CF39E31C2DB1E28961534"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\m7.png",
+    "Hash": "6B43B1AD1FBAD7B4C21AFE498AE4785775395C0FE9176C10810895BD7AFFFA76"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\m6.png",
+    "Hash": "E9AF16069106F53CA0754049F26A6788A9D171849A9014460A5167E5C60994BC"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\m5.png",
+    "Hash": "C7376218901FAF19BDC52BEDB730F32327578E8F0E5E6D2E626D28A86A76A825"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\m4.png",
+    "Hash": "CE721BC20E376582A73220DA6BF6AAD1F3973A1F8800E7B620FDC83D1FB7BB3C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\m3.png",
+    "Hash": "D5459DF3AC323564E3F974D55ED36A7B08096B1038B6CC0B2BB2079E450C315C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\m2.png",
+    "Hash": "62A5484E6E700A63767BBF33F36A991D1BBE48BF217B79D53867BA3109F26948"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\m1.png",
+    "Hash": "E84F926E20BF5F6075C072480B9D63460D3D57814598C688A09E6758C8AF29BD"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\p2.png",
+    "Hash": "330783CAFD998EE284A5A6AE7CEEE9A5A4E110D308E31D520137B96905480868"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\p1.png",
+    "Hash": "CAFBEB8748A5203E703D3E740AEF0ECFCA1F83774096A28A534792F940CC0F70"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\m9.png",
+    "Hash": "4D94D6C536C82D15F4FE5CF92F003D70EC8C138BAD98BDEC0C00A8139D34B3EC"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\m8.png",
+    "Hash": "22533CE60DE0AD4FD45C68C043CBC1C5C391066212D041F24D60C18AE0E88FA6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\p4.png",
+    "Hash": "11F552340154E7BB6302CE824781DBED3EFC572A94B0FFEFC0BFA9948476DD80"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\p3.png",
+    "Hash": "41B09C21DB7CF3254F629350E2D943387D1185F2BB2168FA5E5E03D02741B6BD"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\p5.png",
+    "Hash": "1002B70565E378D73A99FBD8CDA582A8A1257B82BB26993426F3754C557CF2A1"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\p6.png",
+    "Hash": "6F33336EA4280D9EFB5DE0ED8B48BC9148B360D6608638F8C87510A20E24FBD3"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\p7.png",
+    "Hash": "D858ACD07A2E4491010F4F1767F91B86D60A3A7747DEB4931D6916DDB852E55E"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\z7.png",
+    "Hash": "837C57BF45C89EDDC6194E454E5AEE596D231D874FDAC55CCE5DAEE70EF09ED6"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\z6.png",
+    "Hash": "8F7EAE07AD203D711CA35724F042B835D6E1087AE7C118C95FBD018FBF3A32A4"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\z5.png",
+    "Hash": "05433F071A1C9A4ACBBFF7B13D4767B2DA1F0F9220CA32111F006254BEC4C593"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\z4.png",
+    "Hash": "CFECE67100FDE8E8A8EC98601F058CCC85250DDFDED673F69559B4F86297C673"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\z3.png",
+    "Hash": "90B741CE21ABA7BFCBDEA8FFEF45C9E1F05723EF087EF1F05CF96434B73F7999"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\z2.png",
+    "Hash": "85913C167FD4583DFB99DE0120105B6419997D08C414374A9D9D8585F9CBBE04"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\z1.png",
+    "Hash": "8ECC8E79808657053C60118764EFF48576FAD3C4CD0C3E8DADE4472F867E888D"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\s9.png",
+    "Hash": "58FD9C534605DD5FE12CF0EC7FD97DC0C801B1DA5C5C27B5A7B1017BEDDFD42E"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\s8.png",
+    "Hash": "84B924E160AC2478D874425A219A0A881434333F309EF6FE77A39DC8CAA40EE3"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\s7.png",
+    "Hash": "E355F488033AED0BFC9B53452B3DEF50BD0F37C422E5DBF6746D5934A338517F"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\s6.png",
+    "Hash": "A5F39B74ADE676765F90DB873751A68B02D0053CCA2EC9A87106262386C54F90"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\s5.png",
+    "Hash": "DC80C0B865263FC9668A0FCBB8A280E23F44CC17BB272C5C5E08FADB4E82309C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\s4.png",
+    "Hash": "D904744536ECE57F31FFE6F8D4F76310996705840B870AE3F1F4CB2B7D1378A9"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\s3.png",
+    "Hash": "9CC8D94AD3512AC0301171AAFF647731D024407D1A5CAE8D1DF04C1B53D230DF"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\s2.png",
+    "Hash": "4C0F9C7BA47CFAF3B43339EEA6B7A07E861529DD692FF69B97E167DD665CDCAF"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\s1.png",
+    "Hash": "08B2A5149E0EFF509788E9AAD4241B63BFD54626314FF7F502D76117E4451F24"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\placeholder.png",
+    "Hash": "C2BBC8ACF51A36553FB14EAF1F2935699838A1616CF1BFA8B0366AEF164F0C21"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\p9.png",
+    "Hash": "1A0D0B4403BCC7695E40D3818836F2EA548C84B51FA67BE5434B942B3374B73C"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\presentation3d\\assets\\tiles\\faces-transparent\\p8.png",
+    "Hash": "104373CD4AD7CF48E0EF9DF4F0292399EFE70D871735862A06CE1F86968B7E5F"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\styles.css",
+    "Hash": "F0AED9B37DCD75A9E095B0FE66C545C48473729843BA7F7F5368F305B421191B"
+  },
+  {
+    "Path": "C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\src\\components\\SeventeenStepsScreen.tsx",
+    "Hash": "DB53DBA373F3BF545A555E76FF1250F73BA15EAD866AE85E3C19162511B2582E"
+  }
+]

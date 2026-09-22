@@ -1,0 +1,1793 @@
+{
+  "p720": {
+    "result": {
+      "type": "object",
+      "value": {
+        "canvas": 1,
+        "counts": "{\n  \"presentation-e8766d66-57e9-4411-bbea-f4576601b43c win-impact → rong\": 1\n}",
+        "phases": [
+          {
+            "phase": "approach",
+            "t": 38495.69999998808
+          },
+          {
+            "phase": "slam",
+            "t": 38649.59999999404
+          },
+          {
+            "phase": "announce",
+            "t": 38867.29999998212
+          },
+          {
+            "phase": "hold",
+            "t": 39031.79999998212
+          },
+          {
+            "phase": "cleanup",
+            "t": 41036.5
+          },
+          {
+            "phase": "result",
+            "t": 41161.39999997616
+          }
+        ],
+        "renderer": {},
+        "trace": "38465.9 正式事件：presentation-e8766d66-57e9-4411-bbea-f4576601b43c win_declared38468.9 正式事件：presentation-d7ec7680-d09e-4bd4-bbf7-d6015146e594 win_scored38868.9 语义节点：presentation-e8766d66-57e9-4411-bbea-f4576601b43c win_declared slam@1 win-impact → rong；允许；generation=538868.9 媒体创建：builtin:effects:rong1 /src/music/effects/win/rong1.wav38932.7 媒体开始：builtin:effects:rong139974.1 媒体结束：builtin:effects:rong1"
+      }
+    }
+  },
+  "p1080": {
+    "result": {
+      "type": "object",
+      "value": {
+        "active": "3d",
+        "counts": "{\n  \"presentation-42e50077-7030-45d1-8ed0-98f26c58a73a win-impact → rong\": 1\n}",
+        "fallback": "none",
+        "phases": [
+          {
+            "phase": "approach",
+            "t": 59484.59999999404
+          },
+          {
+            "phase": "slam",
+            "t": 59641.39999997616
+          },
+          {
+            "phase": "announce",
+            "t": 59857.89999997616
+          },
+          {
+            "phase": "hold",
+            "t": 60023.59999999404
+          },
+          {
+            "phase": "cleanup",
+            "t": 62035.89999997616
+          },
+          {
+            "phase": "result",
+            "t": 62155.5
+          }
+        ],
+        "requested": "3d",
+        "viewport": [
+          1920,
+          1080
+        ]
+      }
+    }
+  },
+  "reduced": {
+    "result": {
+      "type": "object",
+      "value": [
+        {
+          "phase": "approach",
+          "t": 108335.39999997616
+        },
+        {
+          "phase": "slam",
+          "t": 108490
+        },
+        {
+          "phase": "announce",
+          "t": 108707.29999998212
+        },
+        {
+          "phase": "hold",
+          "t": 108872.09999999404
+        },
+        {
+          "phase": "cleanup",
+          "t": 110887.19999998808
+        },
+        {
+          "phase": "result",
+          "t": 111006.19999998808
+        }
+      ]
+    }
+  },
+  "network": {
+    "cursor": 238,
+    "events": [
+      {
+        "sequence": 69,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1093",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85344,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "632826",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:47:37 GMT",
+              "ETag": "W/\"632826-1788753917500\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:17 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059657349.601,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 2.236,
+              "receiveHeadersStart": 2.082,
+              "requestTime": 178827.02202,
+              "sendEnd": 1.088,
+              "sendStart": 0.952,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/reach-open.png"
+          },
+          "timestamp": 178827.052913,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 72,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1094",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85364,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "577670",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:47:37 GMT",
+              "ETag": "W/\"577670-1788753949304\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:49 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059657350.297,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 2.844,
+              "receiveHeadersStart": 2.526,
+              "requestTime": 178827.022272,
+              "sendEnd": 0.944,
+              "sendStart": 0.881,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/touch-contact.png"
+          },
+          "timestamp": 178827.053603,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 79,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1096",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85364,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "621018",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:47:37 GMT",
+              "ETag": "W/\"621018-1788753931034\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:31 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059657496.843,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 1.512,
+              "receiveHeadersStart": 1.399,
+              "requestTime": 178827.169945,
+              "sendEnd": 0.481,
+              "sendStart": 0.391,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/pinch-grab.png"
+          },
+          "timestamp": 178827.175462,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 86,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1098",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85364,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "588748",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:47:37 GMT",
+              "ETag": "W/\"588748-1788753933592\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:33 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059657552.82,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 1.672,
+              "receiveHeadersStart": 1.586,
+              "requestTime": 178827.225735,
+              "sendEnd": 0.82,
+              "sendStart": 0.715,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/carry-forward.png"
+          },
+          "timestamp": 178827.232245,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 97,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1100",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85364,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "624887",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:47:37 GMT",
+              "ETag": "W/\"624887-1788753935528\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:35 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059657713.238,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 2.057,
+              "receiveHeadersStart": 1.9,
+              "requestTime": 178827.385839,
+              "sendEnd": 0.869,
+              "sendStart": 0.751,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/release-open.png"
+          },
+          "timestamp": 178827.397954,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 100,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1102",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85364,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "568455",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:47:37 GMT",
+              "ETag": "W/\"568455-1788753939663\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:39 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059657714.144,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 1.315,
+              "receiveHeadersStart": 1.052,
+              "requestTime": 178827.387593,
+              "sendEnd": 0.413,
+              "sendStart": 0.333,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/retract-relaxed.png"
+          },
+          "timestamp": 178827.398507,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 106,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1103",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85364,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Accept-Ranges": "bytes",
+              "Cache-Control": "no-cache",
+              "Content-Length": "192078",
+              "Content-Range": "bytes 0-192077/192078",
+              "Content-Type": "audio/wav",
+              "Date": "Tue, 22 Sep 2026 06:47:37 GMT",
+              "ETag": "W/\"192078-1789812921804\"",
+              "Last-Modified": "Sat, 19 Sep 2026 10:15:21 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "audio/wav",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059657729.086,
+            "securityState": "secure",
+            "status": 206,
+            "statusText": "Partial Content",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 1.729,
+              "receiveHeadersStart": 1.585,
+              "requestTime": 178827.402002,
+              "sendEnd": 0.607,
+              "sendStart": 0.503,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/music/effects/win/rong1.wav"
+          },
+          "timestamp": 178827.405207,
+          "type": "Media"
+        }
+      },
+      {
+        "sequence": 136,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1210",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85458,
+            "connectionReused": false,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "632826",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:47:58 GMT",
+              "ETag": "W/\"632826-1788753917500\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:17 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059678341.112,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": 2.697,
+              "connectStart": 1.727,
+              "dnsEnd": 1.727,
+              "dnsStart": 1.352,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 4.41,
+              "receiveHeadersStart": 4.167,
+              "requestTime": 178848.011446,
+              "sendEnd": 2.956,
+              "sendStart": 2.816,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/reach-open.png"
+          },
+          "timestamp": 178848.040536,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 139,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1211",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85462,
+            "connectionReused": false,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "577670",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:47:58 GMT",
+              "ETag": "W/\"577670-1788753949304\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:49 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059678341.77,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": 2.646,
+              "connectStart": 2.12,
+              "dnsEnd": 2.12,
+              "dnsStart": 2.113,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 5.38,
+              "receiveHeadersStart": 4.708,
+              "requestTime": 178848.011563,
+              "sendEnd": 2.973,
+              "sendStart": 2.896,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/touch-contact.png"
+          },
+          "timestamp": 178848.041366,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 146,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1213",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85462,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "621018",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:47:58 GMT",
+              "ETag": "W/\"621018-1788753931034\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:31 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059678490.091,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 2.529,
+              "receiveHeadersStart": 2.397,
+              "requestTime": 178848.162196,
+              "sendEnd": 1.414,
+              "sendStart": 1.296,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/pinch-grab.png"
+          },
+          "timestamp": 178848.169205,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 153,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1215",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85462,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "588748",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:47:58 GMT",
+              "ETag": "W/\"588748-1788753933592\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:33 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059678553.592,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 1.706,
+              "receiveHeadersStart": 1.492,
+              "requestTime": 178848.226601,
+              "sendEnd": 0.526,
+              "sendStart": 0.411,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/carry-forward.png"
+          },
+          "timestamp": 178848.233065,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 164,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1217",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85462,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "624887",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:47:58 GMT",
+              "ETag": "W/\"624887-1788753935528\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:35 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059678705.937,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 2.553,
+              "receiveHeadersStart": 2.428,
+              "requestTime": 178848.37801,
+              "sendEnd": 1.411,
+              "sendStart": 1.292,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/release-open.png"
+          },
+          "timestamp": 178848.387559,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 167,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1219",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85458,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "568455",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:47:58 GMT",
+              "ETag": "W/\"568455-1788753939663\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:39 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059678706.641,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 2.07,
+              "receiveHeadersStart": 1.611,
+              "requestTime": 178848.379531,
+              "sendEnd": 0.833,
+              "sendStart": 0.727,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/retract-relaxed.png"
+          },
+          "timestamp": 178848.388146,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 198,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1326",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85551,
+            "connectionReused": false,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "632826",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:48:47 GMT",
+              "ETag": "W/\"632826-1788753917500\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:17 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059727190.57,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": 2.101,
+              "connectStart": 1.101,
+              "dnsEnd": 1.101,
+              "dnsStart": 0.643,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 3.487,
+              "receiveHeadersStart": 3.265,
+              "requestTime": 178896.861806,
+              "sendEnd": 2.255,
+              "sendStart": 2.169,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/reach-open.png"
+          },
+          "timestamp": 178896.886292,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 201,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1327",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85555,
+            "connectionReused": false,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "577670",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:48:47 GMT",
+              "ETag": "W/\"577670-1788753949304\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:49 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059727191.284,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": 2.028,
+              "connectStart": 1.632,
+              "dnsEnd": 1.632,
+              "dnsStart": 1.625,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 5.11,
+              "receiveHeadersStart": 3.894,
+              "requestTime": 178896.861891,
+              "sendEnd": 2.318,
+              "sendStart": 2.232,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/touch-contact.png"
+          },
+          "timestamp": 178896.886986,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 208,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1329",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85555,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "621018",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:48:47 GMT",
+              "ETag": "W/\"621018-1788753931034\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:31 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059727337.681,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 1.917,
+              "receiveHeadersStart": 1.808,
+              "requestTime": 178897.010374,
+              "sendEnd": 1.097,
+              "sendStart": 0.981,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/pinch-grab.png"
+          },
+          "timestamp": 178897.016707,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 215,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1331",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85555,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "588748",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:48:47 GMT",
+              "ETag": "W/\"588748-1788753933592\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:33 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059727393.491,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 1.433,
+              "receiveHeadersStart": 1.308,
+              "requestTime": 178897.066684,
+              "sendEnd": 0.581,
+              "sendStart": 0.458,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/carry-forward.png"
+          },
+          "timestamp": 178897.071817,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 226,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1333",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85555,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "624887",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:48:47 GMT",
+              "ETag": "W/\"624887-1788753935528\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:35 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059727554.762,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 2.687,
+              "receiveHeadersStart": 2.445,
+              "requestTime": 178897.226818,
+              "sendEnd": 1.607,
+              "sendStart": 1.49,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/release-open.png"
+          },
+          "timestamp": 178897.236654,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 229,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1335",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85551,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Cache-Control": "no-cache",
+              "Content-Length": "568455",
+              "Content-Type": "image/png",
+              "Date": "Tue, 22 Sep 2026 06:48:47 GMT",
+              "ETag": "W/\"568455-1788753939663\"",
+              "Last-Modified": "Mon, 07 Sep 2026 04:05:39 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "image/png",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059727555.341,
+            "securityState": "secure",
+            "status": 200,
+            "statusText": "OK",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 2.344,
+              "receiveHeadersStart": 1.873,
+              "requestTime": 178897.227969,
+              "sendEnd": 0.725,
+              "sendStart": 0.618,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/hand/packs/female/retract-relaxed.png"
+          },
+          "timestamp": 178897.237254,
+          "type": "Image"
+        }
+      },
+      {
+        "sequence": 235,
+        "source": {
+          "tabId": 3
+        },
+        "method": "Network.responseReceived",
+        "params": {
+          "frameId": "CFF5B8F3AA53CC9D2CAB172472EA39E1",
+          "hasExtraInfo": true,
+          "loaderId": "ACC42812BDFC1AA9051E140E7EF56AAA",
+          "requestId": "18688.1336",
+          "response": {
+            "alternateProtocolUsage": "unspecifiedReason",
+            "charset": "",
+            "connectionId": 85551,
+            "connectionReused": true,
+            "encodedDataLength": 127,
+            "fromDiskCache": false,
+            "fromPrefetchCache": false,
+            "fromServiceWorker": false,
+            "headers": {
+              "Accept-Ranges": "bytes",
+              "Cache-Control": "no-cache",
+              "Content-Length": "192078",
+              "Content-Range": "bytes 0-192077/192078",
+              "Content-Type": "audio/wav",
+              "Date": "Tue, 22 Sep 2026 06:48:47 GMT",
+              "ETag": "W/\"192078-1789812921804\"",
+              "Last-Modified": "Sat, 19 Sep 2026 10:15:21 GMT",
+              "Vary": "Origin"
+            },
+            "mimeType": "audio/wav",
+            "protocol": "http/1.1",
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 5173,
+            "responseTime": 1790059727566.661,
+            "securityState": "secure",
+            "status": 206,
+            "statusText": "Partial Content",
+            "timing": {
+              "connectEnd": -1,
+              "connectStart": -1,
+              "dnsEnd": -1,
+              "dnsStart": -1,
+              "proxyEnd": -1,
+              "proxyStart": -1,
+              "pushEnd": 0,
+              "pushStart": 0,
+              "receiveHeadersEnd": 2.577,
+              "receiveHeadersStart": 1.841,
+              "requestTime": 178897.239321,
+              "sendEnd": 1.1,
+              "sendStart": 0.981,
+              "sslEnd": -1,
+              "sslStart": -1,
+              "workerFetchStart": -1,
+              "workerReady": -1,
+              "workerRespondWithSettled": -1,
+              "workerStart": -1
+            },
+            "url": "http://127.0.0.1:5173/src/music/effects/win/rong1.wav"
+          },
+          "timestamp": 178897.253007,
+          "type": "Media"
+        }
+      }
+    ],
+    "hasMore": false,
+    "truncated": false
+  },
+  "console": [
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:47:06.802Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:47:06.804Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:47:06.804Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=2d",
+      "timestamp": "2026-09-22T06:47:06.804Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:47:06.805Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:47:06.806Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:47:06.806Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=2d",
+      "timestamp": "2026-09-22T06:47:06.807Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "timestamp": "2026-09-22T06:47:07.150Z",
+      "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-6KIVSC5H.js?v=e1c9c8bb"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:47:07.483Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:47:07.483Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:47:07.483Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=3d",
+      "timestamp": "2026-09-22T06:47:07.483Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:47:36.515Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:47:36.517Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:47:36.518Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=2d",
+      "timestamp": "2026-09-22T06:47:36.518Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:47:36.518Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:47:36.518Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:47:36.518Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=2d",
+      "timestamp": "2026-09-22T06:47:36.518Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "timestamp": "2026-09-22T06:47:36.578Z",
+      "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-6KIVSC5H.js?v=e1c9c8bb"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:47:36.744Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:47:36.744Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:47:36.744Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=3d",
+      "timestamp": "2026-09-22T06:47:36.744Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:47:37.312Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:47:37.313Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:47:37.313Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=3d",
+      "timestamp": "2026-09-22T06:47:37.314Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:47:57.502Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:47:57.504Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:47:57.504Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=2d",
+      "timestamp": "2026-09-22T06:47:57.504Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:47:57.505Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:47:57.505Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:47:57.505Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=2d",
+      "timestamp": "2026-09-22T06:47:57.505Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "timestamp": "2026-09-22T06:47:57.569Z",
+      "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-6KIVSC5H.js?v=e1c9c8bb"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:47:57.751Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:47:57.751Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:47:57.751Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=3d",
+      "timestamp": "2026-09-22T06:47:57.751Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:47:58.304Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:47:58.305Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:47:58.305Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=3d",
+      "timestamp": "2026-09-22T06:47:58.305Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:48:46.594Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:48:46.596Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:48:46.596Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=2d",
+      "timestamp": "2026-09-22T06:48:46.596Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:48:46.596Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:48:46.596Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:48:46.596Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=2d",
+      "timestamp": "2026-09-22T06:48:46.596Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "timestamp": "2026-09-22T06:48:46.667Z",
+      "url": "http://127.0.0.1:5173/node_modules/.vite/deps/chunk-6KIVSC5H.js?v=e1c9c8bb"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:48:46.833Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:48:46.834Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:48:46.834Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=3d",
+      "timestamp": "2026-09-22T06:48:46.834Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] requested=3d",
+      "timestamp": "2026-09-22T06:48:47.158Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] standardFourPlayer=true Object",
+      "timestamp": "2026-09-22T06:48:47.159Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] attempting3dMount=true",
+      "timestamp": "2026-09-22T06:48:47.159Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    },
+    {
+      "level": "warn",
+      "message": "[TableRenderer] active=3d",
+      "timestamp": "2026-09-22T06:48:47.160Z",
+      "url": "http://127.0.0.1:5173/src/presentation3d/TableRenderer.tsx"
+    }
+  ],
+  "cleanup": {
+    "canvas": 0,
+    "proxy": 0,
+    "sprite": 0
+  }
+}

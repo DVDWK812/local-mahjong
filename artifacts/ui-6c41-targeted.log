@@ -1,0 +1,16 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation/animation/AnimationScheduler.test.ts (14 tests) 14ms
+ ✓ src/presentation/winAnimation/WinPresentationConsumer.test.ts (2 tests) 5ms
+ ✓ src/presentation/winAnimation/WinPresentationController.test.ts (9 tests) 16ms
+ ✓ src/presentation/winAnimation/tsumoSlapMotion.test.ts (2 tests) 6ms
+ ✓ src/dev/finalGate/scenarios.test.ts (28 tests) 177ms
+ ✓ src/presentation/manualGateFixes.test.ts (19 tests) 56ms
+ ✓ src/dev/finalGate/FinalGate.test.tsx (3 tests) 22ms
+
+ Test Files  7 passed (7)
+      Tests  77 passed (77)
+   Start at  16:45:53
+   Duration  8.07s (transform 2.29s, setup 0ms, collect 14.42s, tests 296ms, environment 1ms, prepare 3.59s)
+

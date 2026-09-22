@@ -1,5 +1,5 @@
-import type { PresentationEvent } from '../presentation/PresentationEventBus';
-import { PresentationEventBus, presentationEventBus } from '../presentation/PresentationEventBus';
+import { presentationAudioCues, type PresentationAudioCues, type PresentationAudioCue } from '../presentation/PresentationAudioCue';
+import { getPresentationFeatures } from '../config/presentationFeatures';
 import type { SfxId } from './audioRegistry';
 
 export interface AudioPresentationTarget {
@@ -11,24 +11,26 @@ export class AudioPresentationConsumer {
 
   constructor(
     private readonly audio: AudioPresentationTarget,
-    eventBus: PresentationEventBus = presentationEventBus,
+    cues: PresentationAudioCues = presentationAudioCues,
     private readonly shouldHandleEvent: () => boolean = () => true,
+    private readonly onCue?: (cue: PresentationAudioCue, sound: SfxId | undefined, allowed: boolean) => void,
   ) {
-    this.unsubscribe = eventBus.subscribe(this.handleEvent);
+    this.unsubscribe = cues.connect(this.handleCue);
   }
 
   dispose(): void {
     this.unsubscribe();
   }
 
-  private readonly handleEvent = (event: PresentationEvent) => {
-    if (!this.shouldHandleEvent()) return;
-    if (event.type === 'tile_discarded') {
-      this.audio.playSfx('discard');
-    } else if (event.type === 'tile_drawn') {
-      this.audio.playSfx('draw');
-    } else if (event.type === 'meld_declared') {
-      this.audio.playSfx(event.meldType);
-    }
+  private readonly handleCue = (cue: PresentationAudioCue) => {
+    const allowed = this.shouldHandleEvent() && getPresentationFeatures().presentationEvents;
+    const sound: SfxId | undefined = cue.kind === 'draw-contact' ? 'draw'
+      : cue.kind === 'discard-impact' ? 'discard'
+      : cue.kind === 'riichi-stick-impact' ? 'riichi'
+      : cue.kind === 'dora-reveal' ? 'dora'
+      : cue.kind === 'win-impact' ? 'rong'
+      : cue.event.type === 'meld_declared' ? cue.event.meldType : undefined;
+    try { this.onCue?.(cue, sound, allowed); } catch { /* Diagnostics cannot affect playback or pacing. */ }
+    if (sound && allowed) this.audio.playSfx(sound);
   };
 }

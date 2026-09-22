@@ -4,6 +4,7 @@ import { HandVisualController, resolveHandPose, resolveHandVisual } from './Hand
 import { projectHandContact } from './handProjection';
 import { localHandContact } from '../components/game/LocalAnimationHand';
 import { HAND_ASSETS } from './handAssets';
+import { DEFAULT_HAND_PACK, HAND_PACKS } from './handPacks';
 
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 const contact = { x: 640, y: 500, width: 48 };
@@ -34,6 +35,32 @@ describe('passive hand visual phases', () => {
         const pose = resolveHandPose(phase, p, true);
         expect([pose.from, pose.to]).not.toContain('arrange-push');
       }
+    }
+  });
+  it('keeps the carry grip during landing and opens only in the final contact interval', () => {
+    for (const phase of ['river-settle', 'release'] as const) {
+      expect(resolveHandPose(phase, 0.65).blend).toBe(0);
+      expect(resolveHandPose(phase, 0.825).blend).toBeCloseTo(0.5);
+      expect(resolveHandPose(phase, 1).blend).toBe(1);
+    }
+  });
+  it('returns visibly towards the drawn contact before guiding and arranging', () => {
+    const enter = resolveHandVisual(contact, 'bottom', 'insert', 0);
+    const touch = resolveHandVisual(contact, 'bottom', 'insert', 0.28);
+    expect(enter.from).toBe('reach-open');
+    expect(enter.y).toBeGreaterThan(touch.y);
+    expect([touch.x, touch.y]).toEqual([contact.x, contact.y]);
+    expect(touch.opacity).toBe(1);
+    expect(touch.from).toBe('touch-contact');
+    expect(resolveHandPose('insert', 0.46).to).toBe('pinch-grab');
+    expect(resolveHandPose('reorder', 1).to).toBe('arrange-push');
+  });
+  it('bounds responsive hand size without moving the authoritative contact', () => {
+    for (const width of [32, 48, 60, 80]) {
+      const visual = resolveHandVisual({ ...contact, width }, 'bottom', 'carry', 1);
+      expect(visual.size).toBeGreaterThanOrEqual(216);
+      expect(visual.size).toBeLessThanOrEqual(296);
+      expect([visual.x, visual.y]).toEqual([contact.x, contact.y]);
     }
   });
   it.each(['bottom', 'right', 'top', 'left'] as const)('%s follows the same contact during grab/carry and exits towards its seat', seat => {
@@ -76,6 +103,7 @@ class ElementStub {
   children: ElementStub[] = [];
   parent: ElementStub | null = null;
   src = '';
+  onerror: (() => void) | null = null;
   setAttribute() {}
   getAttribute(name: string) { return name === 'src' ? this.src : null; }
   appendChild(child: ElementStub) { this.children.push(child); child.parent = this; }
@@ -101,6 +129,32 @@ it.each(['skip', 'cancel', 'dispose', 'route change', 'disabled', 'speed change'
   expect(body.children).toHaveLength(1);
   expect(body.children[0].dataset.handVisualEvent).toBe('event-2');
   next.dispose();
+  expect(body.children).toHaveLength(0);
+});
+
+it('consumes Pack metadata, records stable player ownership and falls back only the failed pose', () => {
+  const body = new ElementStub();
+  vi.stubGlobal('document', { body, createElement: () => new ElementStub() });
+  const controller = new HandVisualController('event-pack', 'right', HAND_PACKS.cat_orange, 2);
+  controller.update(contact, 'carry', 1);
+  const root = body.children[0];
+  expect(root.dataset.handPack).toBe('cat_orange');
+  expect(root.dataset.handPlayerId).toBe('2');
+  expect(root.children.every(image => image.dataset.handPack === 'cat_orange')).toBe(true);
+  const carry = root.children[1];
+  const carryAsset = HAND_PACKS.cat_orange.poses['carry-forward'];
+  const visual = resolveHandVisual(contact, 'right', 'carry', 1);
+  const assetSize = visual.size * carryAsset.scale;
+  expect(carry.src).toBe(carryAsset.url);
+  expect(carry.style.width).toBe(`${assetSize}px`);
+  expect(carry.style.left).toBe(`${-carryAsset.contact[0] * assetSize + carryAsset.offset[0] * visual.size}px`);
+  expect(carry.style.top).toBe(`${-carryAsset.contact[1] * assetSize + carryAsset.offset[1] * visual.size}px`);
+  expect(carry.style.transformOrigin).toBe(`${carryAsset.contact[0] * 100}% ${carryAsset.contact[1] * 100}%`);
+  expect(carry.style.transform).toBe(`rotate(${carryAsset.rotation}deg)`);
+  carry.onerror?.();
+  expect(carry.src).toBe(DEFAULT_HAND_PACK.poses['carry-forward'].url);
+  expect(carry.dataset.handAssetFallback).toBe('female');
+  controller.dispose();
   expect(body.children).toHaveLength(0);
 });
 

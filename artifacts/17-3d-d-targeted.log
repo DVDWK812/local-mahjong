@@ -1,0 +1,22 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation3d/Table3DScene.test.ts (10 tests) 9ms
+ ✓ src/presentation/pacing/PresentationPacingGate.test.ts (16 tests) 11ms
+ ✓ src/game/seventeenSteps.test.ts (22 tests) 31ms
+ ✓ src/presentation3d/session/SceneCanvasHost.test.tsx (7 tests) 18ms
+ ✓ src/game/seventeenStepsMatch.test.ts (1 test) 2ms
+ ✓ src/presentation3d/initialSceneReady.test.ts (2 tests) 2ms
+ ✓ src/presentation/appearance/playerSlotAppearance.test.ts (5 tests) 7ms
+ ✓ src/hand/HandVisualController.test.ts (21 tests) 82ms
+ ✓ src/presentation3d/participants/candidateAnimation.test.ts (32 tests) 43ms
+ ✓ src/presentation3d/participants/participantPresentation.test.tsx (7 tests) 50ms
+ ✓ src/presentation3d/TableRenderer.test.ts (15 tests) 101ms
+ ✓ src/presentation3d/participants/participantBaseline.test.tsx (4 tests) 60ms
+ ✓ src/components/SeventeenStepsScreen.test.tsx (4 tests) 186ms
+
+ Test Files  13 passed (13)
+      Tests  146 passed (146)
+   Start at  03:30:14
+   Duration  2.04s (transform 2.18s, setup 0ms, collect 9.90s, tests 603ms, environment 3ms, prepare 1.67s)
+

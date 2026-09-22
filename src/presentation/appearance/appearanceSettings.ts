@@ -1,4 +1,5 @@
 import type { TileAssetKey } from '../../game/tileAssets';
+import { isHandPackId, type HandPackId } from '../../hand/handPacks';
 
 /** A persisted reference only. Binary image payloads live in AppearanceAssetStorage. */
 export type AppearanceAssetRef = Readonly<
@@ -39,11 +40,11 @@ export type AppearanceSettings = Readonly<{
   tileBack: TileBackAppearance;
   tableFelt: Readonly<{ asset: AppearanceAssetRef }>;
   riichiStick: Readonly<{ asset: AppearanceAssetRef }>;
-  /** Reserved until hand visuals have a product contract. */
-  handAppearance: Readonly<{ status: 'reserved' }>;
+  /** Global presentation-only hand Pack; player slots may inherit or override it. */
+  handAppearance: Readonly<{ packId: HandPackId }>;
 }>;
 
-export const APPEARANCE_SETTINGS_VERSION = 2;
+export const APPEARANCE_SETTINGS_VERSION = 3;
 const DEFAULT_TILE_SIDE_COLOR = '#f2e6c9';
 /** Matches the frozen Tile3D back-body baseline when no customization exists. */
 const DEFAULT_BACK_SIDE_COLOR = '#17483f';
@@ -57,15 +58,15 @@ export const DEFAULT_APPEARANCE_SETTINGS: AppearanceSettings = Object.freeze({
   tileBack: Object.freeze({ texture: Object.freeze({ kind: 'builtin', id: 'default' }), sideColor: DEFAULT_BACK_SIDE_COLOR }),
   tableFelt: Object.freeze({ asset: Object.freeze({ kind: 'builtin', id: 'classic-green' }) }),
   riichiStick: Object.freeze({ asset: Object.freeze({ kind: 'builtin', id: 'default' }) }),
-  handAppearance: Object.freeze({ status: 'reserved' }),
+  handAppearance: Object.freeze({ packId: 'female' }),
 });
 
 type AppearanceSettingsDraft = Readonly<Record<string, unknown>>;
 
-/** Accepts v2 and migrates the persisted v1 / versionless 2A shapes. */
+/** Accepts v3 and migrates the persisted v1 / versionless / reserved-v2 shapes. */
 export function migrateAppearanceSettings(value: unknown): AppearanceSettings | null {
   if (!isRecord(value)) return null;
-  if (value.version === APPEARANCE_SETTINGS_VERSION) return normalizeV2Draft(value);
+  if (value.version === APPEARANCE_SETTINGS_VERSION || value.version === 2) return normalizeCurrentDraft(value);
   if (value.version === 1 || value.version === undefined) return migrateV1Draft(value);
   return null;
 }
@@ -82,7 +83,7 @@ export function createDefaultAppearanceSettings(): AppearanceSettings {
     tileBack: { texture: { kind: 'builtin', id: 'default' }, sideColor: DEFAULT_BACK_SIDE_COLOR },
     tableFelt: { asset: { kind: 'builtin', id: 'classic-green' } },
     riichiStick: { asset: { kind: 'builtin', id: 'default' } },
-    handAppearance: { status: 'reserved' },
+    handAppearance: { packId: 'female' },
   };
 }
 
@@ -105,15 +106,16 @@ function migrateV1Draft(draft: AppearanceSettingsDraft): AppearanceSettings {
     tileBack: { texture: legacyBack, sideColor: DEFAULT_BACK_SIDE_COLOR },
     tableFelt: { asset: legacyFelt },
     riichiStick: { asset: legacyStick },
-    handAppearance: { status: 'reserved' },
+    handAppearance: { packId: 'female' },
   };
 }
 
-function normalizeV2Draft(draft: AppearanceSettingsDraft): AppearanceSettings {
+function normalizeCurrentDraft(draft: AppearanceSettingsDraft): AppearanceSettings {
   const defaults = createDefaultAppearanceSettings();
   const rawBack = isRecord(draft.tileBack) ? draft.tileBack : {};
   const rawFelt = isRecord(draft.tableFelt) ? draft.tableFelt : {};
   const rawStick = isRecord(draft.riichiStick) ? draft.riichiStick : {};
+  const rawHand = isRecord(draft.handAppearance) ? draft.handAppearance : {};
   return {
     version: APPEARANCE_SETTINGS_VERSION,
     tileFaceColorsReady: true,
@@ -124,7 +126,7 @@ function normalizeV2Draft(draft: AppearanceSettingsDraft): AppearanceSettings {
     },
     tableFelt: { asset: normalizeAssetRef(rawFelt.asset) ?? defaults.tableFelt.asset },
     riichiStick: { asset: normalizeAssetRef(rawStick.asset) ?? defaults.riichiStick.asset },
-    handAppearance: { status: 'reserved' },
+    handAppearance: { packId: isHandPackId(rawHand.packId) ? rawHand.packId : 'female' },
   };
 }
 

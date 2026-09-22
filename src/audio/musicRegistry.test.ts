@@ -91,11 +91,12 @@ describe('Music Registry', () => {
       chi: 'meld',
       pon: 'meld',
       kan: 'meld',
+      riichi: 'riichi', dora: 'dora', win: 'rong', rong: 'rong',
     });
   });
 
   it('Game SFX 映射：draw/discard/chi/pon/kan 全部指向默认音效 track', () => {
-    const ids = Object.values(GAME_SFX_TO_TRACK);
+    const ids = [GAME_SFX_TO_TRACK.draw, GAME_SFX_TO_TRACK.discard, GAME_SFX_TO_TRACK.chi, GAME_SFX_TO_TRACK.pon, GAME_SFX_TO_TRACK.kan];
     expect(ids).toHaveLength(5);
     expect(new Set(ids).size).toBe(1);
     expect(BUILTIN_MUSIC_TRACKS.some((track) => track.id === GAME_SFX_TO_TRACK.discard)).toBe(true);
@@ -104,4 +105,15 @@ describe('Music Registry', () => {
   it('文件名校验函数保持轻量格式化', () => {
     expect(musicDisplayNameFromFileName('menu_theme_01')).toBe('menu theme 01');
   });
+});
+
+it.each(['draw', 'discard', 'meld', 'riichi', 'dora', 'rong'] as const)('%s has at least two real builtin WAVs with stable ids', group => {
+  const tracks = BUILTIN_MUSIC_TRACKS.filter(track => track.gameSfxGroup === group);
+  expect(tracks.length).toBeGreaterThanOrEqual(2);
+  expect(tracks.every(track => track.url && track.sourceType === 'builtin')).toBe(true);
+  expect(tracks.map(track => track.id)).toEqual(expect.arrayContaining([`builtin:effects:${group}1`, `builtin:effects:${group}2`]));
+});
+it('physical win folder preserves rong identity, alongside future rong paths', () => {
+  expect(gameSfxGroupFromModulePath('/src/music/effects/win/rong1.wav')).toBe('rong');
+  expect(gameSfxGroupFromModulePath('/src/music/effects/rong/rong2.wav')).toBe('rong');
 });

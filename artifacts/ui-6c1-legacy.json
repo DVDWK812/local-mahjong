@@ -1,0 +1,12 @@
+{
+  "legacyLog": {
+    "result": {
+      "type": "string",
+      "value": "[{\"src\":\"http://127.0.0.1:5173/src/music/effects/discard/discard1.wav\",\"t\":16943.5},{\"src\":\"http://127.0.0.1:5173/src/music/effects/draw/draw1.wav\",\"t\":17312.29999999702},{\"src\":\"http://127.0.0.1:5173/src/music/effects/discard/discard2.wav\",\"t\":18507.699999999255},{\"src\":\"http://127.0.0.1:5173/src/music/effects/draw/draw2.wav\",\"t\":18875.79999999702},{\"src\":\"http://127.0.0.1:5173/src/music/effects/discard/discard1.wav\",\"t\":20098.599999997765},{\"src\":\"http://127.0.0.1:5173/src/music/effects/draw/draw1.wav\",\"t\":20442.699999999255},{\"src\":\"http://127.0.0.1:5173/src/music/effects/discard/discard2.wav\",\"t\":21703.39999999851},{\"src\":\"http://127.0.0.1:5173/src/music/effects/draw/draw2.wav\",\"t\":22058.199999999255}]"
+    }
+  },
+  "legacyDom": {
+    "canvas": 0,
+    "layer3d": 0
+  }
+}

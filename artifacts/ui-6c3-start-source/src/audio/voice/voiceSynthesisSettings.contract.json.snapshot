@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "columns": [
+    "speed",
+    "volume",
+    "stability",
+    "similarity",
+    "language_override",
+    "text_normalization",
+    "pitch",
+    "tts_emotion",
+    "tts_instruction"
+  ],
+  "defaults": {
+    "speed": 1,
+    "volume": 0,
+    "stability": 1,
+    "similarity": 1,
+    "language_override": "",
+    "text_normalization": true,
+    "pitch": "",
+    "tts_emotion": "",
+    "tts_instruction": ""
+  }
+}

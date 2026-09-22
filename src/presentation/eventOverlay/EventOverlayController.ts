@@ -37,6 +37,7 @@ export class EventOverlayController {
   private readonly onSettled: (action: EventOverlayAction) => void;
   private draining = false;
   private disposed = false;
+  private generation = 0;
   private currentAction: EventOverlayAction | null = null;
 
   constructor(
@@ -78,6 +79,7 @@ export class EventOverlayController {
   }
 
   cancelAll(): void {
+    ++this.generation;
     this.queue.splice(0).forEach((action) => this.safeFinish(action));
     if (this.currentAction) this.safeFinish(this.currentAction);
     this.scheduler.cancelAll();
@@ -111,15 +113,12 @@ export class EventOverlayController {
       const action = this.queue.shift();
       if (!action) continue;
       this.currentAction = action;
+      const generation = this.generation;
       try {
-        if (action.type === 'win_declared') {
-          await this.pacingGate.waitUntilOnlyParticipantRemains(action);
-        } else {
-          await this.pacingGate.waitUntilClearBefore(action.sequence);
-        }
-        if (this.disposed) continue;
+        await this.pacingGate.waitUntilClearBefore(action.sequence, { timeoutMs: 15_000 });
+        if (this.disposed || generation !== this.generation) continue;
         const prepared = await this.target.prepare(action);
-        if (prepared) {
+        if (prepared && !this.disposed && generation === this.generation) {
           await this.scheduler.sequence(overlayPhases(action).map(({ phase, durationMs }) => this.phaseTask(action, phase, durationMs)));
         }
       } catch (error) {
@@ -169,8 +168,8 @@ export class EventOverlayController {
 }
 
 export function eventOverlayIntensity(action: EventOverlayAction): EventOverlayIntensity {
-  if (action.type === 'win_declared') return 'strong';
-  if (action.type === 'round_end_announced' || action.type === 'riichi_declared') return 'medium';
+  if (action.type === 'win_declared' || action.type === 'round_end_announced') return 'strong';
+  if (action.type === 'riichi_declared') return 'medium';
   if (action.type === 'meld_declared' && action.meldType === 'kan') return 'medium';
   return 'light';
 }
@@ -178,11 +177,7 @@ export function eventOverlayIntensity(action: EventOverlayAction): EventOverlayI
 export function eventOverlayLabel(action: EventOverlayAction): string {
   if (action.type === 'win_declared') return action.winType === 'tsumo' ? '自摸' : '荣和';
   if (action.type === 'round_end_announced') {
-    if (action.settlementType === 'exhaustive-draw') return '流局';
-    if (action.reason === 'kyuushu-kyuuhai') return '九种九牌';
-    if (action.reason === 'suufon-renda') return '四风连打';
-    if (action.reason === 'suucha-riichi') return '四家立直';
-    return action.reason === 'suukan-sanra' ? '四杠散了' : '三家和';
+    return '流局';
   }
   if (action.type === 'riichi_declared') return action.kind === 'double-riichi' ? '双立直' : '立直';
   if (action.meldType === 'kan') return '杠';
@@ -192,7 +187,7 @@ export function eventOverlayLabel(action: EventOverlayAction): string {
 export function overlayPhases(action: EventOverlayAction): ReadonlyArray<{ phase: EventOverlayPhase; durationMs: number }> {
   const intensity = eventOverlayIntensity(action);
   const leadIn = action.type === 'win_declared'
-    ? action.winType === 'tsumo' ? 490 : 280
+    ? action.winType === 'tsumo' ? 490 : 0
     : action.type === 'round_end_announced' ? 180 : 480;
   const hold = intensity === 'strong' ? 700 : intensity === 'medium' ? 520 : 400;
   return [

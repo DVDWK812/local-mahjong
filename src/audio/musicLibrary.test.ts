@@ -419,3 +419,39 @@ describe('MusicLibrary', () => {
     expect(reloaded.sfxPlaybackMode('meld')).toBe('sequential');
   });
 });
+
+it.each(['draw', 'discard', 'meld', 'riichi', 'dora', 'rong'] as const)('%s custom selection survives refresh, deletion falls back, reset preserves saved custom', async group => {
+  const store = new MemoryMusicLibraryStore();
+  const storage = memoryStorage();
+  const library = new MusicLibrary(store, storage);
+  await library.initialize();
+  library.setSfxPlaybackMode('draw', 'shuffle');
+  await library.addCopiedFiles('effects', [wavFile('custom.wav')], group);
+  const custom = library.tracksBySfxGroup(group).find(track => track.sourceType === 'copied')!;
+  library.setSfxSelection(group, [custom.id]);
+  const fresh = new MusicLibrary(store, storage);
+  await fresh.initialize();
+  expect(fresh.sfxSelectedTrackIds(group)).toEqual([custom.id]);
+  fresh.resetSfxGroup(group);
+  expect(fresh.sfxPlaybackMode(group)).toBe('sequential');
+  expect(fresh.sfxSelectedTrackIds(group).every(id => id.startsWith('builtin:'))).toBe(true);
+  expect(fresh.tracksBySfxGroup(group).some(track => track.id === custom.id)).toBe(true);
+  fresh.setSfxSelection(group, [custom.id]);
+  await fresh.removeTrack(custom.id);
+  expect(fresh.sfxSelectedTrackIds(group).length).toBeGreaterThanOrEqual(2);
+  expect(fresh.sfxSelectedTrackIds(group)).not.toContain(custom.id);
+  expect(JSON.stringify(storage.getItem('local-mahjong.music-preferences.v1'))).not.toContain(custom.id);
+  expect(await store.getBlob(custom.id)).toBeNull();
+});
+it('old preferences keep modes and selection while new groups receive default sequential builtins', async () => {
+  const storage = memoryStorage();
+  storage.setItem('local-mahjong.music-preferences.v1', JSON.stringify({version:1, preferences:{sfxPlaybackMode:{draw:'shuffle',discard:'repeat-one'}, sfxLastSelectedTrackId:{discard:'builtin:effects:discard2'}}}));
+  const library = new MusicLibrary(new MemoryMusicLibraryStore(), storage);
+  await library.initialize();
+  expect(library.sfxPlaybackMode('draw')).toBe('shuffle');
+  expect(library.sfxLastSelectedTrackId('discard')).toBe('builtin:effects:discard2');
+  for (const group of ['riichi','dora','rong'] as const) {
+    expect(library.sfxPlaybackMode(group)).toBe('sequential');
+    expect(library.sfxSelectedTrackIds(group).length).toBeGreaterThanOrEqual(2);
+  }
+});

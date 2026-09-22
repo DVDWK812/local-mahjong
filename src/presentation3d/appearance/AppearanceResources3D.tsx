@@ -6,8 +6,8 @@ import {
   SRGBColorSpace,
   type Texture,
 } from 'three';
-import { TILE_APPEARANCE_IDS, type AppearanceAssetRef, type AppearanceSettings } from '../../presentation/appearance/appearanceSettings';
-import { usePlayerSlotAppearances, type PlayerSlotAppearance } from '../../presentation/appearance/playerSlotAppearance';
+import { TILE_APPEARANCE_IDS, type AppearanceAssetRef, type AppearanceSettings, type TileAppearanceId } from '../../presentation/appearance/appearanceSettings';
+import { usePlayerSlotAppearances, type PlayerSlotAppearance, type PlayerSlotAppearances } from '../../presentation/appearance/playerSlotAppearance';
 import { AppearanceTextureCache, type AppearanceTextureKind } from './AppearanceTextureCache';
 import type { PlayerAppearance3DResources } from './TileAppearance3DContext';
 import { DEFAULT_RIICHI_STICK_3D_APPEARANCE, type RiichiStick3DAppearance } from '../riichi/riichiStickAppearance';
@@ -56,81 +56,128 @@ export function configureLocalAppearanceTexture(texture: Texture, kind: Appearan
 const sharedPlayerTextureCache = new AppearanceTextureCache(configureLocalAppearanceTexture);
 
 /** Resolve the table's 37 selections once, never from individual tile meshes. */
-function useFaceResources(settings: AppearanceSettings): FaceResources3D {
+function useFaceResources(settings: AppearanceSettings, faceIds: readonly TileAppearanceId[]): Readonly<{
+  resources: FaceResources3D;
+  ready: boolean;
+}> {
   const invalidate = useThree(state => state.invalidate);
-  const signature = JSON.stringify(TILE_APPEARANCE_IDS.map(key => settings.tileFaces[key].face));
+  const signature = JSON.stringify(faceIds.map(key => [key, settings.tileFaces[key].face]));
   const [loaded, setLoaded] = useState<{ signature: string; textures: (Texture | undefined)[] }>({ signature: '', textures: [] });
   useEffect(() => {
     let active = true;
-    const refs = JSON.parse(signature) as AppearanceAssetRef[];
+    const refs = (JSON.parse(signature) as [TileAppearanceId, AppearanceAssetRef][]).map(([, ref]) => ref);
     const leases = refs.map(ref => sharedPlayerTextureCache.acquire(ref, 'tile-face'));
     void Promise.all(leases.map(lease => lease.promise)).then(textures => {
       if (active) { setLoaded({ signature, textures }); invalidate(); }
     });
     return () => { active = false; leases.forEach(lease => lease.release()); };
   }, [signature, invalidate]);
-  return useMemo(() => Object.fromEntries(TILE_APPEARANCE_IDS.map((key, index) => [key, {
+  const resources = useMemo(() => Object.fromEntries(faceIds.map((key, index) => [key, {
     texture: loaded.signature === signature ? loaded.textures[index] : undefined,
     sideColor: settings.tileFaces[key].sideColor,
   }])), [loaded, signature, settings.tileFaces]);
+  return { resources, ready: loaded.signature === signature };
 }
-function useSharedAppearanceTexture(ref: AppearanceAssetRef, kind: AppearanceTextureKind): Texture | undefined {
+function useSharedAppearanceTexture(ref: AppearanceAssetRef, kind: AppearanceTextureKind, enabled = true): Readonly<{
+  texture?: Texture;
+  ready: boolean;
+}> {
   const invalidate = useThree(state => state.invalidate);
   const key = ref.kind === 'local' ? ref.assetId : '';
   const [loaded, setLoaded] = useState<{ key: string; texture?: Texture }>({ key: '' });
   useEffect(() => {
+    if (!enabled) return;
     let active = true;
     const lease = sharedPlayerTextureCache.acquire(key ? { kind: 'local', assetId: key } : { kind: 'builtin', id: 'default' }, kind);
     void lease.promise.then(texture => { if (active) { setLoaded({ key, texture }); invalidate(); } });
     return () => { active = false; lease.release(); };
-  }, [key, kind, invalidate]);
-  return loaded.key === key ? loaded.texture : undefined;
+  }, [key, kind, invalidate, enabled]);
+  return {
+    texture: enabled && loaded.key === key ? loaded.texture : undefined,
+    ready: !enabled || loaded.key === key,
+  };
 }
 
-function usePlayerResources(player: PlayerSlotAppearance, global: PlayerAppearance3DResources): PlayerAppearance3DResources {
-  const back = useSharedAppearanceTexture(player.tileBack.texture === 'inherit' ? { kind: 'builtin', id: 'default' } : player.tileBack.texture, 'tile-back');
-  const stick = useSharedAppearanceTexture(player.riichiStick === 'inherit' ? { kind: 'builtin', id: 'default' } : player.riichiStick, 'riichi-stick');
-  return useMemo(() => resolveLoadedPlayerAppearance3D(player, global, back, stick),
-    [player, global.backTexture, global.backColor, global.riichiStickAppearance, back, stick]);
+function usePlayerResources(player: PlayerSlotAppearance, global: PlayerAppearance3DResources, enabled = true, includeRiichi = true): Readonly<{
+  resources: PlayerAppearance3DResources;
+  backReady: boolean;
+  stickReady: boolean;
+}> {
+  const back = useSharedAppearanceTexture(player.tileBack.texture === 'inherit' ? { kind: 'builtin', id: 'default' } : player.tileBack.texture, 'tile-back', enabled);
+  const stick = useSharedAppearanceTexture(player.riichiStick === 'inherit' ? { kind: 'builtin', id: 'default' } : player.riichiStick, 'riichi-stick', enabled && includeRiichi);
+  const resources = useMemo(() => resolveLoadedPlayerAppearance3D(player, global, back.texture, stick.texture),
+    [player, global.backTexture, global.backColor, global.riichiStickAppearance, back.texture, stick.texture]);
+  return { resources, backReady: back.ready, stickReady: stick.ready };
 }
 
 export function AppearanceResources3D({
   settings,
   children,
+  criticalPlayerIds = [],
+  criticalRiichiPlayerIds = [],
+  activePlayerIds = [0, 1, 2, 3],
+  includeRiichiResources = true,
+  faceIds = TILE_APPEARANCE_IDS,
+  playerAppearances,
 }: Readonly<{
   settings: AppearanceSettings;
   children: (resources: Readonly<{
     feltTexture?: Texture;
     riichiStickAppearance: RiichiStick3DAppearance;
+    criticalAssetsReady: boolean;
   }>) => ReactNode;
+  criticalPlayerIds?: readonly number[];
+  criticalRiichiPlayerIds?: readonly number[];
+  activePlayerIds?: readonly number[];
+  includeRiichiResources?: boolean;
+  faceIds?: readonly TileAppearanceId[];
+  playerAppearances?: PlayerSlotAppearances;
 }>) {
-  const faces = useFaceResources(settings);
+  const faces = useFaceResources(settings, faceIds);
   const backTexture = useSharedAppearanceTexture(settings.tileBack.texture, 'tile-back');
   const feltTexture = useSharedAppearanceTexture(settings.tableFelt.asset, 'felt');
-  const stickTexture = useSharedAppearanceTexture(settings.riichiStick.asset, 'riichi-stick');
+  const stickTexture = useSharedAppearanceTexture(settings.riichiStick.asset, 'riichi-stick', includeRiichiResources);
 
   const tileResources = useMemo(() => ({
-    backTexture,
+    backTexture: backTexture.texture,
     backColor: settings.tileBack.sideColor,
-  }), [backTexture, settings.tileBack.sideColor]);
+  }), [backTexture.texture, settings.tileBack.sideColor]);
   const riichiStickAppearance = useMemo<RiichiStick3DAppearance>(() => ({
     ...DEFAULT_RIICHI_STICK_3D_APPEARANCE,
     textureSource: DEFAULT_RIICHI_STICK_3D_APPEARANCE.textureSource,
-    texture: stickTexture,
-  }), [stickTexture]);
-  const selections = usePlayerSlotAppearances();
+    texture: stickTexture.texture,
+  }), [stickTexture.texture]);
+  const savedSelections = usePlayerSlotAppearances();
+  const selections = playerAppearances ?? savedSelections;
   const globalResources = { ...tileResources, riichiStickAppearance };
-  const player0 = usePlayerResources(selections[0], globalResources);
-  const player1 = usePlayerResources(selections[1], globalResources);
-  const player2 = usePlayerResources(selections[2], globalResources);
-  const player3 = usePlayerResources(selections[3], globalResources);
-  const resources = useMemo(() => ({ ...tileResources, players: { 0: player0, 1: player1, 2: player2, 3: player3 } }),
-    [tileResources, player0, player1, player2, player3]);
+  const player0 = usePlayerResources(selections[0], globalResources, activePlayerIds.includes(0), includeRiichiResources);
+  const player1 = usePlayerResources(selections[1], globalResources, activePlayerIds.includes(1), includeRiichiResources);
+  const player2 = usePlayerResources(selections[2], globalResources, activePlayerIds.includes(2), includeRiichiResources);
+  const player3 = usePlayerResources(selections[3], globalResources, activePlayerIds.includes(3), includeRiichiResources);
+  const players = { 0: player0, 1: player1, 2: player2, 3: player3 } as const;
+  const resources = useMemo(() => ({ ...tileResources, players: {
+    0: player0.resources,
+    1: player1.resources,
+    2: player2.resources,
+    3: player3.resources,
+  } }), [tileResources, player0.resources, player1.resources, player2.resources, player3.resources]);
+  const playerBacksReady = criticalPlayerIds.every((id) =>
+    id === 0 || id === 1 || id === 2 || id === 3 ? players[id].backReady : true);
+  const riichiTexturesReady = criticalRiichiPlayerIds.length === 0 || (
+    stickTexture.ready
+    && criticalRiichiPlayerIds.every((id) =>
+      id === 0 || id === 1 || id === 2 || id === 3 ? players[id].stickReady : true)
+  );
+  const criticalAssetsReady = faces.ready
+    && backTexture.ready
+    && feltTexture.ready
+    && playerBacksReady
+    && riichiTexturesReady;
 
   return (
     <TileAppearance3DContext.Provider value={resources}>
-      <TileFaceResources3DContext.Provider value={faces}>
-      {children({ feltTexture, riichiStickAppearance })}
+      <TileFaceResources3DContext.Provider value={faces.resources}>
+      {children({ feltTexture: feltTexture.texture, riichiStickAppearance, criticalAssetsReady })}
       </TileFaceResources3DContext.Provider>
     </TileAppearance3DContext.Provider>
   );

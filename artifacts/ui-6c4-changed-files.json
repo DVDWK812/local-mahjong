@@ -1,0 +1,22 @@
+[
+  "src\\components\\game\\AnalysisDrawer.test.tsx",
+  "src\\components\\game\\AnalysisDrawer.tsx",
+  "src\\components\\game\\WinPresentationOverlay.tsx",
+  "src\\dev\\finalGate\\scenarios.ts",
+  "src\\presentation\\manualGateFixes.test.ts",
+  "src\\presentation\\winAnimation\\WinPresentationController.test.ts",
+  "src\\presentation\\winAnimation\\WinPresentationController.ts",
+  "src\\presentation3d\\Table3DHud.tsx",
+  "src\\presentation3d\\Table3DScene.test.ts",
+  "src\\presentation3d\\Table3DScene.tsx",
+  "src\\presentation3d\\hand\\Hand3D.tsx",
+  "src\\presentation3d\\riichi\\RiichiStick3D.test.ts",
+  "src\\presentation3d\\riichi\\riichiStickLayout.ts",
+  "src\\presentation3d\\table\\CentralConsoleHudAnchor3D.tsx",
+  "src\\presentation3d\\table\\FeltDecoration3D.tsx",
+  "src\\presentation3d\\table\\tablePresentationTuning.ts",
+  "src/presentation/winAnimation/tsumoSlapMotion.ts",
+  "src/presentation/winAnimation/tsumoSlapMotion.test.ts",
+  "src/presentation3d/table/centralConsoleLayout.ts",
+  "src/presentation3d/table/centralConsoleLayout.test.ts"
+]

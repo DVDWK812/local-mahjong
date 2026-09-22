@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "voices": [
+    {
+      "voiceId": "6ea69a95-793f-4c10-811f-f1b9ecb8866d",
+      "name": "曼波",
+      "source": "existing",
+      "createdAt": "2026-08-24T17:11:05.957Z",
+      "linkedPackIds": [
+        "voice-20260821-001"
+      ]
+    },
+    {
+      "voiceId": "2721ed7b-1905-4a4c-bd1e-02f847f27161",
+      "name": "校长",
+      "source": "existing",
+      "createdAt": "2026-08-24T17:11:05.957Z",
+      "linkedPackIds": [
+        "xiaozhang"
+      ]
+    },
+    {
+      "voiceId": "3cfac83f-efa7-46ce-ab23-5fc34a99d9f5",
+      "name": "yaya",
+      "source": "clone",
+      "createdAt": "2026-08-25T03:50:23.169Z",
+      "linkedPackIds": [
+        "yaya-001"
+      ]
+    }
+  ]
+}

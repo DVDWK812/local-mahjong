@@ -1,0 +1,97 @@
+ .agents/skills/mahjong-bugfix/SKILL.md             |   1 +
+ .agents/skills/mahjong-code-review/SKILL.md        |   2 +-
+ .agents/skills/mahjong-dev-task/SKILL.md           |   2 +-
+ .agents/skills/mahjong-ui-qa/SKILL.md              |  35 ++-
+ AGENTS.md                                          |   6 +-
+ scripts/tableRendererUrlBanner.test.ts             |  10 +-
+ scripts/tableRendererUrlBanner.ts                  |   8 +-
+ src/App.tsx                                        |  28 ++-
+ src/audio/AudioManager.test.ts                     | 153 ++++++++++++-
+ src/audio/AudioManager.ts                          | 128 ++++++++---
+ src/audio/AudioPresentationConsumer.test.ts        |  61 +++--
+ src/audio/AudioPresentationConsumer.ts             |  28 +--
+ src/audio/audioBackend.ts                          |  25 ++-
+ src/audio/audioRegistry.ts                         |   2 +-
+ src/audio/musicLibrary.test.ts                     |  36 +++
+ src/audio/musicLibrary.ts                          |  41 ++++
+ src/audio/musicLibraryStorage.ts                   |   2 +-
+ src/audio/musicPreferences.ts                      |  10 +-
+ src/audio/musicRegistry.test.ts                    |  14 +-
+ src/audio/musicRegistry.ts                         |  14 +-
+ src/audio/musicTypes.ts                            |   6 +-
+ src/components/AppearanceSettingsDialog.test.tsx   |  30 ++-
+ src/components/AppearanceSettingsDialog.tsx        |  12 +-
+ src/components/AudioSettingsDialog.test.tsx        |  16 +-
+ src/components/AudioSettingsDialog.tsx             |   6 +
+ src/components/PlayerProfileIntegration.test.tsx   |   9 +-
+ src/components/ReplayScreen.test.tsx               |   9 +-
+ src/components/SeventeenStepsScreen.tsx            | 245 ++++++++++++++-------
+ src/components/TestModePerspective.test.tsx        |   9 +-
+ src/components/TestModeScreen.tsx                  |   2 +
+ src/components/game/AnalysisDrawer.test.tsx        |   2 +
+ src/components/game/AnalysisDrawer.tsx             |  11 +-
+ src/components/game/DoraIndicatorStack.tsx         |  61 ++++-
+ src/components/game/GameEventOverlay.tsx           |   6 +-
+ src/components/game/GameScreen.test.tsx            |   9 +-
+ src/components/game/GameScreen.tsx                 |  46 ++--
+ src/components/game/HandAnimationOverlay.tsx       |   2 +-
+ src/components/game/LocalAnimationHand.tsx         |  30 ++-
+ src/components/game/LocalHandArea.tsx              |  27 ++-
+ src/components/game/LocalHandSnapshot.tsx          |  18 +-
+ src/components/game/TableLayoutRegression.test.tsx |   9 +-
+ src/components/game/WinPresentationOverlay.tsx     | 135 ++++++++++--
+ src/components/game/winPresentationOverlay.css     |  10 +-
+ src/components/settings/AudioSettingsPanel.tsx     |  45 +++-
+ src/hand/HandVisualController.test.ts              |  54 +++++
+ src/hand/HandVisualController.ts                   |  55 +++--
+ src/hand/default/hand-arrange-push.png             | Bin 551457 -> 0 bytes
+ src/hand/default/hand-carry-forward.png            | Bin 588748 -> 0 bytes
+ src/hand/default/hand-pinch-grab.png               | Bin 621018 -> 0 bytes
+ src/hand/default/hand-reach.png                    | Bin 632826 -> 0 bytes
+ src/hand/default/hand-release-open.png             | Bin 624887 -> 0 bytes
+ src/hand/default/hand-retract-relaxed.png          | Bin 568455 -> 0 bytes
+ src/hand/default/hand-touch-contact.png            | Bin 577670 -> 0 bytes
+ src/hand/handAssets.ts                             |  31 +--
+ src/main.tsx                                       |  12 +-
+ src/presentation/PresentationEventBus.test.ts      |   3 +-
+ src/presentation/PresentationEventBus.ts           |   9 +-
+ src/presentation/animation/AnimationScheduler.ts   |  12 +-
+ .../appearance/TileFaceDomAppearance.tsx           |  21 +-
+ .../appearance/appearanceLibrary.test.ts           |   4 +-
+ .../appearance/appearanceSettings.test.ts          |  21 +-
+ src/presentation/appearance/appearanceSettings.ts  |  22 +-
+ .../appearance/playerSlotAppearance.test.ts        |  29 ++-
+ .../appearance/playerSlotAppearance.ts             |  38 +++-
+ .../eventOverlay/EventOverlayController.test.ts    |   4 +-
+ .../eventOverlay/EventOverlayController.ts         |  25 +--
+ src/presentation/gamePresentationEvents.test.ts    |  13 ++
+ src/presentation/gamePresentationEvents.ts         |  13 ++
+ .../handAnimation/DiscardSourceSnapshot.ts         |   2 +
+ .../handAnimation/HandAnimationConsumer.test.ts    |  17 ++
+ .../handAnimation/HandAnimationConsumer.ts         |  18 +-
+ .../handAnimation/HandAnimationController.ts       |  43 +++-
+ .../winAnimation/WinPresentationController.test.ts |  56 ++++-
+ .../winAnimation/WinPresentationController.ts      |  43 +++-
+ src/presentation3d/AGENTS.md                       |   4 +-
+ src/presentation3d/Table3DHud.tsx                  |   6 +-
+ src/presentation3d/Table3DScene.test.ts            |  44 ++--
+ src/presentation3d/Table3DScene.tsx                | 143 +++++-------
+ src/presentation3d/TableRenderer.test.ts           |  47 +++-
+ src/presentation3d/TableRenderer.tsx               |  83 ++++---
+ src/presentation3d/animation/HandAction3D.tsx      |  53 ++---
+ src/presentation3d/animation/localDiscardMotion.ts |   2 +-
+ src/presentation3d/animation/tableAnimation3D.ts   |   8 +-
+ .../animation/useTableAnimation3D.ts               |  38 +++-
+ .../appearance/AppearanceResources3D.tsx           | 105 ++++++---
+ .../appearance/TileAppearance3DContext.ts          |   2 +-
+ src/presentation3d/hand/Hand3D.tsx                 |  42 +++-
+ src/presentation3d/rendererMode.ts                 |   5 +-
+ src/presentation3d/riichi/RiichiStick3D.test.ts    |   2 +-
+ src/presentation3d/riichi/riichiStickLayout.ts     |  23 +-
+ .../sceneState/buildTableSceneState.ts             |   4 +-
+ .../table/CentralConsoleHudAnchor3D.tsx            |   8 +-
+ src/presentation3d/table/FeltDecoration3D.tsx      |   7 +-
+ .../table/tablePresentationTuning.ts               |   2 +-
+ src/presentation3d/win/winPresentation3D.ts        |  17 ++
+ src/styles.css                                     | 105 ++++++++-
+ 96 files changed, 2035 insertions(+), 621 deletions(-)

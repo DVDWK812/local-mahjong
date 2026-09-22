@@ -8,6 +8,7 @@ import type { PlayerProfile } from '../profile/playerProfile';
 import { PlayerAvatar } from '../components/PlayerAvatar';
 import { resolvePlayerSlotAvatar, resolvePlayerSlotNickname, usePlayerSlotAvatars, usePlayerSlotNicknames } from '../presentation/appearance/playerSlotAvatars';
 import { getSceneSeatMapping } from './sceneState/buildTableSceneState';
+import { CENTRAL_SCORE_CSS_SIZE } from './table/centralConsoleLayout';
 import {
   getAvatarFrameTuning,
   getAvatarFrameTuningRevision,
@@ -152,6 +153,7 @@ export function Table3DCentralHud({
       data-hud-anchor="central-console-3d"
       style={{
         '--table-3d-hud-font-size': TABLE_PRESENTATION_TUNING.centralHud.fontSize,
+        '--center-size': `${CENTRAL_SCORE_CSS_SIZE}px`,
       } as CSSProperties}
     >
       <TableCenter
@@ -167,14 +169,14 @@ export function Table3DCentralHud({
   );
 }
 
-function Table3DPlayerFrame({
+export function Table3DPlayerFrame({
   player,
   position,
   tsumoGiriDisplayEnabled,
   avatarId,
   nickname,
 }: Readonly<{
-  player: PlayerState;
+  player: Pick<PlayerState, 'name' | 'river'>;
   position: PlayerPosition;
   tsumoGiriDisplayEnabled: boolean;
   avatarId?: PlayerProfile['avatarId'];

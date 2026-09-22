@@ -1,3 +1,5 @@
+import { useContext } from 'react';
+import { QaMotionContext } from '../../presentation/animation/QaMotionContext';
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { AnimationScheduler, animationFrameTask } from '../../presentation/animation/AnimationScheduler';
 import { handPresentationPhases, riverOwnsDiscard, type HandPresentationFrame } from '../../presentation/handAnimation/HandPresentationSnapshot';
@@ -12,6 +14,7 @@ import {
 import { presentationPacingGate } from '../../presentation/pacing/PresentationPacingGate';
 import type { DiscardSourceSnapshotStore } from '../../presentation/handAnimation/DiscardSourceSnapshot';
 import type { PresentationEvent } from '../../presentation/PresentationEventBus';
+import type { AnimationCueFrame } from '../../presentation/PresentationAudioCue';
 import type { TableSceneState } from '../sceneState/tableSceneTypes';
 import type { Table3DSeat } from '../coordinates/seatTransforms';
 import type { ActiveTableAnimation3D } from './HandAction3D';
@@ -59,6 +62,8 @@ export function useTableAnimation3D({
   localDiscardSnapshots?: DiscardSourceSnapshotStore;
   onLocalHandAnimationChange?: (state: LocalHandAnimation3DState | null) => void;
 }>): TableAnimation3DRenderState {
+  const qaMotion = useContext(QaMotionContext);
+  const qaRef = useRef(qaMotion); qaRef.current = qaMotion;
   const sceneStateRef = useRef(sceneState);
   const enabledRef = useRef(enabled);
   const sessionKeyRef = useRef(sessionKey);
@@ -105,7 +110,7 @@ export function useTableAnimation3D({
     controllerRef.current = controller;
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const applyMotionPreference = () => controller.setSkip(reducedMotion.matches);
+    const applyMotionPreference = () => controller.setReducedMotion(qaRef.current?.reduced ?? reducedMotion.matches);
     applyMotionPreference();
     reducedMotion.addEventListener('change', applyMotionPreference);
 
@@ -124,6 +129,9 @@ export function useTableAnimation3D({
     controllerRef.current?.cancelAll();
   }, [enabled, sessionKey, sourceStore]);
 
+  useEffect(() => {
+    if (qaMotion) { controllerRef.current?.setSpeed(qaMotion.speed); controllerRef.current?.setReducedMotion(qaMotion.reduced); }
+  }, [qaMotion]);
   return renderState;
 }
 
@@ -172,15 +180,28 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
       : resolvedPlan;
     if (plan.handSnapshot && plan.seat === 'bottom') {
       const localDiscardMotion = captureLocalDiscardMotion(plan, localDiscardSnapshot?.sourceTileRect);
-      plan = { ...plan, localDiscardMotion, showPrimaryTile: !localDiscardMotion };
+      plan = { ...plan, localDiscardMotion: localDiscardMotion ? { ...localDiscardMotion, drawnSource: localDiscardSnapshot?.drawnTileRect } : undefined, showPrimaryTile: !localDiscardMotion };
     }
     this.plans.set(action.eventId, plan);
+    // Ownership starts on confirmation, including while a Kan is ahead in the queue.
+    if (action.type === 'tile_drawn') {
+      this.setRenderState(current => ({ ...current, hiddenHandKeys: addKey(current.hiddenHandKeys, plan.hiddenHandKey) }));
+      if (plan.localDomDraw) this.onLocalHandAnimationChange({ eventId: action.eventId, kind: 'draw', phase: 'enter' });
+    }
     return true;
   }
 
   prepare(action: HandAnimationAction): boolean | Promise<boolean> {
     const plan = this.plans.get(action.eventId);
     if (!plan) return false;
+    if (action.type === 'tile_drawn') {
+      return presentationPacingGate.waitUntilClearBefore(action.sequence).then(() =>
+        this.plans.get(action.eventId) === plan ? this.preparePlan(action, plan) : false);
+    }
+    return this.preparePlan(action, plan);
+  }
+
+  private preparePlan(action: HandAnimationAction, plan: TableAnimation3DPlan): boolean | Promise<boolean> {
     this.setRenderState((current) => prepareTableAnimation3DRenderState(current, plan));
     if (plan.handSnapshot) {
       this.updateHandPresentation(plan, { snapshot: plan.handSnapshot, phase: 'lift', progress: 0 });
@@ -196,20 +217,25 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
     return true;
   }
 
-  animationTasks(action: HandAnimationAction) {
+  animationTasks(action: HandAnimationAction, onFrame?: AnimationCueFrame) {
     const plan = this.plans.get(action.eventId);
     if (plan?.localDomDraw) return HAND_ANIMATION_PHASES.map(({ phase, durationMs }) => animationFrameTask(durationMs, (progress) => {
       if (this.plans.get(action.eventId) !== plan) return;
       if (progress === 0) this.setPhase(action, phase);
       this.onLocalHandAnimationChange({ eventId: action.eventId, kind: 'draw', phase, progress });
-    }));
-    if (!plan?.handSnapshot) return undefined;
+    }, progress => onFrame?.(phase, progress)));
+    if (!plan) return undefined;
+    if (!plan.handSnapshot) return HAND_ANIMATION_PHASES.map(({ phase, durationMs }) => animationFrameTask(durationMs, progress => {
+      if (this.plans.get(action.eventId) !== plan) return;
+      this.setRenderState(current => ({ ...transitionTableAnimation3DRenderState(current, plan, phase),
+        active: { plan, phase, progress } }));
+    }, progress => onFrame?.(phase, progress)));
     const snapshot = plan.handSnapshot;
     return handPresentationPhases(snapshot).map(({ phase, durationMs }) => animationFrameTask(
       phase === 'complete' ? getTableAnimation3DHoldMs(plan.action) : durationMs, (progress) => {
       if (this.plans.get(action.eventId) !== plan) return;
       this.updateHandPresentation(plan, { snapshot, phase, progress });
-    }));
+    }, progress => onFrame?.(phase, progress, 'snapshot')));
   }
 
   private updateHandPresentation(plan: TableAnimation3DPlan, frame: HandPresentationFrame): void {

@@ -14,9 +14,9 @@ export function tableRendererUrls(localUrl: string): Readonly<{
   legacy: string;
   threeDimensional: string;
 }> {
-  const threeDimensional = new URL(localUrl);
-  threeDimensional.searchParams.set('table3d', '1');
-  return { legacy: localUrl, threeDimensional: threeDimensional.toString() };
+  const legacy = new URL(localUrl);
+  legacy.searchParams.set('table3d', '0');
+  return { legacy: legacy.toString(), threeDimensional: localUrl };
 }
 
 function printTableRendererUrls(server: ViteDevServer, printDefaultUrls: () => void): void {
@@ -28,8 +28,8 @@ function printTableRendererUrls(server: ViteDevServer, printDefaultUrls: () => v
 
   for (const localUrl of localUrls) {
     const urls = tableRendererUrls(localUrl);
-    server.config.logger.info(`  ➜  Local 2.5D:   ${urls.legacy}`);
     server.config.logger.info(`  ➜  Local 3D:     ${urls.threeDimensional}`);
+    server.config.logger.info(`  ➜  Legacy 2.5D:  ${urls.legacy}`);
   }
   server.config.logger.info('  ➜  press h + enter to show help');
 }

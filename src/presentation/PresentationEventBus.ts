@@ -47,6 +47,13 @@ export interface MeldDeclaredPresentationEvent {
   readonly kanType?: 'minkan' | 'ankan' | 'kakan';
 }
 
+export interface DoraRevealedPresentationEvent {
+  readonly type: 'dora_revealed';
+  readonly eventId: string;
+  readonly sequence: number;
+  readonly instanceId: string;
+}
+
 export interface WinDeclaredPresentationEvent {
   readonly eventId: string;
   readonly sequence: number;
@@ -142,7 +149,7 @@ export interface MatchResultPresentationEvent {
   readonly activePlayerIds: readonly PlayerId[];
 }
 
-export type PresentationEvent = TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | WinDeclaredPresentationEvent | WinScoredPresentationEvent | RoundSettledPresentationEvent | RoundEndAnnouncedPresentationEvent | MatchStartedPresentationEvent | MatchResultPresentationEvent;
+export type PresentationEvent = DoraRevealedPresentationEvent | TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | WinDeclaredPresentationEvent | WinScoredPresentationEvent | RoundSettledPresentationEvent | RoundEndAnnouncedPresentationEvent | MatchStartedPresentationEvent | MatchResultPresentationEvent;
 type WithoutPresentationMetadata<T> = T extends PresentationEvent ? Omit<T, 'eventId' | 'sequence'> : never;
 export type PresentationEventInput = WithoutPresentationMetadata<PresentationEvent>;
 export type PresentationEventListener = (event: PresentationEvent) => void;

@@ -11,9 +11,9 @@ export type PlaybackMode = 'shuffle' | 'sequential' | 'repeat-one';
 
 export type MusicSourceType = 'builtin' | 'linked' | 'copied';
 
-export type GameSfxId = 'draw' | 'discard' | 'chi' | 'pon' | 'kan';
+export type GameSfxId = 'draw' | 'discard' | 'chi' | 'pon' | 'kan' | 'riichi' | 'dora' | 'win' | 'rong';
 
-export type GameSfxGroup = 'draw' | 'discard' | 'meld';
+export type GameSfxGroup = 'draw' | 'discard' | 'meld' | 'riichi' | 'dora' | 'rong';
 
 export interface MusicTrackDefinition {
   readonly id: MusicTrackId;
@@ -28,5 +28,5 @@ export interface MusicTrackDefinition {
 }
 
 export function isGameSfxId(value: string): value is GameSfxId {
-  return value === 'draw' || value === 'discard' || value === 'chi' || value === 'pon' || value === 'kan';
+  return value === 'draw' || value === 'discard' || value === 'chi' || value === 'pon' || value === 'kan' || value === 'riichi' || value === 'dora' || value === 'win' || value === 'rong';
 }

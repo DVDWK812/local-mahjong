@@ -53,7 +53,7 @@ Presentation / DOM / Three.js 不得：
 
 3D is the primary/default renderer. 2.5D is frozen Legacy Compatibility Mode. New presentation work targets 3D unless the task explicitly says otherwise.
 
-2.5D 是冻结的 Legacy Compatibility Mode，只接受 bugfix。不得为新 3D Presentation 功能新增 2.5D 功能或要求 feature / visual parity；2.5D 视觉差异不阻塞新的 3D Presentation PASS。保留可进入、`Canvas=0`、3D layer=0、无 crash 且基础牌局可运行的 legacy smoke。
+2.5D 是冻结的 Legacy Compatibility Mode，只接受 bugfix。不得为新 3D Presentation 功能新增 2.5D 功能或要求 feature / visual parity；2.5D 视觉差异不阻塞新的 3D Presentation PASS。普通 3D 开发、测试与浏览器 QA 不得主动进入 `?table3d=0`。只有 renderer switch、WebGL fallback、共享层任务、明确 Legacy bug 或 release gate 才运行独立 Legacy smoke（`Canvas=0`、3D layer=0、无 crash 且基础牌局可运行）。
 
 只有任务涉及 GameScreen、Local Hand / shared DOM tile UI、PresentationEvent / pacing、renderer switch / fallback、shared CSS/layout、Audio shared consumer、Rules / GameState，或用户明确报告 2.5D Bug 时，才扩大 2.5D regression。
 
@@ -67,7 +67,9 @@ Three.js / R3F 只负责 world layout、geometry、materials、camera、hit targ
 - Cancel / unmount：清理 proxy、mask 与 pending pacing。
 - 不用固定 AI `setTimeout` 代替 `PresentationPacing`。
 
-涉及 3D browser acceptance 时，按 `mahjong-ui-qa` 执行真实 Chrome / WebGL 验收；具体 viewport、Canvas、fallback、Console、Network、pointer 与截图要求只在该 Skill 中维护。
+涉及 3D browser acceptance 时，按 `mahjong-ui-qa` 使用 Codex 内置浏览器执行 WebGL 验收；具体 viewport、Canvas、fallback、Console、Network、pointer 与截图要求只在该 Skill 中维护。
+
+本项目使用内置浏览器做任何测试时，访问 URL 一律带 `mute=1`（例如 `/?mute=1`，其他查询参数同时保留）。这是只静音输出的自动化测试开关；仍需检查音频资源正常加载，不得以静音替代 Network / Console 验收。
 
 ## 通用要求
 

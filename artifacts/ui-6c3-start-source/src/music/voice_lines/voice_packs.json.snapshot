@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "packs": [
+    {
+      "id": "voice-20260821-001",
+      "name": "曼波",
+      "locale": "zh-CN",
+      "path": "voice-20260821-001"
+    },
+    {
+      "id": "xiaozhang",
+      "name": "校长",
+      "locale": "zh-CN",
+      "path": "xiaozhang"
+    },
+    {
+      "id": "yaya-001",
+      "name": "yaya",
+      "locale": "zh-CN",
+      "path": "yaya-001"
+    }
+  ],
+  "diagnostics": []
+}

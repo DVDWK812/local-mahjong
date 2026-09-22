@@ -195,6 +195,8 @@ export function TestModeScreen({ initialScenario = null, onExit, testResultStora
           })}
         </section>
 
+        {import.meta.env.DEV ? <details><summary>UI Final Gate · 最终人工验收</summary><p>独立场景、默认静音，不写入存档或设置。</p><a href="?testMode=1&uiFinalGate=1">进入最终验收</a></details> : null}
+
         <details className="test-mode-import">
           <summary>导入或制作 TestScenario JSON</summary>
           <div className="test-mode-import-guide">

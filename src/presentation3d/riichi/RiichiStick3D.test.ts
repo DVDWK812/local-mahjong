@@ -43,7 +43,7 @@ describe('UI-5E.2 RiichiStick3D', () => {
     );
   });
 
-  it('keeps the authoritative stick inside the inner frame and exposes a default texture', () => {
+  it('keeps the authoritative stick inside the center console frame and exposes a default texture', () => {
     expect(TABLE_PRESENTATION_TUNING.riichiStickLayout.laneOffset).toBeLessThan(
       TABLE_PRESENTATION_TUNING.centerDecoration.innerSquareSize / 2,
     );

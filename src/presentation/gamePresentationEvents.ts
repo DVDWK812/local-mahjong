@@ -16,6 +16,7 @@ export class GamePresentationEventObserver {
   private winSignatures: string[];
   private roundSettlementSignature: string | null;
   private lastDiscardPresentationEventId: string | null = null;
+  private doraIds: string[];
 
   constructor(
     initialState: GameState,
@@ -23,6 +24,7 @@ export class GamePresentationEventObserver {
     private readonly featureFlagsSource: PresentationFeatureFlagsSource = getPresentationFeatures,
   ) {
     this.previousHands = copyPresentationHands(initialState);
+    this.doraIds = initialState.doraIndicators.map(tile => tile.instanceId);
     this.riverLengths = initialState.players.map((player) => player.river.length);
     this.drawnTileInstanceIds = initialState.players.map((player) => player.drawnTile?.instanceId ?? null);
     this.riichiDeclared = initialState.players.map((player) => player.riichi);
@@ -40,6 +42,7 @@ export class GamePresentationEventObserver {
     const nextRoundSettlementSignature = roundSettlementSignature(state);
     const presentationEventsEnabled = this.featureFlagsSource().presentationEvents;
 
+
     state.players.forEach((player) => {
       const previous = this.meldSignatures[player.id] ?? [];
       player.calls.forEach((call, index) => {
@@ -51,6 +54,16 @@ export class GamePresentationEventObserver {
           : { type: 'meld_declared', playerId: player.id, meldType: call.type });
       });
     });
+
+    const nextDoraIds = state.doraIndicators.map(tile => tile.instanceId);
+    // Only appended indicators in this hand. Initial scene / a new hand is a baseline.
+    if (presentationEventsEnabled && this.doraIds.length > 0
+      && this.doraIds.every((id, index) => nextDoraIds[index] === id)) {
+      nextDoraIds.slice(this.doraIds.length).forEach(instanceId => {
+        this.eventBus.publish({ type: 'dora_revealed', instanceId });
+      });
+    }
+    this.doraIds = nextDoraIds;
 
     state.players.forEach((player) => {
       const previousInstanceId = this.drawnTileInstanceIds[player.id] ?? null;

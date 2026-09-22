@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { memo, useEffect } from 'react';
 import type { GameState } from '../../game/types';
 import { AnalysisPanel } from '../AnalysisPanel';
 import { TileCounter } from '../TileCounter';
@@ -26,9 +26,14 @@ export function AnalysisDrawer({ open, gameState, onClose }: AnalysisDrawerProps
         <button type="button" aria-label="关闭牌局分析" onClick={onClose}>关闭</button>
       </div>
       <div className="analysis-drawer-body">
-        <AnalysisPanel gameState={gameState} />
-        <TileCounter gameState={gameState} />
+        {open ? <AnalysisContent gameState={gameState} /> : null}
       </div>
     </aside>
   );
 }
+
+// Presentation frames never change this immutable rules snapshot. In particular,
+// a closed drawer must not run recommendation search during the first discard.
+const AnalysisContent = memo(function AnalysisContent({ gameState }: { gameState: GameState }) {
+  return <><AnalysisPanel gameState={gameState} /><TileCounter gameState={gameState} /></>;
+});
