@@ -48,6 +48,8 @@ interface ActiveSequenceItem { readonly playback: ManagedVoicePlayback; readonly
 
 /** One automatic voice channel. Equal priority replaces the active voice; higher priority interrupts lower. */
 export class VoiceDirector {
+  /** Latest missing resource is inspectable without silently substituting another semantic key. */
+  lastMissingVoice: { eventId: string; key: string; actorId?: string; packId: string | null; reason: string } | null = null;
   private enabled: boolean;
   private volume: number;
   private assignments: VoiceSeatAssignments;
@@ -90,7 +92,7 @@ export class VoiceDirector {
       this.repository.listPacks(),
     );
     const url = packId ? this.repository.getAudioForKey(packId, event.key) : undefined;
-    if (!url) return 'missing';
+    if (!url) { this.lastMissingVoice = { eventId: event.eventId, key: event.key, actorId: event.actorId, packId, reason: packId ? '音频条目不可用，请查看 Voice Pack 资源诊断' : '没有可用的玩家语音包或该玩家已关闭语音' }; return 'missing'; }
     this.stop();
     const playback = this.channel.createVoicePlayback(`voice:${event.key}:${event.eventId}`, url, this.volume);
     if (!playback) return 'failed';

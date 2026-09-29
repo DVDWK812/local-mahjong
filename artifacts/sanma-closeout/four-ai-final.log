@@ -1,0 +1,10 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/game/ai.test.ts (24 tests) 350ms
+
+ Test Files  1 passed (1)
+      Tests  24 passed (24)
+   Start at  00:51:12
+   Duration  951ms (transform 163ms, setup 0ms, collect 227ms, tests 350ms, environment 0ms, prepare 90ms)
+

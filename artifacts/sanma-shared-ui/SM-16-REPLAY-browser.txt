@@ -1,0 +1,186 @@
+- main:
+  - generic "对局状态栏":
+    - generic: 模式：三人东 轮到：东家 你
+    - generic: 已暂停
+    - button "音乐设置": ♪
+    - button "规则说明"
+    - button "牌局分析"
+    - button "返回菜单"
+  - region "3D 麻将桌技术样板":
+    - generic "3D 中央信息区":
+      - region "中央计分区":
+        - generic: 自摸有损
+        - generic: 庄
+        - generic: 东
+        - strong: 42,800
+        - generic: 南
+        - strong: 31,100
+        - generic: 西
+        - strong: 31,100
+        - strong: 东1局
+        - generic: 0本场
+        - generic: 剩余53张
+    - generic: 3D 技术样板
+  - region "3D 牌桌信息层":
+    - generic "3D 宝牌信息层":
+      - complementary "宝牌指示牌":
+        - generic: 宝牌指示牌
+        - button "四筒" [disabled]:
+          - img "四筒"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - generic: 东1局 0本场
+        - generic: 供托0
+    - strong: 你
+    - generic "非摸切": 切
+    - strong: 电脑一
+    - generic "非摸切": 切
+    - strong: 电脑二
+    - generic "非摸切": 切
+  - region "本家手牌":
+    - button "一筒" [disabled]:
+      - img "一筒"
+    - button "二筒" [disabled]:
+      - img "二筒"
+    - button "三筒" [disabled]:
+      - img "三筒"
+    - button "四筒" [disabled]:
+      - img "四筒"
+    - button "五筒" [disabled]:
+      - img "五筒"
+    - button "六筒" [disabled]:
+      - img "六筒"
+    - button "一索" [disabled]:
+      - img "一索"
+    - button "二索" [disabled]:
+      - img "二索"
+    - button "三索" [disabled]:
+      - img "三索"
+    - button "六索" [disabled]:
+      - img "六索"
+    - button "七索" [disabled]:
+      - img "七索"
+    - button "东" [disabled]:
+      - img "东"
+    - button "东" [disabled]:
+      - img "东"
+    - button "八索" [disabled]:
+      - img "八索"
+  - dialog "自摸":
+    - heading "自摸" [level=2]
+    - paragraph: 三人东
+    - region "玩家点数变化":
+      - heading "点数变化" [level=3]
+      - generic: 你
+      - strong: +7,800
+      - generic: 35,000 → 42,800
+      - generic: 电脑一
+      - strong: "-3,900"
+      - generic: 35,000 → 31,100
+      - generic: 电脑二
+      - strong: "-3,900"
+      - generic: 35,000 → 31,100
+    - article:
+      - generic: 自摸
+      - strong: 你 · 庄
+      - generic: 自摸和牌
+      - generic "和牌牌组":
+        - region "宝牌指示牌":
+          - generic: 宝牌指示牌
+          - button "四筒" [disabled]:
+            - img "四筒"
+        - generic: 手牌
+        - generic "手牌":
+          - button "一筒" [disabled]:
+            - img "一筒"
+          - button "二筒" [disabled]:
+            - img "二筒"
+          - button "三筒" [disabled]:
+            - img "三筒"
+          - button "四筒" [disabled]:
+            - img "四筒"
+          - button "五筒" [disabled]:
+            - img "五筒"
+          - button "六筒" [disabled]:
+            - img "六筒"
+          - button "一索" [disabled]:
+            - img "一索"
+          - button "二索" [disabled]:
+            - img "二索"
+          - button "三索" [disabled]:
+            - img "三索"
+          - button "六索" [disabled]:
+            - img "六索"
+          - button "七索" [disabled]:
+            - img "七索"
+          - button "东" [disabled]:
+            - img "东"
+          - button "东" [disabled]:
+            - img "东"
+        - generic: 和牌张
+        - generic "和牌张":
+          - button "八索" [disabled]:
+            - img "八索"
+      - paragraph: 和牌张：8索
+      - region "役种明细":
+        - heading "役种" [level=3]
+        - generic: 门前清自摸
+        - strong: 1番
+        - generic: 岭上开花
+        - strong: 1番
+      - region "番符与得点":
+        - heading "番符与得点" [level=3]
+        - generic: 总番
+        - strong: 4番
+        - generic: 符
+        - strong: 30符
+        - generic: 结果得点
+        - strong: 7,800
+        - generic "宝牌信息":
+          - text: 宝牌
+          - strong: "1"
+          - text: 里宝牌
+          - strong: "0"
+          - text: 赤宝牌
+          - strong: "0"
+          - text: 拔北
+          - strong: "1"
+          - text: 合计
+          - strong: "2"
+        - generic: 本局点数变化
+        - strong: +7,800
+        - paragraph: 本场 0 · 供托 0 根；最终支付以点数变化为准。
+    - button "查看逐笔账本"
+    - button "关闭结果"
+  - complementary:
+    - strong: 规则与账本
+    - button: 关闭
+  - generic: 整场牌谱
+  - combobox "选择局数":
+    - option "整场牌谱 · 三人东" [selected]
+  - text: ▾
+  - button "本局开始"
+  - button "上一局" [disabled]
+  - button "上一步"
+  - button "播放" [disabled]
+  - button "下一步" [disabled]
+  - button "下一局" [disabled]
+  - button "本局结束" [disabled]
+  - generic: 播放速度
+  - combobox "回放速度":
+    - option "0.5×"
+    - option "1×" [selected]
+    - option "2×"
+    - option "4×"
+  - generic: 步骤进度：2 / 2
+  - slider "步骤进度": "2"
+- generic "展开／收起场景核查"
+- option "待核查" [selected]
+- option "通过"
+- option "不通过"

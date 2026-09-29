@@ -1,0 +1,30 @@
+import { createHash } from 'node:crypto';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+import type { Plugin } from 'vite';
+export function xzBuildStamp(root: string): Plugin {
+  const virtual = '\0virtual:xz-build';
+  let serving = false;
+  async function stamp() {
+    const hash = createHash('sha256');
+    async function walk(dir: string) {
+      for (const entry of (await fs.readdir(dir, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) { if (entry.name !== 'music') await walk(full); }
+        else if (/\.(ts|tsx|css|json)$/.test(entry.name)) { hash.update(path.relative(root, full)); hash.update(await fs.readFile(full)); }
+      }
+    }
+    await walk(path.join(root, 'src'));
+    hash.update(await fs.readFile(path.join(root, 'package-lock.json')));
+    let commit = '非 Git 工作区', snapshotId: string | undefined;
+    try { const snapshot = JSON.parse(await fs.readFile(path.join(root, '.xz-snapshot.json'), 'utf8')); commit = snapshot.commit; snapshotId = snapshot.snapshotId; }
+    catch { try { commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(); } catch { /* content fingerprint remains authoritative */ } }
+    return { commit, fingerprint: hash.digest('hex'), ...(snapshotId ? { snapshotId } : {}), buildMode: serving ? 'development' : process.env.VITE_ENABLE_TEST_MODE === 'true' ? 'diagnostic' : 'production' };
+  }
+  return { name: 'xuezhan-build-stamp', resolveId: id => id === 'virtual:xz-build' ? virtual : undefined,
+    configResolved(config) { serving = config.command === 'serve'; },
+    async load(id) { return id === virtual ? `export default ${JSON.stringify(await stamp())}` : undefined; },
+    handleHotUpdate(ctx) { const file = ctx.file.replaceAll('\\', '/'); if (!file.includes('/src/') || file.includes('/music/')) return; const module = ctx.server.moduleGraph.getModuleById(virtual); if (module) { ctx.server.moduleGraph.invalidateModule(module); return [...ctx.modules, module]; } },
+  };
+}

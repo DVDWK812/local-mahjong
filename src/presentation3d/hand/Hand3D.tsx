@@ -62,7 +62,7 @@ export function Hand3D({
   const hoverRevisionRef = useRef(0);
   const ownsPointer = presentation !== undefined;
   const hasDrawnTile = seatState.hand.some((tile) => tile.drawn);
-  const ronFlat = winPresentation?.action.winType === 'ron'
+  const ronFlat = seatState.exposedHand === true || winPresentation?.action.winType === 'ron'
     && (winPresentation.phase !== 'ready' || winPresentation.action.playerId !== seatState.playerId);
   const winMotion = resolveWinnerHandMotion3D(seatState.seat, ronFlat ? 'hold' : 'ready');
   const tsumo = winPresentation?.action.winType === 'tsumo' ? winPresentation : null;

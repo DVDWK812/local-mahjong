@@ -1,0 +1,1228 @@
+- main:
+  - navigation "测试模式分类":
+    - button "立直麻将"
+    - button "血战到底"
+    - button "三人立直麻将" [pressed]
+  - heading "三人立直麻将" [level=1]
+  - button "返回主菜单"
+  - paragraph: 正式规则、权威计时与三席3D共同运行。自动断言和人工核查分别记录；测试使用独立存储，默认完全控制及注入测试时钟。
+  - text: 比赛长度
+  - combobox "三人测试比赛长度":
+    - option "三人东" [selected]
+    - option "三人南"
+  - text: 支付策略
+  - combobox "三人测试支付策略":
+    - option "有自摸损" [selected]
+    - option "无自摸损"
+  - text: 固定seed
+  - spinbutton "三人测试seed": "100"
+  - button "开始自由测试对局"
+  - button "运行筛选场景自动检查"
+  - button "导出诊断报告"
+  - paragraph: 带有固定支付或长度的金样场景采用卡片指定配置；其他场景采用上方选择。
+  - text: 场景分类
+  - combobox "场景分类":
+    - option "全部" [selected]
+    - option "结算"
+    - option "碰杠与牌墙"
+    - option "计时与自动操作"
+    - option "流局"
+    - option "抢北"
+    - option "自摸支付"
+    - option "宝牌"
+    - option "AI"
+    - option "立直与首巡"
+    - option "比赛结束"
+    - option "保存与回放"
+    - option "入口与骨架"
+    - option "拔北"
+    - option "视觉与生命周期"
+  - textbox "搜索三人场景" [active]:
+    - /placeholder: caseId、名称或规则
+  - generic: 79个场景 · 规则sanma-riichi-v1 · 工作区5a60f8491365
+  - article:
+    - heading "大四喜双倍役满包牌与字一色" [level=2]
+    - code: SM-11-PAO-WINDS · v1
+    - paragraph: 大四喜双倍包牌96000；字一色单倍正常支付两家各16000
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-11-PAO-WINDS"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-11-PAO-WINDS人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-11-PAO-WINDS人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "第三者放铳与包牌均摊" [level=2]
+    - code: SM-11-PAO-RON · v1
+    - paragraph: 放铳电脑二与包牌电脑一各24000
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-11-PAO-RON"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-11-PAO-RON人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-11-PAO-RON人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "四杠加四北共八次补牌" [level=2]
+    - code: SM-09-EIGHT · v1
+    - paragraph: 北总数4，杠4，补牌8；指示区与四张滚动区无重复
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-09-EIGHT"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-09-EIGHT人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-09-EIGHT人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "碰后无摸入牌的确定性超时" [level=2]
+    - code: SM-14-PON-TIMEOUT · v1
+    - paragraph: 无drawn时按确定合法牌序弃牌，不拔北
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-14-PON-TIMEOUT"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-14-PON-TIMEOUT人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-14-PON-TIMEOUT人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "手动与超时同刻竞争及销毁旧回调" [level=2]
+    - code: SM-14-RACE · v1
+    - paragraph: 超时已发生则旧命令被拒绝；重置后旧运行时不能再推进
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-14-RACE"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-14-RACE人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-14-RACE人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "重复拔北命令与旧decisionId" [level=2]
+    - code: SM-14-DUPLICATE · v1
+    - paragraph: 一次动作一个补牌，旧decisionId不会拔第二张北
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-14-DUPLICATE"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-14-DUPLICATE人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-14-DUPLICATE人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "不碰杠仍允许自动抢北" [level=2]
+    - code: SM-14-AUTO-ROB · v1
+    - paragraph: 电脑一仍自动抢北，原北未入拔北区
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-14-AUTO-ROB"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-14-AUTO-ROB人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-14-AUTO-ROB人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "无役也可结构听牌收罚符" [level=2]
+    - code: SM-12-NOYAKU-TENPAI · v1
+    - paragraph: 无役单骑东仍算结构听牌，收到2000
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-12-NOYAKU-TENPAI"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-12-NOYAKU-TENPAI人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-12-NOYAKU-TENPAI人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "明杠：弃牌实例进入副露" [level=2]
+    - code: SM-03-MINKAN · v1
+    - paragraph: 一杠、两张指示牌、杠补牌；原弃牌变为已鸣别名
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-03-MINKAN"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-03-MINKAN人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-03-MINKAN人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "加杠：升级原碰组" [level=2]
+    - code: SM-03-KAKAN · v1
+    - paragraph: 原碰升级为加杠；副露数不变、补牌一次
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-03-KAKAN"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-03-KAKAN人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-03-KAKAN人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "加杠被抢，不翻宝牌不补牌" [level=2]
+    - code: SM-03-ROBKAN · v1
+    - paragraph: 抢杠有抢杠役；原碰仍是碰，补牌次数0
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-03-ROBKAN"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-03-ROBKAN人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-03-ROBKAN人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "国士抢暗杠" [level=2]
+    - code: SM-03-ROBANKAN · v1
+    - paragraph: 仅国士可抢暗杠；不成立杠、不补牌
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-03-ROBANKAN"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-03-ROBANKAN人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-03-ROBANKAN人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "一人四杠仍能和牌" [level=2]
+    - code: SM-09-FOUR-ONE · v1
+    - paragraph: 一人四杠不流局；四杠子正常计分
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-09-FOUR-ONE"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-09-FOUR-ONE人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-09-FOUR-ONE人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "多人第四杠，岭上优先" [level=2]
+    - code: SM-09-FOUR-TSUMO · v1
+    - paragraph: 第四杠先补牌，允许岭上；不提前流局
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-09-FOUR-TSUMO"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-09-FOUR-TSUMO人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-09-FOUR-TSUMO人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "多人第四杠，弃牌后散了" [level=2]
+    - code: SM-09-FOUR-ABORT · v1
+    - paragraph: 补牌后最后弃牌窗口结束才四杠散了
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-09-FOUR-ABORT"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-09-FOUR-ABORT人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-09-FOUR-ABORT人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "第四杠的最后弃牌仍可荣和" [level=2]
+    - code: SM-09-FOUR-RON · v1
+    - paragraph: 最后弃牌Ron优先于四杠散了
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-09-FOUR-RON"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-09-FOUR-RON人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-09-FOUR-RON人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "第五杠拒绝" [level=2]
+    - code: SM-09-FIFTH · v1
+    - paragraph: Rules直接拒绝第五杠命令
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-09-FIFTH"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-09-FIFTH人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-09-FIFTH人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "拔北与杠交错：先拔北" [level=2]
+    - code: SM-09-MIX-north-first · v1
+    - paragraph: 3次不同实体补牌；北2杠1，指标互不覆盖
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-09-MIX-north-first"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-09-MIX-north-first人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-09-MIX-north-first人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "拔北与杠交错：先暗杠" [level=2]
+    - code: SM-09-MIX-kan-first · v1
+    - paragraph: 3次不同实体补牌；北2杠1，指标互不覆盖
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-09-MIX-kan-first"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-09-MIX-kan-first人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-09-MIX-kan-first人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "0人听牌的荒牌流局" [level=2]
+    - code: SM-12-TENPAI-0 · v1
+    - paragraph: 无人收付不听罚符
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-12-TENPAI-0"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-12-TENPAI-0人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-12-TENPAI-0人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "1人听牌的荒牌流局" [level=2]
+    - code: SM-12-TENPAI-1 · v1
+    - paragraph: 听牌者+2000，其余各-1000
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-12-TENPAI-1"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-12-TENPAI-1人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-12-TENPAI-1人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "2人听牌的荒牌流局" [level=2]
+    - code: SM-12-TENPAI-2 · v1
+    - paragraph: 两位听牌者各+1000，不听者-2000
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-12-TENPAI-2"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-12-TENPAI-2人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-12-TENPAI-2人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "3人听牌的荒牌流局" [level=2]
+    - code: SM-12-TENPAI-3 · v1
+    - paragraph: 无人收付不听罚符
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-12-TENPAI-3"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-12-TENPAI-3人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-12-TENPAI-3人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "两人同时流局满贯" [level=2]
+    - code: SM-12-NAGASHI · v1
+    - paragraph: 同时按各自自摸满贯支付；供托仅给距离庄家最近的成立者
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-12-NAGASHI"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-12-NAGASHI人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-12-NAGASHI人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "大三元包牌责任追踪" [level=2]
+    - code: SM-11-PAO-SINGLE · v1
+    - paragraph: 包牌人支付庄家役满48000，另一家不支付基础点
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-11-PAO-SINGLE"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-11-PAO-SINGLE人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-11-PAO-SINGLE人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "大三元包牌只承担对应复合役满" [level=2]
+    - code: SM-11-PAO-COMPOUND · v1
+    - paragraph: 大三元包牌48000，字一色另按正常有损支付16000各家
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-11-PAO-COMPOUND"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-11-PAO-COMPOUND人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-11-PAO-COMPOUND人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "闲家国士13面双倍役满 · 有损" [level=2]
+    - code: SM-10-YAKUMAN-LOSS · v1
+    - paragraph: 庄32000、闲16000
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-10-YAKUMAN-LOSS"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-10-YAKUMAN-LOSS人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-10-YAKUMAN-LOSS人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "闲家国士13面双倍役满 · 无损" [level=2]
+    - code: SM-10-YAKUMAN-FULL · v1
+    - paragraph: 庄40000、闲24000
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-10-YAKUMAN-FULL"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-10-YAKUMAN-FULL人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-10-YAKUMAN-FULL人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "副露无役不能靠宝牌和牌" [level=2]
+    - code: SM-08-BONUS-NOYAKU · v1
+    - paragraph: 有拔北与普通宝牌也必须另有役
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-08-BONUS-NOYAKU"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-08-BONUS-NOYAKU人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-08-BONUS-NOYAKU人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "北对子值得保留" [level=2]
+    - code: SM-05-NORTH-PAIR · v1
+    - paragraph: 弃中保留北对子；不盲目拔北破坏听牌
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-05-NORTH-PAIR"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-05-NORTH-PAIR人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-05-NORTH-PAIR人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "立直后不得拔手内原有北" [level=2]
+    - code: SM-07-RIICHI-OLD-NORTH · v1
+    - paragraph: 只能弃刚摸的中，不能拔原北对子
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-07-RIICHI-OLD-NORTH"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-07-RIICHI-OLD-NORTH人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-07-RIICHI-OLD-NORTH人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "三人南的南三换西一" [level=2]
+    - code: SM-13-WEST · v1
+    - paragraph: 无人达目标，西一继续
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-13-WEST"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-13-WEST人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-13-WEST人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "追加场第三局上限与同分排序" [level=2]
+    - code: SM-13-EXTRA-CAP · v1
+    - paragraph: 追加场第三局无人听牌，按起始席次打破同分；成绩30／-5／-25
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-13-EXTRA-CAP"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-13-EXTRA-CAP人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-13-EXTRA-CAP人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "末庄听牌止与剩余供托" [level=2]
+    - code: SM-13-TENPAI-STOP · v1
+    - paragraph: 庄家听牌第一达到目标；终局供托给第一并列入最终账本
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-13-TENPAI-STOP"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-13-TENPAI-STOP人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-13-TENPAI-STOP人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "零点仍继续比赛" [level=2]
+    - code: SM-13-BANKRUPT-ZERO · v1
+    - paragraph: 零点不算击飞
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-13-BANKRUPT-ZERO"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-13-BANKRUPT-ZERO人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-13-BANKRUPT-ZERO人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "负点击飞" [level=2]
+    - code: SM-13-BANKRUPT-NEGATIVE · v1
+    - paragraph: 完整结算后才判断负点结束
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-13-BANKRUPT-NEGATIVE"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-13-BANKRUPT-NEGATIVE人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-13-BANKRUPT-NEGATIVE人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "抢北响应超时与预算挂起" [level=2]
+    - code: SM-14-RESPONSE-TIMEOUT · v1
+    - paragraph: 两家超时Pass；原行动者不在等待时扣Bank，不重复领取基础时间
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-14-RESPONSE-TIMEOUT"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-14-RESPONSE-TIMEOUT人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-14-RESPONSE-TIMEOUT人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "普通决策保存恢复不赠时" [level=2]
+    - code: SM-15-BUDGET · v1
+    - paragraph: 恢复后Bank19秒；到时只执行一次真实摸切
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-15-BUDGET"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-15-BUDGET人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-15-BUDGET人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "一人已荣和的响应存档与剩余时间" [level=2]
+    - code: SM-15-RESPONSE-BUDGET · v1
+    - paragraph: 已响者不重新询问；只剩电脑一预算19秒；收齐后单响不重复结算
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-15-RESPONSE-BUDGET"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-15-RESPONSE-BUDGET人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-15-RESPONSE-BUDGET人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "和／鸣／切同时开启优先和牌" [level=2]
+    - code: SM-14-AUTO-WIN · v1
+    - paragraph: 合法自摸优先于摸切；不碰杠不拦截和牌
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-14-AUTO-WIN"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-14-AUTO-WIN人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-14-AUTO-WIN人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "自动摸切不会自动拔北" [level=2]
+    - code: SM-14-AUTO-NORTH · v1
+    - paragraph: 真实摸入北直接弃入牌河，拔北区仍为0
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-14-AUTO-NORTH"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-14-AUTO-NORTH人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-14-AUTO-NORTH人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "测试保存隔离与版本拒绝" [level=2]
+    - code: SM-15-ISOLATION · v1
+    - paragraph: 测试写入独立键；错误schema及损坏语义存档被拒绝
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-15-ISOLATION"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-15-ISOLATION人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-15-ISOLATION人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "补牌后和结算边界恢复与跳转" [level=2]
+    - code: SM-16-BOUNDARIES · v1
+    - paragraph: 每个边界重建同一实例和完整账本
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-16-BOUNDARIES"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-16-BOUNDARIES人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-16-BOUNDARIES人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "未来补牌、暗手和里宝牌不进入AI" [level=2]
+    - code: SM-17-PRIVATE-WALL · v1
+    - paragraph: 改变未来补牌／对手暗手／里宝牌位置保持Observation与决策一致
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-17-PRIVATE-WALL"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-17-PRIVATE-WALL人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-17-PRIVATE-WALL人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "正式三人东配置与普通摸切" [level=2]
+    - code: SM-01-EAST · v1
+    - paragraph: 三名真实玩家、东一开局、108张、余牌54
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-01-EAST"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-01-EAST人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-01-EAST人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "正式三人南与无自摸损" [level=2]
+    - code: SM-01-SOUTH · v1
+    - paragraph: 东南战仍从东一开始；规则快照记录无损
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-01-SOUTH"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-01-SOUTH人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-01-SOUTH人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "三席身份与牌库守恒" [level=2]
+    - code: SM-02-IDENTITY · v1
+    - paragraph: 北风牌不是第四位玩家；无二至八万
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-02-IDENTITY"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-02-IDENTITY人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-02-IDENTITY人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "禁吃与碰后必须弃牌" [level=2]
+    - code: SM-03-PON · v1
+    - paragraph: Rules拒绝Chi；碰后无drawn且只能合法弃牌
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-03-PON"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-03-PON人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-03-PON人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "单次拔北" [level=2]
+    - code: SM-04-NORTH · v1
+    - paragraph: 原北instanceId进入拔北区；补牌来源north；不翻杠宝牌
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-04-NORTH"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-04-NORTH人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-04-NORTH人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "连续拔北至四张" [level=2]
+    - code: SM-04-CHAIN · v1
+    - paragraph: 四张北保留原身份；只消耗四次补牌；仍未副露
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-04-CHAIN"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-04-CHAIN人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-04-CHAIN人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "保留北作国士／正常弃北" [level=2]
+    - code: SM-05-KEEP · v1
+    - paragraph: 北可作为国士组成牌；弃北进入河而非拔北区
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-05-KEEP"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-05-KEEP人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-05-KEEP人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "合法抢北单响" [level=2]
+    - code: SM-06-ROB · v1
+    - paragraph: 有役者可抢北；无役者不获得Ron；不补牌不加拔北
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-06-ROB"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-06-ROB人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-06-ROB人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "抢北双响原子结算" [level=2]
+    - code: SM-06-DOUBLE · v1
+    - paragraph: 收齐才结算；本场和供托只给电脑一
+    - paragraph: 自动：需复验 · 人工：待核查（版本变化）
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-06-DOUBLE"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-06-DOUBLE人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-06-DOUBLE人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "无役与振听拒绝抢北" [level=2]
+    - code: SM-06-NOYAKU · v1
+    - paragraph: 无额外抢杠役；两家不具资格时立即补牌
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-06-NOYAKU"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-06-NOYAKU人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-06-NOYAKU人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "放过抢北与立直振听" [level=2]
+    - code: SM-07-FURITEN · v1
+    - paragraph: 电脑一永久振听，电脑二临时振听；成立时全桌一发打断
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-07-FURITEN"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-07-FURITEN人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-07-FURITEN人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "立直拔摸入北，补北岭上" [level=2]
+    - code: SM-07-RINSHAN · v1
+    - paragraph: 补北岭上；无海底、无一发；等待不变
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-07-RINSHAN"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-07-RINSHAN人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-07-RINSHAN人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "西指北、拔北、里宝牌叠加" [level=2]
+    - code: SM-08-DORA · v1
+    - paragraph: 拔北2、普通宝牌2、里宝牌2独立显示
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-08-DORA"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-08-DORA人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-08-DORA人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "暗杠补牌与资源归属" [level=2]
+    - code: SM-09-ANKAN · v1
+    - paragraph: 暗杠增加一杠，指示牌2张；真实补牌
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-09-ANKAN"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-09-ANKAN人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-09-ANKAN人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "墙尽禁止拔北与杠" [level=2]
+    - code: SM-09-EMPTY · v1
+    - paragraph: 没有合法补牌资源，不提供补牌动作
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-09-EMPTY"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-09-EMPTY人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-09-EMPTY人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "闲家30符2番 · 有损" [level=2]
+    - code: SM-10-LOW-LOSS · v1
+    - paragraph: 庄付1000、另一闲家付500
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-10-LOW-LOSS"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-10-LOW-LOSS人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-10-LOW-LOSS人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "闲家满贯 · 有损" [level=2]
+    - code: SM-10-MANGAN-LOSS · v1
+    - paragraph: 庄4000、闲2000
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-10-MANGAN-LOSS"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-10-MANGAN-LOSS人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-10-MANGAN-LOSS人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "庄家满贯 · 有损" [level=2]
+    - code: SM-10-DEALER-LOSS · v1
+    - paragraph: 两闲各4000
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-10-DEALER-LOSS"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-10-DEALER-LOSS人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-10-DEALER-LOSS人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "闲家跳满 · 有损" [level=2]
+    - code: SM-10-HANEMAN-LOSS · v1
+    - paragraph: 庄6000、闲3000
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-10-HANEMAN-LOSS"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-10-HANEMAN-LOSS人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-10-HANEMAN-LOSS人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "闲家30符2番 · 无损" [level=2]
+    - code: SM-10-LOW-FULL · v1
+    - paragraph: 庄付1300、另一闲家付800
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-10-LOW-FULL"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-10-LOW-FULL人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-10-LOW-FULL人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "闲家满贯 · 无损" [level=2]
+    - code: SM-10-MANGAN-FULL · v1
+    - paragraph: 庄5000、闲3000
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-10-MANGAN-FULL"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-10-MANGAN-FULL人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-10-MANGAN-FULL人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "庄家满贯 · 无损" [level=2]
+    - code: SM-10-DEALER-FULL · v1
+    - paragraph: 两闲各6000
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-10-DEALER-FULL"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-10-DEALER-FULL人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-10-DEALER-FULL人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "闲家跳满 · 无损" [level=2]
+    - code: SM-10-HANEMAN-FULL · v1
+    - paragraph: 庄7500、闲4500
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-10-HANEMAN-FULL"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-10-HANEMAN-FULL人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-10-HANEMAN-FULL人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "本场与供托单独入账" [level=2]
+    - code: SM-11-HONBA · v1
+    - paragraph: 本场两家各200；供托1000只领取一次
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-11-HONBA"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-11-HONBA人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-11-HONBA人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "九种九牌" [level=2]
+    - code: SM-12-ABORT · v1
+    - paragraph: 途中流局连庄，本场+1
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-12-ABORT"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-12-ABORT人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-12-ABORT人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "东三常规终局" [level=2]
+    - code: SM-13-EAST-END · v1
+    - paragraph: 东三庄家第一达目标，和了止
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-13-EAST-END"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-13-EAST-END人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-13-EAST-END人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "南三常规终局" [level=2]
+    - code: SM-13-SOUTH-END · v1
+    - paragraph: 三人南在南三按末庄规则结束
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-13-SOUTH-END"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-13-SOUTH-END人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-13-SOUTH-END人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "东三无人达标，南入" [level=2]
+    - code: SM-13-EXTEND · v1
+    - paragraph: 无人达40000时进入南一，不按三局硬停止
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-13-EXTEND"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-13-EXTEND人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-13-EXTEND人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "中途40000不误结束" [level=2]
+    - code: SM-13-MIDTARGET · v1
+    - paragraph: 虽然超过40000，东一仍继续比赛
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-13-MIDTARGET"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-13-MIDTARGET人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-13-MIDTARGET人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "权威超时摸切及旧命令拒绝" [level=2]
+    - code: SM-14-TIME · v1
+    - paragraph: 基础5秒＋Bank20秒后摸切；不会自动拔北
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-14-TIME"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-14-TIME人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-14-TIME人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "连续拔北不赠时间" [level=2]
+    - code: SM-14-NORTH-BUDGET · v1
+    - paragraph: 不重新获得同回合基础时间，响应期间原玩家预算挂起
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-14-NORTH-BUDGET"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-14-NORTH-BUDGET人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-14-NORTH-BUDGET人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "抢北响应保存恢复" [level=2]
+    - code: SM-15-RESTORE · v1
+    - paragraph: 响应存档恢复不发补牌，已响应者不重复结算
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-15-RESTORE"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-15-RESTORE人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-15-RESTORE人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "拔北与和牌确定性回放" [level=2]
+    - code: SM-16-REPLAY · v1
+    - paragraph: 相同命令重建相同实体状态与账本，不再次运行AI
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-16-REPLAY"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-16-REPLAY人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-16-REPLAY人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "AI信息边界与合法拔北" [level=2]
+    - code: SM-17-AI · v1
+    - paragraph: 隐藏牌置换不改变相同Observation决策
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-17-AI"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-17-AI人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-17-AI人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - article:
+    - heading "合法行牌形成的长牌河" [level=2]
+    - code: SM-18-LONG-RIVER · v1
+    - paragraph: 通过真实摸切和碰形成超过18张的牌河；保留完整动作前缀；没有虚构连续弃牌
+    - paragraph: 自动：未运行 · 人工：待核查
+    - generic "前置条件、操作步骤与观察重点"
+    - button "加载 SM-18-LONG-RIVER"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-18-LONG-RIVER人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-18-LONG-RIVER人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - generic "导入三人存档或失败复现（测试隔离）"

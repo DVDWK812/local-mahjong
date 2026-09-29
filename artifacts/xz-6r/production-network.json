@@ -1,0 +1,488 @@
+{
+  "cursor": 171,
+  "events": [
+    {
+      "sequence": 29,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.responseReceived",
+      "params": {
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasExtraInfo": true,
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "requestId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "response": {
+          "alternateProtocolUsage": "unspecifiedReason",
+          "charset": "",
+          "connectionId": 4984,
+          "connectionReused": true,
+          "encodedDataLength": 127,
+          "fromDiskCache": false,
+          "fromPrefetchCache": false,
+          "fromServiceWorker": false,
+          "headers": {
+            "Cache-Control": "no-cache",
+            "Content-Type": "text/html",
+            "Date": "Wed, 23 Sep 2026 14:45:07 GMT",
+            "Etag": "W/\"1a5-PfhkAavXinvPTzoIf2XL895ZduE\"",
+            "Vary": "Origin"
+          },
+          "mimeType": "text/html",
+          "protocol": "http/1.1",
+          "remoteIPAddress": "127.0.0.1",
+          "remotePort": 5189,
+          "responseTime": 1790174707658.097,
+          "securityState": "secure",
+          "status": 200,
+          "statusText": "OK",
+          "timing": {
+            "connectEnd": -1,
+            "connectStart": -1,
+            "dnsEnd": -1,
+            "dnsStart": -1,
+            "proxyEnd": -1,
+            "proxyStart": -1,
+            "pushEnd": 0,
+            "pushStart": 0,
+            "receiveHeadersEnd": 3.285,
+            "receiveHeadersStart": 3.174,
+            "requestTime": 13559.312618,
+            "sendEnd": 0.411,
+            "sendStart": 0.328,
+            "sslEnd": -1,
+            "sslStart": -1,
+            "workerFetchStart": -1,
+            "workerReady": -1,
+            "workerRespondWithSettled": -1,
+            "workerStart": -1
+          },
+          "url": "http://127.0.0.1:5189/?mute=1"
+        },
+        "timestamp": 13559.317309,
+        "type": "Document"
+      }
+    },
+    {
+      "sequence": 44,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.responseReceived",
+      "params": {
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasExtraInfo": true,
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "requestId": "22024.14",
+        "response": {
+          "alternateProtocolUsage": "unspecifiedReason",
+          "charset": "",
+          "connectionId": 4998,
+          "connectionReused": false,
+          "encodedDataLength": 179,
+          "fromDiskCache": false,
+          "fromPrefetchCache": false,
+          "fromServiceWorker": false,
+          "headers": {
+            "Access-Control-Allow-Origin": "http://127.0.0.1:5189",
+            "Cache-Control": "no-cache",
+            "Content-Encoding": "gzip",
+            "Content-Type": "text/css",
+            "Date": "Wed, 23 Sep 2026 14:45:07 GMT",
+            "ETag": "W/\"157955-1790096643794\"",
+            "Last-Modified": "Tue, 22 Sep 2026 17:04:03 GMT",
+            "Vary": "Origin"
+          },
+          "mimeType": "text/css",
+          "protocol": "http/1.1",
+          "remoteIPAddress": "127.0.0.1",
+          "remotePort": 5189,
+          "responseTime": 1790174707667.215,
+          "securityState": "secure",
+          "status": 200,
+          "statusText": "OK",
+          "timing": {
+            "connectEnd": 0.681,
+            "connectStart": 0.202,
+            "dnsEnd": 0.202,
+            "dnsStart": 0.195,
+            "proxyEnd": -1,
+            "proxyStart": -1,
+            "pushEnd": 0,
+            "pushStart": 0,
+            "receiveHeadersEnd": 6.713,
+            "receiveHeadersStart": 2.407,
+            "requestTime": 13559.322503,
+            "sendEnd": 0.733,
+            "sendStart": 0.697,
+            "sslEnd": -1,
+            "sslStart": -1,
+            "workerFetchStart": -1,
+            "workerReady": -1,
+            "workerRespondWithSettled": -1,
+            "workerStart": -1
+          },
+          "url": "http://127.0.0.1:5189/assets/index-CxpmsJ3d.css"
+        },
+        "timestamp": 13559.346046,
+        "type": "Stylesheet"
+      }
+    },
+    {
+      "sequence": 48,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.responseReceived",
+      "params": {
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasExtraInfo": true,
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "requestId": "22024.13",
+        "response": {
+          "alternateProtocolUsage": "unspecifiedReason",
+          "charset": "",
+          "connectionId": 4984,
+          "connectionReused": true,
+          "encodedDataLength": 179,
+          "fromDiskCache": false,
+          "fromPrefetchCache": false,
+          "fromServiceWorker": false,
+          "headers": {
+            "Access-Control-Allow-Origin": "http://127.0.0.1:5189",
+            "Cache-Control": "no-cache",
+            "Content-Encoding": "gzip",
+            "Content-Type": "text/javascript",
+            "Date": "Wed, 23 Sep 2026 14:45:07 GMT",
+            "ETag": "W/\"2535990-1790096643833\"",
+            "Last-Modified": "Tue, 22 Sep 2026 17:04:03 GMT",
+            "Vary": "Origin"
+          },
+          "mimeType": "text/javascript",
+          "protocol": "http/1.1",
+          "remoteIPAddress": "127.0.0.1",
+          "remotePort": 5189,
+          "responseTime": 1790174707666.467,
+          "securityState": "secure",
+          "status": 200,
+          "statusText": "OK",
+          "timing": {
+            "connectEnd": -1,
+            "connectStart": -1,
+            "dnsEnd": -1,
+            "dnsStart": -1,
+            "proxyEnd": -1,
+            "proxyStart": -1,
+            "pushEnd": 0,
+            "pushStart": 0,
+            "receiveHeadersEnd": 1.848,
+            "receiveHeadersStart": 1.723,
+            "requestTime": 13559.322439,
+            "sendEnd": 0.723,
+            "sendStart": 0.673,
+            "sslEnd": -1,
+            "sslStart": -1,
+            "workerFetchStart": -1,
+            "workerReady": -1,
+            "workerRespondWithSettled": -1,
+            "workerStart": -1
+          },
+          "url": "http://127.0.0.1:5189/assets/index-Bsh7BwVy.js"
+        },
+        "timestamp": 13559.360364,
+        "type": "Script"
+      }
+    },
+    {
+      "sequence": 62,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.responseReceived",
+      "params": {
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasExtraInfo": true,
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "requestId": "22024.17",
+        "response": {
+          "alternateProtocolUsage": "unspecifiedReason",
+          "charset": "",
+          "connectionId": 4998,
+          "connectionReused": true,
+          "encodedDataLength": 127,
+          "fromDiskCache": false,
+          "fromPrefetchCache": false,
+          "fromServiceWorker": false,
+          "headers": {
+            "Connection": "keep-alive",
+            "Date": "Wed, 23 Sep 2026 14:45:07 GMT",
+            "Keep-Alive": "timeout=5",
+            "Vary": "Origin"
+          },
+          "mimeType": "image/png",
+          "protocol": "http/1.1",
+          "remoteIPAddress": "127.0.0.1",
+          "remotePort": 5189,
+          "responseTime": 1790174707771.32,
+          "securityState": "secure",
+          "status": 304,
+          "statusText": "Not Modified",
+          "timing": {
+            "connectEnd": -1,
+            "connectStart": -1,
+            "dnsEnd": -1,
+            "dnsStart": -1,
+            "proxyEnd": -1,
+            "proxyStart": -1,
+            "pushEnd": 0,
+            "pushStart": 0,
+            "receiveHeadersEnd": 1.462,
+            "receiveHeadersStart": 1.384,
+            "requestTime": 13559.427631,
+            "sendEnd": 0.416,
+            "sendStart": 0.323,
+            "sslEnd": -1,
+            "sslStart": -1,
+            "workerFetchStart": -1,
+            "workerReady": -1,
+            "workerRespondWithSettled": -1,
+            "workerStart": -1
+          },
+          "url": "http://127.0.0.1:5189/assets/z7-CNesh7eW.png"
+        },
+        "timestamp": 13559.431423,
+        "type": "Image"
+      }
+    },
+    {
+      "sequence": 75,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.loadingFailed",
+      "params": {
+        "canceled": true,
+        "errorText": "net::ERR_ABORTED",
+        "requestId": "22024.19",
+        "timestamp": 13559.458195,
+        "type": "Media"
+      }
+    },
+    {
+      "sequence": 80,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.responseReceived",
+      "params": {
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasExtraInfo": true,
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "requestId": "22024.20",
+        "response": {
+          "alternateProtocolUsage": "unspecifiedReason",
+          "charset": "",
+          "connectionId": 4998,
+          "connectionReused": true,
+          "encodedDataLength": 350,
+          "fromDiskCache": false,
+          "fromPrefetchCache": false,
+          "fromServiceWorker": false,
+          "headers": {
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Content-Length": "33469142",
+            "Content-Range": "bytes 0-33469141/33469142",
+            "Content-Type": "audio/wav",
+            "Date": "Wed, 23 Sep 2026 14:45:07 GMT",
+            "ETag": "W/\"33469142-1790096643916\"",
+            "Keep-Alive": "timeout=5",
+            "Last-Modified": "Tue, 22 Sep 2026 17:04:03 GMT",
+            "Vary": "Origin"
+          },
+          "mimeType": "audio/wav",
+          "protocol": "http/1.1",
+          "remoteIPAddress": "127.0.0.1",
+          "remotePort": 5189,
+          "responseTime": 1790174707804.248,
+          "securityState": "secure",
+          "status": 206,
+          "statusText": "Partial Content",
+          "timing": {
+            "connectEnd": -1,
+            "connectStart": -1,
+            "dnsEnd": -1,
+            "dnsStart": -1,
+            "proxyEnd": -1,
+            "proxyStart": -1,
+            "pushEnd": 0,
+            "pushStart": 0,
+            "receiveHeadersEnd": 2.516,
+            "receiveHeadersStart": 2.442,
+            "requestTime": 13559.459501,
+            "sendEnd": 0.57,
+            "sendStart": 0.478,
+            "sslEnd": -1,
+            "sslStart": -1,
+            "workerFetchStart": -1,
+            "workerReady": -1,
+            "workerRespondWithSettled": -1,
+            "workerStart": -1
+          },
+          "url": "http://127.0.0.1:5189/assets/Double%20Down-Bn4HrJ3r.wav"
+        },
+        "timestamp": 13559.462649,
+        "type": "Media"
+      }
+    },
+    {
+      "sequence": 87,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.loadingFailed",
+      "params": {
+        "canceled": true,
+        "errorText": "net::ERR_ABORTED",
+        "requestId": "22024.20",
+        "timestamp": 13559.47216,
+        "type": "Media"
+      }
+    },
+    {
+      "sequence": 90,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.responseReceived",
+      "params": {
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasExtraInfo": true,
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "requestId": "22024.21",
+        "response": {
+          "alternateProtocolUsage": "unspecifiedReason",
+          "charset": "",
+          "connectionId": 4984,
+          "connectionReused": true,
+          "encodedDataLength": 354,
+          "fromDiskCache": false,
+          "fromPrefetchCache": false,
+          "fromServiceWorker": false,
+          "headers": {
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "no-cache",
+            "Content-Length": "13014",
+            "Content-Range": "bytes 33456128-33469141/33469142",
+            "Content-Type": "audio/wav",
+            "Date": "Wed, 23 Sep 2026 14:45:07 GMT",
+            "ETag": "W/\"33469142-1790096643916\"",
+            "Last-Modified": "Tue, 22 Sep 2026 17:04:03 GMT",
+            "Vary": "Origin"
+          },
+          "mimeType": "audio/wav",
+          "protocol": "http/1.1",
+          "remoteIPAddress": "127.0.0.1",
+          "remotePort": 5189,
+          "responseTime": 1790174707817.161,
+          "securityState": "secure",
+          "status": 206,
+          "statusText": "Partial Content",
+          "timing": {
+            "connectEnd": -1,
+            "connectStart": -1,
+            "dnsEnd": -1,
+            "dnsStart": -1,
+            "proxyEnd": -1,
+            "proxyStart": -1,
+            "pushEnd": 0,
+            "pushStart": 0,
+            "receiveHeadersEnd": 2.279,
+            "receiveHeadersStart": 2.186,
+            "requestTime": 13559.47267,
+            "sendEnd": 0.753,
+            "sendStart": 0.698,
+            "sslEnd": -1,
+            "sslStart": -1,
+            "workerFetchStart": -1,
+            "workerReady": -1,
+            "workerRespondWithSettled": -1,
+            "workerStart": -1
+          },
+          "url": "http://127.0.0.1:5189/assets/Double%20Down-Bn4HrJ3r.wav"
+        },
+        "timestamp": 13559.475414,
+        "type": "Media"
+      }
+    },
+    {
+      "sequence": 101,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.responseReceived",
+      "params": {
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasExtraInfo": true,
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "requestId": "22024.22",
+        "response": {
+          "alternateProtocolUsage": "unspecifiedReason",
+          "charset": "",
+          "connectionId": 5119,
+          "connectionReused": false,
+          "encodedDataLength": 127,
+          "fromDiskCache": false,
+          "fromPrefetchCache": false,
+          "fromServiceWorker": false,
+          "headers": {
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "no-cache",
+            "Content-Length": "31240918",
+            "Content-Range": "bytes 2228224-33469141/33469142",
+            "Content-Type": "audio/wav",
+            "Date": "Wed, 23 Sep 2026 14:45:16 GMT",
+            "ETag": "W/\"33469142-1790096643916\"",
+            "Last-Modified": "Tue, 22 Sep 2026 17:04:03 GMT",
+            "Vary": "Origin"
+          },
+          "mimeType": "audio/wav",
+          "protocol": "http/1.1",
+          "remoteIPAddress": "127.0.0.1",
+          "remotePort": 5189,
+          "responseTime": 1790174716850.691,
+          "securityState": "secure",
+          "status": 206,
+          "statusText": "Partial Content",
+          "timing": {
+            "connectEnd": 1.03,
+            "connectStart": 0.761,
+            "dnsEnd": 0.761,
+            "dnsStart": 0.523,
+            "proxyEnd": -1,
+            "proxyStart": -1,
+            "pushEnd": 0,
+            "pushStart": 0,
+            "receiveHeadersEnd": 2.188,
+            "receiveHeadersStart": 2.078,
+            "requestTime": 13568.506308,
+            "sendEnd": 1.129,
+            "sendStart": 1.072,
+            "sslEnd": -1,
+            "sslStart": -1,
+            "workerFetchStart": -1,
+            "workerReady": -1,
+            "workerRespondWithSettled": -1,
+            "workerStart": -1
+          },
+          "url": "http://127.0.0.1:5189/assets/Double%20Down-Bn4HrJ3r.wav"
+        },
+        "timestamp": 13568.508979,
+        "type": "Media"
+      }
+    }
+  ],
+  "hasMore": false,
+  "truncated": false
+}

@@ -6,9 +6,10 @@ import { FixedTableCamera, TABLE_CAMERA } from './camera/FixedTableCamera';
 import type { Table3DSeat } from './coordinates/seatTransforms';
 import { Hand3D } from './hand/Hand3D';
 import { TableLighting } from './lighting/TableLighting';
+import { NorthTiles3D } from './meld/NorthTiles3D';
 import { Meld3D } from './meld/Meld3D';
 import { River3D } from './river/River3D';
-import type { TableSceneState } from './sceneState/tableSceneTypes';
+import type { OccupiedTableSceneState } from './sceneState/tableSceneTypes';
 import { TableMesh } from './table/TableMesh';
 import { TableEnvironment } from './table/TableEnvironment';
 import { DEFAULT_TABLE_VISUAL_THEME, type TableVisualTheme } from './table/tableVisualTheme';
@@ -37,7 +38,7 @@ import { AvatarFrameTuningPanel } from './table/AvatarFrameTuningPanel';
 import { resolveHandPackForPlayer, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
 
 type Table3DSceneProps = Readonly<{
-  sceneState: TableSceneState;
+  sceneState: OccupiedTableSceneState;
   animationsEnabled?: boolean;
   animationSessionKey?: string;
   animationTurn?: number;
@@ -67,6 +68,7 @@ const StableTableScene = memo(function StableTableScene({
   handPresentation,
   hiddenRiverKeys,
   hiddenMeldTileKeys,
+  hiddenNorthKeys,
   winPresentation3D,
   winHandPack,
   tableVisualTheme,
@@ -75,11 +77,12 @@ const StableTableScene = memo(function StableTableScene({
   centralHud,
   onTileLayerReady,
 }: Readonly<{
-  sceneState: TableSceneState;
+  sceneState: OccupiedTableSceneState;
   hiddenHandKeys: TableAnimation3DRenderState['hiddenHandKeys'];
   handPresentation?: import('../presentation/handAnimation/HandPresentationSnapshot').HandPresentationFrame;
   hiddenRiverKeys: TableAnimation3DRenderState['hiddenRiverKeys'];
   hiddenMeldTileKeys: TableAnimation3DRenderState['hiddenMeldTileKeys'];
+  hiddenNorthKeys?: ReadonlySet<string>;
   winPresentation3D?: WinPresentation3DState | null;
   winHandPack?: import('../hand/handPacks').HandPack;
   tableVisualTheme: TableVisualTheme;
@@ -98,35 +101,36 @@ const StableTableScene = memo(function StableTableScene({
       {centralHud ? <CentralConsoleHudAnchor3D riichiLanes>{centralHud}</CentralConsoleHudAnchor3D> : null}
       <Suspense fallback={null}>
         <TileTextureWarmup />
-        {SEAT_ORDER.map((seat) => (
+        {SEAT_ORDER.flatMap((seat) => { const seatState = sceneState.seats[seat]; return seatState ? [ (
           <group key={seat}>
             {seat === 'bottom' ? null : (
               <Hand3D
-                seatState={sceneState.seats[seat]}
+                seatState={seatState}
                 winHandPack={winHandPack}
-                handPresentation={handPresentation?.snapshot.playerId === sceneState.seats[seat].playerId ? handPresentation : undefined}
+                handPresentation={handPresentation?.snapshot.playerId === seatState.playerId ? handPresentation : undefined}
                 hiddenTileKeys={hiddenHandKeys}
-                winPresentation={winPresentation3D?.action.playerId === sceneState.seats[seat].playerId || winPresentation3D?.revealedPlayerIds?.includes(sceneState.seats[seat].playerId)
+                winPresentation={winPresentation3D?.action.playerId === seatState.playerId || winPresentation3D?.revealedPlayerIds?.includes(seatState.playerId)
                   ? winPresentation3D
                   : null}
                 visualContext={tileVisualContext}
               />
             )}
             <River3D
-              seatState={sceneState.seats[seat]}
+              seatState={seatState}
               hiddenTileKeys={hiddenRiverKeys}
-              winningRiverIndex={winningRiverTarget?.playerId === sceneState.seats[seat].playerId
+              winningRiverIndex={winningRiverTarget?.playerId === seatState.playerId
                 ? winningRiverTarget.riverIndex
                 : undefined}
               visualContext={tileVisualContext}
             />
             <Meld3D
-              seatState={sceneState.seats[seat]}
+              seatState={seatState}
               hiddenTileKeys={hiddenMeldTileKeys}
               visualContext={tileVisualContext}
             />
+            <NorthTiles3D seatState={seatState} hiddenKeys={hiddenNorthKeys} />
           </group>
-        ))}
+        ) ] : []; })}
         <SceneLayerReady onReady={onTileLayerReady} />
       </Suspense>
     </>
@@ -160,10 +164,10 @@ export function Table3DScene({
   const playerSlotAppearances = usePlayerSlotAppearances();
   const winningRiverTarget = resolveWinningRiverTarget3D(winPresentation3D ?? null);
   const winningRevealSeat = winPresentation3D
-    ? SEAT_ORDER.find((seat) => sceneState.seats[seat].playerId === winPresentation3D.action.playerId)
+    ? SEAT_ORDER.find((seat) => sceneState.seats[seat]?.playerId === winPresentation3D.action.playerId)
     : undefined;
   const winningRevealFaceUpCount = winningRevealSeat
-    ? sceneState.seats[winningRevealSeat].hand.filter((tile) => tile.faceState === 'face-up').length
+    ? sceneState.seats[winningRevealSeat]?.hand.filter((tile) => tile.faceState === 'face-up').length
     : undefined;
   const sourceStoreRef = useRef<DiscardSource3DStore | null>(null);
   if (!sourceStoreRef.current) sourceStoreRef.current = new DiscardSource3DStore();
@@ -211,8 +215,8 @@ export function Table3DScene({
     animation.hiddenRiichiSeats,
   );
   const tableSceneReady = tileLayerReady && riichiLayerReady;
-  const criticalPlayerIds = SEAT_ORDER.map((seat) => sceneState.seats[seat].playerId);
-  const criticalRiichiPlayerIds = visibleRiichiSeats.map((seat) => sceneState.seats[seat].playerId);
+  const criticalPlayerIds = Object.values(sceneState.seats).map(seat => seat.playerId);
+  const criticalRiichiPlayerIds = visibleRiichiSeats.flatMap((seat) => sceneState.seats[seat] ? [sceneState.seats[seat]!.playerId] : []);
   const handleRendererReady = useCallback(() => setRendererReady(true), []);
   const handleTileLayerReady = useCallback(() => setTileLayerReady(true), []);
   const handleRiichiLayerReady = useCallback(() => setRiichiLayerReady(true), []);
@@ -246,9 +250,9 @@ export function Table3DScene({
       data-tile-hover-identity={tileVisualContext?.hoveredTileType ?? ''}
       data-dora-glow-enabled={tileVisualContext?.doraGlowEnabled === true ? 'true' : 'false'}
       data-visible-dora-tile-count={SEAT_ORDER.reduce((count, seat) => count
-        + sceneState.seats[seat].river.filter((tile) => tile.visible && tile.tile?.doraKind).length
-        + sceneState.seats[seat].melds.reduce((meldCount, meld) => meldCount
-          + meld.tiles.filter((tile) => tile.faceState === 'face-up' && tile.tile?.doraKind).length, 0), 0)}
+        + (sceneState.seats[seat]?.river.filter((tile) => tile.visible && tile.tile?.doraKind).length ?? 0)
+        + (sceneState.seats[seat]?.melds.reduce((meldCount, meld) => meldCount
+          + meld.tiles.filter((tile) => tile.faceState === 'face-up' && tile.tile?.doraKind).length, 0) ?? 0), 0)}
       data-dora-sweep-active-count="0"
       data-dora-sweep-pulse-count="0"
       data-dora-sweep-last-start-ms="0"
@@ -290,6 +294,7 @@ export function Table3DScene({
                   handPresentation={animation.active?.handPresentation}
                   hiddenRiverKeys={animation.hiddenRiverKeys}
                   hiddenMeldTileKeys={animation.hiddenMeldTileKeys}
+                  hiddenNorthKeys={animation.hiddenNorthKeys}
                   winPresentation3D={winPresentation3D}
                   winHandPack={resolveHandPackForPlayer(winPresentation3D?.action.playerId ?? 0, playerSlotAppearances, appearanceSettings)}
                   tableVisualTheme={tableVisualTheme}

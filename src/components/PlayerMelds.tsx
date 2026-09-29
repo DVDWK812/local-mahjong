@@ -4,6 +4,7 @@ import { MeldDisplay } from './MeldDisplay';
 
 interface PlayerMeldsProps {
   player: PlayerState;
+  displayMelds?: import('../game/meldDisplayAdapter').MeldDisplayModel[];
   seatClass?: string;
   doraIndicators?: TileModel[];
   doraGlowEnabled?: boolean;
@@ -12,8 +13,8 @@ interface PlayerMeldsProps {
   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
 }
 
-export function PlayerMelds({ player, seatClass = '', doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange }: PlayerMeldsProps) {
-  const melds = callsToMeldDisplayModels(player.calls, player.id);
+export function PlayerMelds({ player, displayMelds, seatClass = '', doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange }: PlayerMeldsProps) {
+  const melds = displayMelds ?? callsToMeldDisplayModels(player.calls, player.id);
   if (melds.length === 0) return null;
   return (
     <div className={`player-melds ${seatClass}`} aria-label={`${player.name} 副露`}>

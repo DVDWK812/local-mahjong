@@ -1,0 +1,12 @@
+{
+  "bytes": 28288,
+  "sha256": "CB970065ED12085F78F3CB3423F39545D748301BF9C7E4855B4F600C0B4CD767",
+  "mode": "xuezhan",
+  "code": {
+    "commit": "5620bbbb4f73fa1001d663f49c98ad88e75b58e8",
+    "fingerprint": "4c2e19b00d290c60bf972097014f1b88048398ba1efd3d2ce388883afd22f598",
+    "snapshotId": "d9068d2f09c3130a6cfc1cf361d87e33b6e84786cf5a5061518391733456c648",
+    "buildMode": "production"
+  },
+  "cases": "XZ-TRIPLE"
+}

@@ -1,0 +1,248 @@
+- generic "展开／收起测试控制区"
+- checkbox "完全控制（关闭 AI）" [checked]
+- text: 完全控制（关闭 AI）
+- text: 观察与操作席
+- combobox "三人观察席":
+  - option "你"
+  - option "电脑一"
+  - option "电脑二" [selected]
+- button "单步推进"
+- button "测试时钟＋5秒"
+- button "关闭自动操作"
+- main:
+  - generic "对局状态栏":
+    - generic: 模式：三人东 轮到：东家 你
+    - generic: 抢北荣和
+    - button "暂停"
+    - button "音乐设置": ♪
+    - button "规则说明"
+    - button "牌局分析"
+    - button "返回菜单"
+  - region "3D 麻将桌技术样板":
+    - generic "3D 中央信息区":
+      - region "中央计分区":
+        - generic: 自摸有损
+        - generic: 西
+        - strong: 36,300
+        - generic: 庄
+        - generic: 东
+        - strong: 29,700
+        - generic: 南
+        - strong: 39,000
+        - strong: 东1局
+        - generic: 2本场
+        - generic: 剩余54张
+    - generic: 3D 技术样板
+  - region "3D 牌桌信息层":
+    - generic "3D 宝牌信息层":
+      - complementary "宝牌指示牌":
+        - generic: 宝牌指示牌
+        - button "九筒" [disabled]:
+          - img "九筒"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - generic: 东1局 2本场
+        - generic: 供托0
+    - strong: 电脑二
+    - generic "非摸切": 切
+    - strong: 你
+    - generic "非摸切": 切
+    - strong: 电脑一
+    - generic "非摸切": 切
+  - region "本家手牌":
+    - button "七筒" [disabled]:
+      - img "七筒"
+    - button "八筒" [disabled]:
+      - img "八筒"
+    - button "九筒" [disabled]:
+      - img "九筒"
+    - button "四索" [disabled]:
+      - img "四索"
+    - button "五索" [disabled]:
+      - img "五索"
+    - button "六索" [disabled]:
+      - img "六索"
+    - button "七索" [disabled]:
+      - img "七索"
+    - button "八索" [disabled]:
+      - img "八索"
+    - button "九索" [disabled]:
+      - img "九索"
+    - button "北" [disabled]:
+      - img "北"
+    - button "发" [disabled]:
+      - img "发"
+    - button "发" [disabled]:
+      - img "发"
+    - button "发" [disabled]:
+      - img "发"
+  - dialog "抢北荣和":
+    - heading "抢北荣和" [level=2]
+    - paragraph: 三人东
+    - region "玩家点数变化":
+      - heading "点数变化" [level=3]
+      - generic: 你
+      - strong: "-4,300"
+      - generic: 34,000 → 29,700
+      - generic: 电脑一
+      - strong: +4,000
+      - generic: 35,000 → 39,000
+      - generic: 电脑二
+      - strong: +1,300
+      - generic: 35,000 → 36,300
+    - article:
+      - generic: 荣和
+      - strong: 电脑一 · 闲
+      - generic: 放铳：你
+      - generic "和牌牌组":
+        - region "宝牌指示牌":
+          - generic: 宝牌指示牌
+          - button "九筒" [disabled]:
+            - img "九筒"
+        - generic: 手牌
+        - generic "手牌":
+          - button "一筒" [disabled]:
+            - img "一筒"
+          - button "二筒" [disabled]:
+            - img "二筒"
+          - button "三筒" [disabled]:
+            - img "三筒"
+          - button "四筒" [disabled]:
+            - img "四筒"
+          - button "五筒" [disabled]:
+            - img "五筒"
+          - button "六筒" [disabled]:
+            - img "六筒"
+          - button "一索" [disabled]:
+            - img "一索"
+          - button "二索" [disabled]:
+            - img "二索"
+          - button "三索" [disabled]:
+            - img "三索"
+          - button "北" [disabled]:
+            - img "北"
+          - button "白" [disabled]:
+            - img "白"
+          - button "白" [disabled]:
+            - img "白"
+          - button "白" [disabled]:
+            - img "白"
+        - generic: 和牌张
+        - generic "和牌张":
+          - button "北" [disabled]:
+            - img "北"
+      - paragraph: 和牌张：北
+      - region "役种明细":
+        - heading "役种" [level=3]
+        - generic: 役牌·白
+        - strong: 1番
+      - region "番符与得点":
+        - heading "番符与得点" [level=3]
+        - generic: 总番
+        - strong: 2番
+        - generic: 符
+        - strong: 40符
+        - generic: 结果得点
+        - strong: 4,000
+        - generic "宝牌信息":
+          - text: 宝牌
+          - strong: "1"
+          - text: 里宝牌
+          - strong: "0"
+          - text: 赤宝牌
+          - strong: "0"
+          - text: 拔北
+          - strong: "0"
+          - text: 合计
+          - strong: "1"
+        - generic: 本局点数变化
+        - strong: +4,000
+        - paragraph: 本场 2 · 供托 0 根；最终支付以点数变化为准。
+    - article:
+      - generic: 荣和
+      - strong: 电脑二 · 闲
+      - generic: 放铳：你
+      - generic "和牌牌组":
+        - region "宝牌指示牌":
+          - generic: 宝牌指示牌
+          - button "九筒" [disabled]:
+            - img "九筒"
+        - generic: 手牌
+        - generic "手牌":
+          - button "七筒" [disabled]:
+            - img "七筒"
+          - button "八筒" [disabled]:
+            - img "八筒"
+          - button "九筒" [disabled]:
+            - img "九筒"
+          - button "四索" [disabled]:
+            - img "四索"
+          - button "五索" [disabled]:
+            - img "五索"
+          - button "六索" [disabled]:
+            - img "六索"
+          - button "七索" [disabled]:
+            - img "七索"
+          - button "八索" [disabled]:
+            - img "八索"
+          - button "九索" [disabled]:
+            - img "九索"
+          - button "北" [disabled]:
+            - img "北"
+          - button "发" [disabled]:
+            - img "发"
+          - button "发" [disabled]:
+            - img "发"
+          - button "发" [disabled]:
+            - img "发"
+        - generic: 和牌张
+        - generic "和牌张":
+          - button "北" [disabled]:
+            - img "北"
+      - paragraph: 和牌张：北
+      - region "役种明细":
+        - heading "役种" [level=3]
+        - generic: 役牌·发
+        - strong: 1番
+      - region "番符与得点":
+        - heading "番符与得点" [level=3]
+        - generic: 总番
+        - strong: 1番
+        - generic: 符
+        - strong: 40符
+        - generic: 结果得点
+        - strong: 1,300
+        - generic "宝牌信息":
+          - text: 宝牌
+          - strong: "0"
+          - text: 里宝牌
+          - strong: "0"
+          - text: 赤宝牌
+          - strong: "0"
+          - text: 拔北
+          - strong: "0"
+          - text: 合计
+          - strong: "0"
+        - generic: 本局点数变化
+        - strong: +1,300
+        - paragraph: 本场 2 · 供托 0 根；最终支付以点数变化为准。
+    - button "查看逐笔账本"
+    - button "下一局"
+  - complementary "比赛计时与自动操作":
+    - button "收起自动操作" [expanded]: ‹
+    - button "自动和牌": 和
+    - button "不碰杠": 鸣
+    - button "自动摸切": 切
+  - complementary:
+    - strong: 规则与账本
+    - button: 关闭
+- generic "展开／收起场景核查"
+- option "待核查" [selected]
+- option "通过"
+- option "不通过"

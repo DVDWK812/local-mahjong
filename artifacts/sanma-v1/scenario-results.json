@@ -1,0 +1,1362 @@
+[
+  {
+    "caseId": "SM-11-PAO-WINDS",
+    "passed": true,
+    "expected": [
+      "大四喜双倍包牌96000；字一色单倍正常支付两家各16000"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        163000,
+        -77000,
+        19000
+      ],
+      "result": "自摸",
+      "sequence": 6
+    }
+  },
+  {
+    "caseId": "SM-11-PAO-RON",
+    "passed": true,
+    "expected": [
+      "放铳电脑二与包牌电脑一各24000"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        83000,
+        11000,
+        11000
+      ],
+      "result": "荣和",
+      "sequence": 6
+    }
+  },
+  {
+    "caseId": "SM-09-EIGHT",
+    "passed": true,
+    "expected": [
+      "北总数4，杠4，补牌8；指示区与四张滚动区无重复"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-14-PON-TIMEOUT",
+    "passed": true,
+    "expected": [
+      "无drawn时按确定合法牌序弃牌，不拔北"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 3
+    }
+  },
+  {
+    "caseId": "SM-14-RACE",
+    "passed": true,
+    "expected": [
+      "超时已发生则旧命令被拒绝；重置后旧运行时不能再推进"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-14-DUPLICATE",
+    "passed": true,
+    "expected": [
+      "一次动作一个补牌，旧decisionId不会拔第二张北"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-14-AUTO-ROB",
+    "passed": true,
+    "expected": [
+      "电脑一仍自动抢北，原北未入拔北区"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        33700,
+        36300,
+        35000
+      ],
+      "result": "抢北荣和",
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-12-NOYAKU-TENPAI",
+    "passed": true,
+    "expected": [
+      "无役单骑东仍算结构听牌，收到2000"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        37000,
+        34000,
+        34000
+      ],
+      "result": "荒牌流局",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-03-MINKAN",
+    "passed": true,
+    "expected": [
+      "一杠、两张指示牌、杠补牌；原弃牌变为已鸣别名"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-03-KAKAN",
+    "passed": true,
+    "expected": [
+      "原碰升级为加杠；副露数不变、补牌一次"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-03-ROBKAN",
+    "passed": true,
+    "expected": [
+      "抢杠有抢杠役；原碰仍是碰，补牌次数0"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        32400,
+        37600,
+        35000
+      ],
+      "result": "荣和",
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-03-ROBANKAN",
+    "passed": true,
+    "expected": [
+      "仅国士可抢暗杠；不成立杠、不补牌"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        3000,
+        67000,
+        35000
+      ],
+      "result": "荣和",
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-09-FOUR-ONE",
+    "passed": true,
+    "expected": [
+      "一人四杠不流局；四杠子正常计分"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        131000,
+        -13000,
+        -13000
+      ],
+      "result": "自摸",
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-09-FOUR-TSUMO",
+    "passed": true,
+    "expected": [
+      "第四杠先补牌，允许岭上；不提前流局"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        47000,
+        29000,
+        29000
+      ],
+      "result": "自摸",
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-09-FOUR-ABORT",
+    "passed": true,
+    "expected": [
+      "补牌后最后弃牌窗口结束才四杠散了"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "result": "四杠散了",
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-09-FOUR-RON",
+    "passed": true,
+    "expected": [
+      "最后弃牌Ron优先于四杠散了"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        27000,
+        43000,
+        35000
+      ],
+      "result": "荣和",
+      "sequence": 3
+    }
+  },
+  {
+    "caseId": "SM-09-FIFTH",
+    "passed": true,
+    "expected": [
+      "Rules直接拒绝第五杠命令"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-09-MIX-north-first",
+    "passed": true,
+    "expected": [
+      "3次不同实体补牌；北2杠1，指标互不覆盖"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 3
+    }
+  },
+  {
+    "caseId": "SM-09-MIX-kan-first",
+    "passed": true,
+    "expected": [
+      "3次不同实体补牌；北2杠1，指标互不覆盖"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 3
+    }
+  },
+  {
+    "caseId": "SM-12-TENPAI-0",
+    "passed": true,
+    "expected": [
+      "无人收付不听罚符"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "result": "荒牌流局",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-12-TENPAI-1",
+    "passed": true,
+    "expected": [
+      "听牌者+2000，其余各-1000"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        37000,
+        34000,
+        34000
+      ],
+      "result": "荒牌流局",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-12-TENPAI-2",
+    "passed": true,
+    "expected": [
+      "两位听牌者各+1000，不听者-2000"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        36000,
+        36000,
+        33000
+      ],
+      "result": "荒牌流局",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-12-TENPAI-3",
+    "passed": true,
+    "expected": [
+      "无人收付不听罚符"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "result": "荒牌流局",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-12-NAGASHI",
+    "passed": true,
+    "expected": [
+      "同时按各自自摸满贯支付；供托仅给距离庄家最近的成立者"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        25800,
+        40100,
+        39100
+      ],
+      "result": "流局满贯",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-11-PAO-SINGLE",
+    "passed": true,
+    "expected": [
+      "包牌人支付庄家役满48000，另一家不支付基础点"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        83000,
+        -13000,
+        35000
+      ],
+      "result": "自摸",
+      "sequence": 6
+    }
+  },
+  {
+    "caseId": "SM-11-PAO-COMPOUND",
+    "passed": true,
+    "expected": [
+      "大三元包牌48000，字一色另按正常有损支付16000各家"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        115000,
+        -29000,
+        19000
+      ],
+      "result": "自摸",
+      "sequence": 6
+    }
+  },
+  {
+    "caseId": "SM-10-YAKUMAN-LOSS",
+    "passed": true,
+    "expected": [
+      "庄32000、闲16000"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        3000,
+        83000,
+        19000
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-10-YAKUMAN-FULL",
+    "passed": true,
+    "expected": [
+      "庄40000、闲24000"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        -5000,
+        99000,
+        11000
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-08-BONUS-NOYAKU",
+    "passed": true,
+    "expected": [
+      "有拔北与普通宝牌也必须另有役"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-05-NORTH-PAIR",
+    "passed": true,
+    "expected": [
+      "弃中保留北对子；不盲目拔北破坏听牌"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        34000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-07-RIICHI-OLD-NORTH",
+    "passed": true,
+    "expected": [
+      "只能弃刚摸的中，不能拔原北对子"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-13-WEST",
+    "passed": true,
+    "expected": [
+      "无人达目标，西一继续"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        34000,
+        36500,
+        34500
+      ],
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-13-EXTRA-CAP",
+    "passed": true,
+    "expected": [
+      "追加场第三局无人听牌，按起始席次打破同分；成绩30／-5／-25"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "result": "荒牌流局",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-13-TENPAI-STOP",
+    "passed": true,
+    "expected": [
+      "庄家听牌第一达到目标；终局供托给第一并列入最终账本"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        43000,
+        31000,
+        31000
+      ],
+      "result": "荒牌流局",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-13-BANKRUPT-ZERO",
+    "passed": true,
+    "expected": [
+      "零点不算击飞"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        0,
+        50000,
+        55000
+      ],
+      "result": "荒牌流局",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-13-BANKRUPT-NEGATIVE",
+    "passed": true,
+    "expected": [
+      "完整结算后才判断负点结束"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        -100,
+        50000,
+        55100
+      ],
+      "result": "荒牌流局",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-14-RESPONSE-TIMEOUT",
+    "passed": true,
+    "expected": [
+      "两家超时Pass；原行动者不在等待时扣Bank，不重复领取基础时间"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 3
+    }
+  },
+  {
+    "caseId": "SM-15-BUDGET",
+    "passed": true,
+    "expected": [
+      "恢复后Bank19秒；到时只执行一次真实摸切"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-15-RESPONSE-BUDGET",
+    "passed": true,
+    "expected": [
+      "已响者不重新询问；只剩电脑一预算19秒；收齐后单响不重复结算"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        33700,
+        35000,
+        36300
+      ],
+      "result": "抢北荣和",
+      "sequence": 3
+    }
+  },
+  {
+    "caseId": "SM-14-AUTO-WIN",
+    "passed": true,
+    "expected": [
+      "合法自摸优先于摸切；不碰杠不拦截和牌"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        42800,
+        31100,
+        31100
+      ],
+      "result": "自摸",
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-14-AUTO-NORTH",
+    "passed": true,
+    "expected": [
+      "真实摸入北直接弃入牌河，拔北区仍为0"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-15-ISOLATION",
+    "passed": true,
+    "expected": [
+      "测试写入独立键；错误schema及损坏语义存档被拒绝"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-16-BOUNDARIES",
+    "passed": true,
+    "expected": [
+      "每个边界重建同一实例和完整账本"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        42800,
+        31100,
+        31100
+      ],
+      "result": "自摸",
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-17-PRIVATE-WALL",
+    "passed": true,
+    "expected": [
+      "改变未来补牌／对手暗手／里宝牌位置保持Observation与决策一致"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-04-VOICE-0",
+    "passed": true,
+    "expected": [
+      "真实actor的角色包命中action.nuki；北成立不重复播；未改变计时",
+      "播放请求与人耳听感分别记录"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-04-VOICE-1",
+    "passed": true,
+    "expected": [
+      "真实actor的角色包命中action.nuki；北成立不重复播；未改变计时",
+      "播放请求与人耳听感分别记录"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-04-VOICE-2",
+    "passed": true,
+    "expected": [
+      "真实actor的角色包命中action.nuki；北成立不重复播；未改变计时",
+      "播放请求与人耳听感分别记录"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-01-EAST",
+    "passed": true,
+    "expected": [
+      "三名真实玩家、东一开局、108张、余牌54"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-01-SOUTH",
+    "passed": true,
+    "expected": [
+      "东南战仍从东一开始；规则快照记录无损"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-02-IDENTITY",
+    "passed": true,
+    "expected": [
+      "北风牌不是第四位玩家；无二至八万"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-03-PON",
+    "passed": true,
+    "expected": [
+      "Rules拒绝Chi；碰后无drawn且只能合法弃牌"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 3
+    }
+  },
+  {
+    "caseId": "SM-04-NORTH",
+    "passed": true,
+    "expected": [
+      "原北instanceId进入拔北区；补牌来源north；不翻杠宝牌"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-04-CHAIN",
+    "passed": true,
+    "expected": [
+      "四张北保留原身份；只消耗四次补牌；仍未副露"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 4
+    }
+  },
+  {
+    "caseId": "SM-05-KEEP",
+    "passed": true,
+    "expected": [
+      "北可作为国士组成牌；弃北进入河而非拔北区"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-06-ROB",
+    "passed": true,
+    "expected": [
+      "有役者可抢北；无役者不获得Ron；不补牌不加拔北"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        33700,
+        36300,
+        35000
+      ],
+      "result": "抢北荣和",
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-06-DOUBLE",
+    "passed": true,
+    "expected": [
+      "收齐才结算；本场和供托只给电脑一"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        29700,
+        39000,
+        36300
+      ],
+      "result": "抢北荣和",
+      "sequence": 3
+    }
+  },
+  {
+    "caseId": "SM-06-NOYAKU",
+    "passed": true,
+    "expected": [
+      "无额外抢杠役；两家不具资格时立即补牌"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-07-FURITEN",
+    "passed": true,
+    "expected": [
+      "电脑一永久振听，电脑二临时振听；成立时全桌一发打断"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 3
+    }
+  },
+  {
+    "caseId": "SM-07-RINSHAN",
+    "passed": true,
+    "expected": [
+      "补北岭上；无海底、无一发；等待不变"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        43000,
+        31000,
+        31000
+      ],
+      "result": "自摸",
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-08-DORA",
+    "passed": true,
+    "expected": [
+      "拔北2、普通宝牌2、里宝牌2独立显示"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        51000,
+        27000,
+        27000
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-09-ANKAN",
+    "passed": true,
+    "expected": [
+      "暗杠增加一杠，指示牌2张；真实补牌"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-09-EMPTY",
+    "passed": true,
+    "expected": [
+      "没有合法补牌资源，不提供补牌动作"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        37000,
+        34000,
+        34000
+      ],
+      "result": "荒牌流局",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-10-LOW-LOSS",
+    "passed": true,
+    "expected": [
+      "庄付1000、另一闲家付500"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        34000,
+        36500,
+        34500
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-10-MANGAN-LOSS",
+    "passed": true,
+    "expected": [
+      "庄4000、闲2000"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        31000,
+        41000,
+        33000
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-10-DEALER-LOSS",
+    "passed": true,
+    "expected": [
+      "两闲各4000"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        43000,
+        31000,
+        31000
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-10-HANEMAN-LOSS",
+    "passed": true,
+    "expected": [
+      "庄6000、闲3000"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        29000,
+        44000,
+        32000
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-10-LOW-FULL",
+    "passed": true,
+    "expected": [
+      "庄付1300、另一闲家付800"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        33700,
+        37100,
+        34200
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-10-MANGAN-FULL",
+    "passed": true,
+    "expected": [
+      "庄5000、闲3000"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        30000,
+        43000,
+        32000
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-10-DEALER-FULL",
+    "passed": true,
+    "expected": [
+      "两闲各6000"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        47000,
+        29000,
+        29000
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-10-HANEMAN-FULL",
+    "passed": true,
+    "expected": [
+      "庄7500、闲4500"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        27500,
+        47000,
+        30500
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-11-HONBA",
+    "passed": true,
+    "expected": [
+      "本场两家各200；供托1000只领取一次"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        32800,
+        37900,
+        34300
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-12-ABORT",
+    "passed": true,
+    "expected": [
+      "途中流局连庄，本场+1"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-13-EAST-END",
+    "passed": true,
+    "expected": [
+      "东三庄家第一达目标，和了止"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        47000,
+        29000,
+        29000
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-13-SOUTH-END",
+    "passed": true,
+    "expected": [
+      "三人南在南三按末庄规则结束"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        47000,
+        29000,
+        29000
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-13-EXTEND",
+    "passed": true,
+    "expected": [
+      "无人达40000时进入南一，不按三局硬停止"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        34000,
+        36500,
+        34500
+      ],
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-13-MIDTARGET",
+    "passed": true,
+    "expected": [
+      "虽然超过40000，东一仍继续比赛"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        47000,
+        29000,
+        29000
+      ],
+      "result": "自摸",
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-14-TIME",
+    "passed": true,
+    "expected": [
+      "基础5秒＋Bank20秒后摸切；不会自动拔北"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-14-NORTH-BUDGET",
+    "passed": true,
+    "expected": [
+      "不重新获得同回合基础时间，响应期间原玩家预算挂起"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-15-RESTORE",
+    "passed": true,
+    "expected": [
+      "响应存档恢复不发补牌，已响应者不重复结算"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        31100,
+        37600,
+        36300
+      ],
+      "result": "抢北荣和",
+      "sequence": 3
+    }
+  },
+  {
+    "caseId": "SM-16-REPLAY",
+    "passed": true,
+    "expected": [
+      "相同命令重建相同实体状态与账本，不再次运行AI"
+    ],
+    "actual": {
+      "phase": "ended",
+      "scores": [
+        42800,
+        31100,
+        31100
+      ],
+      "result": "自摸",
+      "sequence": 2
+    }
+  },
+  {
+    "caseId": "SM-17-AI",
+    "passed": true,
+    "expected": [
+      "隐藏牌置换不改变相同Observation决策"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 1
+    }
+  },
+  {
+    "caseId": "SM-18-LONG-RIVER",
+    "passed": true,
+    "expected": [
+      "通过真实摸切和碰形成超过18张的牌河；保留完整动作前缀；没有虚构连续弃牌"
+    ],
+    "actual": {
+      "phase": "turn",
+      "scores": [
+        35000,
+        35000,
+        35000
+      ],
+      "sequence": 62
+    }
+  }
+]

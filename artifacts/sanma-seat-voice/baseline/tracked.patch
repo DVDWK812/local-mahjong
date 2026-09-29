@@ -1,0 +1,2722 @@
+diff --git a/package.json b/package.json
+index a1e0988..79e8f45 100644
+--- a/package.json
++++ b/package.json
+@@ -12,7 +12,9 @@
+     "prebuild": "npm run generate:voice-packs",
+     "build": "tsc && vite build",
+     "preview": "vite preview",
+-    "test": "vitest run"
++    "test": "vitest run",
++    "test:xuezhan": "vitest run src/game/xuezhan",
++    "check:types": "tsc --noEmit"
+   },
+   "dependencies": {
+     "@react-three/drei": "^10.7.8",
+diff --git a/src/App.tsx b/src/App.tsx
+index 636efb3..dc5685b 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -1,4 +1,10 @@
+ import { useEffect, useMemo, useRef, useState } from 'react';
++import { MatchRuntime } from './game/timeControl/matchRuntime';
++import { fourPlayerPolicy, FOUR_HUMAN } from './game/timeControl/fourPlayerPolicy';
++import { loadTimeDraft, saveTimeDraft, snapshotTimeControl, newMatchTimeControl, unlimitedTimeControl, type TimeControlConfig } from './game/timeControl/config';
++import { MatchClockHud } from './components/MatchClockHud';
++import { TimeControlSettings } from './components/TimeControlSettings';
++import { finishHandsForAuthoritativeInput } from './presentation/handAnimation/HandAnimationController';
+ import type { AppScreen, RiichiLengthChoice, SetupSelection } from './app/navigation';
+ import { advanceAutomaticGameState } from './app/automaticGameProgression';
+ import { matchLengthForChoice, pathLabel, presetForChoice } from './app/navigation';
+@@ -24,6 +30,14 @@ import { Board } from './components/Board';
+ import { ExitGameDialog } from './components/ExitGameDialog';
+ import { GameTypeMenu } from './components/GameTypeMenu';
+ import { LocalModeMenu } from './components/LocalModeMenu';
++import { XuezhanSettings } from './components/XuezhanSettings';
++import { XuezhanScreen } from './components/XuezhanScreen';
++import { SanmaLengthMenu, SanmaSettings } from './components/SanmaSettings';
++import { SanmaScreen } from './components/SanmaScreen';
++import { createSanmaConfig, type SanmaConfig, type SanmaLength } from './game/sanma/config';
++import type { SanmaSave } from './game/sanma/persistence';
++import { createConfig as createXzConfig, type XzConfig } from './game/xuezhan/config';
++import { parseXzSave, XZ_SAVE_KEY, type XzSave } from './game/xuezhan/persistence';
+ import { MainMenu } from './components/MainMenu';
+ import { PlayerProfileDialog } from './components/PlayerProfileDialog';
+ import { MatchResultDialog } from './components/MatchResultDialog';
+@@ -41,7 +55,6 @@ import { declareKyuushuKyuuhai } from './game/abortiveDraw';
+ import { canPon, executePon, passCall } from './game/callChecker';
+ import { canChi, executeChi } from './game/chiChecker';
+ import { declareRiichi, declareRon, declareTsumo, discardTile, passRon } from './game/engine';
+-import { hasDrawAction } from './game/interaction';
+ import { canChankan, canMinkan, declareChankanRon, executeKan, passChankan, type KanType } from './game/kanChecker';
+ import { applyFinishedGameToMatch, chooseAgariYame, chooseMatchEnd, startMatch } from './game/match/matchEngine';
+ import { getRulePreset, loadStoredRuleConfig, saveStoredRuleConfig, type RulePresetId } from './game/match/matchRules';
+@@ -68,6 +81,7 @@ import { runPacedAutomaticAction } from './presentation/pacing/automaticActionPa
+ import { useMatchPresentationEvents } from './presentation/matchPresentationEvents';
+ 
+ interface ActiveGame {
++  runtime: MatchRuntime<GameState>;
+   matchState: MatchState;
+   gameState: GameState;
+   matchLog: MatchLog;
+@@ -102,7 +116,7 @@ const EXIT_SAVE_TIMEOUT_MS = 3000;
+ const EXIT_SAVE_TIMEOUT_MESSAGE = '牌谱保存超时，可直接退出或重试保存。';
+ const EXIT_SAVE_ERROR_MESSAGE = '牌谱保存失败，可直接退出或重试保存。';
+ function isRealtimeAudioScreen(screen: AppScreen): boolean {
+-  return screen === 'game' || screen === 'riichi-17-steps';
++  return screen === 'game' || screen === 'riichi-17-steps' || screen === 'xuezhan' || screen === 'sanma';
+ }
+ 
+ function bgmForScreen(screen: AppScreen): 'home' | 'game' | null {
+@@ -116,6 +130,7 @@ export function resolveBgmScene(
+   hasRiichi: boolean,
+   riichiEnabled: boolean,
+ ): 'home' | 'game' | 'riichi' | null {
++  if (screen === 'xuezhan') return 'game';
+   if (isRealtimeAudioScreen(screen)) {
+     return hasRiichi && riichiEnabled ? 'riichi' : 'game';
+   }
+@@ -131,7 +146,8 @@ function loadInitialRuleConfig(): FullRuleConfig {
+   return loadStoredRuleConfig(window.localStorage);
+ }
+ 
+-function createActiveGame(config: FullRuleConfig): ActiveGame {
++function createActiveGame(config: FullRuleConfig, timeControl: TimeControlConfig): ActiveGame {
++  const timeSnapshot = snapshotTimeControl(timeControl, 'four');
+   const matchState = startMatch(config.match);
+   if (!matchState.currentGame) throw new Error('比赛未能创建东一局');
+   const gameState = withRules(matchState.currentGame, config);
+@@ -142,20 +158,13 @@ function createActiveGame(config: FullRuleConfig): ActiveGame {
+     ruleConfig: config,
+   });
+   return {
++    runtime: new MatchRuntime(gameState, fourPlayerPolicy, timeSnapshot, undefined, undefined, undefined, true),
+     matchState,
+     gameState,
+     matchLog: startRoundInMatchLog(emptyLog, gameState, matchState.handNumber),
+   };
+ }
+ 
+-function updateActiveGameState(activeGame: ActiveGame, gameState: GameState): ActiveGame {
+-  return {
+-    ...activeGame,
+-    gameState,
+-    matchLog: recordGameStateTransition(activeGame.matchLog, activeGame.gameState, gameState),
+-  };
+-}
+-
+ function applyMatchProgress(activeGame: ActiveGame, matchState: MatchState, nextGameState: GameState | undefined, config: FullRuleConfig): ActiveGame {
+   if (matchState.phase === 'match-ended' && matchState.finalResult) {
+     return {
+@@ -166,7 +175,12 @@ function applyMatchProgress(activeGame: ActiveGame, matchState: MatchState, next
+   }
+   if (nextGameState) {
+     const gameState = withRules(nextGameState, config);
++    const runtime = new MatchRuntime(gameState, fourPlayerPolicy, activeGame.runtime.config, undefined, undefined, undefined, true);
++    Object.assign(runtime.preferences, structuredClone(activeGame.runtime.preferences));
++    runtime.audit.push(...activeGame.runtime.audit);
++    activeGame.runtime.dispose();
+     return {
++      runtime,
+       matchState,
+       gameState,
+       matchLog: startRoundInMatchLog(activeGame.matchLog, gameState, matchState.handNumber),
+@@ -177,6 +191,7 @@ function applyMatchProgress(activeGame: ActiveGame, matchState: MatchState, next
+ 
+ function createSavedMatch(activeGame: ActiveGame, ruleConfig: FullRuleConfig): SavedMatch {
+   return {
++    timeRuntime: activeGame.runtime.snapshot(),
+     version: CURRENT_SAVE_VERSION,
+     saveId: `save-${Date.now()}`,
+     savedAt: new Date().toISOString(),
+@@ -188,9 +203,21 @@ function createSavedMatch(activeGame: ActiveGame, ruleConfig: FullRuleConfig): S
+ }
+ 
+ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: import('./game/seventeenSteps').SeventeenStepsState } = {}) {
++  const [fourTime, setFourTime] = useState(() => loadTimeDraft('four', typeof window === 'undefined' ? undefined : window.localStorage));
++  const [seventeenTime, setSeventeenTime] = useState(() => loadTimeDraft('seventeen', typeof window === 'undefined' ? undefined : window.localStorage));
++  const [seventeenTimeSnapshot, setSeventeenTimeSnapshot] = useState<TimeControlConfig | undefined>();
+   const testModeAvailability = currentTestModeAvailability();
+   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+   const [appearanceDialogOpen, setAppearanceDialogOpen] = useState(false);
++  const [xzConfig, setXzConfig] = useState<XzConfig>(createXzConfig);
++  const [sanmaLength, setSanmaLength] = useState<SanmaLength>('east-only');
++  const [sanmaConfig, setSanmaConfig] = useState<SanmaConfig>(createSanmaConfig);
++  const [sanmaSaved, setSanmaSaved] = useState<SanmaSave | undefined>();
++  const [sanmaSession, setSanmaSession] = useState(0);
++  const [sanmaReplay, setSanmaReplay] = useState(false);
++  const [sanmaRiichi, setSanmaRiichi] = useState(false);
++  const [xzSaved, setXzSaved] = useState<XzSave | undefined>();
++  const [xzSession, setXzSession] = useState(0);
+   const [audioDialogOpen, setAudioDialogOpen] = useState(() => typeof window !== 'undefined' && window.sessionStorage.getItem('local-mahjong.pending-voice-pack-manager') !== null);
+   const [voiceManagementPackId, setVoiceManagementPackId] = useState<string | null>(() => typeof window === 'undefined' ? null : window.sessionStorage.getItem('local-mahjong.pending-voice-pack-manager'));
+   const [voicePackCreationOpen, setVoicePackCreationOpen] = useState(false);
+@@ -300,12 +327,17 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+   const voiceDirector = voiceDirectorRef.current;
+   const audioScreenRef = useRef(state.screen);
+   audioScreenRef.current = state.screen;
++  const [xzTesting, setXzTesting] = useState(false);
++  const [sanmaTesting, setSanmaTesting] = useState(false);
++  const sanmaTestingRef = useRef(sanmaTesting); sanmaTestingRef.current = sanmaTesting;
++  const xzTestingRef = useRef(xzTesting);
++  xzTestingRef.current = xzTesting;
+   const voicePresentationRuntimeRef = useRef<VoicePresentationRuntime | null>(null);
+   if (!voicePresentationRuntimeRef.current) {
+     voicePresentationRuntimeRef.current = new VoicePresentationRuntime(
+       voiceDirector,
+       undefined,
+-      () => isRealtimeAudioScreen(audioScreenRef.current),
++      () => isRealtimeAudioScreen(audioScreenRef.current) || audioScreenRef.current === 'test-mode' && (xzTestingRef.current || sanmaTestingRef.current),
+     );
+   }
+   const voicePresentationRuntime = voicePresentationRuntimeRef.current;
+@@ -349,8 +381,8 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+ 
+   useEffect(() => {
+     const players = gameState?.players ?? [];
+-    voiceDirector.setActorSeatContext({ playerIds: players.map((player) => player.id), playerCount: players.length });
+-  }, [voiceDirector, gameState?.players]);
++    voiceDirector.setActorSeatContext(state.screen === 'sanma' || sanmaTesting ? { playerIds: [0, 1, 2], playerCount: 3 } : { playerIds: players.map((player) => player.id), playerCount: players.length });
++  }, [voiceDirector, gameState?.players, state.screen, sanmaTesting]);
+ 
+   // This observes committed MatchState only. Voice playback stays behind the runtime EventBus consumer.
+   useMatchPresentationEvents(activeGame && matchState && gameState ? {
+@@ -375,7 +407,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+     const consumer = new AudioPresentationConsumer(
+       audioManager,
+       undefined,
+-      () => isRealtimeAudioScreen(audioScreenRef.current),
++      () => isRealtimeAudioScreen(audioScreenRef.current) || audioScreenRef.current === 'test-mode' && (xzTestingRef.current || sanmaTestingRef.current),
+     );
+     return () => { consumer.dispose(); audioManager.stopSfx(); };
+   }, [audioManager, state.screen]);
+@@ -387,14 +419,14 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+   }, [audioManager]);
+ 
+   useEffect(() => {
+-    const hasRiichi = state.activeGame?.gameState.players.some((player) => player.riichi) ?? false;
+-    const track = resolveBgmScene(state.screen, hasRiichi, audioSettings.riichiMusicEnabled);
++    const hasRiichi = state.screen === 'sanma' ? sanmaRiichi : state.activeGame?.gameState.players.some((player) => player.riichi) ?? false;
++    const track = state.screen === 'test-mode' && (xzTesting || sanmaTesting) ? 'game' : resolveBgmScene(state.screen, hasRiichi, audioSettings.riichiMusicEnabled);
+     if (track) {
+       audioManager.playBgm(track);
+     } else {
+       audioManager.stopBgm();
+     }
+-  }, [audioManager, state.screen, musicRevision, audioSettings.riichiMusicEnabled, state.activeGame?.gameState.players]);
++  }, [audioManager, state.screen, xzTesting, sanmaTesting, musicRevision, audioSettings.riichiMusicEnabled, state.activeGame?.gameState.players, sanmaRiichi]);
+ 
+   useEffect(() => {
+     if (typeof window === 'undefined') return undefined;
+@@ -464,23 +496,14 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+     }
+ 
+     const shouldAutoDrawHuman = gameState.currentPlayer === 0 && gameState.phase === 'draw';
+-    const shouldAutoRiichiTsumogiri = gameState.currentPlayer === 0
+-      && gameState.phase === 'discard'
+-      && gameState.players[0].riichi
+-      && !!gameState.players[0].drawnTile
+-      && !hasDrawAction(gameState, 0);
+     const shouldAutoAdvanceAI = isAIPlayer(gameState.currentPlayer) && (gameState.phase === 'draw' || gameState.phase === 'discard');
+     const shouldAutoPassCall = gameState.phase === 'call-window' && !canPon(gameState, 0) && !canChi(gameState, 0) && !canMinkan(gameState, 0);
+     const shouldAutoChankan = gameState.phase === 'chankan-window' && !canChankan(gameState, 0);
+-    if (!shouldAutoDrawHuman && !shouldAutoRiichiTsumogiri && !shouldAutoAdvanceAI && !shouldAutoPassCall && !shouldAutoChankan) return;
++    if (!shouldAutoDrawHuman && !shouldAutoAdvanceAI && !shouldAutoPassCall && !shouldAutoChankan) return;
+ 
+     let cancelled = false;
+     void runPacedAutomaticAction(() => {
+-      setState((current) => {
+-        if (!current.activeGame || current.screen !== 'game' || current.exitDialogOpen || current.exiting) return current;
+-        const currentGame = current.activeGame.gameState;
+-        return { ...current, activeGame: updateActiveGameState(current.activeGame, advanceAutomaticGameState(currentGame)) };
+-      });
++      state.activeGame?.runtime.advance(current => current === gameState ? advanceAutomaticGameState(current) : current);
+     }, {
+       gate: presentationPacingGate,
+       isCancelled: () => cancelled,
+@@ -494,20 +517,28 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+     setState((current) => ({ ...current, screen, menuNotice: null, ...patch }));
+   }
+ 
+-  function updateGame(updater: (game: GameState) => GameState) {
+-    setState((current) => {
+-      if (!current.activeGame) return current;
++  useEffect(() => {
++    const runtime = state.activeGame?.runtime;
++    if (!runtime) return;
++    const unsubscribe = runtime.subscribe(() => {
++      const snapshot = runtime.state;
++      const audit = [...runtime.audit];
++      setState(current => {
++      if (current.activeGame?.runtime !== runtime) return current;
+       const before = current.activeGame.gameState;
+-      const gameState = updater(before);
+-      return {
+-        ...current,
+-        activeGame: {
+-          ...current.activeGame,
+-          gameState,
+-          matchLog: recordGameStateTransition(current.activeGame.matchLog, before, gameState),
+-        },
+-      };
++      const log = before === snapshot ? current.activeGame.matchLog : recordGameStateTransition(current.activeGame.matchLog, before, snapshot);
++      return { ...current, activeGame: { ...current.activeGame, gameState: snapshot, matchLog: { ...log, timeControl: runtime.config, actionAudit: audit } } };
++      });
+     });
++    const unsubscribeOpen = runtime.onInputOpen(finishHandsForAuthoritativeInput);
++    runtime.resumeAfterRemount();
++    return () => { unsubscribe(); unsubscribeOpen(); runtime.pause(); };
++  }, [state.activeGame?.runtime]);
++
++  const renderedDecisionId = state.activeGame?.runtime.decision(FOUR_HUMAN)?.id;
++  function updateGame(updater: (game: GameState) => GameState) {
++    const runtime = state.activeGame?.runtime;
++    runtime?.command(FOUR_HUMAN, renderedDecisionId, updater);
+   }
+ 
+   function handleRuleConfigChange(config: FullRuleConfig) {
+@@ -760,10 +791,14 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+   }
+ 
+   function startConfiguredGame() {
+-    setState((current) => ({
++    if (state.screen !== 'match-settings') return;
++    let timeControl: TimeControlConfig;
++    try { timeControl = newMatchTimeControl(fourTime, 'four'); }
++    catch (error) { setState(current => ({ ...current, menuNotice: (error as Error).message })); return; }
++    setState((current) => current.screen !== 'match-settings' ? current : ({
+       ...current,
+       screen: 'game',
+-      activeGame: createActiveGame(current.ruleConfig),
++      activeGame: createActiveGame(current.ruleConfig, timeControl),
+       exitDialogOpen: false,
+       exiting: false,
+       exitSaveError: null,
+@@ -783,7 +818,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+       return {
+         ...current,
+         screen: 'game',
+-        activeGame: { matchState, gameState, matchLog },
++        activeGame: { matchState, gameState, matchLog, runtime: new MatchRuntime(gameState, fourPlayerPolicy, current.savedMatch.timeRuntime?.config ?? unlimitedTimeControl('four'), undefined, undefined, current.savedMatch.timeRuntime, true) },
+         ruleConfig: current.savedMatch.ruleConfig,
+         exitDialogOpen: false,
+         exiting: false,
+@@ -841,7 +876,10 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+ 
+   async function confirmExitGame() {
+     if (state.exiting || exitSaveInProgressRef.current) return;
+-    const snapshot = state.activeGame;
++    state.activeGame?.runtime.pause();
++    const original = state.activeGame;
++    const snapshot = original ? { ...original, gameState: original.runtime.state,
++      matchLog: { ...recordGameStateTransition(original.matchLog, original.gameState, original.runtime.state), timeControl: original.runtime.config, actionAudit: [...original.runtime.audit] } } : null;
+     const save = snapshot && snapshot.matchState.phase !== 'match-ended'
+       ? pendingExitSaveRef.current ?? createSavedMatch(snapshot, state.ruleConfig)
+       : null;
+@@ -880,6 +918,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+   }
+ 
+   function cancelExitGame() {
++    state.activeGame?.runtime.activate();
+     pendingExitSaveRef.current = null;
+     pendingExitReplayRef.current = null;
+     setState((current) => ({ ...current, exitDialogOpen: false, exiting: false, exitSaveError: null }));
+@@ -978,18 +1017,27 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+         notice={state.menuNotice}
+         onBack={() => setScreen('main-menu')}
+         onRiichi={() => setScreen('riichi-player-count')}
++        onXuezhan={() => setScreen('xuezhan-settings')}
+         onComingSoon={(label) => setState((current) => ({ ...current, menuNotice: `${label}敬请期待。` }))}
+       />
+     );
+   }
+ 
++  if (state.screen === 'xuezhan-settings') {
++    return <><XuezhanSettings onBack={() => setScreen('local-mode-menu')} onAudio={openAudioSettings} onAppearance={() => setAppearanceDialogOpen(true)}
++      onStart={config => { setXzConfig(config); setXzSaved(undefined); setXzSession(n => n + 1); setScreen('xuezhan'); }}
++      onResume={() => { const raw = window.localStorage.getItem(XZ_SAVE_KEY); if (!raw) throw new Error('没有血战存档'); const saved = parseXzSave(raw); setXzConfig(saved.config); setXzSaved(saved); setXzSession(n => n + 1); setScreen('xuezhan'); }} />
++      {renderAudioSettingsDialog()}{appearanceDialogOpen && <AppearanceSettingsDialog settings={appearanceSettings} onChange={handleAppearanceSettingsChange} onDeleteAsset={handleDeleteLibraryAsset} onClose={() => setAppearanceDialogOpen(false)} />}</>;
++  }
++  if (state.screen === 'xuezhan') return <><XuezhanScreen key={xzSession} config={xzConfig} saved={xzSaved} onExit={() => setScreen('xuezhan-settings')} appearance={appearanceSettings} profile={state.playerProfile} onAudio={openAudioSettings} />{renderAudioSettingsDialog()}</>;
++
+   if (state.screen === 'riichi-player-count') {
+     return (
+       <RiichiModeMenu
+         notice={state.menuNotice}
+         onBack={() => setScreen('local-mode-menu')}
+         onFourPlayer={() => setScreen('riichi-four-player-length', { selection: { playerCount: 4 } })}
+-        onThreePlayer={() => setState((current) => ({ ...current, menuNotice: '三人间敬请期待。' }))}
++        onThreePlayer={() => setScreen('riichi-three-player-length', { selection: { playerCount: 3 } })}
+         on17Steps={() => setScreen('riichi-17-steps-settings')}
+         onWashizu={() => setScreen('riichi-washizu')}
+         onSuperpower={() => setScreen('riichi-superpower')}
+@@ -998,16 +1046,25 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+     );
+   }
+ 
++  if (state.screen === 'riichi-three-player-length') return <SanmaLengthMenu onBack={() => setScreen('riichi-player-count')} onChoose={length => { setSanmaLength(length); setScreen('sanma-settings', { selection: { playerCount: 3, lengthChoice: length === 'east-only' ? 'three-east' : 'three-south' } }); }} />;
++  if (state.screen === 'sanma-settings') return <SanmaSettings key={sanmaLength} length={sanmaLength} profile={state.playerProfile} onBack={() => setScreen('riichi-three-player-length')}
++    onStart={config => { setSanmaConfig(config); setSanmaSaved(undefined); setSanmaReplay(false); setSanmaRiichi(false); setSanmaSession(n => n + 1); setScreen('sanma'); }}
++    onResume={(save, replay) => { setSanmaConfig(save.state.config); setSanmaLength(save.state.config.length); setSanmaSaved(save); setSanmaReplay(!!replay); setSanmaRiichi(false); setSanmaSession(n => n + 1); setScreen('sanma'); }} />;
++  if (state.screen === 'sanma') return <><SanmaScreen key={sanmaSession} config={sanmaConfig} saved={sanmaSaved} replayOnly={sanmaReplay} onExit={() => setScreen('sanma-settings')}
++    appearance={appearanceSettings} profile={state.playerProfile} onAudio={openAudioSettings} onState={s => setSanmaRiichi(s.players.some(p => p.riichi))} />{renderAudioSettingsDialog()}</>;
++
+   if (state.screen === 'riichi-17-steps-settings') {
+     return (
+       <SeventeenStepsMatchSettings
++        timeControl={seventeenTime}
++        onTimeControlChange={value => { setSeventeenTime(value); saveTimeDraft('seventeen', value, window.localStorage); }}
+         config={state.seventeenStepsConfig}
+         onBack={() => setScreen('riichi-player-count')}
+         onConfigChange={(config) => {
+           setState((current) => ({ ...current, seventeenStepsConfig: config }));
+           if (typeof window !== 'undefined') saveStoredSeventeenStepsMatchConfig(config, window.localStorage);
+         }}
+-        onStart={() => setScreen('riichi-17-steps')}
++        onStart={() => { try { setSeventeenTimeSnapshot(newMatchTimeControl(seventeenTime, 'seventeen')); setScreen('riichi-17-steps'); } catch { /* inline validation */ } }}
+       />
+     );
+   }
+@@ -1015,7 +1072,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+   if (state.screen === 'riichi-17-steps') {
+     return (
+       <>
+-        <SeventeenStepsScreen initialState={import.meta.env.DEV ? initialSeventeenGate : undefined} matchConfig={state.seventeenStepsConfig} ruleConfig={state.ruleConfig} playerProfile={state.playerProfile} appearanceSettings={appearanceSettings} onBack={() => setScreen('riichi-17-steps-settings')} onOpenAudioSettings={openAudioSettings} />
++        <SeventeenStepsScreen timeControl={seventeenTimeSnapshot} initialState={import.meta.env.DEV ? initialSeventeenGate : undefined} matchConfig={state.seventeenStepsConfig} ruleConfig={state.ruleConfig} playerProfile={state.playerProfile} appearanceSettings={appearanceSettings} onBack={() => setScreen('riichi-17-steps-settings')} onOpenAudioSettings={openAudioSettings} />
+         {renderAudioSettingsDialog()}
+       </>
+     );
+@@ -1059,6 +1116,8 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+             onAIPlayerSettingsChange={(aiPlayerSettings) => setState((current) => ({ ...current, aiPlayerSettings }))}
+             onConfigChange={handleRuleConfigChange}
+           />
++          <TimeControlSettings mode="four" value={fourTime} onChange={value => { setFourTime(value); saveTimeDraft('four', value, window.localStorage); }} />
++          {state.menuNotice && <p role="alert">{state.menuNotice}</p>}
+           <div className="settings-footer">
+             <button type="button" onClick={() => setScreen('riichi-four-player-length')}>返回</button>
+             <button type="button" onClick={startConfiguredGame}>开始游戏</button>
+@@ -1103,6 +1162,8 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+       <TestModeScreen
+         key={state.testScenario?.id ?? 'test-mode-library'}
+         initialScenario={state.testScenario}
++        onXzSessionChange={setXzTesting}
++        onSanmaSessionChange={setSanmaTesting}
+         onExit={() => setScreen('main-menu', { testScenario: null })}
+       />
+     );
+@@ -1134,6 +1195,9 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+         </section>
+       ) : null}
+       <Board
++        authoritativeInputOpen={activeGame.runtime.budgetView(FOUR_HUMAN)?.status === 'open'}
++        suppressCalls={activeGame.runtime.preference(FOUR_HUMAN).suppressCalls}
++        onInputResourcesReady={() => activeGame.runtime.resourcesReady()}
+         gameState={gameState}
+         winPresentationController={winPresentationController}
+         settlementPresentationCoordinator={settlementPresentationCoordinator}
+@@ -1146,9 +1210,9 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+         onDiscard={(playerId, tileInstanceId) => updateGame((current) => discardTile(current, playerId, tileInstanceId))}
+         onDeclareRiichi={(playerId, tileInstanceId) => updateGame((current) => declareRiichi(current, playerId, tileInstanceId))}
+         onDeclareKyuushuKyuuhai={(playerId) => updateGame((current) => declareKyuushuKyuuhai(current, playerId))}
+-        onPon={(playerId) => updateGame((current) => executePon(current, playerId))}
+-        onChi={(playerId, optionIndex) => updateGame((current) => executeChi(current, playerId, optionIndex))}
+-        onKan={(playerId, kanType, tileId) => updateGame((current) => executeKan(current, playerId, kanType, tileId))}
++        onPon={(playerId) => { if (!activeGame.runtime.preference(FOUR_HUMAN).suppressCalls) updateGame((current) => executePon(current, playerId)); }}
++        onChi={(playerId, optionIndex) => { if (!activeGame.runtime.preference(FOUR_HUMAN).suppressCalls) updateGame((current) => executeChi(current, playerId, optionIndex)); }}
++        onKan={(playerId, kanType, tileId) => { if (!activeGame.runtime.preference(FOUR_HUMAN).suppressCalls) updateGame((current) => executeKan(current, playerId, kanType, tileId)); }}
+         onChankanRon={(playerId) => updateGame((current) => declareChankanRon(current, playerId))}
+         onPassChankan={(playerId) => updateGame((current) => passChankan(current, playerId))}
+         onPassCall={() => updateGame((current) => passCall(current))}
+@@ -1165,9 +1229,11 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+         tsumoGiriDisplayEnabled={state.tsumoGiriDisplayEnabled}
+         onOpenRulesGuide={() => setState((current) => ({ ...current, rulesGuideOpen: true }))}
+         onOpenAudioSettings={openAudioSettings}
+-        onReturnMenu={() => matchState.phase === 'match-ended' ? void confirmExitGame() : setState((current) => current.exitDialogOpen
+-          ? current
+-          : { ...current, exitDialogOpen: true, exitSaveError: null })}
++        onReturnMenu={() => {
++          if (matchState.phase === 'match-ended') { void confirmExitGame(); return; }
++          activeGame.runtime.pause();
++          setState(current => current.exitDialogOpen ? current : { ...current, exitDialogOpen: true, exitSaveError: null });
++        }}
+       />
+       {state.rulesGuideOpen ? (
+         <RulesGuideScreen
+@@ -1176,6 +1242,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
+           onBack={() => setState((current) => ({ ...current, rulesGuideOpen: false }))}
+         />
+       ) : null}
++      <MatchClockHud runtime={activeGame.runtime} participantId={FOUR_HUMAN} />
+       <MatchResultDialog matchState={matchState} onNewMatch={() => setState((current) => ({ ...current, screen: 'main-menu', activeGame: null }))} />
+       {state.exitDialogOpen ? (
+         <ExitGameDialog
+diff --git a/src/app/navigation.ts b/src/app/navigation.ts
+index 97daaad..23bad8b 100644
+--- a/src/app/navigation.ts
++++ b/src/app/navigation.ts
+@@ -10,7 +10,11 @@ export type AppScreen =
+   | 'riichi-superpower'
+   | 'riichi-four-player-length'
+   | 'riichi-three-player-length'
++  | 'sanma-settings'
++  | 'sanma'
+   | 'match-settings'
++  | 'xuezhan-settings'
++  | 'xuezhan'
+   | 'rules-guide'
+   | 'game'
+   | 'replay-library'
+diff --git a/src/components/ActionPrompt.tsx b/src/components/ActionPrompt.tsx
+index 284db05..14dd720 100644
+--- a/src/components/ActionPrompt.tsx
++++ b/src/components/ActionPrompt.tsx
+@@ -1,6 +1,6 @@
+ import type { ButtonHTMLAttributes, ReactNode } from 'react';
+ 
+-export type OperationKind = 'win' | 'riichi' | 'kan' | 'pon' | 'chi' | 'abortive' | 'pass';
++export type OperationKind = 'north' | 'win' | 'riichi' | 'kan' | 'pon' | 'chi' | 'abortive' | 'pass';
+ 
+ interface ActionPromptProps {
+   title: ReactNode;
+diff --git a/src/components/Board.tsx b/src/components/Board.tsx
+index 900afed..6afd520 100644
+--- a/src/components/Board.tsx
++++ b/src/components/Board.tsx
+@@ -15,6 +15,9 @@ import type { SettlementPresentationCoordinator } from '../audio/voice/Settlemen
+ import type { AppearanceSettings } from '../presentation/appearance/appearanceSettings';
+ 
+ interface BoardProps {
++  suppressCalls?: boolean;
++  onInputResourcesReady?: () => void;
++  authoritativeInputOpen?: boolean;
+   gameState: GameState;
+   matchState?: MatchState;
+   onDiscard: (playerId: PlayerId, tileInstanceId: string) => void;
+@@ -49,6 +52,9 @@ interface BoardProps {
+ }
+ 
+ export function Board({
++  suppressCalls = false,
++  onInputResourcesReady,
++  authoritativeInputOpen,
+   gameState,
+   matchState,
+   onDiscard,
+@@ -178,7 +184,7 @@ export function Board({
+             </div>
+           ) : null}
+           {drawActions.canKyuushuKyuuhai ? <OperationButton kind="abortive" onClick={() => onDeclareKyuushuKyuuhai(controlledPlayerId)}>九种九牌</OperationButton> : null}
+-          {drawActions.ankanCandidates.map((candidate) => (
++          {!suppressCalls && drawActions.ankanCandidates.map((candidate) => (
+             <CallOptionButton
+               key={`ankan-${candidate.tileId}`}
+               operation="kan"
+@@ -192,7 +198,7 @@ export function Board({
+               onClick={() => onKan(controlledPlayerId, 'ankan', candidate.tileId)}
+             />
+           ))}
+-          {drawActions.kakanCandidates.map((candidate) => (
++          {!suppressCalls && drawActions.kakanCandidates.map((candidate) => (
+             <CallOptionButton
+               key={`kakan-${candidate.tileId}`}
+               operation="kan"
+@@ -220,7 +226,7 @@ export function Board({
+         </ActionPrompt>
+       ) : null}
+ 
+-      {prompt.call ? (
++      {prompt.call && !suppressCalls ? (
+         <ActionPrompt
+           title={gameState.pendingCall ? (
+             <span className="action-prompt-title-with-tile">
+@@ -291,6 +297,8 @@ export function Board({
+ 
+   return (
+     <GameScreen
++      onInputResourcesReady={onInputResourcesReady}
++      authoritativeInputOpen={authoritativeInputOpen}
+       gameState={gameState}
+       matchState={matchState}
+       analysisOpen={analysisOpen}
+@@ -340,9 +348,10 @@ export function TileActionButton({
+   sameTileHoverEnabled,
+   onHoveredTileTypeChange,
+   onPreviewChange,
++  disabled,
+   onClick,
+ }: {
+-  operation?: Extract<OperationKind, 'win' | 'riichi'>;
++  operation?: Extract<OperationKind, 'win' | 'riichi' | 'north'>;
+   label: string;
+   ariaLabel?: string;
+   showLabel?: boolean;
+@@ -353,6 +362,7 @@ export function TileActionButton({
+   sameTileHoverEnabled?: boolean;
+   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
+   onPreviewChange?: (active: boolean) => void;
++  disabled?: boolean;
+   onClick: () => void;
+ }) {
+   const handleActivate = () => {
+@@ -365,6 +375,7 @@ export function TileActionButton({
+   return (
+     <button
+       type="button"
++      disabled={disabled}
+       className={operation ? operationButtonClassName(operation, 'prompt-tile-action') : 'prompt-tile-action'}
+       data-operation={operation}
+       onPointerEnter={() => onPreviewChange?.(true)}
+@@ -386,7 +397,7 @@ export function TileActionButton({
+   );
+ }
+ 
+-function CallOptionButton({
++export function CallOptionButton({
+   operation,
+   label,
+   tiles,
+@@ -396,6 +407,7 @@ function CallOptionButton({
+   hoveredTileType,
+   sameTileHoverEnabled,
+   onHoveredTileTypeChange,
++  disabled,
+   onClick,
+ }: {
+   operation: Extract<OperationKind, 'kan' | 'pon' | 'chi'>;
+@@ -407,6 +419,7 @@ function CallOptionButton({
+   hoveredTileType?: TileId | null;
+   sameTileHoverEnabled?: boolean;
+   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
++  disabled?: boolean;
+   onClick: () => void;
+ }) {
+   const ariaLabel = `${label} ${tiles.map((tile) => tileLabel(tile.id)).join('')}`;
+@@ -419,6 +432,7 @@ function CallOptionButton({
+   return (
+     <button
+       type="button"
++      disabled={disabled}
+       className={operationButtonClassName(operation, 'call-option-button')}
+       data-operation={operation}
+       aria-label={ariaLabel}
+diff --git a/src/components/LocalModeMenu.tsx b/src/components/LocalModeMenu.tsx
+index e8e4795..a18e961 100644
+--- a/src/components/LocalModeMenu.tsx
++++ b/src/components/LocalModeMenu.tsx
+@@ -4,10 +4,11 @@ interface LocalModeMenuProps {
+   notice?: string | null;
+   onBack: () => void;
+   onRiichi: () => void;
++  onXuezhan?: () => void;
+   onComingSoon: (label: string) => void;
+ }
+ 
+-export function LocalModeMenu({ notice, onBack, onRiichi, onComingSoon }: LocalModeMenuProps) {
++export function LocalModeMenu({ notice, onBack, onRiichi, onXuezhan, onComingSoon }: LocalModeMenuProps) {
+   return (
+     <main className="menu-page">
+       <section className="menu-panel">
+@@ -18,7 +19,7 @@ export function LocalModeMenu({ notice, onBack, onRiichi, onComingSoon }: LocalM
+         <div className="menu-actions">
+           <button type="button" onClick={() => onComingSoon('剧情模式')}>剧情模式 <span>敬请期待</span></button>
+           <button type="button" onClick={onRiichi}>立直麻将</button>
+-          <button type="button" onClick={() => onComingSoon('血战到底')}>血战到底 <span>敬请期待</span></button>
++          <button type="button" onClick={onXuezhan}>血战到底</button>
+           <button type="button" onClick={() => onComingSoon('国标麻将')}>国标麻将 <span>敬请期待</span></button>
+         </div>
+       </section>
+diff --git a/src/components/MatchResultDialog.tsx b/src/components/MatchResultDialog.tsx
+index 08863a4..21a68bd 100644
+--- a/src/components/MatchResultDialog.tsx
++++ b/src/components/MatchResultDialog.tsx
+@@ -24,17 +24,7 @@ export function MatchResultDialog({ matchState, onNewMatch }: MatchResultDialogP
+           <button type="button" onClick={onNewMatch}>新比赛</button>
+         </div>
+         <h3>总排名</h3>
+-        <div className="match-result-table">
+-          {aggregateRanking.map((player, index) => (
+-            <article key={player.player} className="result-card">
+-              <div className="result-card-title">
+-                <strong>{index + 1}位 Player {player.player + 1}</strong>
+-                <span>{player.score.toFixed(1)}</span>
+-              </div>
+-              <p>累计比赛分：{player.score.toFixed(1)}</p>
+-            </article>
+-          ))}
+-        </div>
++        <MatchRankingCards rows={aggregateRanking.map((player, index) => ({ id: player.player, rank: index + 1, name: `Player ${player.player + 1}`, score: player.score }))} />
+         <h3>各场结果</h3>
+         {matchResults.map((matchResult, matchIndex) => (
+           <section key={matchIndex} className="result-card">
+@@ -62,3 +52,10 @@ export function MatchResultDialog({ matchState, onNewMatch }: MatchResultDialogP
+     </div>
+   );
+ }
++
++export function MatchRankingCards({ rows }: { rows: readonly { id: number; rank: number; name: string; score: number }[] }) {
++  return <div className="match-result-table">{rows.map(player => <article key={player.id} className="result-card">
++    <div className="result-card-title"><strong>{player.rank}位 {player.name}</strong><span>{player.score.toFixed(1)}</span></div>
++    <p>累计比赛分：{player.score.toFixed(1)}</p>
++  </article>)}</div>;
++}
+diff --git a/src/components/PlayerMelds.tsx b/src/components/PlayerMelds.tsx
+index c5a897c..7f414de 100644
+--- a/src/components/PlayerMelds.tsx
++++ b/src/components/PlayerMelds.tsx
+@@ -4,6 +4,7 @@ import { MeldDisplay } from './MeldDisplay';
+ 
+ interface PlayerMeldsProps {
+   player: PlayerState;
++  displayMelds?: import('../game/meldDisplayAdapter').MeldDisplayModel[];
+   seatClass?: string;
+   doraIndicators?: TileModel[];
+   doraGlowEnabled?: boolean;
+@@ -12,8 +13,8 @@ interface PlayerMeldsProps {
+   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
+ }
+ 
+-export function PlayerMelds({ player, seatClass = '', doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange }: PlayerMeldsProps) {
+-  const melds = callsToMeldDisplayModels(player.calls, player.id);
++export function PlayerMelds({ player, displayMelds, seatClass = '', doraIndicators = [], doraGlowEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange }: PlayerMeldsProps) {
++  const melds = displayMelds ?? callsToMeldDisplayModels(player.calls, player.id);
+   if (melds.length === 0) return null;
+   return (
+     <div className={`player-melds ${seatClass}`} aria-label={`${player.name} 副露`}>
+diff --git a/src/components/ResultDialog.tsx b/src/components/ResultDialog.tsx
+index 5a3693a..a6c85c1 100644
+--- a/src/components/ResultDialog.tsx
++++ b/src/components/ResultDialog.tsx
+@@ -41,7 +41,7 @@ interface ResultShellProps {
+   continueLabel: string;
+ }
+ 
+-function ResultShell({ title, subtitle, children, onReset, continueLabel }: ResultShellProps) {
++export function ResultShell({ title, subtitle, children, onReset, continueLabel }: ResultShellProps) {
+   return (
+     <div className="result-backdrop" role="presentation">
+       <section className="result-dialog" role="dialog" aria-modal="true" aria-labelledby="result-title">
+@@ -60,7 +60,7 @@ function ResultShell({ title, subtitle, children, onReset, continueLabel }: Resu
+   );
+ }
+ 
+-function HandPreview({ title, tiles, doraIndicators = [], doraGlowEnabled = true }: { title: string; tiles: TileModel[]; doraIndicators?: TileModel[]; doraGlowEnabled?: boolean }) {
++export function HandPreview({ title, tiles, doraIndicators = [], doraGlowEnabled = true }: { title: string; tiles: TileModel[]; doraIndicators?: TileModel[]; doraGlowEnabled?: boolean }) {
+   return (
+     <div className="result-hand">
+       <span>{title}</span>
+@@ -101,7 +101,7 @@ function SeventeenStepsDrawAnalysis({ waits, kazoeYakumanMode }: { waits: Sevent
+   );
+ }
+ 
+-function WinHandPreview({ gameState, winner, doraGlowEnabled = true, showDoraIndicators = true }: { gameState: GameState; winner: WinnerResultViewModel; doraGlowEnabled?: boolean; showDoraIndicators?: boolean }) {
++function WinHandPreview({ gameState, winner, doraGlowEnabled = true, showDoraIndicators = true }: { gameState: Pick<GameState, 'doraIndicators'>; winner: WinnerResultViewModel; doraGlowEnabled?: boolean; showDoraIndicators?: boolean }) {
+   return (
+     <div className="result-tile-sections" aria-label="和牌牌组">
+       {showDoraIndicators ? (
+@@ -127,7 +127,7 @@ function WinHandPreview({ gameState, winner, doraGlowEnabled = true, showDoraInd
+       {winner.player.calls.length > 0 ? (
+         <section className="result-tile-section result-melds" aria-label="副露">
+           <span>副露</span>
+-          <PlayerMelds player={winner.player} seatClass="result-melds-seat" doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />
++          <PlayerMelds player={winner.player} displayMelds={winner.displayMelds} seatClass="result-melds-seat" doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />
+         </section>
+       ) : null}
+       {winner.uraDoraIndicators.length > 0 ? (
+@@ -152,9 +152,9 @@ function formatDelta(points: number): string {
+   return '±0';
+ }
+ 
+-function ResultDeltas({ rows }: { rows: readonly PlayerScoreChangeViewModel[] }) {
++export function ResultDeltas({ rows }: { rows: readonly PlayerScoreChangeViewModel[] }) {
+   return (
+-    <section className="result-deltas" aria-label="四家点数变化">
++    <section className="result-deltas" aria-label={rows.length === 4 ? '四家点数变化' : '玩家点数变化'}>
+       <h3>点数变化</h3>
+       <div className="result-delta-grid">
+       {rows.map((row) => {
+@@ -330,8 +330,21 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
+       onReset={continueStage}
+       continueLabel={continueLabel}
+     >
+-      <div className="result-winners">
+-        {viewModel.winners.map((winner) => {
++      <WinnerResultCards winners={viewModel.winners} gameState={gameState} resultRiichiSticks={resultRiichiSticks} winPresentation={winPresentation} winPresentationController={winPresentationController} doraGlowEnabled={doraGlowEnabled} showDoraIndicators={showDoraIndicators} />
++      {!settlementPresentationCoordinator && (!winPresentationController || viewModel.winners.every((winner) => winPresentation.sequences.find((sequence) => sequence.winnerId === winner.source.winner)?.sequenceCompleted === true))
++        ? <ResultDeltas rows={viewModel.scoreChanges} />
++        : null}
++    </ResultShell>
++  );
++}
++
++/** Scored, read-only rows: this component never invokes a scoring engine. */
++export function WinnerResultCards({ winners, gameState, resultRiichiSticks, winPresentation = EMPTY_WIN_PRESENTATION, winPresentationController, doraGlowEnabled = true, showDoraIndicators = true, northBonus }: {
++  winners: readonly WinnerResultViewModel[]; gameState: Pick<GameState, 'dealer' | 'honba' | 'doraIndicators'>; resultRiichiSticks: number;
++  winPresentation?: WinResultPresentationState; winPresentationController?: WinResultPresentationController; doraGlowEnabled?: boolean; showDoraIndicators?: boolean; northBonus?: Partial<Record<PlayerId, number>>;
++}) {
++  return (      <div className="result-winners">
++        {winners.map((winner) => {
+           const win = winner.source;
+           const sequence = winPresentation.sequences.find((candidate) => candidate.winnerId === win.winner);
+           const hasYakuman = win.yaku.some((yaku) => yaku.yakuman) || (win.yakumanMultiplier ?? 0) > 0;
+@@ -384,6 +397,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
+                       <span>宝牌 <strong>{winner.dora.available ? winner.dora.dora ?? 0 : '—'}</strong></span>
+                       <span>里宝牌 <strong>{winner.dora.available ? winner.dora.uraDora ?? 0 : '—'}</strong></span>
+                       <span>赤宝牌 <strong>{winner.dora.available ? winner.dora.redDora ?? 0 : '—'}</strong></span>
++                      {northBonus?.[winner.player.id] !== undefined ? <span>拔北 <strong>{northBonus[winner.player.id]}</strong></span> : null}
+                       <span>合计 <strong>{winner.dora.available ? winner.dora.totalDora ?? '—' : '未提供'}</strong></span>
+                     </div>
+                     <div className="result-authoritative-total">
+@@ -398,9 +412,5 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
+           );
+         })}
+       </div>
+-      {!settlementPresentationCoordinator && (!winPresentationController || viewModel.winners.every((winner) => winPresentation.sequences.find((sequence) => sequence.winnerId === winner.source.winner)?.sequenceCompleted === true))
+-        ? <ResultDeltas rows={viewModel.scoreChanges} />
+-        : null}
+-    </ResultShell>
+-  );
++);
+ }
+diff --git a/src/components/RiichiModeMenu.tsx b/src/components/RiichiModeMenu.tsx
+index cfa7574..57e53c8 100644
+--- a/src/components/RiichiModeMenu.tsx
++++ b/src/components/RiichiModeMenu.tsx
+@@ -22,7 +22,7 @@ export function RiichiModeMenu({ notice, onBack, onFourPlayer, onThreePlayer, on
+         {notice ? <p className="menu-notice">{notice}</p> : null}
+         <div className="menu-actions">
+           <button type="button" onClick={onFourPlayer}>四人间</button>
+-          <button type="button" onClick={onThreePlayer}>三人间<span>敬请期待</span></button>
++          <button type="button" onClick={onThreePlayer}>三人间</button>
+           <h1>娱乐模式</h1>
+           <button type="button" onClick={on17Steps ?? (() => undefined)}>17步麻将</button>
+           <button type="button" onClick={onWashizu ?? (() => undefined)}>鹫巢麻将</button>
+diff --git a/src/components/SeventeenStepsMatchSettings.tsx b/src/components/SeventeenStepsMatchSettings.tsx
+index edc7b52..90c1356 100644
+--- a/src/components/SeventeenStepsMatchSettings.tsx
++++ b/src/components/SeventeenStepsMatchSettings.tsx
+@@ -1,4 +1,6 @@
+ import { AI_DIFFICULTY_OPTIONS, AI_PERSONALITY_OPTIONS } from './MatchSettings';
++import { TimeControlSettings } from './TimeControlSettings';
++import type { TimeControlConfig } from '../game/timeControl/config';
+ import { RuleHelpTooltip } from './RuleHelpTooltip';
+ import type { RuleDescriptionKey } from '../game/rules/ruleDescriptions';
+ import {
+@@ -8,13 +10,15 @@ import {
+ } from '../game/seventeenSteps';
+ 
+ interface SeventeenStepsMatchSettingsProps {
++  timeControl?: TimeControlConfig;
++  onTimeControlChange?: (value: TimeControlConfig) => void;
+   config: SeventeenStepsMatchConfig;
+   onBack: () => void;
+   onConfigChange: (config: SeventeenStepsMatchConfig) => void;
+   onStart: () => void;
+ }
+ 
+-export function SeventeenStepsMatchSettings({ config, onBack, onConfigChange, onStart }: SeventeenStepsMatchSettingsProps) {
++export function SeventeenStepsMatchSettings({ config, onBack, onConfigChange, onStart, timeControl, onTimeControlChange }: SeventeenStepsMatchSettingsProps) {
+   const setConfig = (patch: Partial<SeventeenStepsMatchConfig>) => onConfigChange(normalizeSeventeenStepsMatchConfig({ ...config, ...patch }));
+   const setRound = (patch: Partial<SeventeenStepsMatchConfig['roundRuleConfig']>) => setConfig({ roundRuleConfig: { ...config.roundRuleConfig, ...patch } });
+   const setDisplay = (patch: Partial<SeventeenStepsMatchConfig['displayOptions']>) => setConfig({ displayOptions: { ...config.displayOptions, ...patch } });
+@@ -24,6 +28,7 @@ export function SeventeenStepsMatchSettings({ config, onBack, onConfigChange, on
+       <section className="menu-panel menu-panel--wide seventeen-steps-settings" aria-label="17步麻将比赛设置">
+         <p className="menu-path">本地模式 ＞ 立直麻将 ＞ 娱乐模式 ＞ 17步麻将</p>
+         <h1>17步麻将比赛设置</h1>
++        {timeControl && onTimeControlChange && <TimeControlSettings mode="seventeen" value={timeControl} onChange={onTimeControlChange} />}
+ 
+         <section className="settings-block">
+           <h2>AI 对手</h2>
+diff --git a/src/components/SeventeenStepsScreen.tsx b/src/components/SeventeenStepsScreen.tsx
+index d7356ce..b20d8ef 100644
+--- a/src/components/SeventeenStepsScreen.tsx
++++ b/src/components/SeventeenStepsScreen.tsx
+@@ -1,4 +1,9 @@
+ import { useCandidateAnimation } from '../presentation3d/participants/useCandidateAnimation';
++import { MatchRuntime } from '../game/timeControl/matchRuntime';
++import { createSeventeenPolicy, SEVENTEEN_HUMAN } from '../game/timeControl/seventeenPolicy';
++import { unlimitedTimeControl, type TimeControlConfig } from '../game/timeControl/config';
++import { MatchClockHud } from './MatchClockHud';
++import { finishHandsForAuthoritativeInput } from '../presentation/handAnimation/HandAnimationController';
+ import { traceCandidate } from '../presentation3d/participants/candidateTrace';
+ import { candidateSlots, candidateRiverOwns, candidateSourceHidden, confirmedCandidateDiscard, type CandidateFrame } from '../presentation3d/participants/candidateAnimation';
+ import { candidateSourceSlot } from '../presentation3d/participants/participantLayout';
+@@ -47,6 +52,7 @@ import { PlayerAvatar } from './PlayerAvatar';
+ import { getLocalHandScreenOffset } from '../presentation3d/table/tablePresentationTuning';
+ 
+ interface SeventeenStepsScreenProps {
++  timeControl?: TimeControlConfig;
+   onBack: () => void;
+   onOpenAudioSettings?: () => void;
+   ruleConfig: FullRuleConfig;
+@@ -63,12 +69,17 @@ interface SeventeenStepsScreenProps {
+ 
+ const SEVENTEEN_DISPLAY_SEATS = [{ participantId: 'seventeen:0', seat: 'bottom' }, { participantId: 'seventeen:1', seat: 'top' }] as const;
+ 
+-export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, matchConfig = DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG, playerProfile = DEFAULT_PLAYER_PROFILE, appearanceSettings = DEFAULT_APPEARANCE_SETTINGS, initialState, previewAppearances, qaHideResult }: SeventeenStepsScreenProps) {
+-  const [state, setState] = useState<SeventeenStepsState>(() => (import.meta.env.DEV && initialState) || createSeventeenStepsAIGame(createSeventeenStepsGame(matchConfig), {
++export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, matchConfig = DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG, playerProfile = DEFAULT_PLAYER_PROFILE, appearanceSettings = DEFAULT_APPEARANCE_SETTINGS, initialState, previewAppearances, qaHideResult, timeControl }: SeventeenStepsScreenProps) {
++  const [runtime] = useState(() => new MatchRuntime((import.meta.env.DEV && initialState) || createSeventeenStepsAIGame(createSeventeenStepsGame(matchConfig), {
+     difficulty: matchConfig.aiDifficulty,
+     personality: matchConfig.aiPersonality,
+     seed: 0,
+-  }));
++  }), createSeventeenPolicy(), timeControl ?? unlimitedTimeControl('seventeen'), undefined, undefined, undefined, true));
++  const [state, projectState] = useState(runtime.state);
++  const [, projectRuntime] = useState(0);
++  const localDecisionId = runtime.decision(SEVENTEEN_HUMAN)?.id;
++  const draftRevision = runtime.draftRevisions[SEVENTEEN_HUMAN] ?? 0;
++  const setState = (reduce: (current: SeventeenStepsState) => SeventeenStepsState) => runtime.command(SEVENTEEN_HUMAN, localDecisionId, reduce, undefined, draftRevision);
+   const [rulesOpen, setRulesOpen] = useState(false);
+   const [analysisOpen, setAnalysisOpen] = useState(false);
+   const [hoveredTileType, setHoveredTileType] = useState<TileId | null>(null);
+@@ -93,15 +104,10 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig,
+   const savedAppearances = usePlayerSlotAppearances();
+   const appearances = (import.meta.env.DEV && previewAppearances) || savedAppearances;
+   const stateRef = useRef(state);
+-  stateRef.current = state;
+-  const submitDiscard = useCallback((playerId: 0 | 1, instanceId: string) => {
+-    traceCandidate(playerId === 0 ? 'click' : 'automatic discard', { playerId });
+-    if (animation.isBusy()) return;
+-    const before = stateRef.current;
++  const captureDiscard = useCallback((before: SeventeenStepsState, next: SeventeenStepsState, playerId: 0 | 1, instanceId: string) => {
+     const container = screenRef.current?.querySelector<HTMLElement>('.seventeen-steps-candidate-grid');
+     const source = playerId === 0 && container ? candidateSourceSlot(container, instanceId) : null;
+     const slot = source ? candidateSlots(before.players[0].discardCandidates)[source.index] : null;
+-    const next = discardCandidate(before, playerId, instanceId);
+     const tile = confirmedCandidateDiscard(before, next, playerId, instanceId);
+     if (!tile) return;
+     traceCandidate('confirmed discard', { playerId, riverIndex: before.players[playerId].discardedTiles.length });
+@@ -114,9 +120,31 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig,
+       source: source && slot ? { instanceId, row: slot.row, column: slot.column, rect: { left: source.rect.left, top: source.rect.top, width: source.rect.width, height: source.rect.height } } : undefined,
+       pack: resolveHandPackForPlayer(playerId, appearances, appearanceSettings),
+     });
+-    stateRef.current = next;
+-    setState(next);
+-  }, [animation.capture, animation.isBusy, sceneSession, appearances, appearanceSettings]);
++  }, [animation.capture, sceneSession, appearances, appearanceSettings]);
++  const captureRef = useRef(captureDiscard); captureRef.current = captureDiscard;
++  useEffect(() => {
++    const unsubscribe = runtime.subscribe(() => {
++      const before = stateRef.current;
++      const next = runtime.state;
++      if (before !== next) for (const id of [0, 1] as const) {
++        const river = next.players[id].discardedTiles;
++        const tile = river[river.length - 1];
++        if (tile && next.players[id].discardedTiles.length === before.players[id].discardedTiles.length + 1) captureRef.current(before, next, id, tile.instanceId);
++      }
++      stateRef.current = next;
++      projectState(next);
++      projectRuntime(n => n + 1);
++    });
++    const unsubscribeOpen = runtime.onInputOpen(finishHandsForAuthoritativeInput);
++    runtime.resumeAfterRemount();
++    return () => { unsubscribe(); unsubscribeOpen(); runtime.pause(); };
++  }, [runtime]);
++  useEffect(() => { if (isBuildPhase) setAnimationReady(false); }, [isBuildPhase]);
++  useEffect(() => { if (faceReady && (isBuildPhase || (domReadySession === sceneSession && animationReady))) runtime.resourcesReady(); }, [runtime, faceReady, isBuildPhase, domReadySession, sceneSession, animationReady]);
++  const submitDiscard = useCallback((playerId: 0 | 1, instanceId: string) => {
++    if (playerId === 0) { animation.cancel(); runtime.command(SEVENTEEN_HUMAN, localDecisionId, current => discardCandidate(current, 0, instanceId)); }
++    else runtime.advance(current => discardCandidate(current, 1, instanceId));
++  }, [runtime, localDecisionId, animation.cancel]);
+   const handleFacesReady = useCallback(() => setReadyFaceSignature(faceSignature), [faceSignature]);
+   useEffect(() => {
+     if (isBuildPhase || !faceReady) return;
+@@ -154,7 +182,7 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig,
+     const timer = window.setTimeout(() => {
+       void runPacedAutomaticAction(() => {
+         if (stateRef.current !== state) return;
+-        if (state.phase === 'ron-window') setState(current => declareSeventeenStepsRon(current, 1));
++        if (state.phase === 'ron-window') runtime.advance(current => declareSeventeenStepsRon(current, 1));
+         else {
+           const candidate = createSeventeenStepsAI({ difficulty: state.matchConfig.aiDifficulty, personality: state.matchConfig.aiPersonality, seed: 0 }).discard(state, 1);
+           if (candidate) submitDiscard(1, candidate.instanceId);
+@@ -217,8 +245,8 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig,
+             <DiscardPanel
+               state={state}
+               gameState={tableState}
+-              canDiscard={isLocalTurn && !animation.frame}
+-              candidateFrame={animation.frame}
++              canDiscard={isLocalTurn && runtime.budgetView(SEVENTEEN_HUMAN)?.status === 'open'}
++              candidateFrame={isLocalTurn ? null : animation.frame}
+               hoveredTileType={hoveredTileType}
+               onHoveredTileTypeChange={setHoveredTileType}
+               onDiscard={(instanceId) => submitDiscard(0, instanceId)}
+@@ -226,7 +254,7 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig,
+           </SeventeenBattleControls>
+         )}
+       </section>
+-      {!animation.frame && state.phase === 'ron-window' && state.pendingRon?.winnerId === 0 ? (
++      {state.phase === 'ron-window' && state.pendingRon?.winnerId === 0 ? (
+         <div className="game-prompt-layer">
+           <ActionPrompt title={`可以荣和 ${tileLabel(state.pendingRon.tile)}`} ariaLabel="17步麻将荣和操作">
+             <OperationButton kind="win" onClick={() => setState((current) => declareSeventeenStepsRon(current, 0))}>荣和</OperationButton>
+@@ -239,7 +267,7 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig,
+       {!(import.meta.env.DEV && qaHideResult) && !resultPending && !animation.frame && state.phase === 'round-ended' && state.result ? (
+         <ResultDialog
+           gameState={tableState}
+-          onReset={() => setState((current) => createSeventeenStepsAIGame(advanceSeventeenStepsMatch(current), {
++          onReset={() => runtime.advance((current) => createSeventeenStepsAIGame(advanceSeventeenStepsMatch(current), {
+             difficulty: current.matchConfig.aiDifficulty,
+             personality: current.matchConfig.aiPersonality,
+             seed: 0,
+@@ -256,11 +284,8 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig,
+           scoreAfter={state.result.scoresAfter}
+         />
+       ) : null}
+-      {state.phase === 'match-ended' ? <SeventeenStepsMatchResult state={state} playerProfile={playerProfile} onNewMatch={() => setState(createSeventeenStepsAIGame(createSeventeenStepsGame(state.matchConfig), {
+-        difficulty: state.matchConfig.aiDifficulty,
+-        personality: state.matchConfig.aiPersonality,
+-        seed: 0,
+-      }))} onBack={onBack} /> : null}
++      {state.phase === 'match-ended' ? <SeventeenStepsMatchResult state={state} playerProfile={playerProfile} onNewMatch={onBack} onBack={onBack} /> : null}
++      <MatchClockHud runtime={runtime} participantId={SEVENTEEN_HUMAN} />
+       {rulesOpen ? <RulesGuideScreen embedded ruleConfig={ruleConfig} onBack={() => setRulesOpen(false)} /> : null}
+       {analysisOpen ? <AnalysisDrawer open gameState={tableState} onClose={() => setAnalysisOpen(false)} /> : null}
+     </main>
+diff --git a/src/components/TestModeScreen.tsx b/src/components/TestModeScreen.tsx
+index 555a1ee..a33f48f 100644
+--- a/src/components/TestModeScreen.tsx
++++ b/src/components/TestModeScreen.tsx
+@@ -1,4 +1,6 @@
+ import { useMemo, useState } from 'react';
++import { XuezhanTestTab } from './XuezhanTestTab';
++import { SanmaTestTab } from './SanmaTestTab';
+ import { Board } from './Board';
+ import { TestModeDebugPanel } from './TestModeDebugPanel';
+ import { createReplayRecord } from '../game/persistence/replayRecord';
+@@ -15,6 +17,8 @@ interface TestModeScreenProps {
+   initialScenario?: TestScenarioV1 | null;
+   onExit: () => void;
+   testResultStorage?: Storage;
++  onXzSessionChange?: (active: boolean) => void;
++  onSanmaSessionChange?: (active: boolean) => void;
+ }
+ 
+ interface TestSession {
+@@ -40,7 +44,8 @@ const statusLabels: Record<TestCaseStatus, string> = {
+   'needs-retest': '需复验',
+ };
+ 
+-export function TestModeScreen({ initialScenario = null, onExit, testResultStorage }: TestModeScreenProps) {
++export function TestModeScreen({ initialScenario = null, onExit, testResultStorage, onXzSessionChange, onSanmaSessionChange }: TestModeScreenProps) {
++  const [tab, setTab] = useState<'riichi' | 'xuezhan' | 'sanma'>('riichi');
+   const presentationAnimationsEnabled = testModePresentationAnimationsEnabled(
+     typeof window === 'undefined' ? '' : window.location.search,
+   );
+@@ -138,9 +143,13 @@ export function TestModeScreen({ initialScenario = null, onExit, testResultStora
+     }
+   };
+ 
++  const tabs = <nav className="xz-tabs" aria-label="测试模式分类"><button aria-pressed={tab === 'riichi'} onClick={() => setTab('riichi')}>立直麻将</button><button aria-pressed={tab === 'xuezhan'} onClick={() => setTab('xuezhan')}>血战到底</button><button aria-pressed={tab === 'sanma'} onClick={() => setTab('sanma')}>三人立直麻将</button></nav>;
++  if (tab === 'sanma') return <SanmaTestTab tabs={tabs} onExit={onExit} onSessionChange={onSanmaSessionChange} />;
++  if (tab === 'xuezhan') return <XuezhanTestTab tabs={tabs} onSessionChange={onXzSessionChange} />;
+   if (!session) {
+     return (
+       <main className="test-mode-library">
++        {tabs}
+         <header className="test-mode-heading">
+           <span className="test-environment-badge">测试环境</span>
+           <div><h1>开发者测试模式</h1><p>测试结果与普通存档、普通牌谱完全隔离；场景动作继续使用正式引擎。</p></div>
+diff --git a/src/components/Tile.tsx b/src/components/Tile.tsx
+index 3210a21..6ce50da 100644
+--- a/src/components/Tile.tsx
++++ b/src/components/Tile.tsx
+@@ -1,4 +1,5 @@
+-import { useEffect, useMemo, useRef, useState, type MouseEventHandler, type PointerEventHandler } from 'react';
++import { useContext, useEffect, useMemo, useRef, useState, type MouseEventHandler, type PointerEventHandler } from 'react';
++import { TileDoraContext } from '../presentation/table/TileDoraContext';
+ import { getTileAlt, getTileAltById, getTileBackImage, getTileImage, getTileImageById, getTilePlaceholderImage, isRedFive } from '../game/tileAssets';
+ import type { Tile as TileModel, TileId } from '../game/types';
+ import { suitClass } from '../game/tileUtils';
+@@ -85,7 +86,9 @@ export function Tile({
+         ? getTileAltById(tileId)
+         : '缺失牌图';
+   const showRedBadge = !!tile && !isFaceDown && isRedFive(tile);
+-  const doraKind = isFaceDown ? null : resolveTileDoraVisualKind(tile, doraIndicators);
++  const modeDoraIds = useContext(TileDoraContext);
++  const modeDora = tile && modeDoraIds?.includes(tile.id);
++  const doraKind = isFaceDown ? null : modeDoraIds ? modeDora ? tile?.red ? 'tile--double-dora' : 'tile--dora' : tile?.red ? 'tile--red-dora' : null : resolveTileDoraVisualKind(tile, doraIndicators);
+   const canReportHover = sameTileHoverEnabled && !isFaceDown && tileId !== undefined;
+   const visualSemantics = resolveTileVisualSemantics({
+     tileId,
+@@ -177,14 +180,14 @@ export function Tile({
+ 
+   if (!interactive) {
+     return (
+-      <span className={classNames} role="img" aria-label={alt} data-tile-state={tileState} data-drawn={drawn || undefined} data-riichi-candidate={riichiCandidate || undefined}>
++      <span className={classNames} role="img" aria-label={alt} data-tile-state={tileState} data-tile-instance={isFaceDown ? undefined : tile?.instanceId} data-drawn={drawn || undefined} data-riichi-candidate={riichiCandidate || undefined}>
+         {content}
+       </span>
+     );
+   }
+ 
+   return (
+-    <button className={classNames} type="button" onPointerDown={onPointerDown} onClick={onClick} disabled={isDisabled} aria-label={alt} aria-pressed={selected || undefined} data-tile-state={tileState} data-drawn={drawn || undefined} data-riichi-candidate={riichiCandidate || undefined}>
++    <button className={classNames} type="button" onPointerDown={onPointerDown} onClick={onClick} disabled={isDisabled} aria-label={alt} aria-pressed={selected || undefined} data-tile-state={tileState} data-tile-instance={isFaceDown ? undefined : tile?.instanceId} data-drawn={drawn || undefined} data-riichi-candidate={riichiCandidate || undefined}>
+       {content}
+     </button>
+   );
+diff --git a/src/components/game/AnalysisDrawer.tsx b/src/components/game/AnalysisDrawer.tsx
+index e9b5170..e8c2216 100644
+--- a/src/components/game/AnalysisDrawer.tsx
++++ b/src/components/game/AnalysisDrawer.tsx
+@@ -1,4 +1,4 @@
+-import { memo, useEffect } from 'react';
++import { memo, useEffect, type ReactNode } from 'react';
+ import type { GameState } from '../../game/types';
+ import { AnalysisPanel } from '../AnalysisPanel';
+ import { TileCounter } from '../TileCounter';
+@@ -10,6 +10,9 @@ interface AnalysisDrawerProps {
+ }
+ 
+ export function AnalysisDrawer({ open, gameState, onClose }: AnalysisDrawerProps) {
++  return <AnalysisDrawerView open={open} onClose={onClose}>{open ? <AnalysisContent gameState={gameState} /> : null}</AnalysisDrawerView>;
++}
++export function AnalysisDrawerView({ open, onClose, children, title = '牌局分析' }: { open: boolean; onClose: () => void; children: ReactNode; title?: string }) {
+   useEffect(() => {
+     if (!open) return;
+     const onKeyDown = (event: KeyboardEvent) => {
+@@ -22,11 +25,11 @@ export function AnalysisDrawer({ open, gameState, onClose }: AnalysisDrawerProps
+   return (
+     <aside className={`analysis-drawer ${open ? 'analysis-drawer--open' : ''}`} aria-label="牌局分析抽屉" aria-hidden={!open}>
+       <div className="analysis-drawer-header">
+-        <strong>牌局分析</strong>
++        <strong>{title}</strong>
+         <button type="button" aria-label="关闭牌局分析" onClick={onClose}>关闭</button>
+       </div>
+       <div className="analysis-drawer-body">
+-        {open ? <AnalysisContent gameState={gameState} /> : null}
++        {children}
+       </div>
+     </aside>
+   );
+diff --git a/src/components/game/GameScreen.tsx b/src/components/game/GameScreen.tsx
+index 7e1ef31..72f96ca 100644
+--- a/src/components/game/GameScreen.tsx
++++ b/src/components/game/GameScreen.tsx
+@@ -1,3 +1,4 @@
++import { FormalGameScreen } from './FormalGameScreen';
+ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+ import { getPresentationFeatures } from '../../config/presentationFeatures';
+ import type { MatchState } from '../../game/match/types';
+@@ -24,8 +25,6 @@ import { AnalysisDrawer } from './AnalysisDrawer';
+ import { GameEventOverlay } from './GameEventOverlay';
+ import { GameTopBar } from './GameTopBar';
+ import { HandAnimationOverlay } from './HandAnimationOverlay';
+-import { LocalHandArea } from './LocalHandArea';
+-import { TileFaceDomAppearance } from '../../presentation/appearance/TileFaceDomAppearance';
+ import { TableRenderer } from '../../presentation3d/TableRenderer';
+ import type { TableRendererMode } from '../../presentation3d/rendererMode';
+ import type { LocalHandAnimation3DState } from '../../presentation3d/animation/tableAnimation3D';
+@@ -44,6 +43,8 @@ interface GameScreenProps {
+   analysisOpen: boolean;
+   actionPrompt?: ReactNode;
+   canDiscard: boolean;
++  onInputResourcesReady?: () => void;
++  authoritativeInputOpen?: boolean;
+   allowedDiscardInstanceIds?: readonly string[];
+   kuikaeForbiddenTileIds?: readonly TileId[];
+   onOpenRulesGuide?: () => void;
+@@ -78,6 +79,8 @@ export function GameScreen({
+   analysisOpen,
+   actionPrompt,
+   canDiscard,
++  onInputResourcesReady,
++  authoritativeInputOpen = false,
+   allowedDiscardInstanceIds,
+   kuikaeForbiddenTileIds = [],
+   onOpenRulesGuide,
+@@ -261,14 +264,10 @@ export function GameScreen({
+ 
+   useEffect(() => () => discardSourceSnapshots.clear(), [discardSourceSnapshots]);
+ 
+-  return (
+-    <main
+-      className="game-screen"
+-      data-testid="game-screen"
+-      data-round-end-presentation-pending={roundEndPresentationPending ? 'true' : 'false'}
+-      data-local-presentation-ready={localPresentationReady ? 'true' : 'false'}
+-    >
+-      <GameTopBar
++  return <FormalGameScreen
++    data-round-end-presentation-pending={roundEndPresentationPending ? 'true' : 'false'}
++    data-local-presentation-ready={localPresentationReady ? 'true' : 'false'}
++    topBar={<GameTopBar
+         currentPlayerDisplayName={activeTableRenderer === '3d' ? resolvePlayerSlotNickname(gameState.currentPlayer, playerProfile?.nickname, slotNicknames, gameState.players[gameState.currentPlayer].name) : undefined}
+         gameState={gameState}
+         matchState={matchState}
+@@ -277,38 +276,36 @@ export function GameScreen({
+         onOpenAudioSettings={onOpenAudioSettings ?? (() => undefined)}
+         onToggleAnalysis={onToggleAnalysis}
+         onReturnMenu={onReturnMenu}
+-      />
+-      <TableRenderer gameState={gameState} matchState={matchState} bottomPlayerId={tableBottomPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} presentationState={sharedTablePresentationState} interactionActions={tableInteractionActions} animationsEnabled={realtimeHandAnimationsEnabled} animationSessionKey={handAnimationSessionKey} animationTurn={gameState.turn} localDiscardSnapshots={discardSourceSnapshots} onLocalHandAnimationChange={handleLocalHandAnimationChange} winPresentation3D={winPresentation3D} appearanceSettings={appearanceSettings} playerProfile={playerProfile} onActiveRendererChange={setActiveTableRenderer} localPresentationReady={localPresentationReady} />
+-      <TileFaceDomAppearance settings={activeTableRenderer === '3d' ? appearanceSettings : undefined} onReady={activeTableRenderer === '3d' ? handleLocalHandAssetsReady : undefined}>
+-      <LocalHandArea
+-        player={localPlayer}
+-        identityPlayer={fixedBottomPlayer}
+-        playerProfile={playerProfile}
+-        meldPlayer={fixedBottomPlayer}
+-        isCurrent={gameState.currentPlayer === localPlayerId}
+-        canDiscard={canDiscard}
+-        allowedDiscardInstanceIds={allowedDiscardInstanceIds}
+-        kuikaeForbiddenTileIds={kuikaeForbiddenTileIds}
+-        onDiscard={onDiscard}
+-        presentation={sharedTablePresentationState.localHand}
+-        interactionActions={tableInteractionActions}
+-        onDiscardSourceCapture={realtimeHandAnimationsEnabled ? captureDiscardSource : undefined}
+-        doraIndicators={gameState.doraIndicators}
+-        doraGlowEnabled={doraGlowEnabled}
+-        doraBorderEnabled={activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.borderEnabled === 1}
+-        doraBreathingEnabled={activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.breathingEnabled === 1}
+-        hoveredTileType={hoveredTileType}
+-        sameTileHoverEnabled={sameTileHoverEnabled}
+-        onHoveredTileTypeChange={onHoveredTileTypeChange}
+-        tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled}
+-        screenSpaceOverlay={activeTableRenderer === '3d'}
+-        retainDiscardSourceSnapshot={activeTableRenderer === '3d'}
+-        discardSnapshot={activeTableRenderer === '3d' ? localDiscardSnapshot : null}
+-        localHandAnimation={activeTableRenderer === '3d' ? localHandAnimation : null}
+-        onPresentationReady={activeTableRenderer === '3d' ? handleLocalHandLayoutReady : undefined}
+-        handPack={localHandPack}
+-      />
+-      <WinPresentationOverlay
++      />}
++    table={<TableRenderer onInputResourcesReady={onInputResourcesReady} gameState={gameState} matchState={matchState} bottomPlayerId={tableBottomPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} presentationState={sharedTablePresentationState} interactionActions={tableInteractionActions} animationsEnabled={realtimeHandAnimationsEnabled} animationSessionKey={handAnimationSessionKey} animationTurn={gameState.turn} localDiscardSnapshots={discardSourceSnapshots} onLocalHandAnimationChange={handleLocalHandAnimationChange} winPresentation3D={winPresentation3D} appearanceSettings={appearanceSettings} playerProfile={playerProfile} onActiveRendererChange={setActiveTableRenderer} localPresentationReady={localPresentationReady} />}
++    appearance={{ settings: activeTableRenderer === '3d' ? appearanceSettings : undefined, onReady: activeTableRenderer === '3d' ? handleLocalHandAssetsReady : undefined }}
++    localHand={{player: localPlayer,
++identityPlayer: fixedBottomPlayer,
++playerProfile: playerProfile,
++meldPlayer: fixedBottomPlayer,
++isCurrent: gameState.currentPlayer === localPlayerId,
++canDiscard: canDiscard,
++allowedDiscardInstanceIds: allowedDiscardInstanceIds,
++kuikaeForbiddenTileIds: kuikaeForbiddenTileIds,
++onDiscard: onDiscard,
++presentation: sharedTablePresentationState.localHand,
++interactionActions: tableInteractionActions,
++onDiscardSourceCapture: realtimeHandAnimationsEnabled ? captureDiscardSource : undefined,
++doraIndicators: gameState.doraIndicators,
++doraGlowEnabled: doraGlowEnabled,
++doraBorderEnabled: activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.borderEnabled === 1,
++doraBreathingEnabled: activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.breathingEnabled === 1,
++hoveredTileType: hoveredTileType,
++sameTileHoverEnabled: sameTileHoverEnabled,
++onHoveredTileTypeChange: onHoveredTileTypeChange,
++tsumoGiriDisplayEnabled: tsumoGiriDisplayEnabled,
++screenSpaceOverlay: activeTableRenderer === '3d',
++retainDiscardSourceSnapshot: activeTableRenderer === '3d',
++discardSnapshot: activeTableRenderer === '3d' ? localDiscardSnapshot : null,
++localHandAnimation: activeTableRenderer === '3d' && !authoritativeInputOpen ? localHandAnimation : null,
++onPresentationReady: activeTableRenderer === '3d' ? handleLocalHandLayoutReady : undefined,
++handPack: localHandPack}}
++    winOverlay={<WinPresentationOverlay
+         gameState={gameState}
+         sessionKey={handAnimationSessionKey}
+         doraGlowEnabled={doraGlowEnabled}
+@@ -318,28 +315,21 @@ export function GameScreen({
+         rendererMode={activeTableRenderer}
+         on3DPresentationChange={handleWinPresentation3DChange}
+         onRoundEndSettled={settleRoundEndPresentation}
+-      />
+-      </TileFaceDomAppearance>
+-      <HandAnimationOverlay
++      />}
++    handOverlay={<HandAnimationOverlay
+         bottomPlayerId={tableBottomPlayerId}
+         discardSourceSnapshots={discardSourceSnapshots}
+         enabled={realtimeHandAnimationsEnabled && activeTableRenderer === '2d'}
+         sessionKey={handAnimationSessionKey}
+         turn={gameState.turn}
+-      />
+-      <GameEventOverlay bottomPlayerId={tableBottomPlayerId} enabled={eventOverlayEnabled} onRoundEndSettled={settleRoundEndPresentation} />
+-      {actionPrompt ? (
+-        <div className="game-prompt-layer">
+-          {actionPrompt}
+-        </div>
+-      ) : null}
+-      {tenpaiDisplay ? <div className="game-tenpai-layer"><TenpaiWaitPanel display={tenpaiDisplay} /></div> : null}
+-      <AnalysisDrawer open={analysisOpen} gameState={gameState} onClose={onCloseAnalysis} />
+-      {roundEndPresentationPending ? null : (
+-        <ResultDialog gameState={gameState} onReset={onReset} doraGlowEnabled={doraGlowEnabled} winPresentationController={winPresentationController} settlementPresentationCoordinator={settlementPresentationCoordinator} />
+-      )}
+-    </main>
+-  );
++      />}
++    eventOverlay={<GameEventOverlay bottomPlayerId={tableBottomPlayerId} enabled={eventOverlayEnabled} onRoundEndSettled={settleRoundEndPresentation} />}
++    actionPrompt={actionPrompt}
++    tenpai={tenpaiDisplay ? <TenpaiWaitPanel display={tenpaiDisplay} /> : null}
++    details={<AnalysisDrawer open={analysisOpen} gameState={gameState} onClose={onCloseAnalysis} />}
++    result={roundEndPresentationPending ? null : <ResultDialog gameState={gameState} onReset={onReset} doraGlowEnabled={doraGlowEnabled} winPresentationController={winPresentationController} settlementPresentationCoordinator={settlementPresentationCoordinator} />}
++  />;
++
+ }
+ 
+ export function buildWinPresentationKey(gameState: GameState, sessionKey: string): string | null {
+diff --git a/src/components/game/GameTopBar.tsx b/src/components/game/GameTopBar.tsx
+index 3766394..b1acc47 100644
+--- a/src/components/game/GameTopBar.tsx
++++ b/src/components/game/GameTopBar.tsx
+@@ -1,3 +1,4 @@
++import type { ReactNode } from 'react';
+ import type { MatchState } from '../../game/match/types';
+ import type { GameState, Wind } from '../../game/types';
+ 
+@@ -36,13 +37,18 @@ const windNames: Record<Wind, string> = {
+ export function GameTopBar({ gameState, analysisOpen, onOpenRulesGuide, onOpenAudioSettings, onToggleAnalysis, onReturnMenu, modeLabel, phaseLabelOverride, currentPlayerDisplayName }: GameTopBarProps) {
+   const current = gameState.players[gameState.currentPlayer];
+ 
++  return <GameTopBarView analysisOpen={analysisOpen} onOpenRulesGuide={onOpenRulesGuide} onOpenAudioSettings={onOpenAudioSettings} onToggleAnalysis={onToggleAnalysis} onReturnMenu={onReturnMenu} modeLabel={modeLabel} currentName={currentPlayerDisplayName ?? current.name} currentWind={current.seatWind} phaseLabel={phaseLabelOverride ?? phaseLabels[gameState.phase]} />;
++}
++
++export function GameTopBarView({ analysisOpen, onOpenRulesGuide, onOpenAudioSettings, onToggleAnalysis, onReturnMenu, modeLabel, currentName, currentWind, phaseLabel, controls }: Omit<GameTopBarProps, 'gameState' | 'matchState' | 'phaseLabelOverride' | 'currentPlayerDisplayName'> & { currentName: string; currentWind: Wind; phaseLabel: string; controls?: ReactNode }) {
+   return (
+     <header className="game-top-bar" aria-label="对局状态栏">
+       <div className="game-top-bar-section game-top-bar-section--turn">
+-        <span>{modeLabel ? `模式：${modeLabel}　` : ''}轮到：{windNames[current.seatWind]}家 {currentPlayerDisplayName ?? current.name}</span>
+-        <span>{phaseLabelOverride ?? phaseLabels[gameState.phase]}</span>
++        <span>{modeLabel ? `模式：${modeLabel}　` : ''}轮到：{windNames[currentWind]}家 {currentName}</span>
++        <span>{phaseLabel}</span>
+       </div>
+       <div className="game-top-bar-actions">
++        {controls}
+         <button type="button" className="game-top-bar-music" aria-label="音乐设置" title="音乐设置" onClick={onOpenAudioSettings}>♪</button>
+         <button type="button" onClick={onOpenRulesGuide}>规则说明</button>
+         <button type="button" aria-pressed={analysisOpen} onClick={onToggleAnalysis}>牌局分析</button>
+diff --git a/src/components/game/TableCenter.tsx b/src/components/game/TableCenter.tsx
+index d4f963c..75ea44a 100644
+--- a/src/components/game/TableCenter.tsx
++++ b/src/components/game/TableCenter.tsx
+@@ -51,29 +51,33 @@ export function TableCenter({ gameState, matchState, seatMapping = {
+     { playerId: seatMapping.rightPlayerId, className: 'center-score--east', slot: 'right' as const },
+     { playerId: seatMapping.bottomPlayerId, className: 'center-score--south', slot: 'bottom' as const },
+   ].filter(({ playerId }) => !activePlayerIds || activePlayerIds.includes(playerId));
++  return <TableCenterView scores={scorePositions.map(entry => ({ ...entry, score: gameState.players[entry.playerId].score, wind: gameState.players[entry.playerId].seatWind, current: gameState.currentPlayer === entry.playerId, dealer: gameState.dealer === entry.playerId }))} roundLabel={roundText(gameState, matchState, roundLabel)} honba={gameState.honba} remainingLabel={remainingLabel === undefined ? `剩余${gameState.wall.length}张` : remainingLabel} centerCornerLabels={centerCornerLabels} />;
++}
++
++export interface CenterScore { playerId: PlayerId; className: string; slot: 'top' | 'left' | 'right' | 'bottom'; score: number; wind: Wind; current: boolean; dealer: boolean }
++export function TableCenterView({ scores, roundLabel, honba, remainingLabel, centerCornerLabels }: { scores: readonly CenterScore[]; roundLabel: string; honba: number; remainingLabel?: string | null; centerCornerLabels?: TableCenterProps['centerCornerLabels'] }) {
+   return (
+     <section className="table-center" aria-label="中央计分区">
+       {centerCornerLabels?.topLeft ? <span className="table-center-corner table-center-corner--top-left">{centerCornerLabels.topLeft}</span> : null}
+       {centerCornerLabels?.bottomRight ? <span className="table-center-corner table-center-corner--bottom-right">{centerCornerLabels.bottomRight}</span> : null}
+       <div className="center-score-grid">
+-        {scorePositions.map(({ playerId, className, slot }) => {
+-          const player = gameState.players[playerId];
++        {scores.map(({ playerId, className, slot, score, wind, current, dealer }) => {
+           return (
+             <div
+               key={slot}
+-              className={`center-score ${className} ${gameState.currentPlayer === playerId ? 'center-score--current' : ''} ${gameState.dealer === playerId ? 'center-score--dealer' : ''}`}
++              className={`center-score ${className} ${current ? 'center-score--current' : ''} ${dealer ? 'center-score--dealer' : ''}`}
+               data-center-slot={slot}
+               data-center-player={playerId}
+             >
+-              <SeatWindLabel isDealer={gameState.dealer === playerId} wind={player.seatWind} />
+-              <strong>{player.score.toLocaleString()}</strong>
++              <SeatWindLabel isDealer={dealer} wind={wind} />
++              <strong>{score.toLocaleString()}</strong>
+             </div>
+           );
+         })}
+         <div className="center-round">
+-          <strong>{roundText(gameState, matchState, roundLabel)}</strong>
+-          <span>{gameState.honba}本场</span>
+-          {remainingLabel === null ? null : <span>{remainingLabel ?? `剩余${gameState.wall.length}张`}</span>}
++          <strong>{roundLabel}</strong>
++          <span>{honba}本场</span>
++          {remainingLabel === null ? null : <span>{remainingLabel}</span>}
+         </div>
+       </div>
+     </section>
+diff --git a/src/game/ai.test.ts b/src/game/ai.test.ts
+index 9361365..5e91312 100644
+--- a/src/game/ai.test.ts
++++ b/src/game/ai.test.ts
+@@ -1,4 +1,4 @@
+-import { describe, expect, it } from 'vitest';
++import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
+ import { advanceAIAction, getVisibleCountsForPlayer, isAIPlayer, selectAIDiscardTile } from './ai';
+ import { createInitialGameState, declareRiichi, discardTile, getRiichiDiscardCandidates } from './engine';
+ import { createTile } from './tileUtils';
+@@ -48,6 +48,15 @@ function riichiReadyState(playerId: PlayerId = 1): GameState {
+ }
+ 
+ describe('AI auto play', () => {
++  // Seed 308 fixes wall, dora and replacement draws for legality fixtures.
++  beforeEach(() => {
++    let seed = 308;
++    vi.spyOn(Math, 'random').mockImplementation(() => {
++      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
++      return seed / 4294967296;
++    });
++  });
++  afterEach(() => vi.restoreAllMocks());
+   it('identifies Player 2-4 as AI and Player 1 as human', () => {
+     expect(isAIPlayer(0)).toBe(false);
+     expect(isAIPlayer(1)).toBe(true);
+@@ -296,11 +305,28 @@ describe('AI auto play', () => {
+     expect(counts[31]).toBe(4);
+   });
+ 
++  it('an unrelated non-lower pon option adds a pass step before the next draw', () => {
++    let state = createInitialGameState();
++    state = setHand(state, 0, [1, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22, 27, 31, 33]);
++    state = setHand(state, 1, [4, 6, 8, 10, 12, 14, 18, 20, 22, 24, 27, 31, 33]);
++    state = setHand(state, 2, [0, 2, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]);
++    state = setHand(state, 3, [1, 1, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]);
++    const window = discardTile({ ...state, currentPlayer: 0, phase: 'discard' }, 0, state.players[0].hand[0].instanceId);
++    expect(window.phase).toBe('call-window');
++    const after = advanceAIAction(window, () => 0);
++    expect(after.players[2].calls).toHaveLength(0);
++    expect(after.players[3].calls).toHaveLength(0);
++    expect(after.phase).toBe('draw');
++    expect(after.currentPlayer).toBe(1);
++  });
++
+   it('AI does not perform illegal chi from a non-lower seat and passes normally', () => {
+     let state = createInitialGameState();
+     state = setHand(state, 0, [1, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22, 27, 31, 33]);
+     state = setHand(state, 1, [4, 6, 8, 10, 12, 14, 18, 20, 22, 24, 27, 31, 33]);
+     state = setHand(state, 2, [0, 2, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]);
++    // Seat 3 previously retained a random hand and could legally pon/ron.
++    state = setHand(state, 3, [0, 4, 8, 9, 13, 17, 18, 22, 26, 28, 30, 31, 33]);
+     state = { ...state, currentPlayer: 0, phase: 'discard' };
+     const afterDiscard = discardTile(state, 0, state.players[0].hand[0].instanceId);
+     const after = advanceAIAction(afterDiscard, () => 0);
+diff --git a/src/game/persistence/storageTypes.ts b/src/game/persistence/storageTypes.ts
+index 4223091..0eb1c75 100644
+--- a/src/game/persistence/storageTypes.ts
++++ b/src/game/persistence/storageTypes.ts
+@@ -15,6 +15,7 @@ export type SerializableMatchState = MatchState;
+ export type SerializableGameState = GameState;
+ 
+ export interface SavedMatch {
++  timeRuntime?: import('../timeControl/matchRuntime').RuntimeSave;
+   version: number;
+   saveId: string;
+   savedAt: string;
+diff --git a/src/game/persistence/storageValidation.ts b/src/game/persistence/storageValidation.ts
+index 0e7a30a..fbed46f 100644
+--- a/src/game/persistence/storageValidation.ts
++++ b/src/game/persistence/storageValidation.ts
+@@ -2,8 +2,18 @@ import { validateMatchState } from '../match/matchEngine';
+ import { validateMatchLog } from '../replay/validation';
+ import type { ReplayRecord, SavedMatch } from './storageTypes';
+ import { validateTileInstanceRegions } from '../tileInstanceValidation';
++import { snapshotTimeControl } from '../timeControl/config';
++import { DecisionClock } from '../timeControl/decisionClock';
+ 
+ export function validateSavedMatch(save: SavedMatch): void {
++  if (save.timeRuntime) {
++    if (save.timeRuntime.schemaVersion !== 1) throw new Error('不支持的计时存档版本');
++    const config = snapshotTimeControl(save.timeRuntime.config, 'four');
++    // Read-only validation: never start a timer while loading or replaying records.
++    new DecisionClock(config).restore(save.timeRuntime.clock);
++    if (!Array.isArray(save.timeRuntime.audit) || !save.timeRuntime.preferences || Object.values(save.timeRuntime.preferences).some(p =>
++      !p || typeof p.autoWin !== 'boolean' || typeof p.suppressCalls !== 'boolean' || typeof p.autoTsumogiri !== 'boolean')) throw new Error('自动操作存档损坏');
++  }
+   if (!save.saveId) throw new Error('saveId is required');
+   if (!save.savedAt) throw new Error('savedAt is required');
+   const matchIssues = validateMatchState(save.matchState);
+diff --git a/src/game/replay/types.ts b/src/game/replay/types.ts
+index 9320d18..8a93799 100644
+--- a/src/game/replay/types.ts
++++ b/src/game/replay/types.ts
+@@ -115,6 +115,8 @@ export interface RoundLog {
+ }
+ 
+ export interface MatchLog {
++  timeControl?: import('../timeControl/config').TimeControlConfig;
++  actionAudit?: import('../timeControl/matchRuntime').ActionAudit[];
+   version: number;
+   matchId: string;
+   createdAt: string;
+diff --git a/src/game/seventeenSteps.ts b/src/game/seventeenSteps.ts
+index 108cd66..e110e94 100644
+--- a/src/game/seventeenSteps.ts
++++ b/src/game/seventeenSteps.ts
+@@ -282,10 +282,17 @@ export function moveFixedTile(state: SeventeenStepsState, playerId: SeventeenSte
+   return selectFixedTile(state, playerId, instanceId);
+ }
+ 
++export function validateSeventeenSelection(state: SeventeenStepsState, playerId: SeventeenStepsPlayerId): boolean {
++  const player = state.players[playerId];
++  return player.fixedHand.length === 13
++    && new Set(player.fixedHand.map(tile => tile.instanceId)).size === 13
++    && player.fixedHand.every(tile => player.sourceTiles.some(source => source.instanceId === tile.instanceId && source.id === tile.id && source.red === tile.red));
++}
++
+ export function confirmBuild(state: SeventeenStepsState, playerId: SeventeenStepsPlayerId): SeventeenStepsState {
+   if (state.phase !== 'build') return state;
+   const player = state.players[playerId];
+-  if (player.buildConfirmed || player.fixedHand.length !== 13) return state;
++  if (player.buildConfirmed || !validateSeventeenSelection(state, playerId)) return state;
+ 
+   const players = state.players.map((item, index) => {
+     if (index !== playerId) return clonePlayer(item);
+diff --git a/src/game/shanten.ts b/src/game/shanten.ts
+index 731aee8..f635890 100644
+--- a/src/game/shanten.ts
++++ b/src/game/shanten.ts
+@@ -29,7 +29,7 @@ export interface DiscardRecommendation {
+ const TERMINAL_OR_HONOR_IDS = new Set<TileId>([0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33]);
+ const ORPHAN_IDS = [...TERMINAL_OR_HONOR_IDS];
+ 
+-export function standardShanten(hand: Tile[] | TileCounts): number {
++export function standardShanten(hand: Tile[] | TileCounts, fixedMelds = 0): number {
+   const counts = normalizeCounts(hand);
+   let best = 8;
+ 
+@@ -91,13 +91,13 @@ export function standardShanten(hand: Tile[] | TileCounts): number {
+     if (!found) evaluate(melds, pairs, taatsu);
+   }
+ 
+-  removeMelds(cloneCounts(counts), 0, 0, 0, 0);
++  removeMelds(cloneCounts(counts), 0, fixedMelds, 0, 0);
+ 
+   for (let i = 0; i < 34; i += 1) {
+     if (counts[i] >= 2) {
+       const work = cloneCounts(counts);
+       work[i] -= 2;
+-      removeMelds(work, 0, 0, 1, 0);
++      removeMelds(work, 0, fixedMelds, 1, 0);
+     }
+   }
+ 
+diff --git a/src/game/testMode/catalog.ts b/src/game/testMode/catalog.ts
+index 07dd36f..d76a5fd 100644
+--- a/src/game/testMode/catalog.ts
++++ b/src/game/testMode/catalog.ts
+@@ -12,11 +12,11 @@ export interface TestCaseResult {
+   testedAt: string;
+ }
+ 
+-export interface TestCaseDefinition {
++export interface TestCaseDefinition<Scenario = TestScenarioV1> {
+   id: string;
+   version: number;
+   type: TestCaseType;
+-  scenario: TestScenarioV1;
++  scenario: Scenario;
+   keywords: string[];
+   steps: string[];
+   expectedResults: string[];
+diff --git a/src/game/testMode/resultsStorage.ts b/src/game/testMode/resultsStorage.ts
+index aa46cc6..cd85842 100644
+--- a/src/game/testMode/resultsStorage.ts
++++ b/src/game/testMode/resultsStorage.ts
+@@ -3,6 +3,14 @@ import type { TestCaseOutcome, TestCaseResult } from './catalog';
+ export const TEST_CASE_RESULTS_STORAGE_VERSION = 1 as const;
+ export const TEST_CASE_RESULTS_STORAGE_KEY = `local-mahjong.test-mode.case-results.v${TEST_CASE_RESULTS_STORAGE_VERSION}`;
+ 
++/** Versioned partitions for additional modes; the original result key is never migrated or cleared. */
++export class ModeResultsStorage<T> {
++  readonly key: string;
++  constructor(private readonly storage: Pick<Storage, 'getItem' | 'setItem'>, mode: string, private readonly version: number) { this.key = `local-mahjong.test-mode.${mode}.v${version}`; }
++  load(): Record<string, T> { try { const value = JSON.parse(this.storage.getItem(this.key) ?? 'null'); return value?.version === this.version && value.results && typeof value.results === 'object' ? value.results : {}; } catch { return {}; } }
++  save(results: Record<string, T>): void { this.storage.setItem(this.key, JSON.stringify({ version: this.version, results })); }
++}
++
+ interface StoredTestCaseResultsV1 {
+   version: typeof TEST_CASE_RESULTS_STORAGE_VERSION;
+   results: Record<string, TestCaseResult>;
+diff --git a/src/presentation/PresentationEventBus.ts b/src/presentation/PresentationEventBus.ts
+index b1d7d7e..046c2b7 100644
+--- a/src/presentation/PresentationEventBus.ts
++++ b/src/presentation/PresentationEventBus.ts
+@@ -149,7 +149,14 @@ export interface MatchResultPresentationEvent {
+   readonly activePlayerIds: readonly PlayerId[];
+ }
+ 
+-export type PresentationEvent = DoraRevealedPresentationEvent | TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | WinDeclaredPresentationEvent | WinScoredPresentationEvent | RoundSettledPresentationEvent | RoundEndAnnouncedPresentationEvent | MatchStartedPresentationEvent | MatchResultPresentationEvent;
++export interface NorthCommittedPresentationEvent {
++  readonly type: 'north_committed'; readonly eventId: string; readonly sequence: number;
++  readonly playerId: PlayerId; readonly tile: import('../game/types').Tile;
++  readonly sourceIndex: number; readonly sourceCount: number;
++  readonly sourceRect?: import('./handAnimation/DiscardSourceSnapshot').PresentationRect;
++}
++
++export type PresentationEvent = NorthCommittedPresentationEvent | DoraRevealedPresentationEvent | TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | WinDeclaredPresentationEvent | WinScoredPresentationEvent | RoundSettledPresentationEvent | RoundEndAnnouncedPresentationEvent | MatchStartedPresentationEvent | MatchResultPresentationEvent;
+ type WithoutPresentationMetadata<T> = T extends PresentationEvent ? Omit<T, 'eventId' | 'sequence'> : never;
+ export type PresentationEventInput = WithoutPresentationMetadata<PresentationEvent>;
+ export type PresentationEventListener = (event: PresentationEvent) => void;
+diff --git a/src/presentation/appearance/tileFaceIntegration.test.tsx b/src/presentation/appearance/tileFaceIntegration.test.tsx
+index 8b794ab..1015feb 100644
+--- a/src/presentation/appearance/tileFaceIntegration.test.tsx
++++ b/src/presentation/appearance/tileFaceIntegration.test.tsx
+@@ -92,7 +92,7 @@ describe('37-slot face editor and renderer contract', () => {
+     const html = renderToStaticMarkup(<Tile id={0} interactive={false} />);
+     expect(html).toContain('/src/assets/tiles/m1.png'); expect(html).not.toContain('tile--custom-face-3d');
+     const source = (path: string) => readFileSync(decodeURIComponent(new URL(path, import.meta.url).pathname).replace(/^\/([A-Za-z]:)/, '$1'), 'utf8');
+-    expect(source('../../components/game/GameScreen.tsx')).toContain("settings={activeTableRenderer === '3d' ? appearanceSettings : undefined}");
++    expect(source('../../components/game/GameScreen.tsx')).toContain("settings: activeTableRenderer === '3d' ? appearanceSettings : undefined");
+     for (const consumer of ['Hand3D', 'River3D', 'Meld3D']) expect(source(`../../presentation3d/${consumer.replace('3D', '').toLowerCase()}/${consumer}.tsx`)).toContain('<Tile3D');
+     expect(source('../../presentation3d/animation/HandAction3D.tsx')).toContain('<Tile3D');
+     expect(source('../../presentation3d/appearance/AppearanceResources3D.tsx')).not.toMatch(/useFrame|requestAnimationFrame|setInterval/);
+diff --git a/src/presentation/handAnimation/HandAnimationConsumer.ts b/src/presentation/handAnimation/HandAnimationConsumer.ts
+index 90ee0fe..ba70196 100644
+--- a/src/presentation/handAnimation/HandAnimationConsumer.ts
++++ b/src/presentation/handAnimation/HandAnimationConsumer.ts
+@@ -44,6 +44,6 @@ export class HandAnimationConsumer {
+ }
+ 
+ function isHandAnimationAction(event: PresentationEvent | undefined): event is HandAnimationAction {
+-  return event?.type === 'tile_drawn' || event?.type === 'tile_discarded'
++  return event?.type === 'north_committed' || event?.type === 'tile_drawn' || event?.type === 'tile_discarded'
+     || event?.type === 'meld_declared' || event?.type === 'riichi_declared';
+ }
+diff --git a/src/presentation/handAnimation/HandAnimationController.ts b/src/presentation/handAnimation/HandAnimationController.ts
+index dcbb39b..14b320f 100644
+--- a/src/presentation/handAnimation/HandAnimationController.ts
++++ b/src/presentation/handAnimation/HandAnimationController.ts
+@@ -3,11 +3,11 @@ import {
+   waitForAnimationTime,
+   type AnimationTask,
+ } from '../animation/AnimationScheduler';
+-import type { MeldDeclaredPresentationEvent, RiichiDeclaredPresentationEvent, TileDiscardedPresentationEvent, TileDrawnPresentationEvent } from '../PresentationEventBus';
++import type { NorthCommittedPresentationEvent, MeldDeclaredPresentationEvent, RiichiDeclaredPresentationEvent, TileDiscardedPresentationEvent, TileDrawnPresentationEvent } from '../PresentationEventBus';
+ import type { PresentationRect } from './DiscardSourceSnapshot';
+ import { handAudioCue, presentationAudioCues, type AnimationCueFrame } from '../PresentationAudioCue';
+ 
+-export type HandAnimationAction = TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | (TileDiscardedPresentationEvent & {
++export type HandAnimationAction = NorthCommittedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | (TileDiscardedPresentationEvent & {
+   readonly discardSourceRect?: PresentationRect;
+ });
+ export type HandAnimationPhase = 'approach' | 'grasp' | 'travel' | 'release' | 'retreat';
+@@ -38,6 +38,12 @@ export const HAND_ANIMATION_PHASES: ReadonlyArray<{ phase: HandAnimationPhase; d
+   { phase: 'retreat', durationMs: 170 },
+ ];
+ 
++const liveHandControllers = new Set<HandAnimationController>();
++/** Match announces input opening independently of animation completion. Stalled visuals yield now. */
++export function finishHandsForAuthoritativeInput(): void {
++  liveHandControllers.forEach(controller => controller.cancelAll());
++}
++
+ export class HandAnimationController {
+   private readonly queue: HandAnimationAction[] = [];
+   private readonly idleResolvers = new Set<() => void>();
+@@ -58,6 +64,7 @@ export class HandAnimationController {
+     private readonly scheduler: AnimationScheduler = new AnimationScheduler(),
+     private readonly options: HandAnimationControllerOptions = {},
+   ) {
++    liveHandControllers.add(this);
+     this.maxQueuedActions = Math.max(1, options.maxQueuedActions ?? 6);
+     this.onError = options.onError ?? (() => undefined);
+     this.onSettled = options.onSettled ?? (() => undefined);
+@@ -126,6 +133,7 @@ export class HandAnimationController {
+   dispose(): void {
+     if (this.disposed) return;
+     this.disposed = true;
++    liveHandControllers.delete(this);
+     this.cancelAll();
+   }
+ 
+@@ -170,8 +178,8 @@ export class HandAnimationController {
+             && generation === this.generation && !this.disposed) {
+             const kind = action.type === 'tile_drawn' ? 'draw-contact'
+               : action.type === 'tile_discarded' ? 'discard-impact'
+-              : action.type === 'meld_declared' ? 'meld-impact' : 'riichi-stick-impact';
+-            audioRun.emit(kind, 'reduced-motion-settled', 1);
++              : action.type === 'meld_declared' ? 'meld-impact' : action.type === 'riichi_declared' ? 'riichi-stick-impact' : undefined;
++            if (kind) audioRun.emit(kind, 'reduced-motion-settled', 1);
+           }
+         }
+       } catch (error) {
+diff --git a/src/presentation/result/resultViewModel.ts b/src/presentation/result/resultViewModel.ts
+index 7bceeb0..b50478b 100644
+--- a/src/presentation/result/resultViewModel.ts
++++ b/src/presentation/result/resultViewModel.ts
+@@ -35,6 +35,7 @@ export interface DoraResultViewModel {
+ }
+ 
+ export interface WinnerResultViewModel {
++  readonly displayMelds?: import('../../game/meldDisplayAdapter').MeldDisplayModel[];
+   readonly key: string;
+   readonly source: WinResultEntry;
+   readonly player: PlayerState;
+diff --git a/src/presentation3d/Table3DHud.tsx b/src/presentation3d/Table3DHud.tsx
+index d91a6c8..af5d888 100644
+--- a/src/presentation3d/Table3DHud.tsx
++++ b/src/presentation3d/Table3DHud.tsx
+@@ -1,4 +1,4 @@
+-import { useEffect, useRef, useState, useSyncExternalStore, type ComponentProps, type CSSProperties } from 'react';
++import { useEffect, useRef, useState, useSyncExternalStore, type ComponentProps, type CSSProperties, type ReactNode } from 'react';
+ import { DoraIndicatorStack } from '../components/game/DoraIndicatorStack';
+ import { MahjongTable } from '../components/game/MahjongTable';
+ import type { PlayerPosition } from '../components/game/PlayerZone';
+@@ -45,6 +45,12 @@ export function Table3DHud({
+   tsumoGiriDisplayEnabled = true,
+   playerProfile,
+ }: Table3DHudProps) {
++  const mapping = seatMapping ?? getSceneSeatMapping(bottomPlayerId);
++  const seats = { south: mapping.bottomPlayerId, east: mapping.rightPlayerId, north: mapping.topPlayerId, west: mapping.leftPlayerId };
++  return <Table3DHudView players={POSITIONS.filter(position => !activeSeats || activeSeats.includes(position)).map(position => ({ position, player: gameState.players[seats[position]] }))} playerProfile={playerProfile} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} dora={<DoraIndicatorStack gameState={gameState} matchState={matchState} slots={doraIndicatorSlots} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />} />;
++}
++
++export function Table3DHudView({ players, playerProfile, tsumoGiriDisplayEnabled = true, dora }: { players: readonly { position: PlayerPosition; player: PlayerState; nickname?: string }[]; playerProfile?: PlayerProfile; tsumoGiriDisplayEnabled?: boolean; dora: ReactNode }) {
+   const slotAvatars = usePlayerSlotAvatars();
+   const slotNicknames = usePlayerSlotNicknames();
+   useSyncExternalStore(
+@@ -74,29 +80,13 @@ export function Table3DHud({
+     observer.observe(hud);
+     return () => observer.disconnect();
+   }, []);
+-  const mapping = seatMapping ?? getSceneSeatMapping(bottomPlayerId);
+-  const seats: Record<PlayerPosition, PlayerId> = {
+-    south: mapping.bottomPlayerId,
+-    east: mapping.rightPlayerId,
+-    north: mapping.topPlayerId,
+-    west: mapping.leftPlayerId,
+-  };
+-  const visiblePositions = POSITIONS.filter((position) => !activeSeats || activeSeats.includes(position));
+   return (
+     <section ref={hudRef} className="table-3d-hud" aria-label="3D 牌桌信息层">
+       <div className="table-3d-dora-layer" aria-label="3D 宝牌信息层">
+-        <DoraIndicatorStack
+-          gameState={gameState}
+-          matchState={matchState}
+-          slots={doraIndicatorSlots}
+-          hoveredTileType={hoveredTileType}
+-          sameTileHoverEnabled={sameTileHoverEnabled}
+-          onHoveredTileTypeChange={onHoveredTileTypeChange}
+-        />
++        {dora}
+       </div>
+-      {visiblePositions.map((position) => {
+-        const playerId = seats[position];
+-        const player = gameState.players[playerId];
++      {players.map(({ position, player, nickname }) => {
++        const playerId = player.id;
+         const frameTuning = getAvatarFrameTuning(
+           PLAYER_SLOTS[position],
+           viewportSize.width,
+@@ -120,7 +110,7 @@ export function Table3DHud({
+               position={position}
+               tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled}
+               avatarId={resolvePlayerSlotAvatar(playerId, playerProfile?.avatarId, slotAvatars)}
+-              nickname={resolvePlayerSlotNickname(playerId, playerProfile?.nickname, slotNicknames, player.name)}
++              nickname={nickname ?? resolvePlayerSlotNickname(playerId, playerProfile?.nickname, slotNicknames, player.name)}
+             />
+           </div>
+         );
+@@ -146,6 +136,20 @@ export function Table3DCentralHud({
+     north: mapping.topPlayerId,
+     west: mapping.leftPlayerId,
+   };
++  return <Table3DCentralHudView>
++      <TableCenter
++        gameState={gameState}
++        matchState={matchState}
++        seatMapping={mapping}
++        activePlayerIds={activeSeats?.map((position) => seats[position])}
++        roundLabel={centerRoundLabel}
++        remainingLabel={centerRemainingLabel}
++        centerCornerLabels={centerCornerLabels}
++      />
++  </Table3DCentralHudView>;
++}
++
++export function Table3DCentralHudView({ children }: { children: ReactNode }) {
+   return (
+     <div
+       className="table-3d-console-hud"
+@@ -156,15 +160,7 @@ export function Table3DCentralHud({
+         '--center-size': `${CENTRAL_SCORE_CSS_SIZE}px`,
+       } as CSSProperties}
+     >
+-      <TableCenter
+-        gameState={gameState}
+-        matchState={matchState}
+-        seatMapping={mapping}
+-        activePlayerIds={activeSeats?.map((position) => seats[position])}
+-        roundLabel={centerRoundLabel}
+-        remainingLabel={centerRemainingLabel}
+-        centerCornerLabels={centerCornerLabels}
+-      />
++      {children}
+     </div>
+   );
+ }
+@@ -175,12 +171,14 @@ export function Table3DPlayerFrame({
+   tsumoGiriDisplayEnabled,
+   avatarId,
+   nickname,
++  status,
+ }: Readonly<{
+   player: Pick<PlayerState, 'name' | 'river'>;
+   position: PlayerPosition;
+   tsumoGiriDisplayEnabled: boolean;
+   avatarId?: PlayerProfile['avatarId'];
+   nickname: string;
++  status?: ReactNode;
+ }>) {
+   const initial = player.name.trim().slice(0, 1) || '玩';
+   const lastDiscard = player.river[player.river.length - 1];
+@@ -201,6 +199,7 @@ export function Table3DPlayerFrame({
+           </span>
+         ) : null}
+       </span>
++      {status}
+     </div>
+   );
+ }
+diff --git a/src/presentation3d/Table3DScene.test.ts b/src/presentation3d/Table3DScene.test.ts
+index 8d30a1f..e8d6fba 100644
+--- a/src/presentation3d/Table3DScene.test.ts
++++ b/src/presentation3d/Table3DScene.test.ts
+@@ -7,7 +7,7 @@ function sourcePath(relativePath: string): string {
+ 
+ describe('UI-5A scene boundaries', () => {
+   it('uses a fixed, R3F-interactive, demand-rendered canvas', () => {
+-    const source = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
++    const source = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8').replace(/\r\n/g, '\n');
+ 
+     const host = readFileSync(sourcePath('./session/SceneCanvasHost.tsx'), 'utf8');
+     expect(source).toContain('<SceneCanvasHost');
+@@ -17,7 +17,7 @@ describe('UI-5A scene boundaries', () => {
+     expect(source).not.toContain('OrbitControls');
+     expect(source).not.toContain('Raycaster');
+     expect(source).not.toContain('buildTableSceneState');
+-    expect(source).toContain('sceneState: TableSceneState');
++    expect(source).toContain('sceneState: OccupiedTableSceneState');
+     expect(source).toContain('<TableEnvironment />');
+     const environment = readFileSync(sourcePath('./table/TableEnvironment.tsx'), 'utf8');
+     expect(environment).toContain("args={['#071712', 42, 58]}");
+@@ -66,15 +66,15 @@ describe('UI-5A scene boundaries', () => {
+   });
+ 
+   it('renders the authoritative static table through bounded scene components', () => {
+-    const source = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
++    const source = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8').replace(/\r\n/g, '\n');
+     const riverSource = readFileSync(sourcePath('./river/River3D.tsx'), 'utf8');
+ 
+     expect(source).not.toContain('<Wall3D');
+     expect(source).not.toContain('<Dora3D');
+     expect(source).toContain('<Hand3D');
+-    expect(source).toContain('seatState={sceneState.seats[seat]}');
++    expect(source).toContain('seatState={seatState}');
+     expect(source).toContain('<River3D');
+-    expect(source).toContain('winningRiverIndex={winningRiverTarget?.playerId === sceneState.seats[seat].playerId');
++    expect(source).toContain('winningRiverIndex={winningRiverTarget?.playerId === seatState.playerId');
+     expect(riverSource).toContain('const winning = tile.riverIndex === winningRiverIndex;');
+     expect(riverSource).not.toContain('const winning = tile.layoutIndex === winningRiverIndex;');
+     expect(source).toContain('<AppearanceResources3D');
+@@ -96,7 +96,7 @@ describe('UI-5A scene boundaries', () => {
+ 
+   it('keeps the realtime hand-animation consumer isolated to the active renderer', () => {
+     const gameScreenSource = readFileSync(sourcePath('../components/game/GameScreen.tsx'), 'utf8');
+-    const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
++    const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8').replace(/\r\n/g, '\n');
+ 
+     expect(gameScreenSource).toContain('onActiveRendererChange={setActiveTableRenderer}');
+     expect(gameScreenSource).toContain('animationsEnabled={realtimeHandAnimationsEnabled}');
+@@ -108,7 +108,7 @@ describe('UI-5A scene boundaries', () => {
+   });
+ 
+   it('keeps gameplay wall and world Dora rendering hidden while preserving debug Dora3D', () => {
+-    const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
++    const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8').replace(/\r\n/g, '\n');
+     const doraSource = readFileSync(sourcePath('./dora/Dora3D.tsx'), 'utf8');
+ 
+     expect(sceneSource).not.toContain("from './wall/Wall3D'");
+@@ -139,7 +139,7 @@ describe('UI-5A scene boundaries', () => {
+   });
+ 
+   it('removes the bottom Hand3D target while preserving opponent hands and every Meld3D lane', () => {
+-    const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
++    const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8').replace(/\r\n/g, '\n');
+     const handSource = readFileSync(sourcePath('./hand/Hand3D.tsx'), 'utf8');
+     const tileSource = readFileSync(sourcePath('./tile/Tile3D.tsx'), 'utf8');
+ 
+@@ -153,7 +153,7 @@ describe('UI-5A scene boundaries', () => {
+     expect(handSource).toContain('activateHand3DTile');
+     expect(handSource).toContain('event.stopPropagation()');
+     expect(sceneSource).toContain("{seat === 'bottom' ? null : (");
+-    expect(sceneSource).toContain('<Hand3D\n                seatState={sceneState.seats[seat]}');
++    expect(sceneSource).toContain('<Hand3D\n                seatState={seatState}');
+     expect(sceneSource).not.toContain('localHandPresentation');
+     expect(sceneSource).not.toContain('interactionActions={');
+     expect(sceneSource.indexOf("{seat === 'bottom' ? null : (")).toBeLessThan(sceneSource.indexOf('<River3D'));
+diff --git a/src/presentation3d/Table3DScene.tsx b/src/presentation3d/Table3DScene.tsx
+index 59a3f6a..2721f0f 100644
+--- a/src/presentation3d/Table3DScene.tsx
++++ b/src/presentation3d/Table3DScene.tsx
+@@ -6,9 +6,10 @@ import { FixedTableCamera, TABLE_CAMERA } from './camera/FixedTableCamera';
+ import type { Table3DSeat } from './coordinates/seatTransforms';
+ import { Hand3D } from './hand/Hand3D';
+ import { TableLighting } from './lighting/TableLighting';
++import { NorthTiles3D } from './meld/NorthTiles3D';
+ import { Meld3D } from './meld/Meld3D';
+ import { River3D } from './river/River3D';
+-import type { TableSceneState } from './sceneState/tableSceneTypes';
++import type { OccupiedTableSceneState } from './sceneState/tableSceneTypes';
+ import { TableMesh } from './table/TableMesh';
+ import { TableEnvironment } from './table/TableEnvironment';
+ import { DEFAULT_TABLE_VISUAL_THEME, type TableVisualTheme } from './table/tableVisualTheme';
+@@ -37,7 +38,7 @@ import { AvatarFrameTuningPanel } from './table/AvatarFrameTuningPanel';
+ import { resolveHandPackForPlayer, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
+ 
+ type Table3DSceneProps = Readonly<{
+-  sceneState: TableSceneState;
++  sceneState: OccupiedTableSceneState;
+   animationsEnabled?: boolean;
+   animationSessionKey?: string;
+   animationTurn?: number;
+@@ -67,6 +68,7 @@ const StableTableScene = memo(function StableTableScene({
+   handPresentation,
+   hiddenRiverKeys,
+   hiddenMeldTileKeys,
++  hiddenNorthKeys,
+   winPresentation3D,
+   winHandPack,
+   tableVisualTheme,
+@@ -75,11 +77,12 @@ const StableTableScene = memo(function StableTableScene({
+   centralHud,
+   onTileLayerReady,
+ }: Readonly<{
+-  sceneState: TableSceneState;
++  sceneState: OccupiedTableSceneState;
+   hiddenHandKeys: TableAnimation3DRenderState['hiddenHandKeys'];
+   handPresentation?: import('../presentation/handAnimation/HandPresentationSnapshot').HandPresentationFrame;
+   hiddenRiverKeys: TableAnimation3DRenderState['hiddenRiverKeys'];
+   hiddenMeldTileKeys: TableAnimation3DRenderState['hiddenMeldTileKeys'];
++  hiddenNorthKeys?: ReadonlySet<string>;
+   winPresentation3D?: WinPresentation3DState | null;
+   winHandPack?: import('../hand/handPacks').HandPack;
+   tableVisualTheme: TableVisualTheme;
+@@ -98,35 +101,36 @@ const StableTableScene = memo(function StableTableScene({
+       {centralHud ? <CentralConsoleHudAnchor3D riichiLanes>{centralHud}</CentralConsoleHudAnchor3D> : null}
+       <Suspense fallback={null}>
+         <TileTextureWarmup />
+-        {SEAT_ORDER.map((seat) => (
++        {SEAT_ORDER.flatMap((seat) => { const seatState = sceneState.seats[seat]; return seatState ? [ (
+           <group key={seat}>
+             {seat === 'bottom' ? null : (
+               <Hand3D
+-                seatState={sceneState.seats[seat]}
++                seatState={seatState}
+                 winHandPack={winHandPack}
+-                handPresentation={handPresentation?.snapshot.playerId === sceneState.seats[seat].playerId ? handPresentation : undefined}
++                handPresentation={handPresentation?.snapshot.playerId === seatState.playerId ? handPresentation : undefined}
+                 hiddenTileKeys={hiddenHandKeys}
+-                winPresentation={winPresentation3D?.action.playerId === sceneState.seats[seat].playerId || winPresentation3D?.revealedPlayerIds?.includes(sceneState.seats[seat].playerId)
++                winPresentation={winPresentation3D?.action.playerId === seatState.playerId || winPresentation3D?.revealedPlayerIds?.includes(seatState.playerId)
+                   ? winPresentation3D
+                   : null}
+                 visualContext={tileVisualContext}
+               />
+             )}
+             <River3D
+-              seatState={sceneState.seats[seat]}
++              seatState={seatState}
+               hiddenTileKeys={hiddenRiverKeys}
+-              winningRiverIndex={winningRiverTarget?.playerId === sceneState.seats[seat].playerId
++              winningRiverIndex={winningRiverTarget?.playerId === seatState.playerId
+                 ? winningRiverTarget.riverIndex
+                 : undefined}
+               visualContext={tileVisualContext}
+             />
+             <Meld3D
+-              seatState={sceneState.seats[seat]}
++              seatState={seatState}
+               hiddenTileKeys={hiddenMeldTileKeys}
+               visualContext={tileVisualContext}
+             />
++            <NorthTiles3D seatState={seatState} hiddenKeys={hiddenNorthKeys} />
+           </group>
+-        ))}
++        ) ] : []; })}
+         <SceneLayerReady onReady={onTileLayerReady} />
+       </Suspense>
+     </>
+@@ -160,10 +164,10 @@ export function Table3DScene({
+   const playerSlotAppearances = usePlayerSlotAppearances();
+   const winningRiverTarget = resolveWinningRiverTarget3D(winPresentation3D ?? null);
+   const winningRevealSeat = winPresentation3D
+-    ? SEAT_ORDER.find((seat) => sceneState.seats[seat].playerId === winPresentation3D.action.playerId)
++    ? SEAT_ORDER.find((seat) => sceneState.seats[seat]?.playerId === winPresentation3D.action.playerId)
+     : undefined;
+   const winningRevealFaceUpCount = winningRevealSeat
+-    ? sceneState.seats[winningRevealSeat].hand.filter((tile) => tile.faceState === 'face-up').length
++    ? sceneState.seats[winningRevealSeat]?.hand.filter((tile) => tile.faceState === 'face-up').length
+     : undefined;
+   const sourceStoreRef = useRef<DiscardSource3DStore | null>(null);
+   if (!sourceStoreRef.current) sourceStoreRef.current = new DiscardSource3DStore();
+@@ -211,8 +215,8 @@ export function Table3DScene({
+     animation.hiddenRiichiSeats,
+   );
+   const tableSceneReady = tileLayerReady && riichiLayerReady;
+-  const criticalPlayerIds = SEAT_ORDER.map((seat) => sceneState.seats[seat].playerId);
+-  const criticalRiichiPlayerIds = visibleRiichiSeats.map((seat) => sceneState.seats[seat].playerId);
++  const criticalPlayerIds = Object.values(sceneState.seats).map(seat => seat.playerId);
++  const criticalRiichiPlayerIds = visibleRiichiSeats.flatMap((seat) => sceneState.seats[seat] ? [sceneState.seats[seat]!.playerId] : []);
+   const handleRendererReady = useCallback(() => setRendererReady(true), []);
+   const handleTileLayerReady = useCallback(() => setTileLayerReady(true), []);
+   const handleRiichiLayerReady = useCallback(() => setRiichiLayerReady(true), []);
+@@ -246,9 +250,9 @@ export function Table3DScene({
+       data-tile-hover-identity={tileVisualContext?.hoveredTileType ?? ''}
+       data-dora-glow-enabled={tileVisualContext?.doraGlowEnabled === true ? 'true' : 'false'}
+       data-visible-dora-tile-count={SEAT_ORDER.reduce((count, seat) => count
+-        + sceneState.seats[seat].river.filter((tile) => tile.visible && tile.tile?.doraKind).length
+-        + sceneState.seats[seat].melds.reduce((meldCount, meld) => meldCount
+-          + meld.tiles.filter((tile) => tile.faceState === 'face-up' && tile.tile?.doraKind).length, 0), 0)}
++        + (sceneState.seats[seat]?.river.filter((tile) => tile.visible && tile.tile?.doraKind).length ?? 0)
++        + (sceneState.seats[seat]?.melds.reduce((meldCount, meld) => meldCount
++          + meld.tiles.filter((tile) => tile.faceState === 'face-up' && tile.tile?.doraKind).length, 0) ?? 0), 0)}
+       data-dora-sweep-active-count="0"
+       data-dora-sweep-pulse-count="0"
+       data-dora-sweep-last-start-ms="0"
+@@ -290,6 +294,7 @@ export function Table3DScene({
+                   handPresentation={animation.active?.handPresentation}
+                   hiddenRiverKeys={animation.hiddenRiverKeys}
+                   hiddenMeldTileKeys={animation.hiddenMeldTileKeys}
++                  hiddenNorthKeys={animation.hiddenNorthKeys}
+                   winPresentation3D={winPresentation3D}
+                   winHandPack={resolveHandPackForPlayer(winPresentation3D?.action.playerId ?? 0, playerSlotAppearances, appearanceSettings)}
+                   tableVisualTheme={tableVisualTheme}
+diff --git a/src/presentation3d/TableRenderer.test.ts b/src/presentation3d/TableRenderer.test.ts
+index 3e5b82b..61232bd 100644
+--- a/src/presentation3d/TableRenderer.test.ts
++++ b/src/presentation3d/TableRenderer.test.ts
+@@ -64,7 +64,7 @@ describe('3D table renderer selection', () => {
+   });
+ 
+   it('retains an error fallback and unmount-safe popstate cleanup', () => {
+-    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
++    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8') + readFileSync(sourcePath('./FormalTable3D.tsx'), 'utf8');
+ 
+     expect(source).toContain('fallback={<LegacyTable2D');
+     expect(source).toContain("window.removeEventListener('popstate', syncMode)");
+@@ -72,11 +72,12 @@ describe('3D table renderer selection', () => {
+   });
+ 
+   it('loads the WebGL implementation only after 3D is selected', () => {
+-    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
++    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8') + readFileSync(sourcePath('./FormalTable3D.tsx'), 'utf8');
+ 
+     expect(source).toContain("await import('./Table3DScene')");
+     expect(source).toContain('default: memo(module.Table3DScene)');
+-    expect(source).not.toContain("from './Table3DScene'");
++    expect(source).not.toContain("import { Table3DScene }");
++    expect(source).toContain("<FormalTable3D");
+   });
+ 
+   it('keeps incomplete and 17-step-shaped tables on the legacy renderer', () => {
+@@ -155,7 +156,7 @@ describe('3D table renderer selection', () => {
+   });
+ 
+   it('coexists with the DOM HUD and switches the shared local hand to a transparent screen-space overlay only after 3D is active', () => {
+-    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
++    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8') + readFileSync(sourcePath('./FormalTable3D.tsx'), 'utf8');
+     const gameScreenSource = readFileSync(sourcePath('../components/game/GameScreen.tsx'), 'utf8');
+     const css = readFileSync(sourcePath('./table3d.css'), 'utf8')
+       + readFileSync(sourcePath('./session/sceneSession.css'), 'utf8');
+@@ -169,7 +170,7 @@ describe('3D table renderer selection', () => {
+     expect(source).toContain('sharedPresentationState?.doraIndicatorSlots');
+     expect(source).not.toContain('doraIndicatorSlots={doraIndicatorSlots}\n              localHandPresentation');
+     expect(source).toContain("data-table-interaction-contract={interactionActions ? 'shared' : 'none'}");
+-    expect(gameScreenSource).toContain("screenSpaceOverlay={activeTableRenderer === '3d'}");
++    expect(gameScreenSource).toContain("screenSpaceOverlay: activeTableRenderer === '3d'");
+     expect(css).toContain('.local-hand-area--screen-space');
+     expect(css).toContain('position: fixed');
+     expect(css).toContain('background: transparent');
+@@ -177,7 +178,7 @@ describe('3D table renderer selection', () => {
+   });
+ 
+   it('covers the mounted renderer until scene and local presentation are both ready', () => {
+-    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
++    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8') + readFileSync(sourcePath('./FormalTable3D.tsx'), 'utf8');
+     const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
+     const css = readFileSync(sourcePath('./table3d.css'), 'utf8')
+       + readFileSync(sourcePath('./session/sceneSession.css'), 'utf8');
+diff --git a/src/presentation3d/TableRenderer.tsx b/src/presentation3d/TableRenderer.tsx
+index 31e9b28..d4f225a 100644
+--- a/src/presentation3d/TableRenderer.tsx
++++ b/src/presentation3d/TableRenderer.tsx
+@@ -1,7 +1,4 @@
+ import {
+-  lazy,
+-  memo,
+-  Suspense,
+   type ErrorInfo,
+   type ReactNode,
+   useCallback,
+@@ -28,7 +25,6 @@ import {
+   classifyTableRendererError,
+   inspectStandardFourPlayerState,
+   resolveTableRendererDiagnostics,
+-  tagTableRendererError,
+   type TableRendererFallbackReason,
+ } from './rendererDiagnostics';
+ import type { DiscardSourceSnapshotStore } from '../presentation/handAnimation/DiscardSourceSnapshot';
+@@ -37,7 +33,6 @@ import type { TableVisualTheme } from './table/tableVisualTheme';
+ import type { RiichiStick3DAppearance } from './riichi/riichiStickAppearance';
+ import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
+ import { resolveEffectiveHandPackIds, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
+-import { TileFaceDomAppearance } from '../presentation/appearance/TileFaceDomAppearance';
+ import type { PlayerProfile } from '../profile/playerProfile';
+ import { buildTableSceneState } from './sceneState/buildTableSceneState';
+ import type { TileVisualSemanticContext } from '../presentation/table/tileVisualSemantics';
+@@ -48,14 +43,7 @@ import {
+ import { isInitialPresentationReady } from './initialSceneReady';
+ import { SceneErrorBoundary, SceneLoading } from './session/SceneErrorBoundary';
+ 
+-const LazyTable3DScene = lazy(async () => {
+-  try {
+-    const module = await import('./Table3DScene');
+-    return { default: memo(module.Table3DScene) };
+-  } catch (error) {
+-    throw tagTableRendererError(error, 'lazy-load-error');
+-  }
+-});
++import { FormalTable3D } from './FormalTable3D';
+ 
+ type MahjongTableProps = LegacyTable2DProps;
+ 
+@@ -75,6 +63,7 @@ type TableRendererProps = MahjongTableProps & Readonly<{
+   playerProfile?: PlayerProfile;
+   onActiveRendererChange?: (renderer: TableRendererMode) => void;
+   localPresentationReady?: boolean;
++  onInputResourcesReady?: () => void;
+ }>;
+ 
+ /** Session changes cancel the old scene, preload callbacks and error boundary together. */
+@@ -98,6 +87,7 @@ function TableRendererSession({
+   playerProfile,
+   onActiveRendererChange,
+   localPresentationReady = true,
++  onInputResourcesReady,
+   ...tableProps
+ }: TableRendererProps) {
+   const resolveCurrentMode = () => renderer ?? resolveTableRenderer(typeof window === 'undefined' ? '' : window.location.search);
+@@ -280,22 +270,20 @@ function TableRendererSession({
+   ]);
+ 
+   const render3D = shouldRender3DTable(mode, runtimeFailure !== null) && standardFourPlayer.supported;
++  const initialPresentationReady = isInitialPresentationReady(sceneReady && criticalHandPacksReady, localPresentationReady);
++  useEffect(() => {
++    if (initialPresentationReady || !render3D) onInputResourcesReady?.();
++  }, [initialPresentationReady, render3D, onInputResourcesReady]);
+   if (!render3D || !sharedPresentationState || !sceneState) {
+     return <LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />;
+   }
+-  const initialPresentationReady = isInitialPresentationReady(
+-    sceneReady && criticalHandPacksReady,
+-    localPresentationReady,
+-  );
+ 
+   const content: ReactNode = (
+       <SceneErrorBoundary
+         fallback={<LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />}
+         onError={handleSceneError}
+       >
+-        <Suspense fallback={null}>
+-          <div className="table-renderer-layer table-renderer-layer--3d" data-table-renderer="3d">
+-            <LazyTable3DScene
++        <FormalTable3D
+               sceneState={sceneState}
+               animationsEnabled={animationsEnabled}
+               animationSessionKey={animationSessionKey}
+@@ -310,12 +298,8 @@ function TableRendererSession({
+               centralHud={centralHud}
+               onReady={handleSceneReady}
+               onUnavailable={handleSceneUnavailable}
+-            />
+-            <TileFaceDomAppearance settings={appearanceSettings}>
+-              <Table3DHud {...tableProps} doraIndicatorSlots={doraIndicatorSlots} playerProfile={playerProfile} />
+-            </TileFaceDomAppearance>
+-          </div>
+-        </Suspense>
++          hud={<Table3DHud {...tableProps} doraIndicatorSlots={doraIndicatorSlots} playerProfile={playerProfile} />}
++        />
+       </SceneErrorBoundary>
+     );
+ 
+diff --git a/src/presentation3d/animation/HandAction3D.tsx b/src/presentation3d/animation/HandAction3D.tsx
+index 2661ece..d7e5caf 100644
+--- a/src/presentation3d/animation/HandAction3D.tsx
++++ b/src/presentation3d/animation/HandAction3D.tsx
+@@ -1,5 +1,6 @@
++import { resolveNorthDomSource } from './northDomSource';
+ import { useThree } from '@react-three/fiber';
+-import { useLayoutEffect, useRef } from 'react';
++import { useLayoutEffect, useMemo, useRef } from 'react';
+ import type { Group } from 'three';
+ import {
+   type HandAnimationPhase,
+@@ -93,6 +94,9 @@ function LegacyHandAction3D({ active, riichiStickAppearance, handPack }: Readonl
+   const ownerAppearance = useTileAppearance3D(active.plan.action.playerId);
+   const hand = useVisualHand(active, handPack);
+   const { camera, gl } = useThree((state) => state);
++  const sourcePlan = useMemo(() => active.plan.action.type === 'north_committed' && active.plan.action.sourceRect
++    ? resolveNorthDomSource(active.plan, camera, gl.domElement.getBoundingClientRect())
++    : active.plan, [active.plan, camera, gl]);
+   const tileRef = useRef<Group>(null);
+   const tilePitchRef = useRef<Group>(null);
+   const transientRefs = useRef(new Map<string, Group>());
+@@ -102,7 +106,7 @@ function LegacyHandAction3D({ active, riichiStickAppearance, handPack }: Readonl
+ 
+   useLayoutEffect(() => {
+     const progress = active.progress ?? 0;
+-    const motion = resolveTableAnimation3DMotion(active.plan, active.phase, progress);
++    const motion = resolveTableAnimation3DMotion(sourcePlan, active.phase, progress);
+     hand.current?.update(projectHandContact(motion.tilePosition, camera, gl.domElement.getBoundingClientRect()),
+       active.phase, progress);
+     if (tileRef.current) {
+@@ -130,9 +134,9 @@ function LegacyHandAction3D({ active, riichiStickAppearance, handPack }: Readonl
+       stickRef.current.visible = active.phase !== 'approach' && active.phase !== 'retreat';
+     }
+     invalidate();
+-  }, [active, camera, gl, hand, invalidate]);
++  }, [active, sourcePlan, camera, gl, hand, invalidate]);
+ 
+-  const initial = resolveTableAnimation3DMotion(active.plan, active.phase, active.progress ?? 0);
++  const initial = resolveTableAnimation3DMotion(sourcePlan, active.phase, active.progress ?? 0);
+   return (
+     <group
+       name="table-animation-3d"
+diff --git a/src/presentation3d/animation/tableAnimation3D.ts b/src/presentation3d/animation/tableAnimation3D.ts
+index f8ef054..7d8256e 100644
+--- a/src/presentation3d/animation/tableAnimation3D.ts
++++ b/src/presentation3d/animation/tableAnimation3D.ts
+@@ -1,4 +1,5 @@
+ import type {
++  NorthCommittedPresentationEvent,
+   MeldDeclaredPresentationEvent,
+   RiichiDeclaredPresentationEvent,
+   TileDiscardedPresentationEvent,
+@@ -12,7 +13,7 @@ import {
+   getRiverTileTransforms,
+ } from '../coordinates/sceneTransforms';
+ import { getSeatDirection, type Table3DSeat } from '../coordinates/seatTransforms';
+-import type { MeldSceneState, TableSceneState } from '../sceneState/tableSceneTypes';
++import type { MeldSceneState, OccupiedTableSceneState } from '../sceneState/tableSceneTypes';
+ import type { TileFaceState, TileOrientation } from '../tile/tileOrientation';
+ import type { TileDefinition } from '../tile/tileTextures';
+ import { getGroundedTileCenterY } from '../tile/tileGrounding';
+@@ -22,9 +23,11 @@ import {
+   TABLE_PRESENTATION_TUNING,
+ } from '../table/tablePresentationTuning';
+ import type { DiscardSource3DStore, WorldPoint3D } from './DiscardSource3D';
++import { northTileTransform } from '../meld/NorthTiles3D';
+ import { createHandPresentationSnapshot, type HandPresentationFrame, type HandPresentationSnapshot } from '../../presentation/handAnimation/HandPresentationSnapshot';
+ 
+ export type TableAnimation3DAction =
++  | NorthCommittedPresentationEvent
+   | TileDrawnPresentationEvent
+   | TileDiscardedPresentationEvent
+   | RiichiDeclaredPresentationEvent
+@@ -71,6 +74,7 @@ export type TableAnimation3DPlan = Readonly<{
+   }>;
+   hiddenHandKey?: string;
+   hiddenRiverKey?: string;
++  hiddenNorthKey?: string;
+   hiddenMeldTileKeys?: readonly string[];
+   hiddenRiichiSeat?: Table3DSeat;
+   localDomDraw: boolean;
+@@ -110,6 +114,7 @@ export function getTableAnimation3DHoldMs(action: TableAnimation3DAction): numbe
+   if (action.type === 'tile_discarded') return TABLE_ANIMATION_3D_CADENCE.discardHoldMs;
+   if (action.type === 'tile_drawn') return TABLE_ANIMATION_3D_CADENCE.drawHoldMs;
+   if (action.type === 'riichi_declared') return TABLE_ANIMATION_3D_CADENCE.riichiHoldMs;
++  if (action.type === 'north_committed') return TABLE_ANIMATION_3D_CADENCE.meldHoldMs;
+   return action.meldType === 'kan'
+     ? TABLE_ANIMATION_3D_CADENCE.kanHoldMs
+     : TABLE_ANIMATION_3D_CADENCE.meldHoldMs;
+@@ -117,14 +122,25 @@ export function getTableAnimation3DHoldMs(action: TableAnimation3DAction): numbe
+ 
+ export function resolveTableAnimation3DPlan(
+   action: TableAnimation3DAction,
+-  sceneState: TableSceneState,
++  sceneState: OccupiedTableSceneState,
+   sourceStore: DiscardSource3DStore,
+   sessionKey: string,
+ ): TableAnimation3DPlan | null {
+   const seat = findSeat(sceneState, action.playerId);
+   if (!seat) return null;
+   const seatState = sceneState.seats[seat];
+-
++  if (!seatState) return null;
++
++  if (action.type === 'north_committed') {
++    const index = seatState.north?.findIndex(t => t.tile?.id === action.tile.id && t.key.endsWith(action.tile.instanceId)) ?? -1;
++    if (index < 0) return null;
++    const source = getHandTileTransform(seat, Math.max(0, action.sourceIndex), action.sourceCount, false);
++    const destination = northTileTransform(seat, index);
++    return { action, seat, entry: outwardPoint(seat, source.position, ENTRY_DISTANCE), source: source.position, destination: destination.position,
++      sourceRotationX: source.rotationX, sourceRotationY: source.rotationY, destinationRotationX: 0, destinationRotationY: destination.rotationY,
++      sourceScale: getHandTileScale(seat), destinationScale: TABLE_PRESENTATION_TUNING.tileScale.meld, tile: action.tile, faceState: 'face-up',
++      showPrimaryTile: true, hiddenNorthKey: seatState.north![index].key, localDomDraw: false };
++  }
+   if (action.type === 'tile_drawn') {
+     const drawnIndex = seatState.hand.findIndex((tile) => tile.drawn);
+     if (drawnIndex < 0) return null;
+@@ -417,9 +433,9 @@ function getSeatDirectionRotation(seat: Table3DSeat): number {
+   return getHandTileTransform(seat, 0, 1, false).rotationY;
+ }
+ 
+-function findSeat(sceneState: TableSceneState, playerId: number): Table3DSeat | null {
++function findSeat(sceneState: OccupiedTableSceneState, playerId: number): Table3DSeat | null {
+   return (Object.keys(sceneState.seats) as Table3DSeat[])
+-    .find((seat) => sceneState.seats[seat].playerId === playerId) ?? null;
++    .find((seat) => sceneState.seats[seat]?.playerId === playerId) ?? null;
+ }
+ 
+ function outwardPoint(seat: Table3DSeat, point: WorldPoint3D, distance: number): WorldPoint3D {
+diff --git a/src/presentation3d/animation/useTableAnimation3D.ts b/src/presentation3d/animation/useTableAnimation3D.ts
+index 062e9ba..ccc3c5a 100644
+--- a/src/presentation3d/animation/useTableAnimation3D.ts
++++ b/src/presentation3d/animation/useTableAnimation3D.ts
+@@ -15,7 +15,7 @@ import { presentationPacingGate } from '../../presentation/pacing/PresentationPa
+ import type { DiscardSourceSnapshotStore } from '../../presentation/handAnimation/DiscardSourceSnapshot';
+ import type { PresentationEvent } from '../../presentation/PresentationEventBus';
+ import type { AnimationCueFrame } from '../../presentation/PresentationAudioCue';
+-import type { TableSceneState } from '../sceneState/tableSceneTypes';
++import type { OccupiedTableSceneState } from '../sceneState/tableSceneTypes';
+ import type { Table3DSeat } from '../coordinates/seatTransforms';
+ import type { ActiveTableAnimation3D } from './HandAction3D';
+ import type { DiscardSource3DStore } from './DiscardSource3D';
+@@ -34,6 +34,7 @@ export type TableAnimation3DRenderState = Readonly<{
+   hiddenHandKeys: ReadonlySet<string>;
+   hiddenRiverKeys: ReadonlySet<string>;
+   hiddenMeldTileKeys: ReadonlySet<string>;
++  hiddenNorthKeys?: ReadonlySet<string>;
+   hiddenRiichiSeats: ReadonlySet<Table3DSeat>;
+ }>;
+ 
+@@ -54,7 +55,7 @@ export function useTableAnimation3D({
+   localDiscardSnapshots,
+   onLocalHandAnimationChange,
+ }: Readonly<{
+-  sceneState: TableSceneState;
++  sceneState: OccupiedTableSceneState;
+   sourceStore: DiscardSource3DStore;
+   enabled: boolean;
+   sessionKey: string;
+@@ -141,7 +142,7 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
+   private readonly suppressedFinishes = new Map<string, number>();
+ 
+   constructor(
+-    private readonly getSceneState: () => TableSceneState,
++    private readonly getSceneState: () => OccupiedTableSceneState,
+     private readonly sourceStore: DiscardSource3DStore,
+     private readonly getSessionKey: () => string,
+     private readonly setRenderState: Dispatch<SetStateAction<TableAnimation3DRenderState>>,
+@@ -183,6 +184,7 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
+       plan = { ...plan, localDiscardMotion: localDiscardMotion ? { ...localDiscardMotion, drawnSource: localDiscardSnapshot?.drawnTileRect } : undefined, showPrimaryTile: !localDiscardMotion };
+     }
+     this.plans.set(action.eventId, plan);
++    if (plan.hiddenNorthKey) this.setRenderState(current => ({ ...current, hiddenNorthKeys: addKey(current.hiddenNorthKeys ?? new Set(), plan.hiddenNorthKey) }));
+     // Ownership starts on confirmation, including while a Kan is ahead in the queue.
+     if (action.type === 'tile_drawn') {
+       this.setRenderState(current => ({ ...current, hiddenHandKeys: addKey(current.hiddenHandKeys, plan.hiddenHandKey) }));
+@@ -276,6 +278,7 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
+       active: current.active?.plan.action.eventId === action.eventId ? null : current.active,
+       hiddenHandKeys: removeKey(current.hiddenHandKeys, plan.hiddenHandKey),
+       hiddenRiverKeys: removeKey(current.hiddenRiverKeys, plan.hiddenRiverKey),
++      hiddenNorthKeys: removeKey(current.hiddenNorthKeys ?? new Set(), plan.hiddenNorthKey),
+       hiddenMeldTileKeys: removeKeys(current.hiddenMeldTileKeys, plan.hiddenMeldTileKeys),
+       hiddenRiichiSeats: removeKey(current.hiddenRiichiSeats, plan.hiddenRiichiSeat),
+     }));
+@@ -303,6 +306,7 @@ export function prepareTableAnimation3DRenderState(
+     active: { plan, phase: 'approach' },
+     hiddenHandKeys: addKey(current.hiddenHandKeys, plan.hiddenHandKey),
+     hiddenRiverKeys: addKey(current.hiddenRiverKeys, plan.hiddenRiverKey),
++    hiddenNorthKeys: addKey(current.hiddenNorthKeys ?? new Set(), plan.hiddenNorthKey),
+     hiddenMeldTileKeys: addKeys(current.hiddenMeldTileKeys, plan.hiddenMeldTileKeys),
+     hiddenRiichiSeats: addKey(current.hiddenRiichiSeats, plan.hiddenRiichiSeat),
+   };
+@@ -316,6 +320,7 @@ export function transitionTableAnimation3DRenderState(
+   const authoritativeVisible = phase === 'retreat';
+   return {
+     active: { plan, phase },
++    hiddenNorthKeys: authoritativeVisible ? removeKey(current.hiddenNorthKeys ?? new Set(), plan.hiddenNorthKey) : current.hiddenNorthKeys,
+     hiddenHandKeys: authoritativeVisible
+       ? removeKey(current.hiddenHandKeys, plan.hiddenHandKey)
+       : current.hiddenHandKeys,
+@@ -332,7 +337,7 @@ export function transitionTableAnimation3DRenderState(
+ }
+ 
+ function map3DAnimationEvent(event: PresentationEvent): PresentationEvent | undefined {
+-  return event.type === 'tile_drawn'
++  return event.type === 'north_committed' || event.type === 'tile_drawn'
+     || event.type === 'tile_discarded'
+     || event.type === 'riichi_declared'
+     || event.type === 'meld_declared'
+@@ -341,7 +346,7 @@ function map3DAnimationEvent(event: PresentationEvent): PresentationEvent | unde
+ }
+ 
+ function isTableAnimation3DAction(action: HandAnimationAction): action is TableAnimation3DAction {
+-  return action.type === 'tile_drawn'
++  return action.type === 'north_committed' || action.type === 'tile_drawn'
+     || action.type === 'tile_discarded'
+     || action.type === 'riichi_declared'
+     || action.type === 'meld_declared';
+diff --git a/src/presentation3d/dora/doraSweep3DTrigger.ts b/src/presentation3d/dora/doraSweep3DTrigger.ts
+index ef8d0fc..1f8bfeb 100644
+--- a/src/presentation3d/dora/doraSweep3DTrigger.ts
++++ b/src/presentation3d/dora/doraSweep3DTrigger.ts
+@@ -3,13 +3,13 @@ import {
+   type TileVisualSemanticContext,
+ } from '../../presentation/table/tileVisualSemantics';
+ import type { ActiveTableAnimation3D } from '../animation/HandAction3D';
+-import type { TableSceneState, TableSceneTile } from '../sceneState/tableSceneTypes';
++import type { OccupiedTableSceneState, TableSceneTile } from '../sceneState/tableSceneTypes';
+ import { TABLE_PRESENTATION_TUNING } from '../table/tablePresentationTuning';
+ import type { DoraSweep3DTarget, DoraSweep3DTrigger } from './DoraSweep3DController';
+ 
+ export function resolveDoraSweep3DTrigger(
+   active: ActiveTableAnimation3D | null,
+-  sceneState: TableSceneState,
++  sceneState: OccupiedTableSceneState,
+   visualContext?: TileVisualSemanticContext,
+ ): DoraSweep3DTrigger | null {
+   if (
+@@ -60,7 +60,7 @@ function resolveTarget(
+   };
+ }
+ 
+-function findSceneTile(sceneState: TableSceneState, key: string): TableSceneTile | undefined {
++function findSceneTile(sceneState: OccupiedTableSceneState, key: string): TableSceneTile | undefined {
+   for (const seat of Object.values(sceneState.seats)) {
+     const handTile = seat.hand.find((tile) => tile.key === key);
+     if (handTile) return handTile;
+diff --git a/src/presentation3d/hand/Hand3D.tsx b/src/presentation3d/hand/Hand3D.tsx
+index e737d02..2a8c0a2 100644
+--- a/src/presentation3d/hand/Hand3D.tsx
++++ b/src/presentation3d/hand/Hand3D.tsx
+@@ -62,7 +62,7 @@ export function Hand3D({
+   const hoverRevisionRef = useRef(0);
+   const ownsPointer = presentation !== undefined;
+   const hasDrawnTile = seatState.hand.some((tile) => tile.drawn);
+-  const ronFlat = winPresentation?.action.winType === 'ron'
++  const ronFlat = seatState.exposedHand === true || winPresentation?.action.winType === 'ron'
+     && (winPresentation.phase !== 'ready' || winPresentation.action.playerId !== seatState.playerId);
+   const winMotion = resolveWinnerHandMotion3D(seatState.seat, ronFlat ? 'hold' : 'ready');
+   const tsumo = winPresentation?.action.winType === 'tsumo' ? winPresentation : null;
+diff --git a/src/presentation3d/participants/ParticipantScene.tsx b/src/presentation3d/participants/ParticipantScene.tsx
+index fe1a6a6..0d72c58 100644
+--- a/src/presentation3d/participants/ParticipantScene.tsx
++++ b/src/presentation3d/participants/ParticipantScene.tsx
+@@ -1,4 +1,7 @@
+ import { CandidateDiscard3D } from './CandidateDiscard3D';
++import { SanmaPublicTiles } from './SanmaPublicTiles';
++import { SanmaMotion3D } from './SanmaMotion3D';
++import type { SanmaMotionFrame } from './useSanmaAnimation';
+ import { candidateRiverOwns, candidateSourceHidden, type CandidateFrame } from './candidateAnimation';
+ import { concealedRemovalIndex } from './candidateRows';
+ import { Suspense, useLayoutEffect, type ReactNode } from 'react';
+@@ -26,7 +29,7 @@ function ModeCamera({ preset }: { preset: ParticipantLayoutPreset }) {
+   useLayoutEffect(() => { camera.lookAt(...PARTICIPANT_LAYOUTS[preset].target); camera.updateProjectionMatrix(); invalidate(); }, [camera, invalidate, preset]);
+   return null;
+ }
+-function ParticipantRiver({ participant, seat, preset, candidateFrame }: { participant: TableParticipant; seat: Table3DSeat; preset: ParticipantLayoutPreset; candidateFrame?: CandidateFrame | null }) {
++function ParticipantRiver({ participant, seat, preset, candidateFrame, sanmaFrame }: { participant: TableParticipant; seat: Table3DSeat; preset: ParticipantLayoutPreset; candidateFrame?: CandidateFrame | null; sanmaFrame?: SanmaMotionFrame | null }) {
+   const size = useThree(state => state.size);
+   const viewport = { width: size.width, height: size.height };
+   const enteringCompact = preset === 'duel' && candidateFrame?.snapshot.playerId === participant.appearanceSlot
+@@ -43,17 +46,19 @@ function ParticipantRiver({ participant, seat, preset, candidateFrame }: { parti
+         candidateFrame!.phase === 'retreat' ? candidateFrame!.progress : 0)
+       : null;
+     const transform = blended ? { ...settled, ...blended } : settled;
+-    return <group key={tile.instanceId} visible={!(candidateFrame && !candidateRiverOwns(candidateFrame) && participant.appearanceSlot === candidateFrame.snapshot.playerId && tile.instanceId === candidateFrame.snapshot.tile.instanceId)}>
++    const sanmaHidden = sanmaFrame?.action.type === 'tile_discarded' && sanmaFrame.phase !== 'retreat' && sanmaFrame.tile?.instanceId === tile.instanceId;
++    return <group key={tile.instanceId} visible={!sanmaHidden && !(candidateFrame && !candidateRiverOwns(candidateFrame) && participant.appearanceSlot === candidateFrame.snapshot.playerId && tile.instanceId === candidateFrame.snapshot.tile.instanceId)}>
+       <Tile3D tile={tile} ownerPlayerId={participant.appearanceSlot} {...transform} raycastDisabled objectName={`participant-river-${participant.id}-${index}`} />
+     </group>;
+   });
+ }
+-export function ParticipantScene({ participants, mapping, preset, settings, sessionKey, onReady, onUnavailable, appearanceSlots, centralHud, candidateFrame, onCandidatePrepared }: {
++export function ParticipantScene({ participants, mapping, preset, settings, sessionKey, onReady, onUnavailable, appearanceSlots, centralHud, candidateFrame, sanmaFrame, onCandidatePrepared }: {
+   participants: readonly TableParticipant[]; mapping: readonly ParticipantSeat[]; preset: ParticipantLayoutPreset;
+   settings: AppearanceSettings; sessionKey: string; onReady: () => void; onUnavailable: (error: Error) => void;
+   appearanceSlots?: PlayerSlotAppearances;
+   centralHud?: ReactNode;
+   candidateFrame?: CandidateFrame | null;
++  sanmaFrame?: SanmaMotionFrame | null;
+   onCandidatePrepared?: (eventId: string) => void;
+ }) {
+   const seats = resolveParticipantLayout(participants, mapping, preset);
+@@ -77,13 +82,15 @@ export function ParticipantScene({ participants, mapping, preset, settings, sess
+               visible={!(pending && candidateSourceHidden(pending) && index === concealedRemovalIndex(count))}>
+               <Tile3D ownerPlayerId={participant.appearanceSlot} faceState="face-down" showRearFace {...target} raycastDisabled objectName="concealed-candidate-slot" />
+             </group>);
+-          })() : preset !== 'duel' && participant.fixedHand.visibility === 'hidden' ? Array.from({ length: participant.fixedHand.count }, (_, index) => <Tile3D
+-            key={`hidden-slot-${index}`} ownerPlayerId={participant.appearanceSlot} faceState="face-down"
++          })() : preset !== 'duel' && participant.fixedHand.visibility === 'hidden' ? Array.from({ length: participant.fixedHand.count }, (_, index) => <group key={`hidden-slot-${index}`} visible={!(sanmaFrame?.action.type === 'tile_drawn' && sanmaFrame.playerId === participant.appearanceSlot && sanmaFrame.phase !== 'retreat' && index === sanmaFrame.count - 1)}><Tile3D
++            ownerPlayerId={participant.appearanceSlot} faceState="face-down"
+             {...participantHandTarget(preset, seat, index, participant.fixedHand.visibility === 'hidden' ? participant.fixedHand.count : 0)} raycastDisabled
+-          />) : null}
+-          <ParticipantRiver participant={participant} seat={seat} preset={preset} candidateFrame={candidateFrame} />
++          /></group>) : null}
++          <ParticipantRiver participant={participant} seat={seat} preset={preset} candidateFrame={candidateFrame} sanmaFrame={sanmaFrame} />
++          {preset === 'sanma' ? <SanmaPublicTiles participant={participant} seat={seat} /> : null}
+         </group>)}
+         {candidateFrame ? <CandidateDiscard3D frame={candidateFrame} assetsReady={criticalAssetsReady} onPrepared={onCandidatePrepared} /> : null}
++        {sanmaFrame ? <SanmaMotion3D frame={sanmaFrame} /> : null}
+         <SceneContentReady sceneReady criticalAssetsReady={criticalAssetsReady} />
+       </Suspense>}
+     </AppearanceResources3D>
+diff --git a/src/presentation3d/participants/ParticipantTable.tsx b/src/presentation3d/participants/ParticipantTable.tsx
+index 1cb266a..0da6e2b 100644
+--- a/src/presentation3d/participants/ParticipantTable.tsx
++++ b/src/presentation3d/participants/ParticipantTable.tsx
+@@ -1,4 +1,5 @@
+ import type { CandidateFrame } from './candidateAnimation';
++import type { SanmaMotionFrame } from './useSanmaAnimation';
+ import { preloadHandPacks, type HandPackId } from '../../hand/handPacks';
+ import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+ import { SceneErrorBoundary, SceneLoading } from '../session/SceneErrorBoundary';
+@@ -25,18 +26,19 @@ export type ParticipantTableProps = {
+   appearanceSlots?: PlayerSlotAppearances;
+   dora?: ReactNode;
+   candidateFrame?: CandidateFrame | null;
++  sanmaFrame?: SanmaMotionFrame | null;
+   onCandidatePrepared?: (eventId: string) => void;
+   onAnimationReady?: (ready: boolean) => void;
+   currentParticipantId?: string;
+ };
+ // Parent audio/UI updates are not scene changes and must not request demand frames.
+ export const ParticipantTable = memo(function ParticipantTable(props: ParticipantTableProps) { return <TableSession key={props.sessionKey} {...props} />; });
+-function TableSession({ participants, mapping, preset, sessionKey, localReady, settings = DEFAULT_APPEARANCE_SETTINGS, profile, label, appearanceSlots, dora, currentParticipantId, candidateFrame, onAnimationReady, onCandidatePrepared }: ParticipantTableProps) {
++function TableSession({ participants, mapping, preset, sessionKey, localReady, settings = DEFAULT_APPEARANCE_SETTINGS, profile, label, appearanceSlots, dora, currentParticipantId, candidateFrame, sanmaFrame, onAnimationReady, onCandidatePrepared }: ParticipantTableProps) {
+   const [sceneReady, setSceneReady] = useState(false);
+   const [failure, setFailure] = useState('none');
+   const [hudReady, setHudReady] = useState(false);
+   const hudRoot = useRef<HTMLElement>(null);
+-  const [packReady, setPackReady] = useState(preset !== 'duel');
++  const [packReady, setPackReady] = useState(preset !== 'duel' && preset !== 'sanma');
+   const ready = isInitialPresentationReady(sceneReady, localReady && hudReady && packReady);
+   const handleReady = useCallback(() => setSceneReady(true), []);
+   const fail = useCallback((error: Error) => setFailure(classifyTableRendererError(error)), []);
+@@ -44,14 +46,14 @@ function TableSession({ participants, mapping, preset, sessionKey, localReady, s
+   const nicknames = usePlayerSlotNicknames();
+   const savedAppearances = usePlayerSlotAppearances();
+   const appearances = appearanceSlots ?? savedAppearances;
+-  const packKey = preset === 'duel' ? [...new Set(participants.map(p => resolveHandPackForPlayer(p.appearanceSlot, appearances, settings).id))].join(',') : '';
++  const packKey = preset === 'duel' || preset === 'sanma' ? [...new Set(participants.map(p => resolveHandPackForPlayer(p.appearanceSlot, appearances, settings).id))].join(',') : '';
+   useEffect(() => {
+     let live = true;
+     if (!packKey) return;
+     void preloadHandPacks(packKey.split(',') as HandPackId[]).then(() => { if (live) setPackReady(true); });
+     return () => { live = false; };
+   }, [packKey]);
+-  useEffect(() => { onAnimationReady?.(ready && failure === 'none'); }, [ready, failure, onAnimationReady]);
++  useEffect(() => { onAnimationReady?.(ready && failure === 'none' || preset === 'sanma' && failure !== 'none' && localReady); }, [ready, failure, preset, localReady, onAnimationReady]);
+   const placed = resolveParticipantLayout(participants, mapping, preset);
+   const centralHud = useMemo(() => preset === 'duel' ? <DuelCentralHud participants={participants} mapping={mapping} label={label} currentParticipantId={currentParticipantId} /> : undefined, [participants, mapping, preset, label, currentParticipantId]);
+   const avatarSignature = JSON.stringify(participants.map(p => p.profile?.avatarId ?? resolvePlayerSlotAvatar(p.appearanceSlot, profile?.avatarId, avatars)));
+@@ -70,7 +72,7 @@ function TableSession({ participants, mapping, preset, sessionKey, localReady, s
+     <p>3D 暂不可用，已切换安全平面显示。</p>
+     {participants.map(p => <div key={p.id}><strong>{p.name} · {p.score}</strong><div>{p.discardedTiles.map(tile => <Tile key={tile.instanceId} tile={tile} compact interactive={false} />)}</div></div>)}
+   </section>;
+-  const scene = <Suspense fallback={null}><Scene participants={participants} mapping={mapping} preset={preset} settings={settings} appearanceSlots={appearanceSlots} sessionKey={sessionKey} onReady={handleReady} onUnavailable={fail} centralHud={centralHud} candidateFrame={candidateFrame} onCandidatePrepared={onCandidatePrepared} /></Suspense>;
++  const scene = <Suspense fallback={null}><Scene participants={participants} mapping={mapping} preset={preset} settings={settings} appearanceSlots={appearanceSlots} sessionKey={sessionKey} onReady={handleReady} onUnavailable={fail} centralHud={centralHud} candidateFrame={candidateFrame} sanmaFrame={sanmaFrame} onCandidatePrepared={onCandidatePrepared} /></Suspense>;
+   return <section ref={hudRoot} className={`participant-table ${preset === 'duel' ? 'table-renderer-layer' : ''}`} aria-label={label} data-table-renderer-requested="3d" data-table-renderer-active={failure === 'none' ? sceneReady ? '3d' : 'loading' : '2d'}
+     data-table-renderer-fallback-reason={failure} data-presentation-revealed={ready || failure !== 'none'} data-participant-count={participants.length}>
+     {failure !== 'none' ? fallback : <SceneErrorBoundary fallback={fallback} onError={fail}>
+@@ -81,8 +83,8 @@ function TableSession({ participants, mapping, preset, sessionKey, localReady, s
+       data-hand-pack={resolveHandPackForPlayer(p.appearanceSlot, appearances, settings).id}
+       style={{ left: `${layout.hud[0]}%`, top: `${layout.hud[1]}%` } as CSSProperties}>
+       <PlayerAvatar avatarId={p.profile?.avatarId ?? resolvePlayerSlotAvatar(p.appearanceSlot, profile?.avatarId, avatars)} />
+-      <strong>{p.profile?.nickname ?? resolvePlayerSlotNickname(p.appearanceSlot, profile?.nickname, nicknames, p.name)}</strong>
+-      <span>{p.score.toLocaleString()}{p.remainingSteps === undefined ? '' : ` · 剩 ${p.remainingSteps} 步`}</span>
++      <strong>{preset === 'sanma' ? p.name : p.profile?.nickname ?? resolvePlayerSlotNickname(p.appearanceSlot, profile?.nickname, nicknames, p.name)}</strong>
++      <span>{p.score.toLocaleString()}{p.remainingSteps === undefined ? '' : ` · 剩 ${p.remainingSteps} 步`}{p.seatWind ? ` · ${{ east: '东', south: '南', west: '西', north: '北' }[p.seatWind]}家${p.riichi ? ' · 立直' : ''} · 拔北${p.north?.length ?? 0}` : ''}</span>
+     </div>) : null}
+     {!ready && failure === 'none' ? <SceneLoading /> : null}
+   </section>;
+diff --git a/src/presentation3d/participants/participantLayout.ts b/src/presentation3d/participants/participantLayout.ts
+index 5ad5696..77a2657 100644
+--- a/src/presentation3d/participants/participantLayout.ts
++++ b/src/presentation3d/participants/participantLayout.ts
+@@ -10,7 +10,7 @@ import { TABLE_CAMERA } from '../camera/FixedTableCamera';
+ import { getHandTileTransform, getRiverTileTransforms, getRiverTileRotationY, TABLE_SCENE_LAYOUT } from '../coordinates/sceneTransforms';
+ import { getHandTileScale, TABLE_PRESENTATION_TUNING } from '../table/tablePresentationTuning';
+ 
+-export type ParticipantLayoutPreset = 'duel' | 'three-preview';
++export type ParticipantLayoutPreset = 'duel' | 'three-preview' | 'sanma';
+ export type ParticipantSeat = Readonly<{ participantId: string; seat: Table3DSeat }>;
+ type Point = readonly [number, number, number];
+ type SeatLayout = Readonly<{ hand: Point; river: Point; rotation: number; hud: readonly [number, number] }>;
+@@ -26,16 +26,18 @@ export const SEVENTEEN_COMPACT_RIVER = {
+   laterRowInline: 2.7,
+ } as const;
+ // Independent mode values. Never mutate the standard four-player tuning.
++const THREE_SEAT_LAYOUT = { seats: ['bottom', 'right', 'left'], columns: 6, camera: [0, 43, 32], target: [0, 0.7, 1], placements: {
++  bottom: { hand: [0, 0, 14], river: [-3.3, 0, 6], rotation: 0, hud: [50, 91] },
++  right: { hand: [14, 0, -2], river: [9, 0, -4], rotation: -Math.PI / 2, hud: [89, 30] },
++  left: { hand: [-14, 0, -2], river: [-9, 0, 2.6], rotation: Math.PI / 2, hud: [11, 30] },
++} } as const;
+ export const PARTICIPANT_LAYOUTS: Record<ParticipantLayoutPreset, Readonly<{
+   seats: readonly Table3DSeat[]; columns: number; camera: Point; target: Point;
+   placements: Partial<Record<Table3DSeat, SeatLayout>>;
+ }>> = {
+   duel: { seats: ['bottom', 'top'], columns: TABLE_SCENE_LAYOUT.riverColumns, camera: TABLE_CAMERA.position, target: TABLE_CAMERA.target, placements: {} },
+-  'three-preview': { seats: ['bottom', 'right', 'left'], columns: 6, camera: [0, 43, 32], target: [0, 0.7, 1], placements: {
+-    bottom: { hand: [0, 0, 14], river: [-3.3, 0, 6], rotation: 0, hud: [50, 91] },
+-    right: { hand: [14, 0, -2], river: [9, 0, -4], rotation: -Math.PI / 2, hud: [89, 30] },
+-    left: { hand: [-14, 0, -2], river: [-9, 0, 2.6], rotation: Math.PI / 2, hud: [11, 30] },
+-  } },
++  'three-preview': THREE_SEAT_LAYOUT,
++  sanma: THREE_SEAT_LAYOUT,
+ };
+ export function resolveParticipantLayout(participants: readonly TableParticipant[], mapping: readonly ParticipantSeat[], preset: ParticipantLayoutPreset) {
+   const config = PARTICIPANT_LAYOUTS[preset];
+diff --git a/src/presentation3d/participants/participantPresentation.ts b/src/presentation3d/participants/participantPresentation.ts
+index c58e556..3a5198e 100644
+--- a/src/presentation3d/participants/participantPresentation.ts
++++ b/src/presentation3d/participants/participantPresentation.ts
+@@ -14,6 +14,10 @@ export type TableParticipant = Readonly<{
+   discardCandidates: PrivateRegion;
+   discardedTiles: readonly VisibleTile[];
+   remainingSteps?: number;
++  seatWind?: import('../../game/types').Wind;
++  riichi?: boolean;
++  north?: readonly VisibleTile[];
++  publicMelds?: readonly Readonly<{ kind: 'pon' | 'ankan' | 'minkan' | 'kakan'; tiles: readonly Readonly<{ tile: VisibleTile; faceDown: boolean; sideways: boolean; stacked: boolean; stackSlot: number }>[] }>[];
+   /** Optional explicit profile for development presentation examples. */
+   profile?: PlayerProfile;
+ }>;
+diff --git a/src/presentation3d/riichi/RiichiSticks3D.tsx b/src/presentation3d/riichi/RiichiSticks3D.tsx
+index f7309ea..f2a634f 100644
+--- a/src/presentation3d/riichi/RiichiSticks3D.tsx
++++ b/src/presentation3d/riichi/RiichiSticks3D.tsx
+@@ -1,5 +1,5 @@
+ import type { Table3DSeat } from '../coordinates/seatTransforms';
+-import type { TableSceneState } from '../sceneState/tableSceneTypes';
++import type { OccupiedTableSceneState } from '../sceneState/tableSceneTypes';
+ import { RiichiStick3D } from './RiichiStick3D';
+ import type { RiichiStick3DAppearance } from './riichiStickAppearance';
+ import { useContext } from 'react';
+@@ -8,7 +8,7 @@ import { TileAppearance3DContext, resolveOwnedAppearance3D } from '../appearance
+ const SEATS: readonly Table3DSeat[] = ['bottom', 'right', 'top', 'left'];
+ 
+ export function RiichiSticks3D({ sceneState, hiddenSeats, appearance }: Readonly<{
+-  sceneState: TableSceneState;
++  sceneState: OccupiedTableSceneState;
+   hiddenSeats?: ReadonlySet<Table3DSeat>;
+   appearance?: RiichiStick3DAppearance;
+ }>) {
+@@ -20,7 +20,7 @@ export function RiichiSticks3D({ sceneState, hiddenSeats, appearance }: Readonly
+           <RiichiStick3D
+             key={seat}
+             seat={seat}
+-            appearance={resolveOwnedAppearance3D(resources, sceneState.seats[seat].playerId).riichiStickAppearance ?? appearance}
++            appearance={resolveOwnedAppearance3D(resources, sceneState.seats[seat]?.playerId).riichiStickAppearance ?? appearance}
+             raycastDisabled
+           />
+         ))}
+@@ -29,8 +29,8 @@ export function RiichiSticks3D({ sceneState, hiddenSeats, appearance }: Readonly
+ }
+ 
+ export function resolveVisibleRiichiSeats(
+-  seats: Readonly<Record<Table3DSeat, Readonly<{ riichi: boolean }>>>,
++  seats: Readonly<Partial<Record<Table3DSeat, Readonly<{ riichi: boolean }>>>>,
+   hiddenSeats?: ReadonlySet<Table3DSeat>,
+ ): readonly Table3DSeat[] {
+-  return SEATS.filter((seat) => seats[seat].riichi && !hiddenSeats?.has(seat));
++  return SEATS.filter((seat) => seats[seat]?.riichi && !hiddenSeats?.has(seat));
+ }
+diff --git a/src/presentation3d/sceneState/buildTableSceneState.test.ts b/src/presentation3d/sceneState/buildTableSceneState.test.ts
+index 549e352..33be29b 100644
+--- a/src/presentation3d/sceneState/buildTableSceneState.test.ts
++++ b/src/presentation3d/sceneState/buildTableSceneState.test.ts
+@@ -75,8 +75,12 @@ describe('UI-5C GameState to TableSceneState adapter', () => {
+     expect(oneOpen.seats.right.hand.every((entry) => entry.tile === undefined)).toBe(true);
+   });
+ 
+-  it('preserves authoritative hand order, red-five state, and the separated drawn tile', () => {
+-    const gameState = createInitialGameState();
++  it.each([
++    [0, 'tile--red-dora'],
++    [3, 'tile--double-dora'],
++  ] as const)('preserves authoritative hand order and red-five semantics with indicator %s', (indicatorId, doraKind) => {
++    // The red-five expectation must not depend on the randomly dealt indicator.
++    const gameState = { ...createInitialGameState(), doraIndicators: [tile(indicatorId, 'fixed-indicator')] };
+     const first = tile(0, 'hand-first');
+     const redFive = tile(4, 'hand-red-five', { red: true });
+     const drawn = tile(33, 'hand-drawn');
+@@ -92,7 +96,7 @@ describe('UI-5C GameState to TableSceneState adapter', () => {
+     expect(scene.seats.bottom.hand[1].tile).toEqual({
+       id: 4,
+       red: true,
+-      doraKind: 'tile--red-dora',
++      doraKind,
+     });
+     expect(scene.seats.bottom.hand[2].drawn).toBe(true);
+   });
+diff --git a/src/presentation3d/sceneState/buildTableSceneState.ts b/src/presentation3d/sceneState/buildTableSceneState.ts
+index af1e46f..9a7f3f3 100644
+--- a/src/presentation3d/sceneState/buildTableSceneState.ts
++++ b/src/presentation3d/sceneState/buildTableSceneState.ts
+@@ -30,7 +30,7 @@ const SEAT_ORDER: readonly Table3DSeat[] = ['bottom', 'right', 'top', 'left'];
+ export function buildTableSceneState(
+   gameState: GameState,
+   options: BuildTableSceneStateOptions = {},
+-): TableSceneState {
++): TableSceneState & { seats: Readonly<Record<Table3DSeat, SeatSceneState>> } {
+   const mapping = options.seatMapping ?? getSceneSeatMapping(options.bottomPlayerId ?? 0);
+   const playerIds: Record<Table3DSeat, PlayerId> = {
+     bottom: mapping.bottomPlayerId,
+@@ -79,7 +79,7 @@ export function getSceneSeatMapping(bottomPlayerId: PlayerId): TableSceneSeatMap
+   };
+ }
+ 
+-function buildSeatSceneState(
++export function buildSeatSceneState(
+   player: PlayerState,
+   seat: Table3DSeat,
+   handVisible: boolean,
+diff --git a/src/presentation3d/sceneState/tableSceneTypes.ts b/src/presentation3d/sceneState/tableSceneTypes.ts
+index 1d3ddfd..2733a27 100644
+--- a/src/presentation3d/sceneState/tableSceneTypes.ts
++++ b/src/presentation3d/sceneState/tableSceneTypes.ts
+@@ -37,6 +37,9 @@ export type SeatSceneState = Readonly<{
+   seat: Table3DSeat;
+   playerId: PlayerId;
+   riichi: boolean;
++  /** Publicly exposed hand, independent of any variant's win animation. */
++  exposedHand?: boolean;
++  north?: readonly TableSceneTile[];
+   hand: readonly HandSceneTile[];
+   river: readonly RiverSceneTile[];
+   melds: readonly MeldSceneState[];
+@@ -61,3 +64,5 @@ export type TableSceneSeatMapping = Readonly<{
+   topPlayerId: PlayerId;
+   leftPlayerId: PlayerId;
+ }>;
++
++export type OccupiedTableSceneState = Omit<TableSceneState, 'seats'> & { readonly seats: Readonly<Partial<Record<Table3DSeat, SeatSceneState>>> };
+diff --git a/src/presentation3d/table/tablePresentationTuning.ts b/src/presentation3d/table/tablePresentationTuning.ts
+index 33c018f..dfce639 100644
+--- a/src/presentation3d/table/tablePresentationTuning.ts
++++ b/src/presentation3d/table/tablePresentationTuning.ts
+@@ -102,7 +102,7 @@ export const TABLE_PRESENTATION_TUNING = {
+   centralHud: {
+     position: [0, CENTRAL_CONSOLE_DIMENSIONS.panelSurfaceY + 0.008, 0] as const,
+     hudOnlyOffsetX: -0.1,
+-    hudOnlyOffsetZ: 0.3,
++    hudOnlyOffsetZ: -0.1,
+     rotation: [-Math.PI / 2, 0, 0] as const,
+     compactViewportMaxHeight: 800,
+     compactScale: 0.96,
+diff --git a/vite.config.ts b/vite.config.ts
+index 4b5f931..fcdbd85 100644
+--- a/vite.config.ts
++++ b/vite.config.ts
+@@ -11,6 +11,7 @@ import { LocalGeneratedVoiceRegistry } from './scripts/localGeneratedVoiceRegist
+ import { FishVoiceCreationError, FishVoiceCreationService } from './scripts/fishVoiceCreationService.mjs';
+ import cloneLanguageMapping from './src/audio/voice/fishCloneLanguages.json';
+ import { tableRendererUrlBanner } from './scripts/tableRendererUrlBanner';
++import { xzBuildStamp } from './scripts/xzBuildStamp';
+ 
+ const projectRoot = path.dirname(fileURLToPath(import.meta.url));
+ const voiceRoot = path.join(projectRoot, 'src', 'music', 'voice_lines');
+@@ -202,4 +203,4 @@ const runtimeVoicePackFiles = [
+   '**/src/music/voice_lines/generated_voices.json',
+ ];
+ 
+-export default defineConfig({ plugins: [react(), tableRendererUrlBanner(), localVoiceBridge()], server: { host: '127.0.0.1', watch: { ignored: runtimeVoicePackFiles } } });
++export default defineConfig({ plugins: [react(), tableRendererUrlBanner(), localVoiceBridge(), xzBuildStamp(projectRoot)], server: { host: '127.0.0.1', watch: { ignored: runtimeVoicePackFiles } } });

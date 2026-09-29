@@ -1,0 +1,11 @@
+{
+  "src/components/XuezhanScreen.tsx": "9e16bbcb65add4843843ac5686e50ce5e9cd9b70fc3c356d7c2e2b03e98beccf",
+  "src/components/XuezhanHud.tsx": "70e6c9b237fae65f1fae9d4612bf32b90b63081ebfa9dcc176ebbc20b7292c03",
+  "src/components/xuezhan.css": "01e7341c2d2067acc248bb8b341c6ec92448f826f4aa6840c4e358c0f639b21f",
+  "src/components/game/GameTopBar.tsx": "90f4f34c064c3c70564bbb5f924ea5d37846d628ac37c58b9db232a65724a80f",
+  "src/components/game/TableCenter.tsx": "f6bf4e56ab06d9b0d4039bd408dd2241332e7d65b97e6f41adf4374187fe2715",
+  "src/presentation3d/Table3DHud.tsx": "9180e66aa9a70f5fc4dced6d5d417358d2009b385e3650604a6606c2c57fb8b6",
+  "src/presentation/table/xuezhanPresentation.ts": "a1f6da77330507e1f28bfd2f2db8715f3ebd3586748f29114174d7f9db4f5dda",
+  "src/components/XuezhanHud.test.tsx": "3101bc1c52bfa11fdf6b23594fcf535a201702ebff539aec514a8328a990657e",
+  "dist/index.html": "380447ae9a2bd8f2e1298c37b901aa880d2a8bc6d29b69a90cc7e2efd6f50518"
+}

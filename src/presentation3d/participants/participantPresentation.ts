@@ -14,6 +14,10 @@ export type TableParticipant = Readonly<{
   discardCandidates: PrivateRegion;
   discardedTiles: readonly VisibleTile[];
   remainingSteps?: number;
+  seatWind?: import('../../game/types').Wind;
+  riichi?: boolean;
+  north?: readonly VisibleTile[];
+  publicMelds?: readonly Readonly<{ kind: 'pon' | 'ankan' | 'minkan' | 'kakan'; tiles: readonly Readonly<{ tile: VisibleTile; faceDown: boolean; sideways: boolean; stacked: boolean; stackSlot: number }>[] }>[];
   /** Optional explicit profile for development presentation examples. */
   profile?: PlayerProfile;
 }>;

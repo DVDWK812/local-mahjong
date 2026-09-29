@@ -1,0 +1,7 @@
+
+> local-mahjong-trainer@0.1.0 check:types
+> tsc --noEmit
+
+src/components/XuezhanHud.tsx(13,164): error TS2322: Type 'number' is not assignable to type '1920'.
+src/components/XuezhanHud.tsx(13,180): error TS2322: Type 'number' is not assignable to type '1080'.
+src/game/sanma/wall.test.ts(18,28): error TS2550: Property 'replaceAll' does not exist on type 'string'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2021' or later.

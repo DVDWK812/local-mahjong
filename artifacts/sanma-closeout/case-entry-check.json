@@ -1,0 +1,58 @@
+[
+  {
+    "caseId": "SM-06-DOUBLE",
+    "loaded": true,
+    "manualFocus": true,
+    "steps": true,
+    "manualPending": true
+  },
+  {
+    "caseId": "SM-10-LOW-FULL",
+    "loaded": true,
+    "manualFocus": true,
+    "steps": true,
+    "manualPending": true
+  },
+  {
+    "caseId": "SM-14-TIME",
+    "loaded": true,
+    "manualFocus": true,
+    "steps": true,
+    "manualPending": true
+  },
+  {
+    "caseId": "SM-09-EIGHT",
+    "loaded": true,
+    "manualFocus": true,
+    "steps": true,
+    "manualPending": true
+  },
+  {
+    "caseId": "SM-13-EAST-END",
+    "loaded": true,
+    "manualFocus": true,
+    "steps": true,
+    "manualPending": true
+  },
+  {
+    "caseId": "SM-13-SOUTH-END",
+    "loaded": true,
+    "manualFocus": true,
+    "steps": true,
+    "manualPending": true
+  },
+  {
+    "caseId": "SM-15-RESTORE",
+    "loaded": true,
+    "manualFocus": true,
+    "steps": true,
+    "manualPending": true
+  },
+  {
+    "caseId": "SM-16-REPLAY",
+    "loaded": true,
+    "manualFocus": true,
+    "steps": true,
+    "manualPending": true
+  }
+]

@@ -1,4 +1,4 @@
-import { memo, useEffect } from 'react';
+import { memo, useEffect, type ReactNode } from 'react';
 import type { GameState } from '../../game/types';
 import { AnalysisPanel } from '../AnalysisPanel';
 import { TileCounter } from '../TileCounter';
@@ -10,6 +10,9 @@ interface AnalysisDrawerProps {
 }
 
 export function AnalysisDrawer({ open, gameState, onClose }: AnalysisDrawerProps) {
+  return <AnalysisDrawerView open={open} onClose={onClose}>{open ? <AnalysisContent gameState={gameState} /> : null}</AnalysisDrawerView>;
+}
+export function AnalysisDrawerView({ open, onClose, children, title = '牌局分析' }: { open: boolean; onClose: () => void; children: ReactNode; title?: string }) {
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -22,11 +25,11 @@ export function AnalysisDrawer({ open, gameState, onClose }: AnalysisDrawerProps
   return (
     <aside className={`analysis-drawer ${open ? 'analysis-drawer--open' : ''}`} aria-label="牌局分析抽屉" aria-hidden={!open}>
       <div className="analysis-drawer-header">
-        <strong>牌局分析</strong>
+        <strong>{title}</strong>
         <button type="button" aria-label="关闭牌局分析" onClick={onClose}>关闭</button>
       </div>
       <div className="analysis-drawer-body">
-        {open ? <AnalysisContent gameState={gameState} /> : null}
+        {children}
       </div>
     </aside>
   );

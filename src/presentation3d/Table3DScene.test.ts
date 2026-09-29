@@ -7,7 +7,7 @@ function sourcePath(relativePath: string): string {
 
 describe('UI-5A scene boundaries', () => {
   it('uses a fixed, R3F-interactive, demand-rendered canvas', () => {
-    const source = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
+    const source = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8').replace(/\r\n/g, '\n');
 
     const host = readFileSync(sourcePath('./session/SceneCanvasHost.tsx'), 'utf8');
     expect(source).toContain('<SceneCanvasHost');
@@ -17,7 +17,7 @@ describe('UI-5A scene boundaries', () => {
     expect(source).not.toContain('OrbitControls');
     expect(source).not.toContain('Raycaster');
     expect(source).not.toContain('buildTableSceneState');
-    expect(source).toContain('sceneState: TableSceneState');
+    expect(source).toContain('sceneState: OccupiedTableSceneState');
     expect(source).toContain('<TableEnvironment />');
     const environment = readFileSync(sourcePath('./table/TableEnvironment.tsx'), 'utf8');
     expect(environment).toContain("args={['#071712', 42, 58]}");
@@ -66,15 +66,15 @@ describe('UI-5A scene boundaries', () => {
   });
 
   it('renders the authoritative static table through bounded scene components', () => {
-    const source = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
+    const source = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8').replace(/\r\n/g, '\n');
     const riverSource = readFileSync(sourcePath('./river/River3D.tsx'), 'utf8');
 
     expect(source).not.toContain('<Wall3D');
     expect(source).not.toContain('<Dora3D');
     expect(source).toContain('<Hand3D');
-    expect(source).toContain('seatState={sceneState.seats[seat]}');
+    expect(source).toContain('seatState={seatState}');
     expect(source).toContain('<River3D');
-    expect(source).toContain('winningRiverIndex={winningRiverTarget?.playerId === sceneState.seats[seat].playerId');
+    expect(source).toContain('winningRiverIndex={winningRiverTarget?.playerId === seatState.playerId');
     expect(riverSource).toContain('const winning = tile.riverIndex === winningRiverIndex;');
     expect(riverSource).not.toContain('const winning = tile.layoutIndex === winningRiverIndex;');
     expect(source).toContain('<AppearanceResources3D');
@@ -96,7 +96,7 @@ describe('UI-5A scene boundaries', () => {
 
   it('keeps the realtime hand-animation consumer isolated to the active renderer', () => {
     const gameScreenSource = readFileSync(sourcePath('../components/game/GameScreen.tsx'), 'utf8');
-    const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
+    const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8').replace(/\r\n/g, '\n');
 
     expect(gameScreenSource).toContain('onActiveRendererChange={setActiveTableRenderer}');
     expect(gameScreenSource).toContain('animationsEnabled={realtimeHandAnimationsEnabled}');
@@ -108,7 +108,7 @@ describe('UI-5A scene boundaries', () => {
   });
 
   it('keeps gameplay wall and world Dora rendering hidden while preserving debug Dora3D', () => {
-    const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
+    const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8').replace(/\r\n/g, '\n');
     const doraSource = readFileSync(sourcePath('./dora/Dora3D.tsx'), 'utf8');
 
     expect(sceneSource).not.toContain("from './wall/Wall3D'");
@@ -139,7 +139,7 @@ describe('UI-5A scene boundaries', () => {
   });
 
   it('removes the bottom Hand3D target while preserving opponent hands and every Meld3D lane', () => {
-    const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
+    const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8').replace(/\r\n/g, '\n');
     const handSource = readFileSync(sourcePath('./hand/Hand3D.tsx'), 'utf8');
     const tileSource = readFileSync(sourcePath('./tile/Tile3D.tsx'), 'utf8');
 
@@ -153,7 +153,7 @@ describe('UI-5A scene boundaries', () => {
     expect(handSource).toContain('activateHand3DTile');
     expect(handSource).toContain('event.stopPropagation()');
     expect(sceneSource).toContain("{seat === 'bottom' ? null : (");
-    expect(sceneSource).toContain('<Hand3D\n                seatState={sceneState.seats[seat]}');
+    expect(sceneSource).toContain('<Hand3D\n                seatState={seatState}');
     expect(sceneSource).not.toContain('localHandPresentation');
     expect(sceneSource).not.toContain('interactionActions={');
     expect(sceneSource.indexOf("{seat === 'bottom' ? null : (")).toBeLessThan(sceneSource.indexOf('<River3D'));

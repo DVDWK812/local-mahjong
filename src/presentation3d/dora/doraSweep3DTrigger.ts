@@ -3,13 +3,13 @@ import {
   type TileVisualSemanticContext,
 } from '../../presentation/table/tileVisualSemantics';
 import type { ActiveTableAnimation3D } from '../animation/HandAction3D';
-import type { TableSceneState, TableSceneTile } from '../sceneState/tableSceneTypes';
+import type { OccupiedTableSceneState, TableSceneTile } from '../sceneState/tableSceneTypes';
 import { TABLE_PRESENTATION_TUNING } from '../table/tablePresentationTuning';
 import type { DoraSweep3DTarget, DoraSweep3DTrigger } from './DoraSweep3DController';
 
 export function resolveDoraSweep3DTrigger(
   active: ActiveTableAnimation3D | null,
-  sceneState: TableSceneState,
+  sceneState: OccupiedTableSceneState,
   visualContext?: TileVisualSemanticContext,
 ): DoraSweep3DTrigger | null {
   if (
@@ -60,7 +60,7 @@ function resolveTarget(
   };
 }
 
-function findSceneTile(sceneState: TableSceneState, key: string): TableSceneTile | undefined {
+function findSceneTile(sceneState: OccupiedTableSceneState, key: string): TableSceneTile | undefined {
   for (const seat of Object.values(sceneState.seats)) {
     const handTile = seat.hand.find((tile) => tile.key === key);
     if (handTile) return handTile;

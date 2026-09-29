@@ -24,17 +24,7 @@ export function MatchResultDialog({ matchState, onNewMatch }: MatchResultDialogP
           <button type="button" onClick={onNewMatch}>新比赛</button>
         </div>
         <h3>总排名</h3>
-        <div className="match-result-table">
-          {aggregateRanking.map((player, index) => (
-            <article key={player.player} className="result-card">
-              <div className="result-card-title">
-                <strong>{index + 1}位 Player {player.player + 1}</strong>
-                <span>{player.score.toFixed(1)}</span>
-              </div>
-              <p>累计比赛分：{player.score.toFixed(1)}</p>
-            </article>
-          ))}
-        </div>
+        <MatchRankingCards rows={aggregateRanking.map((player, index) => ({ id: player.player, rank: index + 1, name: `Player ${player.player + 1}`, score: player.score }))} />
         <h3>各场结果</h3>
         {matchResults.map((matchResult, matchIndex) => (
           <section key={matchIndex} className="result-card">
@@ -61,4 +51,11 @@ export function MatchResultDialog({ matchState, onNewMatch }: MatchResultDialogP
       </section>
     </div>
   );
+}
+
+export function MatchRankingCards({ rows }: { rows: readonly { id: number; rank: number; name: string; score: number }[] }) {
+  return <div className="match-result-table">{rows.map(player => <article key={player.id} className="result-card">
+    <div className="result-card-title"><strong>{player.rank}位 {player.name}</strong><span>{player.score.toFixed(1)}</span></div>
+    <p>累计比赛分：{player.score.toFixed(1)}</p>
+  </article>)}</div>;
 }

@@ -1,0 +1,344 @@
+{
+  "mode": "xuezhan",
+  "schemaVersion": 1,
+  "config": {
+    "mode": "xuezhan",
+    "rules": {
+      "schemaVersion": 1,
+      "ruleVersion": 1,
+      "preset": "declared-exchange",
+      "presetVersion": 1,
+      "rounds": 4,
+      "startingScore": 100,
+      "bankruptcy": false,
+      "firstDealer": -1,
+      "dealerPolicy": "rotate",
+      "drawDealer": "rotate",
+      "exchange": 3,
+      "direction": "random",
+      "missing": "declared",
+      "unclearedCalls": false,
+      "selfDrawOnly": false,
+      "multiWin": true,
+      "passWin": "until-draw",
+      "robKong": true,
+      "base": 1,
+      "cap": 3,
+      "selfDraw": "base",
+      "selfDrawExtra": 1,
+      "extraAfterCap": false,
+      "patterns": {
+        "allTriplets": {
+          "enabled": true,
+          "fan": 1
+        },
+        "pure": {
+          "enabled": true,
+          "fan": 2
+        },
+        "sevenPairs": {
+          "enabled": true,
+          "fan": 2
+        },
+        "root": {
+          "enabled": true,
+          "fan": 1
+        },
+        "kongDraw": {
+          "enabled": true,
+          "fan": 1
+        },
+        "kongDiscard": {
+          "enabled": true,
+          "fan": 1
+        },
+        "robKong": {
+          "enabled": true,
+          "fan": 1
+        },
+        "lastDraw": {
+          "enabled": false,
+          "fan": 1
+        },
+        "lastDiscard": {
+          "enabled": false,
+          "fan": 1
+        },
+        "concealed": {
+          "enabled": false,
+          "fan": 1
+        },
+        "middle": {
+          "enabled": false,
+          "fan": 1
+        },
+        "singlePair": {
+          "enabled": false,
+          "fan": 1
+        },
+        "jiang": {
+          "enabled": false,
+          "fan": 2
+        },
+        "terminals": {
+          "enabled": false,
+          "fan": 2
+        },
+        "heaven": {
+          "enabled": false,
+          "fan": 3
+        },
+        "earth": {
+          "enabled": false,
+          "fan": 3
+        }
+      },
+      "kongPay": true,
+      "directPay": "source",
+      "directRate": 2,
+      "addedRate": 1,
+      "concealedRate": 2,
+      "directResponsibility": false,
+      "transfer": false,
+      "transferSplit": "nearest",
+      "pig": true,
+      "pigPenalty": "cap",
+      "pigRate": 8,
+      "pigIncludesWon": true,
+      "readyPay": true,
+      "readyPolicy": "structural",
+      "pigAlsoReady": false,
+      "refund": "not-ready"
+    },
+    "ruleId": "xz1-1982481566c4d915",
+    "time": {
+      "schemaVersion": 1,
+      "turn": {
+        "kind": "unlimited"
+      },
+      "preparation": {
+        "exchange": {
+          "kind": "unlimited"
+        },
+        "missing": {
+          "kind": "unlimited"
+        }
+      }
+    },
+    "ai": [
+      {
+        "playerId": 1,
+        "difficulty": "shintentai",
+        "personality": "balanced"
+      },
+      {
+        "playerId": 2,
+        "difficulty": "shintentai",
+        "personality": "balanced"
+      },
+      {
+        "playerId": 3,
+        "difficulty": "shintentai",
+        "personality": "balanced"
+      }
+    ],
+    "preferences": {
+      "autoWin": false,
+      "suppressCalls": false,
+      "autoTsumogiri": false,
+      "legalHelp": true,
+      "waitsHelp": true,
+      "fanHelp": true,
+      "spectator": true
+    }
+  },
+  "seed": 3808798149,
+  "actions": [
+    {
+      "seq": 1,
+      "hand": 1,
+      "seat": 1,
+      "action": {
+        "type": "exchange",
+        "tiles": [
+          "xz:1:18",
+          "xz:1:19",
+          "xz:1:31"
+        ]
+      }
+    },
+    {
+      "seq": 2,
+      "hand": 1,
+      "seat": 2,
+      "action": {
+        "type": "exchange",
+        "tiles": [
+          "xz:1:1",
+          "xz:1:7",
+          "xz:1:14"
+        ]
+      }
+    },
+    {
+      "seq": 3,
+      "hand": 1,
+      "seat": 3,
+      "action": {
+        "type": "exchange",
+        "tiles": [
+          "xz:1:6",
+          "xz:1:17",
+          "xz:1:21"
+        ]
+      }
+    },
+    {
+      "seq": 4,
+      "hand": 1,
+      "seat": 0,
+      "action": {
+        "type": "exchange-draft",
+        "tiles": [
+          "xz:1:13"
+        ]
+      }
+    },
+    {
+      "seq": 5,
+      "hand": 1,
+      "seat": 0,
+      "action": {
+        "type": "exchange-draft",
+        "tiles": [
+          "xz:1:13",
+          "xz:1:15"
+        ]
+      }
+    },
+    {
+      "seq": 6,
+      "hand": 1,
+      "seat": 0,
+      "action": {
+        "type": "exchange-draft",
+        "tiles": [
+          "xz:1:13",
+          "xz:1:15",
+          "xz:1:22"
+        ]
+      }
+    }
+  ],
+  "digest": "e374b104a29de5a8",
+  "accounting": {
+    "wins": [],
+    "ledger": [],
+    "results": []
+  },
+  "runtime": {
+    "schemaVersion": 1,
+    "config": {
+      "schemaVersion": 1,
+      "turn": {
+        "kind": "unlimited"
+      },
+      "preparation": {
+        "exchange": {
+          "kind": "unlimited"
+        },
+        "missing": {
+          "kind": "unlimited"
+        }
+      }
+    },
+    "clock": {
+      "schemaVersion": 1,
+      "handId": "xz:3808798149:1",
+      "banks": {
+        "xuezhan:0": 0,
+        "xuezhan:1": 0,
+        "xuezhan:2": 0,
+        "xuezhan:3": 0
+      },
+      "suspended": {},
+      "decisions": [
+        {
+          "key": "1:exchange:0",
+          "participantId": "xuezhan:0",
+          "kind": "selection",
+          "budgetId": "1:0",
+          "baseMs": null,
+          "bankMs": 0,
+          "openingMs": 0
+        }
+      ]
+    },
+    "preferences": {
+      "xuezhan:0": {
+        "autoWin": false,
+        "suppressCalls": false,
+        "autoTsumogiri": false
+      },
+      "xuezhan:1": {
+        "autoWin": false,
+        "suppressCalls": false,
+        "autoTsumogiri": false
+      },
+      "xuezhan:2": {
+        "autoWin": false,
+        "suppressCalls": false,
+        "autoTsumogiri": false
+      },
+      "xuezhan:3": {
+        "autoWin": false,
+        "suppressCalls": false,
+        "autoTsumogiri": false
+      }
+    },
+    "audit": [
+      {
+        "schemaVersion": 1,
+        "sequence": 1,
+        "decisionId": "1/d3",
+        "participantId": "xuezhan:1",
+        "source": "manual",
+        "policyVersion": "infra-v1",
+        "baseUsedMs": 0,
+        "bankUsedMs": 0,
+        "lagMs": 0,
+        "terminal": true
+      },
+      {
+        "schemaVersion": 1,
+        "sequence": 2,
+        "decisionId": "1/d4",
+        "participantId": "xuezhan:2",
+        "source": "manual",
+        "policyVersion": "infra-v1",
+        "baseUsedMs": 0,
+        "bankUsedMs": 0,
+        "lagMs": 0,
+        "terminal": true
+      },
+      {
+        "schemaVersion": 1,
+        "sequence": 3,
+        "decisionId": "1/d5",
+        "participantId": "xuezhan:3",
+        "source": "manual",
+        "policyVersion": "infra-v1",
+        "baseUsedMs": 0,
+        "bankUsedMs": 0,
+        "lagMs": 0,
+        "terminal": true
+      }
+    ],
+    "draftRevisions": {
+      "xuezhan:1": 1,
+      "xuezhan:2": 1,
+      "xuezhan:3": 1,
+      "xuezhan:0": 3
+    }
+  }
+}

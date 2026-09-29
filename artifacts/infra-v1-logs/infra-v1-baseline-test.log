@@ -1,0 +1,41 @@
+
+> local-mahjong-trainer@0.1.0 pretest
+> npm run generate:voice-packs && npm run test:voice-pack-index
+
+
+> local-mahjong-trainer@0.1.0 generate:voice-packs
+> node scripts/generateVoicePackIndex.mjs
+
+Generated Voice Pack index: 1 valid pack(s), 2 skipped.
+Skipped Voice Pack voice-20260821-001: EPERM: operation not permitted, open 'C:\Users\Wenkai\Desktop\UNSW\local-mahjong-voice-phase1\src\music\voice_lines\voice-20260821-001\voice_lines.json'
+Skipped Voice Pack xiaozhang: EPERM: operation not permitted, open 'C:\Users\Wenkai\Desktop\UNSW\local-mahjong-voice-phase1\src\music\voice_lines\xiaozhang\voice_lines.json'
+
+> local-mahjong-trainer@0.1.0 test:voice-pack-index
+> node scripts/verifyVoicePackIndex.mjs
+
+node:internal/child_process:1143
+    result.error = new ErrnoException(result.error, 'spawnSync ' + options.file);
+                   ^
+
+<ref *1> Error: spawnSync C:\Program Files\nodejs\node.exe EPERM
+    at Object.spawnSync (node:internal/child_process:1143:20)
+    at spawnSync (node:child_process:911:24)
+    at execFileSync (node:child_process:954:15)
+    at file:///C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1/scripts/verifyVoicePackIndex.mjs:25:3 {
+  errno: -4048,
+  code: 'EPERM',
+  syscall: 'spawnSync C:\\Program Files\\nodejs\\node.exe',
+  path: 'C:\\Program Files\\nodejs\\node.exe',
+  spawnargs: [
+    'C:\\Users\\Wenkai\\Desktop\\UNSW\\local-mahjong-voice-phase1\\scripts\\generateVoicePackIndex.mjs'
+  ],
+  error: [Circular *1],
+  status: null,
+  signal: null,
+  output: null,
+  pid: 0,
+  stdout: undefined,
+  stderr: undefined
+}
+
+Node.js v24.18.0

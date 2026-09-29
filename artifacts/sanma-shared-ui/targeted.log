@@ -1,0 +1,2272 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ❯ src/presentation3d/Table3DScene.test.ts (10 tests | 3 failed) 32ms
+   × UI-5A scene boundaries > uses a fixed, R3F-interactive, demand-rendered canvas 13ms
+     → expected 'import { memo, Suspense, useCallback,…' to contain 'sceneState: TableSceneState'
+   × UI-5A scene boundaries > renders the authoritative static table through bounded scene components 6ms
+     → expected 'import { memo, Suspense, useCallback,…' to contain 'seatState={sceneState.seats[seat]}'
+   × UI-5A scene boundaries > removes the bottom Hand3D target while preserving opponent hands and every Meld3D lane 6ms
+     → expected 'import { memo, Suspense, useCallback,…' to contain '<Hand3D\n                seatState={s…'
+ ✓ src/components/game/DiscardRiver.test.tsx (21 tests) 66ms
+ ✓ src/presentation3d/coordinates/sceneTransforms.test.ts (16 tests) 17ms
+ ✓ src/presentation3d/sceneState/buildTableSceneState.test.ts (15 tests) 31ms
+ ✓ src/presentation3d/animation/tableAnimation3D.test.ts (35 tests) 75ms
+ ✓ src/presentation3d/appearance/AppearanceTextureCache.test.ts (7 tests) 6ms
+ ✓ src/components/game/LocalHandArea.test.tsx (14 tests) 84ms
+ ✓ src/components/game/PlayerZone.test.tsx (7 tests) 68ms
+ ✓ src/presentation3d/animation/handPresentation.test.tsx (18 tests) 101ms
+ ✓ src/presentation3d/participants/participantPresentation.test.tsx (7 tests) 47ms
+ ❯ src/presentation3d/TableRenderer.test.ts (15 tests | 3 failed) 137ms
+   × 3D table renderer selection > loads the WebGL implementation only after 3D is selected 11ms
+     → expected 'import {\r\n  type ErrorInfo,\r\n  ty…' to contain 'await import(\'./Table3DScene\')'
+   × 3D table renderer selection > coexists with the DOM HUD and switches the shared local hand to a transparent screen-space overlay only after 3D is active 6ms
+     → expected 'import {\r\n  type ErrorInfo,\r\n  ty…' to contain 'table-renderer-layer--3d'
+   × 3D table renderer selection > covers the mounted renderer until scene and local presentation are both ready 5ms
+     → expected 'import {\r\n  type ErrorInfo,\r\n  ty…' to contain '<Suspense fallback={null}>'
+ ✓ src/components/game/HandAnimationOverlay.test.tsx (27 tests) 66ms
+ ✓ src/presentation3d/participants/candidateAnimation.test.ts (32 tests) 91ms
+ ✓ src/presentation3d/dora/DoraSweep3DController.test.ts (10 tests) 11ms
+ ✓ src/presentation3d/tile/tileMaterials.test.ts (9 tests) 8ms
+ ✓ src/components/game/GameScreen.test.tsx (13 tests) 397ms
+ ✓ src/components/ResultDialog.test.tsx (5 tests) 56ms
+ ✓ src/presentation3d/session/SceneCanvasHost.test.tsx (7 tests) 22ms
+ ✓ src/game/sanma/rules.test.ts (7 tests) 67ms
+ ✓ src/presentation3d/table/tablePresentationTuning.test.ts (5 tests) 6ms
+ ✓ src/presentation3d/table/FeltDecoration3D.test.ts (7 tests) 7ms
+ ✓ src/presentation3d/hand/handInteraction.test.ts (7 tests) 7ms
+ ✓ src/presentation3d/participants/participantRiverCompact.test.ts (4 tests) 14ms
+ ✓ src/components/game/TableLayoutRegression.test.tsx (10 tests) 136ms
+ ✓ src/presentation3d/dora/doraSweep3DTrigger.test.ts (5 tests) 24ms
+ ✓ src/presentation3d/participants/participantBaseline.test.tsx (4 tests) 93ms
+ ✓ src/presentation3d/tile/doraBreathingVisual.test.ts (5 tests) 7ms
+ ✓ src/components/game/DoraIndicatorStack.test.tsx (6 tests) 36ms
+stderr | src/presentation3d/appearance/playerAppearanceConsumers.test.tsx > real 3D consumer owner contracts > riichi animation/release and static sticks consume the same actor texture for all four players
+React does not recognize the `userData` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `userdata` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
+Received `true` for a non-boolean attribute `visible`.
+
+If you want to write it to the DOM, pass a string instead: visible="true" or visible={value.toString()}.
+
+ ✓ src/presentation3d/appearance/playerAppearanceConsumers.test.tsx (2 tests) 71ms
+ ✓ src/presentation3d/tile/tileTextures.test.ts (6 tests) 6ms
+ ✓ src/presentation3d/tile/tileFaceVisibility.test.tsx (4 tests) 14ms
+ ✓ src/presentation3d/animation/animationRuntime.test.ts (3 tests) 5ms
+ ✓ src/presentation3d/riichi/RiichiStick3D.test.ts (5 tests) 6ms
+ ✓ src/components/game/MahjongTable.test.tsx (5 tests) 99ms
+stderr | src/presentation3d/animation/flashLifecycle.test.tsx > local discard / ron / tsumo frames keep the same scene and visible seats without loading fresh textures
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+
+ ✓ src/presentation3d/animation/flashLifecycle.test.tsx (1 test) 74ms
+ ✓ src/presentation3d/tile/tileVisualAnatomy.test.ts (3 tests) 4ms
+ ✓ src/presentation3d/win/winPresentation3D.test.ts (3 tests) 16ms
+ ✓ src/game/sanma/wall.test.ts (4 tests) 138ms
+ ✓ src/presentation3d/table/feltSurfaceUv.test.ts (2 tests) 7ms
+ ✓ src/presentation3d/tile/tileGrounding.test.ts (3 tests) 3ms
+ ✓ src/presentation3d/table/CentralConsoleHudAnchor3D.test.ts (4 tests) 4ms
+ ✓ src/presentation3d/tile/tileFootprintPacking.test.ts (3 tests) 3ms
+ ✓ src/components/game/TableCenter.test.tsx (4 tests) 34ms
+ ✓ src/presentation3d/appearance/AppearanceResources3D.test.ts (5 tests) 6ms
+ ✓ src/components/game/GameEventOverlay.test.tsx (4 tests) 12ms
+ ✓ src/presentation3d/camera/FixedTableCamera.test.ts (3 tests) 5ms
+ ✓ src/components/game/DiscardRiverRiichiClaimed.test.tsx (2 tests) 23ms
+ ✓ src/components/game/localHandPresentationReady.test.ts (3 tests) 5ms
+ ✓ src/components/game/RiichiStick.test.tsx (3 tests) 9ms
+ ✓ src/presentation3d/Table3DHud.test.tsx (2 tests) 67ms
+ ✓ src/presentation3d/dora/doraLayout.test.ts (3 tests) 4ms
+ ✓ src/components/game/GameResponsiveLayout.test.tsx (4 tests) 3ms
+ ✓ src/components/MatchResultDialog.test.tsx (1 test) 27ms
+ ✓ src/components/game/WinPresentationOverlay.test.tsx (3 tests) 4ms
+ ✓ src/presentation3d/animation/DiscardSource3D.test.ts (2 tests) 4ms
+ ✓ src/components/game/HandTrack.test.tsx (4 tests) 26ms
+ ✓ src/presentation3d/coordinates/seatTransforms.test.ts (3 tests) 3ms
+ ✓ src/presentation3d/tile/tileGalleryData.test.ts (4 tests) 3ms
+ ❯ src/presentation3d/table/centralConsoleLayout.test.ts (3 tests | 1 failed) 13ms
+   × central console assembly > keeps the HUD center, ordinary river and non-riichi preview scale unchanged 9ms
+     → expected [ -0.1, 0.698, 1.9 ] to deeply equal [ -0.1, 0.698, 2.3 ]
+ ✓ src/presentation3d/lighting/TableLighting.test.tsx (2 tests) 3ms
+ ✓ src/presentation3d/tile/tileFaceTextures3d.test.ts (2 tests) 7ms
+ ✓ src/presentation3d/initialSceneReady.test.ts (2 tests) 3ms
+ ✓ src/components/game/AnalysisDrawer.test.tsx (2 tests) 39ms
+ ✓ src/game/sanma/evidence.test.ts (1 test) 2ms
+ ✓ src/presentation3d/Table3DHudAvatar.test.tsx (1 test) 57ms
+ ✓ src/presentation3d/tile/tileSpacing.test.ts (1 test) 3ms
+ ✓ src/presentation3d/tile/tileOrientation.test.ts (3 tests) 3ms
+ ✓ src/presentation3d/table/feltMainViewMapping.test.ts (3 tests) 3ms
+ ✓ src/presentation3d/table/TableMesh.test.ts (1 test) 2ms
+ ✓ src/presentation3d/riichi/RiichiSticks3D.test.ts (2 tests) 2ms
+ ✓ src/game/sanma/scenarios.test.ts (79 tests) 749ms
+ ✓ src/game/sanma/integration.test.ts (9 tests) 6013ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > east-only/loss的每个可视化场景执行断言并经JSON序列化重建 2017ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > east-only/split_missing_share_ceil100的每个可视化场景执行断言并经JSON序列化重建 1889ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > hanchan/loss的每个可视化场景执行断言并经JSON序列化重建 1091ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > hanchan/split_missing_share_ceil100的每个可视化场景执行断言并经JSON序列化重建 984ms
+ ✓ src/game/sanma/timing.test.ts (15 tests) 10069ms
+   ✓ runtime full matches with policy audit > east-only/loss/short=false/seed=308 1826ms
+   ✓ runtime full matches with policy audit > east-only/split_missing_share_ceil100/short=false/seed=308 914ms
+   ✓ runtime full matches with policy audit > hanchan/loss/short=false/seed=308 1656ms
+   ✓ runtime full matches with policy audit > hanchan/split_missing_share_ceil100/short=false/seed=308 1453ms
+   ✓ runtime full matches with policy audit > east-only/loss/short=true/seed=308 904ms
+   ✓ runtime full matches with policy audit > east-only/split_missing_share_ceil100/short=true/seed=308 731ms
+   ✓ runtime full matches with policy audit > hanchan/loss/short=true/seed=308 1031ms
+   ✓ runtime full matches with policy audit > hanchan/split_missing_share_ceil100/short=true/seed=308 1477ms
+ ✓ src/game/sanma/longRun.test.ts (40 tests) 56713ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=1 1522ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=2 1254ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=3 491ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=4 666ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=5 1029ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=6 820ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=7 1409ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=8 483ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=9 1208ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=10 874ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=1 1040ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=2 1211ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=3 944ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=4 719ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=5 921ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=6 1124ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=7 742ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=8 524ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=9 1051ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=10 708ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=1 2458ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=2 2687ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=3 1129ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=4 1495ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=5 1541ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=6 1904ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=7 2386ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=8 1678ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=9 2432ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=10 1518ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=1 2875ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=2 2891ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=3 1631ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=4 956ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=5 1747ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=6 2105ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=7 717ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=8 1764ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=9 2505ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=10 1552ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/presentation3d/Table3DScene.test.ts > UI-5A scene boundaries > uses a fixed, R3F-interactive, demand-rendered canvas
+AssertionError: expected 'import { memo, Suspense, useCallback,…' to contain 'sceneState: TableSceneState'
+
+- Expected
++ Received
+
+- sceneState: TableSceneState
++ import { memo, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
++ import type { Texture } from 'three';
++ import { SceneCanvasHost, SceneContentReady } from './session/SceneCanvasHost';
++ export { CanvasUnavailable } from './session/SceneCanvasHost';
++ import { FixedTableCamera, TABLE_CAMERA } from './camera/FixedTableCamera';
++ import type { Table3DSeat } from './coordinates/seatTransforms';
++ import { Hand3D } from './hand/Hand3D';
++ import { TableLighting } from './lighting/TableLighting';
++ import { NorthTiles3D } from './meld/NorthTiles3D';
++ import { Meld3D } from './meld/Meld3D';
++ import { River3D } from './river/River3D';
++ import type { OccupiedTableSceneState } from './sceneState/tableSceneTypes';
++ import { TableMesh } from './table/TableMesh';
++ import { TableEnvironment } from './table/TableEnvironment';
++ import { DEFAULT_TABLE_VISUAL_THEME, type TableVisualTheme } from './table/tableVisualTheme';
++ import { HandAction3D } from './animation/HandAction3D';
++ import { DiscardSource3DStore } from './animation/DiscardSource3D';
++ import { useTableAnimation3D } from './animation/useTableAnimation3D';
++ import type { TableAnimation3DRenderState } from './animation/useTableAnimation3D';
++ import type { DiscardSourceSnapshotStore } from '../presentation/handAnimation/DiscardSourceSnapshot';
++ import type { LocalHandAnimation3DState } from './animation/tableAnimation3D';
++ import type { TileVisualSemanticContext } from '../presentation/table/tileVisualSemantics';
++ import { CentralConsoleHudAnchor3D } from './table/CentralConsoleHudAnchor3D';
++ import { TileTextureWarmup } from './tile/TileTextureWarmup';
++ import { resolveVisibleRiichiSeats, RiichiSticks3D } from './riichi/RiichiSticks3D';
++ import type { RiichiStick3DAppearance } from './riichi/riichiStickAppearance';
++ import './table3d.css';
++ import './hand/handSnapshot.css';
++ import {
++   resolveWinningRiverTarget3D,
++   type WinPresentation3DState,
++ } from './win/winPresentation3D';
++ import { DoraSweep3DProvider } from './dora/DoraSweep3DProvider';
++ import { resolveDoraSweep3DTrigger } from './dora/doraSweep3DTrigger';
++ import { AppearanceResources3D } from './appearance/AppearanceResources3D';
++ import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
++ import { AvatarFrameTuningPanel } from './table/AvatarFrameTuningPanel';
++ import { resolveHandPackForPlayer, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
++ 
++ type Table3DSceneProps = Readonly<{
++   sceneState: OccupiedTableSceneState;
++   animationsEnabled?: boolean;
++   animationSessionKey?: string;
++   animationTurn?: number;
++   localDiscardSnapshots?: DiscardSourceSnapshotStore;
++   onLocalHandAnimationChange?: (state: LocalHandAnimation3DState | null) => void;
++   winPresentation3D?: WinPresentation3DState | null;
++   tableVisualTheme?: TableVisualTheme;
++   tileVisualContext?: TileVisualSemanticContext;
++   riichiStickAppearance?: RiichiStick3DAppearance;
++   appearanceSettings?: AppearanceSettings;
++   centralHud?: ReactNode;
++   onReady?: () => void;
++   onUnavailable?: (error: Error) => void;
++ }>;
++ 
++ const SEAT_ORDER: readonly Table3DSeat[] = ['bottom', 'right', 'top', 'left'];
++ 
++ function isAvatarFrameTuningEnabled(): boolean {
++   return import.meta.env.DEV
++     && typeof window !== 'undefined'
++     && new URLSearchParams(window.location.search).get('avatarFrameTuning') === '1';
++ }
++ 
++ const StableTableScene = memo(function StableTableScene({
++   sceneState,
++   hiddenHandKeys,
++   handPresentation,
++   hiddenRiverKeys,
++   hiddenMeldTileKeys,
++   winPresentation3D,
++   winHandPack,
++   tableVisualTheme,
++   tileVisualContext,
++   feltTexture,
++   centralHud,
++   onTileLayerReady,
++ }: Readonly<{
++   sceneState: OccupiedTableSceneState;
++   hiddenHandKeys: TableAnimation3DRenderState['hiddenHandKeys'];
++   handPresentation?: import('../presentation/handAnimation/HandPresentationSnapshot').HandPresentationFrame;
++   hiddenRiverKeys: TableAnimation3DRenderState['hiddenRiverKeys'];
++   hiddenMeldTileKeys: TableAnimation3DRenderState['hiddenMeldTileKeys'];
++   winPresentation3D?: WinPresentation3DState | null;
++   winHandPack?: import('../hand/handPacks').HandPack;
++   tableVisualTheme: TableVisualTheme;
++   tileVisualContext?: TileVisualSemanticContext;
++   feltTexture?: Texture;
++   centralHud?: ReactNode;
++   onTileLayerReady?: () => void;
++ }>) {
++   const winningRiverTarget = resolveWinningRiverTarget3D(winPresentation3D ?? null);
++   return (
++     <>
++       <TableEnvironment />
++       <FixedTableCamera />
++       <TableLighting />
++       <TableMesh theme={tableVisualTheme} feltTexture={feltTexture} />
++       {centralHud ? <CentralConsoleHudAnchor3D riichiLanes>{centralHud}</CentralConsoleHudAnchor3D> : null}
++       <Suspense fallback={null}>
++         <TileTextureWarmup />
++         {SEAT_ORDER.flatMap((seat) => { const seatState = sceneState.seats[seat]; return seatState ? [ (
++           <group key={seat}>
++             {seat === 'bottom' ? null : (
++               <Hand3D
++                 seatState={seatState}
++                 winHandPack={winHandPack}
++                 handPresentation={handPresentation?.snapshot.playerId === seatState.playerId ? handPresentation : undefined}
++                 hiddenTileKeys={hiddenHandKeys}
++                 winPresentation={winPresentation3D?.action.playerId === seatState.playerId || winPresentation3D?.revealedPlayerIds?.includes(seatState.playerId)
++                   ? winPresentation3D
++                   : null}
++                 visualContext={tileVisualContext}
++               />
++             )}
++             <River3D
++               seatState={seatState}
++               hiddenTileKeys={hiddenRiverKeys}
++               winningRiverIndex={winningRiverTarget?.playerId === seatState.playerId
++                 ? winningRiverTarget.riverIndex
++                 : undefined}
++               visualContext={tileVisualContext}
++             />
++             <Meld3D
++               seatState={seatState}
++               hiddenTileKeys={hiddenMeldTileKeys}
++               visualContext={tileVisualContext}
++             />
++             <NorthTiles3D seatState={seatState} />
++           </group>
++         ) ] : []; })}
++         <SceneLayerReady onReady={onTileLayerReady} />
++       </Suspense>
++     </>
++   );
++ });
++ 
++ function SceneLayerReady({ onReady }: Readonly<{ onReady?: () => void }>) {
++   useEffect(() => { onReady?.(); }, [onReady]);
++   return null;
++ }
++ 
++ export function Table3DScene({
++   sceneState,
++   animationsEnabled = false,
++   animationSessionKey = 'table-3d',
++   animationTurn = 0,
++   localDiscardSnapshots,
++   onLocalHandAnimationChange,
++   winPresentation3D,
++   tableVisualTheme = DEFAULT_TABLE_VISUAL_THEME,
++   tileVisualContext,
++   riichiStickAppearance,
++   appearanceSettings = DEFAULT_APPEARANCE_SETTINGS,
++   centralHud,
++   onReady,
++   onUnavailable,
++ }: Table3DSceneProps) {
++   const [rendererReady, setRendererReady] = useState(false);
++   const [tileLayerReady, setTileLayerReady] = useState(false);
++   const [riichiLayerReady, setRiichiLayerReady] = useState(false);
++   const playerSlotAppearances = usePlayerSlotAppearances();
++   const winningRiverTarget = resolveWinningRiverTarget3D(winPresentation3D ?? null);
++   const winningRevealSeat = winPresentation3D
++     ? SEAT_ORDER.find((seat) => sceneState.seats[seat]?.playerId === winPresentation3D.action.playerId)
++     : undefined;
++   const winningRevealFaceUpCount = winningRevealSeat
++     ? sceneState.seats[winningRevealSeat]?.hand.filter((tile) => tile.faceState === 'face-up').length
++     : undefined;
++   const sourceStoreRef = useRef<DiscardSource3DStore | null>(null);
++   if (!sourceStoreRef.current) sourceStoreRef.current = new DiscardSource3DStore();
++   const animation = useTableAnimation3D({
++     sceneState,
++     sourceStore: sourceStoreRef.current,
++     enabled: animationsEnabled,
++     sessionKey: animationSessionKey,
++     animationTurn,
++     localDiscardSnapshots,
++     onLocalHandAnimationChange,
++   });
++   const sceneElementRef = useRef<HTMLElement>(null);
++   const doraSweepPulseCountRef = useRef(0);
++   const doraSweepTrigger = resolveDoraSweep3DTrigger(
++     animation.active,
++     sceneState,
++     tileVisualContext,
++   );
++   const handleDoraSweepActiveCountChange = useCallback((activeCount: number) => {
++     if (sceneElementRef.current) {
++       sceneElementRef.current.dataset.doraSweepActiveCount = String(activeCount);
++     }
++   }, []);
++   const handleDoraSweepStart = useCallback((result: Readonly<{
++     startTime: number;
++     targetCount: number;
++   }>) => {
++     if (!sceneElementRef.current) return;
++     doraSweepPulseCountRef.current += 1;
++     sceneElementRef.current.dataset.doraSweepPulseCount = String(doraSweepPulseCountRef.current);
++     sceneElementRef.current.dataset.doraSweepLastStartMs = result.startTime.toFixed(1);
++     sceneElementRef.current.dataset.doraSweepLastTargetCount = String(result.targetCount);
++   }, []);
++   const handleDoraSweepComplete = useCallback((result: Readonly<{
++     durationMs: number;
++     frameCount: number;
++   }>) => {
++     if (!sceneElementRef.current) return;
++     sceneElementRef.current.dataset.doraSweepLastDurationMs = result.durationMs.toFixed(1);
++     sceneElementRef.current.dataset.doraSweepLastFrameCount = String(result.frameCount);
++   }, []);
++   const visibleRiichiSeats = resolveVisibleRiichiSeats(
++     sceneState.seats,
++     animation.hiddenRiichiSeats,
++   );
++   const tableSceneReady = tileLayerReady && riichiLayerReady;
++   const criticalPlayerIds = Object.values(sceneState.seats).map(seat => seat.playerId);
++   const criticalRiichiPlayerIds = visibleRiichiSeats.flatMap((seat) => sceneState.seats[seat] ? [sceneState.seats[seat]!.playerId] : []);
++   const handleRendererReady = useCallback(() => setRendererReady(true), []);
++   const handleTileLayerReady = useCallback(() => setTileLayerReady(true), []);
++   const handleRiichiLayerReady = useCallback(() => setRiichiLayerReady(true), []);
++   const activeHandPack = resolveHandPackForPlayer(
++     animation.active?.plan.action.playerId,
++     playerSlotAppearances,
++     appearanceSettings,
++   );
++   return (
++     <section
++       ref={sceneElementRef}
++       className="table-3d-scene"
++       data-testid="table-3d-scene"
++       aria-label="3D 麻将桌技术样板"
++       data-table-animation-event={animation.active?.plan.action.eventId}
++       data-table-animation-kind={animation.active?.plan.action.type}
++       data-table-animation-seat={animation.active?.plan.seat}
++       data-table-animation-phase={animation.active?.phase}
++       data-hand-presentation-phase={animation.active?.handPresentation?.phase ?? 'idle'}
++       data-hand-discard-slot={animation.active?.handPresentation?.snapshot.discardVisualSlot}
++       data-hand-tsumogiri={animation.active?.handPresentation?.snapshot.isTsumogiri}
++       data-win-presentation-event={winPresentation3D?.action.eventId}
++       data-win-presentation-player={winPresentation3D?.action.playerId}
++       data-win-presentation-phase={winPresentation3D?.phase}
++       data-win-reveal-seat={winningRevealSeat}
++       data-win-reveal-face-up-count={winningRevealFaceUpCount}
++       data-win-river-player={winningRiverTarget?.playerId}
++       data-win-river-index={winningRiverTarget?.riverIndex}
++       data-riichi-stick-seats={visibleRiichiSeats.join(',')}
++       data-riichi-stick-count={visibleRiichiSeats.length}
++       data-tile-hover-identity={tileVisualContext?.hoveredTileType ?? ''}
++       data-dora-glow-enabled={tileVisualContext?.doraGlowEnabled === true ? 'true' : 'false'}
++       data-visible-dora-tile-count={SEAT_ORDER.reduce((count, seat) => count
++         + (sceneState.seats[seat]?.river.filter((tile) => tile.visible && tile.tile?.doraKind).length ?? 0)
++         + (sceneState.seats[seat]?.melds.reduce((meldCount, meld) => meldCount
++           + meld.tiles.filter((tile) => tile.faceState === 'face-up' && tile.tile?.doraKind).length, 0) ?? 0), 0)}
++       data-dora-sweep-active-count="0"
++       data-dora-sweep-pulse-count="0"
++       data-dora-sweep-last-start-ms="0"
++       data-dora-sweep-last-target-count="0"
++       data-dora-sweep-last-duration-ms="0"
++       data-dora-sweep-last-frame-count="0"
++       data-renderer-ready={rendererReady ? 'true' : 'false'}
++       data-table-scene-ready={tableSceneReady ? 'true' : 'false'}
++     >
++       <SceneCanvasHost
++         sessionKey={animationSessionKey}
++         camera={{
++           position: TABLE_CAMERA.position,
++           fov: TABLE_CAMERA.fov,
++           near: TABLE_CAMERA.near,
++           far: TABLE_CAMERA.far,
++         }}
++         onReady={onReady}
++         onRendererReady={handleRendererReady}
++         onUnavailable={onUnavailable}
++       >
++         <DoraSweep3DProvider
++           trigger={doraSweepTrigger}
++           sessionKey={animationSessionKey}
++           onActiveCountChange={handleDoraSweepActiveCountChange}
++           onPulseStart={handleDoraSweepStart}
++           onPulseComplete={handleDoraSweepComplete}
++         >
++           <AppearanceResources3D
++             settings={appearanceSettings}
++             criticalPlayerIds={criticalPlayerIds}
++             criticalRiichiPlayerIds={criticalRiichiPlayerIds}
++           >
++             {({ feltTexture, riichiStickAppearance: resolvedRiichiStickAppearance, criticalAssetsReady }) => (
++               <>
++                 <StableTableScene
++                   sceneState={sceneState}
++                   hiddenHandKeys={animation.hiddenHandKeys}
++                   handPresentation={animation.active?.handPresentation}
++                   hiddenRiverKeys={animation.hiddenRiverKeys}
++                   hiddenMeldTileKeys={animation.hiddenMeldTileKeys}
++                   winPresentation3D={winPresentation3D}
++                   winHandPack={resolveHandPackForPlayer(winPresentation3D?.action.playerId ?? 0, playerSlotAppearances, appearanceSettings)}
++                   tableVisualTheme={tableVisualTheme}
++                   tileVisualContext={tileVisualContext}
++                   feltTexture={feltTexture}
++                   centralHud={centralHud}
++                   onTileLayerReady={handleTileLayerReady}
++                 />
++                 <Suspense fallback={null}>
++                   {animation.active ? (
++                     <HandAction3D active={animation.active} handPack={activeHandPack} riichiStickAppearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }} />
++                   ) : null}
++                 </Suspense>
++                 <Suspense fallback={null}>
++                   <RiichiSticks3D
++                     sceneState={sceneState}
++                     hiddenSeats={animation.hiddenRiichiSeats}
++                     appearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }}
++                   />
++                   <SceneLayerReady onReady={handleRiichiLayerReady} />
++                 </Suspense>
++                 <SceneContentReady sceneReady={tableSceneReady} criticalAssetsReady={criticalAssetsReady} />
++               </>
++             )}
++           </AppearanceResources3D>
++         </DoraSweep3DProvider>
++       </SceneCanvasHost>
++       <div className="table-3d-badge" aria-hidden="true">3D 技术样板</div>
++       {isAvatarFrameTuningEnabled() ? <AvatarFrameTuningPanel /> : null}
++     </section>
++   );
++ }
++
+
+ ❯ src/presentation3d/Table3DScene.test.ts:20:20
+     18|     expect(source).not.toContain('Raycaster');
+     19|     expect(source).not.toContain('buildTableSceneState');
+     20|     expect(source).toContain('sceneState: TableSceneState');
+       |                    ^
+     21|     expect(source).toContain('<TableEnvironment />');
+     22|     const environment = readFileSync(sourcePath('./table/TableEnvironm…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  src/presentation3d/Table3DScene.test.ts > UI-5A scene boundaries > renders the authoritative static table through bounded scene components
+AssertionError: expected 'import { memo, Suspense, useCallback,…' to contain 'seatState={sceneState.seats[seat]}'
+
+- Expected
++ Received
+
+- seatState={sceneState.seats[seat]}
++ import { memo, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
++ import type { Texture } from 'three';
++ import { SceneCanvasHost, SceneContentReady } from './session/SceneCanvasHost';
++ export { CanvasUnavailable } from './session/SceneCanvasHost';
++ import { FixedTableCamera, TABLE_CAMERA } from './camera/FixedTableCamera';
++ import type { Table3DSeat } from './coordinates/seatTransforms';
++ import { Hand3D } from './hand/Hand3D';
++ import { TableLighting } from './lighting/TableLighting';
++ import { NorthTiles3D } from './meld/NorthTiles3D';
++ import { Meld3D } from './meld/Meld3D';
++ import { River3D } from './river/River3D';
++ import type { OccupiedTableSceneState } from './sceneState/tableSceneTypes';
++ import { TableMesh } from './table/TableMesh';
++ import { TableEnvironment } from './table/TableEnvironment';
++ import { DEFAULT_TABLE_VISUAL_THEME, type TableVisualTheme } from './table/tableVisualTheme';
++ import { HandAction3D } from './animation/HandAction3D';
++ import { DiscardSource3DStore } from './animation/DiscardSource3D';
++ import { useTableAnimation3D } from './animation/useTableAnimation3D';
++ import type { TableAnimation3DRenderState } from './animation/useTableAnimation3D';
++ import type { DiscardSourceSnapshotStore } from '../presentation/handAnimation/DiscardSourceSnapshot';
++ import type { LocalHandAnimation3DState } from './animation/tableAnimation3D';
++ import type { TileVisualSemanticContext } from '../presentation/table/tileVisualSemantics';
++ import { CentralConsoleHudAnchor3D } from './table/CentralConsoleHudAnchor3D';
++ import { TileTextureWarmup } from './tile/TileTextureWarmup';
++ import { resolveVisibleRiichiSeats, RiichiSticks3D } from './riichi/RiichiSticks3D';
++ import type { RiichiStick3DAppearance } from './riichi/riichiStickAppearance';
++ import './table3d.css';
++ import './hand/handSnapshot.css';
++ import {
++   resolveWinningRiverTarget3D,
++   type WinPresentation3DState,
++ } from './win/winPresentation3D';
++ import { DoraSweep3DProvider } from './dora/DoraSweep3DProvider';
++ import { resolveDoraSweep3DTrigger } from './dora/doraSweep3DTrigger';
++ import { AppearanceResources3D } from './appearance/AppearanceResources3D';
++ import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
++ import { AvatarFrameTuningPanel } from './table/AvatarFrameTuningPanel';
++ import { resolveHandPackForPlayer, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
++ 
++ type Table3DSceneProps = Readonly<{
++   sceneState: OccupiedTableSceneState;
++   animationsEnabled?: boolean;
++   animationSessionKey?: string;
++   animationTurn?: number;
++   localDiscardSnapshots?: DiscardSourceSnapshotStore;
++   onLocalHandAnimationChange?: (state: LocalHandAnimation3DState | null) => void;
++   winPresentation3D?: WinPresentation3DState | null;
++   tableVisualTheme?: TableVisualTheme;
++   tileVisualContext?: TileVisualSemanticContext;
++   riichiStickAppearance?: RiichiStick3DAppearance;
++   appearanceSettings?: AppearanceSettings;
++   centralHud?: ReactNode;
++   onReady?: () => void;
++   onUnavailable?: (error: Error) => void;
++ }>;
++ 
++ const SEAT_ORDER: readonly Table3DSeat[] = ['bottom', 'right', 'top', 'left'];
++ 
++ function isAvatarFrameTuningEnabled(): boolean {
++   return import.meta.env.DEV
++     && typeof window !== 'undefined'
++     && new URLSearchParams(window.location.search).get('avatarFrameTuning') === '1';
++ }
++ 
++ const StableTableScene = memo(function StableTableScene({
++   sceneState,
++   hiddenHandKeys,
++   handPresentation,
++   hiddenRiverKeys,
++   hiddenMeldTileKeys,
++   winPresentation3D,
++   winHandPack,
++   tableVisualTheme,
++   tileVisualContext,
++   feltTexture,
++   centralHud,
++   onTileLayerReady,
++ }: Readonly<{
++   sceneState: OccupiedTableSceneState;
++   hiddenHandKeys: TableAnimation3DRenderState['hiddenHandKeys'];
++   handPresentation?: import('../presentation/handAnimation/HandPresentationSnapshot').HandPresentationFrame;
++   hiddenRiverKeys: TableAnimation3DRenderState['hiddenRiverKeys'];
++   hiddenMeldTileKeys: TableAnimation3DRenderState['hiddenMeldTileKeys'];
++   winPresentation3D?: WinPresentation3DState | null;
++   winHandPack?: import('../hand/handPacks').HandPack;
++   tableVisualTheme: TableVisualTheme;
++   tileVisualContext?: TileVisualSemanticContext;
++   feltTexture?: Texture;
++   centralHud?: ReactNode;
++   onTileLayerReady?: () => void;
++ }>) {
++   const winningRiverTarget = resolveWinningRiverTarget3D(winPresentation3D ?? null);
++   return (
++     <>
++       <TableEnvironment />
++       <FixedTableCamera />
++       <TableLighting />
++       <TableMesh theme={tableVisualTheme} feltTexture={feltTexture} />
++       {centralHud ? <CentralConsoleHudAnchor3D riichiLanes>{centralHud}</CentralConsoleHudAnchor3D> : null}
++       <Suspense fallback={null}>
++         <TileTextureWarmup />
++         {SEAT_ORDER.flatMap((seat) => { const seatState = sceneState.seats[seat]; return seatState ? [ (
++           <group key={seat}>
++             {seat === 'bottom' ? null : (
++               <Hand3D
++                 seatState={seatState}
++                 winHandPack={winHandPack}
++                 handPresentation={handPresentation?.snapshot.playerId === seatState.playerId ? handPresentation : undefined}
++                 hiddenTileKeys={hiddenHandKeys}
++                 winPresentation={winPresentation3D?.action.playerId === seatState.playerId || winPresentation3D?.revealedPlayerIds?.includes(seatState.playerId)
++                   ? winPresentation3D
++                   : null}
++                 visualContext={tileVisualContext}
++               />
++             )}
++             <River3D
++               seatState={seatState}
++               hiddenTileKeys={hiddenRiverKeys}
++               winningRiverIndex={winningRiverTarget?.playerId === seatState.playerId
++                 ? winningRiverTarget.riverIndex
++                 : undefined}
++               visualContext={tileVisualContext}
++             />
++             <Meld3D
++               seatState={seatState}
++               hiddenTileKeys={hiddenMeldTileKeys}
++               visualContext={tileVisualContext}
++             />
++             <NorthTiles3D seatState={seatState} />
++           </group>
++         ) ] : []; })}
++         <SceneLayerReady onReady={onTileLayerReady} />
++       </Suspense>
++     </>
++   );
++ });
++ 
++ function SceneLayerReady({ onReady }: Readonly<{ onReady?: () => void }>) {
++   useEffect(() => { onReady?.(); }, [onReady]);
++   return null;
++ }
++ 
++ export function Table3DScene({
++   sceneState,
++   animationsEnabled = false,
++   animationSessionKey = 'table-3d',
++   animationTurn = 0,
++   localDiscardSnapshots,
++   onLocalHandAnimationChange,
++   winPresentation3D,
++   tableVisualTheme = DEFAULT_TABLE_VISUAL_THEME,
++   tileVisualContext,
++   riichiStickAppearance,
++   appearanceSettings = DEFAULT_APPEARANCE_SETTINGS,
++   centralHud,
++   onReady,
++   onUnavailable,
++ }: Table3DSceneProps) {
++   const [rendererReady, setRendererReady] = useState(false);
++   const [tileLayerReady, setTileLayerReady] = useState(false);
++   const [riichiLayerReady, setRiichiLayerReady] = useState(false);
++   const playerSlotAppearances = usePlayerSlotAppearances();
++   const winningRiverTarget = resolveWinningRiverTarget3D(winPresentation3D ?? null);
++   const winningRevealSeat = winPresentation3D
++     ? SEAT_ORDER.find((seat) => sceneState.seats[seat]?.playerId === winPresentation3D.action.playerId)
++     : undefined;
++   const winningRevealFaceUpCount = winningRevealSeat
++     ? sceneState.seats[winningRevealSeat]?.hand.filter((tile) => tile.faceState === 'face-up').length
++     : undefined;
++   const sourceStoreRef = useRef<DiscardSource3DStore | null>(null);
++   if (!sourceStoreRef.current) sourceStoreRef.current = new DiscardSource3DStore();
++   const animation = useTableAnimation3D({
++     sceneState,
++     sourceStore: sourceStoreRef.current,
++     enabled: animationsEnabled,
++     sessionKey: animationSessionKey,
++     animationTurn,
++     localDiscardSnapshots,
++     onLocalHandAnimationChange,
++   });
++   const sceneElementRef = useRef<HTMLElement>(null);
++   const doraSweepPulseCountRef = useRef(0);
++   const doraSweepTrigger = resolveDoraSweep3DTrigger(
++     animation.active,
++     sceneState,
++     tileVisualContext,
++   );
++   const handleDoraSweepActiveCountChange = useCallback((activeCount: number) => {
++     if (sceneElementRef.current) {
++       sceneElementRef.current.dataset.doraSweepActiveCount = String(activeCount);
++     }
++   }, []);
++   const handleDoraSweepStart = useCallback((result: Readonly<{
++     startTime: number;
++     targetCount: number;
++   }>) => {
++     if (!sceneElementRef.current) return;
++     doraSweepPulseCountRef.current += 1;
++     sceneElementRef.current.dataset.doraSweepPulseCount = String(doraSweepPulseCountRef.current);
++     sceneElementRef.current.dataset.doraSweepLastStartMs = result.startTime.toFixed(1);
++     sceneElementRef.current.dataset.doraSweepLastTargetCount = String(result.targetCount);
++   }, []);
++   const handleDoraSweepComplete = useCallback((result: Readonly<{
++     durationMs: number;
++     frameCount: number;
++   }>) => {
++     if (!sceneElementRef.current) return;
++     sceneElementRef.current.dataset.doraSweepLastDurationMs = result.durationMs.toFixed(1);
++     sceneElementRef.current.dataset.doraSweepLastFrameCount = String(result.frameCount);
++   }, []);
++   const visibleRiichiSeats = resolveVisibleRiichiSeats(
++     sceneState.seats,
++     animation.hiddenRiichiSeats,
++   );
++   const tableSceneReady = tileLayerReady && riichiLayerReady;
++   const criticalPlayerIds = Object.values(sceneState.seats).map(seat => seat.playerId);
++   const criticalRiichiPlayerIds = visibleRiichiSeats.flatMap((seat) => sceneState.seats[seat] ? [sceneState.seats[seat]!.playerId] : []);
++   const handleRendererReady = useCallback(() => setRendererReady(true), []);
++   const handleTileLayerReady = useCallback(() => setTileLayerReady(true), []);
++   const handleRiichiLayerReady = useCallback(() => setRiichiLayerReady(true), []);
++   const activeHandPack = resolveHandPackForPlayer(
++     animation.active?.plan.action.playerId,
++     playerSlotAppearances,
++     appearanceSettings,
++   );
++   return (
++     <section
++       ref={sceneElementRef}
++       className="table-3d-scene"
++       data-testid="table-3d-scene"
++       aria-label="3D 麻将桌技术样板"
++       data-table-animation-event={animation.active?.plan.action.eventId}
++       data-table-animation-kind={animation.active?.plan.action.type}
++       data-table-animation-seat={animation.active?.plan.seat}
++       data-table-animation-phase={animation.active?.phase}
++       data-hand-presentation-phase={animation.active?.handPresentation?.phase ?? 'idle'}
++       data-hand-discard-slot={animation.active?.handPresentation?.snapshot.discardVisualSlot}
++       data-hand-tsumogiri={animation.active?.handPresentation?.snapshot.isTsumogiri}
++       data-win-presentation-event={winPresentation3D?.action.eventId}
++       data-win-presentation-player={winPresentation3D?.action.playerId}
++       data-win-presentation-phase={winPresentation3D?.phase}
++       data-win-reveal-seat={winningRevealSeat}
++       data-win-reveal-face-up-count={winningRevealFaceUpCount}
++       data-win-river-player={winningRiverTarget?.playerId}
++       data-win-river-index={winningRiverTarget?.riverIndex}
++       data-riichi-stick-seats={visibleRiichiSeats.join(',')}
++       data-riichi-stick-count={visibleRiichiSeats.length}
++       data-tile-hover-identity={tileVisualContext?.hoveredTileType ?? ''}
++       data-dora-glow-enabled={tileVisualContext?.doraGlowEnabled === true ? 'true' : 'false'}
++       data-visible-dora-tile-count={SEAT_ORDER.reduce((count, seat) => count
++         + (sceneState.seats[seat]?.river.filter((tile) => tile.visible && tile.tile?.doraKind).length ?? 0)
++         + (sceneState.seats[seat]?.melds.reduce((meldCount, meld) => meldCount
++           + meld.tiles.filter((tile) => tile.faceState === 'face-up' && tile.tile?.doraKind).length, 0) ?? 0), 0)}
++       data-dora-sweep-active-count="0"
++       data-dora-sweep-pulse-count="0"
++       data-dora-sweep-last-start-ms="0"
++       data-dora-sweep-last-target-count="0"
++       data-dora-sweep-last-duration-ms="0"
++       data-dora-sweep-last-frame-count="0"
++       data-renderer-ready={rendererReady ? 'true' : 'false'}
++       data-table-scene-ready={tableSceneReady ? 'true' : 'false'}
++     >
++       <SceneCanvasHost
++         sessionKey={animationSessionKey}
++         camera={{
++           position: TABLE_CAMERA.position,
++           fov: TABLE_CAMERA.fov,
++           near: TABLE_CAMERA.near,
++           far: TABLE_CAMERA.far,
++         }}
++         onReady={onReady}
++         onRendererReady={handleRendererReady}
++         onUnavailable={onUnavailable}
++       >
++         <DoraSweep3DProvider
++           trigger={doraSweepTrigger}
++           sessionKey={animationSessionKey}
++           onActiveCountChange={handleDoraSweepActiveCountChange}
++           onPulseStart={handleDoraSweepStart}
++           onPulseComplete={handleDoraSweepComplete}
++         >
++           <AppearanceResources3D
++             settings={appearanceSettings}
++             criticalPlayerIds={criticalPlayerIds}
++             criticalRiichiPlayerIds={criticalRiichiPlayerIds}
++           >
++             {({ feltTexture, riichiStickAppearance: resolvedRiichiStickAppearance, criticalAssetsReady }) => (
++               <>
++                 <StableTableScene
++                   sceneState={sceneState}
++                   hiddenHandKeys={animation.hiddenHandKeys}
++                   handPresentation={animation.active?.handPresentation}
++                   hiddenRiverKeys={animation.hiddenRiverKeys}
++                   hiddenMeldTileKeys={animation.hiddenMeldTileKeys}
++                   winPresentation3D={winPresentation3D}
++                   winHandPack={resolveHandPackForPlayer(winPresentation3D?.action.playerId ?? 0, playerSlotAppearances, appearanceSettings)}
++                   tableVisualTheme={tableVisualTheme}
++                   tileVisualContext={tileVisualContext}
++                   feltTexture={feltTexture}
++                   centralHud={centralHud}
++                   onTileLayerReady={handleTileLayerReady}
++                 />
++                 <Suspense fallback={null}>
++                   {animation.active ? (
++                     <HandAction3D active={animation.active} handPack={activeHandPack} riichiStickAppearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }} />
++                   ) : null}
++                 </Suspense>
++                 <Suspense fallback={null}>
++                   <RiichiSticks3D
++                     sceneState={sceneState}
++                     hiddenSeats={animation.hiddenRiichiSeats}
++                     appearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }}
++                   />
++                   <SceneLayerReady onReady={handleRiichiLayerReady} />
++                 </Suspense>
++                 <SceneContentReady sceneReady={tableSceneReady} criticalAssetsReady={criticalAssetsReady} />
++               </>
++             )}
++           </AppearanceResources3D>
++         </DoraSweep3DProvider>
++       </SceneCanvasHost>
++       <div className="table-3d-badge" aria-hidden="true">3D 技术样板</div>
++       {isAvatarFrameTuningEnabled() ? <AvatarFrameTuningPanel /> : null}
++     </section>
++   );
++ }
++
+
+ ❯ src/presentation3d/Table3DScene.test.ts:75:20
+     73|     expect(source).not.toContain('<Dora3D');
+     74|     expect(source).toContain('<Hand3D');
+     75|     expect(source).toContain('seatState={sceneState.seats[seat]}');
+       |                    ^
+     76|     expect(source).toContain('<River3D');
+     77|     expect(source).toContain('winningRiverIndex={winningRiverTarget?.p…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  src/presentation3d/Table3DScene.test.ts > UI-5A scene boundaries > removes the bottom Hand3D target while preserving opponent hands and every Meld3D lane
+AssertionError: expected 'import { memo, Suspense, useCallback,…' to contain '<Hand3D\n                seatState={s…'
+
+- Expected
++ Received
+
+- <Hand3D
+-                 seatState={sceneState.seats[seat]}
++ import { memo, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
++ import type { Texture } from 'three';
++ import { SceneCanvasHost, SceneContentReady } from './session/SceneCanvasHost';
++ export { CanvasUnavailable } from './session/SceneCanvasHost';
++ import { FixedTableCamera, TABLE_CAMERA } from './camera/FixedTableCamera';
++ import type { Table3DSeat } from './coordinates/seatTransforms';
++ import { Hand3D } from './hand/Hand3D';
++ import { TableLighting } from './lighting/TableLighting';
++ import { NorthTiles3D } from './meld/NorthTiles3D';
++ import { Meld3D } from './meld/Meld3D';
++ import { River3D } from './river/River3D';
++ import type { OccupiedTableSceneState } from './sceneState/tableSceneTypes';
++ import { TableMesh } from './table/TableMesh';
++ import { TableEnvironment } from './table/TableEnvironment';
++ import { DEFAULT_TABLE_VISUAL_THEME, type TableVisualTheme } from './table/tableVisualTheme';
++ import { HandAction3D } from './animation/HandAction3D';
++ import { DiscardSource3DStore } from './animation/DiscardSource3D';
++ import { useTableAnimation3D } from './animation/useTableAnimation3D';
++ import type { TableAnimation3DRenderState } from './animation/useTableAnimation3D';
++ import type { DiscardSourceSnapshotStore } from '../presentation/handAnimation/DiscardSourceSnapshot';
++ import type { LocalHandAnimation3DState } from './animation/tableAnimation3D';
++ import type { TileVisualSemanticContext } from '../presentation/table/tileVisualSemantics';
++ import { CentralConsoleHudAnchor3D } from './table/CentralConsoleHudAnchor3D';
++ import { TileTextureWarmup } from './tile/TileTextureWarmup';
++ import { resolveVisibleRiichiSeats, RiichiSticks3D } from './riichi/RiichiSticks3D';
++ import type { RiichiStick3DAppearance } from './riichi/riichiStickAppearance';
++ import './table3d.css';
++ import './hand/handSnapshot.css';
++ import {
++   resolveWinningRiverTarget3D,
++   type WinPresentation3DState,
++ } from './win/winPresentation3D';
++ import { DoraSweep3DProvider } from './dora/DoraSweep3DProvider';
++ import { resolveDoraSweep3DTrigger } from './dora/doraSweep3DTrigger';
++ import { AppearanceResources3D } from './appearance/AppearanceResources3D';
++ import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
++ import { AvatarFrameTuningPanel } from './table/AvatarFrameTuningPanel';
++ import { resolveHandPackForPlayer, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
++ 
++ type Table3DSceneProps = Readonly<{
++   sceneState: OccupiedTableSceneState;
++   animationsEnabled?: boolean;
++   animationSessionKey?: string;
++   animationTurn?: number;
++   localDiscardSnapshots?: DiscardSourceSnapshotStore;
++   onLocalHandAnimationChange?: (state: LocalHandAnimation3DState | null) => void;
++   winPresentation3D?: WinPresentation3DState | null;
++   tableVisualTheme?: TableVisualTheme;
++   tileVisualContext?: TileVisualSemanticContext;
++   riichiStickAppearance?: RiichiStick3DAppearance;
++   appearanceSettings?: AppearanceSettings;
++   centralHud?: ReactNode;
++   onReady?: () => void;
++   onUnavailable?: (error: Error) => void;
++ }>;
++ 
++ const SEAT_ORDER: readonly Table3DSeat[] = ['bottom', 'right', 'top', 'left'];
++ 
++ function isAvatarFrameTuningEnabled(): boolean {
++   return import.meta.env.DEV
++     && typeof window !== 'undefined'
++     && new URLSearchParams(window.location.search).get('avatarFrameTuning') === '1';
++ }
++ 
++ const StableTableScene = memo(function StableTableScene({
++   sceneState,
++   hiddenHandKeys,
++   handPresentation,
++   hiddenRiverKeys,
++   hiddenMeldTileKeys,
++   winPresentation3D,
++   winHandPack,
++   tableVisualTheme,
++   tileVisualContext,
++   feltTexture,
++   centralHud,
++   onTileLayerReady,
++ }: Readonly<{
++   sceneState: OccupiedTableSceneState;
++   hiddenHandKeys: TableAnimation3DRenderState['hiddenHandKeys'];
++   handPresentation?: import('../presentation/handAnimation/HandPresentationSnapshot').HandPresentationFrame;
++   hiddenRiverKeys: TableAnimation3DRenderState['hiddenRiverKeys'];
++   hiddenMeldTileKeys: TableAnimation3DRenderState['hiddenMeldTileKeys'];
++   winPresentation3D?: WinPresentation3DState | null;
++   winHandPack?: import('../hand/handPacks').HandPack;
++   tableVisualTheme: TableVisualTheme;
++   tileVisualContext?: TileVisualSemanticContext;
++   feltTexture?: Texture;
++   centralHud?: ReactNode;
++   onTileLayerReady?: () => void;
++ }>) {
++   const winningRiverTarget = resolveWinningRiverTarget3D(winPresentation3D ?? null);
++   return (
++     <>
++       <TableEnvironment />
++       <FixedTableCamera />
++       <TableLighting />
++       <TableMesh theme={tableVisualTheme} feltTexture={feltTexture} />
++       {centralHud ? <CentralConsoleHudAnchor3D riichiLanes>{centralHud}</CentralConsoleHudAnchor3D> : null}
++       <Suspense fallback={null}>
++         <TileTextureWarmup />
++         {SEAT_ORDER.flatMap((seat) => { const seatState = sceneState.seats[seat]; return seatState ? [ (
++           <group key={seat}>
++             {seat === 'bottom' ? null : (
++               <Hand3D
++                 seatState={seatState}
++                 winHandPack={winHandPack}
++                 handPresentation={handPresentation?.snapshot.playerId === seatState.playerId ? handPresentation : undefined}
++                 hiddenTileKeys={hiddenHandKeys}
++                 winPresentation={winPresentation3D?.action.playerId === seatState.playerId || winPresentation3D?.revealedPlayerIds?.includes(seatState.playerId)
++                   ? winPresentation3D
++                   : null}
++                 visualContext={tileVisualContext}
++               />
++             )}
++             <River3D
++               seatState={seatState}
++               hiddenTileKeys={hiddenRiverKeys}
++               winningRiverIndex={winningRiverTarget?.playerId === seatState.playerId
++                 ? winningRiverTarget.riverIndex
++                 : undefined}
++               visualContext={tileVisualContext}
++             />
++             <Meld3D
++               seatState={seatState}
++               hiddenTileKeys={hiddenMeldTileKeys}
++               visualContext={tileVisualContext}
++             />
++             <NorthTiles3D seatState={seatState} />
++           </group>
++         ) ] : []; })}
++         <SceneLayerReady onReady={onTileLayerReady} />
++       </Suspense>
++     </>
++   );
++ });
++ 
++ function SceneLayerReady({ onReady }: Readonly<{ onReady?: () => void }>) {
++   useEffect(() => { onReady?.(); }, [onReady]);
++   return null;
++ }
++ 
++ export function Table3DScene({
++   sceneState,
++   animationsEnabled = false,
++   animationSessionKey = 'table-3d',
++   animationTurn = 0,
++   localDiscardSnapshots,
++   onLocalHandAnimationChange,
++   winPresentation3D,
++   tableVisualTheme = DEFAULT_TABLE_VISUAL_THEME,
++   tileVisualContext,
++   riichiStickAppearance,
++   appearanceSettings = DEFAULT_APPEARANCE_SETTINGS,
++   centralHud,
++   onReady,
++   onUnavailable,
++ }: Table3DSceneProps) {
++   const [rendererReady, setRendererReady] = useState(false);
++   const [tileLayerReady, setTileLayerReady] = useState(false);
++   const [riichiLayerReady, setRiichiLayerReady] = useState(false);
++   const playerSlotAppearances = usePlayerSlotAppearances();
++   const winningRiverTarget = resolveWinningRiverTarget3D(winPresentation3D ?? null);
++   const winningRevealSeat = winPresentation3D
++     ? SEAT_ORDER.find((seat) => sceneState.seats[seat]?.playerId === winPresentation3D.action.playerId)
++     : undefined;
++   const winningRevealFaceUpCount = winningRevealSeat
++     ? sceneState.seats[winningRevealSeat]?.hand.filter((tile) => tile.faceState === 'face-up').length
++     : undefined;
++   const sourceStoreRef = useRef<DiscardSource3DStore | null>(null);
++   if (!sourceStoreRef.current) sourceStoreRef.current = new DiscardSource3DStore();
++   const animation = useTableAnimation3D({
++     sceneState,
++     sourceStore: sourceStoreRef.current,
++     enabled: animationsEnabled,
++     sessionKey: animationSessionKey,
++     animationTurn,
++     localDiscardSnapshots,
++     onLocalHandAnimationChange,
++   });
++   const sceneElementRef = useRef<HTMLElement>(null);
++   const doraSweepPulseCountRef = useRef(0);
++   const doraSweepTrigger = resolveDoraSweep3DTrigger(
++     animation.active,
++     sceneState,
++     tileVisualContext,
++   );
++   const handleDoraSweepActiveCountChange = useCallback((activeCount: number) => {
++     if (sceneElementRef.current) {
++       sceneElementRef.current.dataset.doraSweepActiveCount = String(activeCount);
++     }
++   }, []);
++   const handleDoraSweepStart = useCallback((result: Readonly<{
++     startTime: number;
++     targetCount: number;
++   }>) => {
++     if (!sceneElementRef.current) return;
++     doraSweepPulseCountRef.current += 1;
++     sceneElementRef.current.dataset.doraSweepPulseCount = String(doraSweepPulseCountRef.current);
++     sceneElementRef.current.dataset.doraSweepLastStartMs = result.startTime.toFixed(1);
++     sceneElementRef.current.dataset.doraSweepLastTargetCount = String(result.targetCount);
++   }, []);
++   const handleDoraSweepComplete = useCallback((result: Readonly<{
++     durationMs: number;
++     frameCount: number;
++   }>) => {
++     if (!sceneElementRef.current) return;
++     sceneElementRef.current.dataset.doraSweepLastDurationMs = result.durationMs.toFixed(1);
++     sceneElementRef.current.dataset.doraSweepLastFrameCount = String(result.frameCount);
++   }, []);
++   const visibleRiichiSeats = resolveVisibleRiichiSeats(
++     sceneState.seats,
++     animation.hiddenRiichiSeats,
++   );
++   const tableSceneReady = tileLayerReady && riichiLayerReady;
++   const criticalPlayerIds = Object.values(sceneState.seats).map(seat => seat.playerId);
++   const criticalRiichiPlayerIds = visibleRiichiSeats.flatMap((seat) => sceneState.seats[seat] ? [sceneState.seats[seat]!.playerId] : []);
++   const handleRendererReady = useCallback(() => setRendererReady(true), []);
++   const handleTileLayerReady = useCallback(() => setTileLayerReady(true), []);
++   const handleRiichiLayerReady = useCallback(() => setRiichiLayerReady(true), []);
++   const activeHandPack = resolveHandPackForPlayer(
++     animation.active?.plan.action.playerId,
++     playerSlotAppearances,
++     appearanceSettings,
++   );
++   return (
++     <section
++       ref={sceneElementRef}
++       className="table-3d-scene"
++       data-testid="table-3d-scene"
++       aria-label="3D 麻将桌技术样板"
++       data-table-animation-event={animation.active?.plan.action.eventId}
++       data-table-animation-kind={animation.active?.plan.action.type}
++       data-table-animation-seat={animation.active?.plan.seat}
++       data-table-animation-phase={animation.active?.phase}
++       data-hand-presentation-phase={animation.active?.handPresentation?.phase ?? 'idle'}
++       data-hand-discard-slot={animation.active?.handPresentation?.snapshot.discardVisualSlot}
++       data-hand-tsumogiri={animation.active?.handPresentation?.snapshot.isTsumogiri}
++       data-win-presentation-event={winPresentation3D?.action.eventId}
++       data-win-presentation-player={winPresentation3D?.action.playerId}
++       data-win-presentation-phase={winPresentation3D?.phase}
++       data-win-reveal-seat={winningRevealSeat}
++       data-win-reveal-face-up-count={winningRevealFaceUpCount}
++       data-win-river-player={winningRiverTarget?.playerId}
++       data-win-river-index={winningRiverTarget?.riverIndex}
++       data-riichi-stick-seats={visibleRiichiSeats.join(',')}
++       data-riichi-stick-count={visibleRiichiSeats.length}
++       data-tile-hover-identity={tileVisualContext?.hoveredTileType ?? ''}
++       data-dora-glow-enabled={tileVisualContext?.doraGlowEnabled === true ? 'true' : 'false'}
++       data-visible-dora-tile-count={SEAT_ORDER.reduce((count, seat) => count
++         + (sceneState.seats[seat]?.river.filter((tile) => tile.visible && tile.tile?.doraKind).length ?? 0)
++         + (sceneState.seats[seat]?.melds.reduce((meldCount, meld) => meldCount
++           + meld.tiles.filter((tile) => tile.faceState === 'face-up' && tile.tile?.doraKind).length, 0) ?? 0), 0)}
++       data-dora-sweep-active-count="0"
++       data-dora-sweep-pulse-count="0"
++       data-dora-sweep-last-start-ms="0"
++       data-dora-sweep-last-target-count="0"
++       data-dora-sweep-last-duration-ms="0"
++       data-dora-sweep-last-frame-count="0"
++       data-renderer-ready={rendererReady ? 'true' : 'false'}
++       data-table-scene-ready={tableSceneReady ? 'true' : 'false'}
++     >
++       <SceneCanvasHost
++         sessionKey={animationSessionKey}
++         camera={{
++           position: TABLE_CAMERA.position,
++           fov: TABLE_CAMERA.fov,
++           near: TABLE_CAMERA.near,
++           far: TABLE_CAMERA.far,
++         }}
++         onReady={onReady}
++         onRendererReady={handleRendererReady}
++         onUnavailable={onUnavailable}
++       >
++         <DoraSweep3DProvider
++           trigger={doraSweepTrigger}
++           sessionKey={animationSessionKey}
++           onActiveCountChange={handleDoraSweepActiveCountChange}
++           onPulseStart={handleDoraSweepStart}
++           onPulseComplete={handleDoraSweepComplete}
++         >
++           <AppearanceResources3D
++             settings={appearanceSettings}
++             criticalPlayerIds={criticalPlayerIds}
++             criticalRiichiPlayerIds={criticalRiichiPlayerIds}
++           >
++             {({ feltTexture, riichiStickAppearance: resolvedRiichiStickAppearance, criticalAssetsReady }) => (
++               <>
++                 <StableTableScene
++                   sceneState={sceneState}
++                   hiddenHandKeys={animation.hiddenHandKeys}
++                   handPresentation={animation.active?.handPresentation}
++                   hiddenRiverKeys={animation.hiddenRiverKeys}
++                   hiddenMeldTileKeys={animation.hiddenMeldTileKeys}
++                   winPresentation3D={winPresentation3D}
++                   winHandPack={resolveHandPackForPlayer(winPresentation3D?.action.playerId ?? 0, playerSlotAppearances, appearanceSettings)}
++                   tableVisualTheme={tableVisualTheme}
++                   tileVisualContext={tileVisualContext}
++                   feltTexture={feltTexture}
++                   centralHud={centralHud}
++                   onTileLayerReady={handleTileLayerReady}
++                 />
++                 <Suspense fallback={null}>
++                   {animation.active ? (
++                     <HandAction3D active={animation.active} handPack={activeHandPack} riichiStickAppearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }} />
++                   ) : null}
++                 </Suspense>
++                 <Suspense fallback={null}>
++                   <RiichiSticks3D
++                     sceneState={sceneState}
++                     hiddenSeats={animation.hiddenRiichiSeats}
++                     appearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }}
++                   />
++                   <SceneLayerReady onReady={handleRiichiLayerReady} />
++                 </Suspense>
++                 <SceneContentReady sceneReady={tableSceneReady} criticalAssetsReady={criticalAssetsReady} />
++               </>
++             )}
++           </AppearanceResources3D>
++         </DoraSweep3DProvider>
++       </SceneCanvasHost>
++       <div className="table-3d-badge" aria-hidden="true">3D 技术样板</div>
++       {isAvatarFrameTuningEnabled() ? <AvatarFrameTuningPanel /> : null}
++     </section>
++   );
++ }
++
+
+ ❯ src/presentation3d/Table3DScene.test.ts:156:25
+    154|     expect(handSource).toContain('event.stopPropagation()');
+    155|     expect(sceneSource).toContain("{seat === 'bottom' ? null : (");
+    156|     expect(sceneSource).toContain('<Hand3D\n                seatState=…
+       |                         ^
+    157|     expect(sceneSource).not.toContain('localHandPresentation');
+    158|     expect(sceneSource).not.toContain('interactionActions={');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  src/presentation3d/TableRenderer.test.ts > 3D table renderer selection > loads the WebGL implementation only after 3D is selected
+AssertionError: expected 'import {\r\n  type ErrorInfo,\r\n  ty…' to contain 'await import(\'./Table3DScene\')'
+
+- Expected
++ Received
+
+- await import('./Table3DScene')
++ import {
++   type ErrorInfo,
++   type ReactNode,
++   useCallback,
++   useEffect,
++   useMemo,
++   useRef,
++   useState,
++ } from 'react';
++ import { LegacyTable2D, type LegacyTable2DProps } from '../components/game/LegacyTable2D';
++ import { preloadHandPacks, type HandPackId } from '../hand/handPacks';
++ import {
++   buildDoraIndicatorSlots,
++   buildTablePresentationState,
++   type TableInteractionActions,
++   type TablePresentationState,
++ } from '../presentation/table/TablePresentationContract';
++ import { Table3DCentralHud, Table3DHud } from './Table3DHud';
++ import {
++   resolveTableRenderer,
++   shouldRender3DTable,
++   type TableRendererMode,
++ } from './rendererMode';
++ import {
++   classifyTableRendererError,
++   inspectStandardFourPlayerState,
++   resolveTableRendererDiagnostics,
++   type TableRendererFallbackReason,
++ } from './rendererDiagnostics';
++ import type { DiscardSourceSnapshotStore } from '../presentation/handAnimation/DiscardSourceSnapshot';
++ import type { LocalHandAnimation3DState } from './animation/tableAnimation3D';
++ import type { TableVisualTheme } from './table/tableVisualTheme';
++ import type { RiichiStick3DAppearance } from './riichi/riichiStickAppearance';
++ import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
++ import { resolveEffectiveHandPackIds, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
++ import type { PlayerProfile } from '../profile/playerProfile';
++ import { buildTableSceneState } from './sceneState/buildTableSceneState';
++ import type { TileVisualSemanticContext } from '../presentation/table/tileVisualSemantics';
++ import {
++   resolveWinnerRevealPlayerId3D,
++   type WinPresentation3DState,
++ } from './win/winPresentation3D';
++ import { isInitialPresentationReady } from './initialSceneReady';
++ import { SceneErrorBoundary, SceneLoading } from './session/SceneErrorBoundary';
++ 
++ import { FormalTable3D } from './FormalTable3D';
++ 
++ type MahjongTableProps = LegacyTable2DProps;
++ 
++ type TableRendererProps = MahjongTableProps & Readonly<{
++   renderer?: TableRendererMode;
++   presentationState?: TablePresentationState;
++   interactionActions?: TableInteractionActions;
++   animationsEnabled?: boolean;
++   animationSessionKey?: string;
++   animationTurn?: number;
++   localDiscardSnapshots?: DiscardSourceSnapshotStore;
++   onLocalHandAnimationChange?: (state: LocalHandAnimation3DState | null) => void;
++   winPresentation3D?: WinPresentation3DState | null;
++   tableVisualTheme?: TableVisualTheme;
++   riichiStickAppearance?: RiichiStick3DAppearance;
++   appearanceSettings?: AppearanceSettings;
++   playerProfile?: PlayerProfile;
++   onActiveRendererChange?: (renderer: TableRendererMode) => void;
++   localPresentationReady?: boolean;
++   onInputResourcesReady?: () => void;
++ }>;
++ 
++ /** Session changes cancel the old scene, preload callbacks and error boundary together. */
++ export function TableRenderer(props: TableRendererProps) {
++   return <TableRendererSession key={props.animationSessionKey ?? 'table-3d'} {...props} />;
++ }
++ 
++ function TableRendererSession({
++   renderer,
++   presentationState,
++   interactionActions,
++   animationsEnabled = false,
++   animationSessionKey = 'table-3d',
++   animationTurn = 0,
++   localDiscardSnapshots,
++   onLocalHandAnimationChange,
++   winPresentation3D = null,
++   tableVisualTheme,
++   riichiStickAppearance,
++   appearanceSettings,
++   playerProfile,
++   onActiveRendererChange,
++   localPresentationReady = true,
++   onInputResourcesReady,
++   ...tableProps
++ }: TableRendererProps) {
++   const resolveCurrentMode = () => renderer ?? resolveTableRenderer(typeof window === 'undefined' ? '' : window.location.search);
++   const [mode, setMode] = useState<TableRendererMode>(resolveCurrentMode);
++   const [runtimeFailure, setRuntimeFailure] = useState<Exclude<TableRendererFallbackReason, 'none'> | null>(null);
++   const [sceneReady, setSceneReady] = useState(false);
++   const [criticalHandPacksReady, setCriticalHandPacksReady] = useState(false);
++   const handPackReadyGeneration = useRef(0);
++   const playerSlotAppearances = usePlayerSlotAppearances();
++   const standardFourPlayer = useMemo(
++     () => inspectStandardFourPlayerState(tableProps.gameState),
++     [tableProps.gameState.players],
++   );
++   const sharedPresentationState = useMemo(() => presentationState
++     ?? (standardFourPlayer.supported ? buildTablePresentationState(tableProps.gameState, {
++       localPlayerId: tableProps.bottomPlayerId,
++       bottomPlayerId: tableProps.bottomPlayerId,
++       seatMapping: tableProps.seatMapping,
++       revealOpponentHands: tableProps.revealOpponentHands,
++       revealedPlayerId: tableProps.revealedPlayerId,
++       canDiscardOverride: false,
++     }) : null), [
++       presentationState,
++       standardFourPlayer.supported,
++       tableProps.bottomPlayerId,
++       tableProps.gameState,
++       tableProps.revealOpponentHands,
++       tableProps.revealedPlayerId,
++       tableProps.seatMapping,
++     ]);
++   const doraIndicatorSlots = sharedPresentationState?.doraIndicatorSlots
++     ?? buildDoraIndicatorSlots(tableProps.gameState.doraIndicators);
++   const bottomPlayerId = tableProps.bottomPlayerId ?? 0;
++   const winnerRevealPlayerId = resolveWinnerRevealPlayerId3D(winPresentation3D, bottomPlayerId);
++   const sceneState = useMemo(() => {
++     if (!sharedPresentationState) return null;
++     if (winnerRevealPlayerId === undefined && !winPresentation3D?.revealedPlayerIds?.length) return sharedPresentationState.scene;
++     return buildTableSceneState(tableProps.gameState, {
++       bottomPlayerId,
++       seatMapping: tableProps.seatMapping,
++       revealOpponentHands: tableProps.revealOpponentHands,
++       revealedPlayerId: winnerRevealPlayerId,
++       revealedPlayerIds: winPresentation3D?.revealedPlayerIds,
++     });
++   }, [
++     sharedPresentationState,
++     bottomPlayerId,
++     tableProps.gameState,
++     tableProps.revealOpponentHands,
++     tableProps.seatMapping,
++     winnerRevealPlayerId,
++     winPresentation3D?.revealedPlayerIds,
++   ]);
++   const effectiveHandPackIds = useMemo(() => {
++     if (!sceneState) return [] as HandPackId[];
++     const settings = appearanceSettings ?? DEFAULT_APPEARANCE_SETTINGS;
++     return resolveEffectiveHandPackIds(
++       Object.values(sceneState.seats).map((seat) => seat.playerId),
++       playerSlotAppearances,
++       settings,
++     );
++   }, [appearanceSettings, playerSlotAppearances, sceneState]);
++   const effectiveHandPackKey = effectiveHandPackIds.join(',');
++   useEffect(() => {
++     if (mode !== '3d' || effectiveHandPackIds.length === 0) return undefined;
++     const generation = ++handPackReadyGeneration.current;
++     void preloadHandPacks(effectiveHandPackIds).then(() => {
++       if (generation === handPackReadyGeneration.current) setCriticalHandPacksReady(true);
++     });
++     return () => { handPackReadyGeneration.current += 1; };
++   }, [effectiveHandPackKey, mode]);
++   const attempted3dMount = mode === '3d' && standardFourPlayer.supported && runtimeFailure === null;
++   const diagnostics = resolveTableRendererDiagnostics(
++     mode,
++     standardFourPlayer.supported,
++     attempted3dMount,
++     sceneReady,
++     runtimeFailure,
++   );
++ 
++   useEffect(() => {
++     setMode(resolveCurrentMode());
++     setRuntimeFailure(null);
++     setSceneReady(false);
++     setCriticalHandPacksReady(false);
++   }, [renderer]);
++ 
++   useEffect(() => {
++     onActiveRendererChange?.(diagnostics.active);
++   }, [diagnostics.active, onActiveRendererChange]);
++ 
++   useEffect(() => {
++     if (renderer) return undefined;
++     const syncMode = () => {
++       setMode(resolveTableRenderer(window.location.search));
++       setRuntimeFailure(null);
++       setSceneReady(false);
++       setCriticalHandPacksReady(false);
++     };
++     window.addEventListener('popstate', syncMode);
++     return () => window.removeEventListener('popstate', syncMode);
++   }, [renderer]);
++ 
++   useEffect(() => {
++     if (!import.meta.env.DEV) return;
++     console.warn(`[TableRenderer] requested=${diagnostics.requested}`);
++     console.warn(
++       `[TableRenderer] standardFourPlayer=${diagnostics.standardFourPlayer}`,
++       {
++         playerCount: standardFourPlayer.playerCount,
++         playerIds: standardFourPlayer.playerIds,
++         missingPlayerIds: standardFourPlayer.missingPlayerIds,
++         duplicatePlayerIds: standardFourPlayer.duplicatePlayerIds,
++       },
++     );
++     console.warn(`[TableRenderer] attempting3dMount=${diagnostics.attempted3dMount}`);
++     console.warn(`[TableRenderer] active=${diagnostics.active}`);
++     if (diagnostics.fallbackReason !== 'none') {
++       console.warn(`[TableRenderer] fallback=${diagnostics.fallbackReason}`);
++     }
++   }, [
++     diagnostics.active,
++     diagnostics.attempted3dMount,
++     diagnostics.fallbackReason,
++     diagnostics.requested,
++     diagnostics.standardFourPlayer,
++     standardFourPlayer.duplicatePlayerIds,
++     standardFourPlayer.missingPlayerIds,
++     standardFourPlayer.playerCount,
++     standardFourPlayer.playerIds,
++   ]);
++ 
++   const fail = useCallback((
++     fallbackReason: Exclude<TableRendererFallbackReason, 'none'>,
++     error: unknown,
++     info?: ErrorInfo,
++   ) => {
++     if (import.meta.env.DEV) {
++       console.error(`[TableRenderer] fallback=${fallbackReason}`, error, info?.componentStack ?? '');
++     }
++     setSceneReady(false);
++     setRuntimeFailure(fallbackReason);
++   }, []);
++   const handleSceneError = useCallback((error: Error, info: ErrorInfo) => {
++     fail(classifyTableRendererError(error), error, info);
++   }, [fail]);
++   const handleSceneReady = useCallback(() => setSceneReady(true), []);
++   const handleSceneUnavailable = useCallback((error: Error) => {
++     fail('webgl-init-failure', error);
++   }, [fail]);
++   const centralHud = useMemo(() => (
++     <Table3DCentralHud
++       gameState={tableProps.gameState}
++       matchState={tableProps.matchState}
++       bottomPlayerId={tableProps.bottomPlayerId}
++       seatMapping={tableProps.seatMapping}
++       activeSeats={tableProps.activeSeats}
++       centerRoundLabel={tableProps.centerRoundLabel}
++       centerRemainingLabel={tableProps.centerRemainingLabel}
++       centerCornerLabels={tableProps.centerCornerLabels}
++     />
++   ), [
++     tableProps.activeSeats,
++     tableProps.bottomPlayerId,
++     tableProps.centerCornerLabels,
++     tableProps.centerRemainingLabel,
++     tableProps.centerRoundLabel,
++     tableProps.gameState,
++     tableProps.matchState,
++     tableProps.seatMapping,
++   ]);
++   const tileVisualContext = useMemo<TileVisualSemanticContext>(() => ({
++     hoveredTileType: tableProps.hoveredTileType,
++     sameTileHoverEnabled: tableProps.sameTileHoverEnabled,
++     doraGlowEnabled: tableProps.doraGlowEnabled,
++   }), [
++     tableProps.doraGlowEnabled,
++     tableProps.hoveredTileType,
++     tableProps.sameTileHoverEnabled,
++   ]);
++ 
++   const render3D = shouldRender3DTable(mode, runtimeFailure !== null) && standardFourPlayer.supported;
++   const initialPresentationReady = isInitialPresentationReady(sceneReady && criticalHandPacksReady, localPresentationReady);
++   useEffect(() => {
++     if (initialPresentationReady || !render3D) onInputResourcesReady?.();
++   }, [initialPresentationReady, render3D, onInputResourcesReady]);
++   if (!render3D || !sharedPresentationState || !sceneState) {
++     return <LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />;
++   }
++ 
++   const content: ReactNode = (
++       <SceneErrorBoundary
++         fallback={<LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />}
++         onError={handleSceneError}
++       >
++         <FormalTable3D
++               sceneState={sceneState}
++               animationsEnabled={animationsEnabled}
++               animationSessionKey={animationSessionKey}
++               animationTurn={animationTurn}
++               localDiscardSnapshots={localDiscardSnapshots}
++               onLocalHandAnimationChange={onLocalHandAnimationChange}
++               winPresentation3D={winPresentation3D}
++               tableVisualTheme={tableVisualTheme}
++               riichiStickAppearance={riichiStickAppearance}
++               appearanceSettings={appearanceSettings}
++               tileVisualContext={tileVisualContext}
++               centralHud={centralHud}
++               onReady={handleSceneReady}
++               onUnavailable={handleSceneUnavailable}
++           hud={<Table3DHud {...tableProps} doraIndicatorSlots={doraIndicatorSlots} playerProfile={playerProfile} />}
++         />
++       </SceneErrorBoundary>
++     );
++ 
++   return (
++     <div
++       className="table-renderer-diagnostics"
++       data-table-renderer-requested={diagnostics.requested}
++       data-table-renderer-active={diagnostics.active}
++       data-table-renderer-standard-four-player={diagnostics.standardFourPlayer ? 'true' : 'false'}
++       data-table-renderer-attempted-3d-mount={diagnostics.attempted3dMount ? 'true' : 'false'}
++       data-table-renderer-fallback-reason={diagnostics.fallbackReason}
++       data-table-renderer-player-count={standardFourPlayer.playerCount}
++       data-table-renderer-player-ids={standardFourPlayer.playerIds.join(',')}
++       data-table-interaction-contract={interactionActions ? 'shared' : 'none'}
++       data-initial-scene-ready={sceneReady ? 'true' : 'false'}
++       data-local-presentation-ready={localPresentationReady ? 'true' : 'false'}
++       data-critical-hand-packs-ready={criticalHandPacksReady ? 'true' : 'false'}
++       data-effective-hand-packs={effectiveHandPackKey}
++       data-presentation-revealed={initialPresentationReady ? 'true' : 'false'}
++       aria-busy={initialPresentationReady ? 'false' : 'true'}
++     >
++       {content}
++       {initialPresentationReady ? null : <SceneLoading />}
++     </div>
++   );
++ }
++ 
++ export function supports3DGameState(gameState: MahjongTableProps['gameState']): boolean {
++   return inspectStandardFourPlayerState(gameState).supported;
++ }
++
+
+ ❯ src/presentation3d/TableRenderer.test.ts:77:20
+     75|     const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'ut…
+     76| 
+     77|     expect(source).toContain("await import('./Table3DScene')");
+       |                    ^
+     78|     expect(source).toContain('default: memo(module.Table3DScene)');
+     79|     expect(source).not.toContain("from './Table3DScene'");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  src/presentation3d/TableRenderer.test.ts > 3D table renderer selection > coexists with the DOM HUD and switches the shared local hand to a transparent screen-space overlay only after 3D is active
+AssertionError: expected 'import {\r\n  type ErrorInfo,\r\n  ty…' to contain 'table-renderer-layer--3d'
+
+- Expected
++ Received
+
+- table-renderer-layer--3d
++ import {
++   type ErrorInfo,
++   type ReactNode,
++   useCallback,
++   useEffect,
++   useMemo,
++   useRef,
++   useState,
++ } from 'react';
++ import { LegacyTable2D, type LegacyTable2DProps } from '../components/game/LegacyTable2D';
++ import { preloadHandPacks, type HandPackId } from '../hand/handPacks';
++ import {
++   buildDoraIndicatorSlots,
++   buildTablePresentationState,
++   type TableInteractionActions,
++   type TablePresentationState,
++ } from '../presentation/table/TablePresentationContract';
++ import { Table3DCentralHud, Table3DHud } from './Table3DHud';
++ import {
++   resolveTableRenderer,
++   shouldRender3DTable,
++   type TableRendererMode,
++ } from './rendererMode';
++ import {
++   classifyTableRendererError,
++   inspectStandardFourPlayerState,
++   resolveTableRendererDiagnostics,
++   type TableRendererFallbackReason,
++ } from './rendererDiagnostics';
++ import type { DiscardSourceSnapshotStore } from '../presentation/handAnimation/DiscardSourceSnapshot';
++ import type { LocalHandAnimation3DState } from './animation/tableAnimation3D';
++ import type { TableVisualTheme } from './table/tableVisualTheme';
++ import type { RiichiStick3DAppearance } from './riichi/riichiStickAppearance';
++ import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
++ import { resolveEffectiveHandPackIds, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
++ import type { PlayerProfile } from '../profile/playerProfile';
++ import { buildTableSceneState } from './sceneState/buildTableSceneState';
++ import type { TileVisualSemanticContext } from '../presentation/table/tileVisualSemantics';
++ import {
++   resolveWinnerRevealPlayerId3D,
++   type WinPresentation3DState,
++ } from './win/winPresentation3D';
++ import { isInitialPresentationReady } from './initialSceneReady';
++ import { SceneErrorBoundary, SceneLoading } from './session/SceneErrorBoundary';
++ 
++ import { FormalTable3D } from './FormalTable3D';
++ 
++ type MahjongTableProps = LegacyTable2DProps;
++ 
++ type TableRendererProps = MahjongTableProps & Readonly<{
++   renderer?: TableRendererMode;
++   presentationState?: TablePresentationState;
++   interactionActions?: TableInteractionActions;
++   animationsEnabled?: boolean;
++   animationSessionKey?: string;
++   animationTurn?: number;
++   localDiscardSnapshots?: DiscardSourceSnapshotStore;
++   onLocalHandAnimationChange?: (state: LocalHandAnimation3DState | null) => void;
++   winPresentation3D?: WinPresentation3DState | null;
++   tableVisualTheme?: TableVisualTheme;
++   riichiStickAppearance?: RiichiStick3DAppearance;
++   appearanceSettings?: AppearanceSettings;
++   playerProfile?: PlayerProfile;
++   onActiveRendererChange?: (renderer: TableRendererMode) => void;
++   localPresentationReady?: boolean;
++   onInputResourcesReady?: () => void;
++ }>;
++ 
++ /** Session changes cancel the old scene, preload callbacks and error boundary together. */
++ export function TableRenderer(props: TableRendererProps) {
++   return <TableRendererSession key={props.animationSessionKey ?? 'table-3d'} {...props} />;
++ }
++ 
++ function TableRendererSession({
++   renderer,
++   presentationState,
++   interactionActions,
++   animationsEnabled = false,
++   animationSessionKey = 'table-3d',
++   animationTurn = 0,
++   localDiscardSnapshots,
++   onLocalHandAnimationChange,
++   winPresentation3D = null,
++   tableVisualTheme,
++   riichiStickAppearance,
++   appearanceSettings,
++   playerProfile,
++   onActiveRendererChange,
++   localPresentationReady = true,
++   onInputResourcesReady,
++   ...tableProps
++ }: TableRendererProps) {
++   const resolveCurrentMode = () => renderer ?? resolveTableRenderer(typeof window === 'undefined' ? '' : window.location.search);
++   const [mode, setMode] = useState<TableRendererMode>(resolveCurrentMode);
++   const [runtimeFailure, setRuntimeFailure] = useState<Exclude<TableRendererFallbackReason, 'none'> | null>(null);
++   const [sceneReady, setSceneReady] = useState(false);
++   const [criticalHandPacksReady, setCriticalHandPacksReady] = useState(false);
++   const handPackReadyGeneration = useRef(0);
++   const playerSlotAppearances = usePlayerSlotAppearances();
++   const standardFourPlayer = useMemo(
++     () => inspectStandardFourPlayerState(tableProps.gameState),
++     [tableProps.gameState.players],
++   );
++   const sharedPresentationState = useMemo(() => presentationState
++     ?? (standardFourPlayer.supported ? buildTablePresentationState(tableProps.gameState, {
++       localPlayerId: tableProps.bottomPlayerId,
++       bottomPlayerId: tableProps.bottomPlayerId,
++       seatMapping: tableProps.seatMapping,
++       revealOpponentHands: tableProps.revealOpponentHands,
++       revealedPlayerId: tableProps.revealedPlayerId,
++       canDiscardOverride: false,
++     }) : null), [
++       presentationState,
++       standardFourPlayer.supported,
++       tableProps.bottomPlayerId,
++       tableProps.gameState,
++       tableProps.revealOpponentHands,
++       tableProps.revealedPlayerId,
++       tableProps.seatMapping,
++     ]);
++   const doraIndicatorSlots = sharedPresentationState?.doraIndicatorSlots
++     ?? buildDoraIndicatorSlots(tableProps.gameState.doraIndicators);
++   const bottomPlayerId = tableProps.bottomPlayerId ?? 0;
++   const winnerRevealPlayerId = resolveWinnerRevealPlayerId3D(winPresentation3D, bottomPlayerId);
++   const sceneState = useMemo(() => {
++     if (!sharedPresentationState) return null;
++     if (winnerRevealPlayerId === undefined && !winPresentation3D?.revealedPlayerIds?.length) return sharedPresentationState.scene;
++     return buildTableSceneState(tableProps.gameState, {
++       bottomPlayerId,
++       seatMapping: tableProps.seatMapping,
++       revealOpponentHands: tableProps.revealOpponentHands,
++       revealedPlayerId: winnerRevealPlayerId,
++       revealedPlayerIds: winPresentation3D?.revealedPlayerIds,
++     });
++   }, [
++     sharedPresentationState,
++     bottomPlayerId,
++     tableProps.gameState,
++     tableProps.revealOpponentHands,
++     tableProps.seatMapping,
++     winnerRevealPlayerId,
++     winPresentation3D?.revealedPlayerIds,
++   ]);
++   const effectiveHandPackIds = useMemo(() => {
++     if (!sceneState) return [] as HandPackId[];
++     const settings = appearanceSettings ?? DEFAULT_APPEARANCE_SETTINGS;
++     return resolveEffectiveHandPackIds(
++       Object.values(sceneState.seats).map((seat) => seat.playerId),
++       playerSlotAppearances,
++       settings,
++     );
++   }, [appearanceSettings, playerSlotAppearances, sceneState]);
++   const effectiveHandPackKey = effectiveHandPackIds.join(',');
++   useEffect(() => {
++     if (mode !== '3d' || effectiveHandPackIds.length === 0) return undefined;
++     const generation = ++handPackReadyGeneration.current;
++     void preloadHandPacks(effectiveHandPackIds).then(() => {
++       if (generation === handPackReadyGeneration.current) setCriticalHandPacksReady(true);
++     });
++     return () => { handPackReadyGeneration.current += 1; };
++   }, [effectiveHandPackKey, mode]);
++   const attempted3dMount = mode === '3d' && standardFourPlayer.supported && runtimeFailure === null;
++   const diagnostics = resolveTableRendererDiagnostics(
++     mode,
++     standardFourPlayer.supported,
++     attempted3dMount,
++     sceneReady,
++     runtimeFailure,
++   );
++ 
++   useEffect(() => {
++     setMode(resolveCurrentMode());
++     setRuntimeFailure(null);
++     setSceneReady(false);
++     setCriticalHandPacksReady(false);
++   }, [renderer]);
++ 
++   useEffect(() => {
++     onActiveRendererChange?.(diagnostics.active);
++   }, [diagnostics.active, onActiveRendererChange]);
++ 
++   useEffect(() => {
++     if (renderer) return undefined;
++     const syncMode = () => {
++       setMode(resolveTableRenderer(window.location.search));
++       setRuntimeFailure(null);
++       setSceneReady(false);
++       setCriticalHandPacksReady(false);
++     };
++     window.addEventListener('popstate', syncMode);
++     return () => window.removeEventListener('popstate', syncMode);
++   }, [renderer]);
++ 
++   useEffect(() => {
++     if (!import.meta.env.DEV) return;
++     console.warn(`[TableRenderer] requested=${diagnostics.requested}`);
++     console.warn(
++       `[TableRenderer] standardFourPlayer=${diagnostics.standardFourPlayer}`,
++       {
++         playerCount: standardFourPlayer.playerCount,
++         playerIds: standardFourPlayer.playerIds,
++         missingPlayerIds: standardFourPlayer.missingPlayerIds,
++         duplicatePlayerIds: standardFourPlayer.duplicatePlayerIds,
++       },
++     );
++     console.warn(`[TableRenderer] attempting3dMount=${diagnostics.attempted3dMount}`);
++     console.warn(`[TableRenderer] active=${diagnostics.active}`);
++     if (diagnostics.fallbackReason !== 'none') {
++       console.warn(`[TableRenderer] fallback=${diagnostics.fallbackReason}`);
++     }
++   }, [
++     diagnostics.active,
++     diagnostics.attempted3dMount,
++     diagnostics.fallbackReason,
++     diagnostics.requested,
++     diagnostics.standardFourPlayer,
++     standardFourPlayer.duplicatePlayerIds,
++     standardFourPlayer.missingPlayerIds,
++     standardFourPlayer.playerCount,
++     standardFourPlayer.playerIds,
++   ]);
++ 
++   const fail = useCallback((
++     fallbackReason: Exclude<TableRendererFallbackReason, 'none'>,
++     error: unknown,
++     info?: ErrorInfo,
++   ) => {
++     if (import.meta.env.DEV) {
++       console.error(`[TableRenderer] fallback=${fallbackReason}`, error, info?.componentStack ?? '');
++     }
++     setSceneReady(false);
++     setRuntimeFailure(fallbackReason);
++   }, []);
++   const handleSceneError = useCallback((error: Error, info: ErrorInfo) => {
++     fail(classifyTableRendererError(error), error, info);
++   }, [fail]);
++   const handleSceneReady = useCallback(() => setSceneReady(true), []);
++   const handleSceneUnavailable = useCallback((error: Error) => {
++     fail('webgl-init-failure', error);
++   }, [fail]);
++   const centralHud = useMemo(() => (
++     <Table3DCentralHud
++       gameState={tableProps.gameState}
++       matchState={tableProps.matchState}
++       bottomPlayerId={tableProps.bottomPlayerId}
++       seatMapping={tableProps.seatMapping}
++       activeSeats={tableProps.activeSeats}
++       centerRoundLabel={tableProps.centerRoundLabel}
++       centerRemainingLabel={tableProps.centerRemainingLabel}
++       centerCornerLabels={tableProps.centerCornerLabels}
++     />
++   ), [
++     tableProps.activeSeats,
++     tableProps.bottomPlayerId,
++     tableProps.centerCornerLabels,
++     tableProps.centerRemainingLabel,
++     tableProps.centerRoundLabel,
++     tableProps.gameState,
++     tableProps.matchState,
++     tableProps.seatMapping,
++   ]);
++   const tileVisualContext = useMemo<TileVisualSemanticContext>(() => ({
++     hoveredTileType: tableProps.hoveredTileType,
++     sameTileHoverEnabled: tableProps.sameTileHoverEnabled,
++     doraGlowEnabled: tableProps.doraGlowEnabled,
++   }), [
++     tableProps.doraGlowEnabled,
++     tableProps.hoveredTileType,
++     tableProps.sameTileHoverEnabled,
++   ]);
++ 
++   const render3D = shouldRender3DTable(mode, runtimeFailure !== null) && standardFourPlayer.supported;
++   const initialPresentationReady = isInitialPresentationReady(sceneReady && criticalHandPacksReady, localPresentationReady);
++   useEffect(() => {
++     if (initialPresentationReady || !render3D) onInputResourcesReady?.();
++   }, [initialPresentationReady, render3D, onInputResourcesReady]);
++   if (!render3D || !sharedPresentationState || !sceneState) {
++     return <LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />;
++   }
++ 
++   const content: ReactNode = (
++       <SceneErrorBoundary
++         fallback={<LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />}
++         onError={handleSceneError}
++       >
++         <FormalTable3D
++               sceneState={sceneState}
++               animationsEnabled={animationsEnabled}
++               animationSessionKey={animationSessionKey}
++               animationTurn={animationTurn}
++               localDiscardSnapshots={localDiscardSnapshots}
++               onLocalHandAnimationChange={onLocalHandAnimationChange}
++               winPresentation3D={winPresentation3D}
++               tableVisualTheme={tableVisualTheme}
++               riichiStickAppearance={riichiStickAppearance}
++               appearanceSettings={appearanceSettings}
++               tileVisualContext={tileVisualContext}
++               centralHud={centralHud}
++               onReady={handleSceneReady}
++               onUnavailable={handleSceneUnavailable}
++           hud={<Table3DHud {...tableProps} doraIndicatorSlots={doraIndicatorSlots} playerProfile={playerProfile} />}
++         />
++       </SceneErrorBoundary>
++     );
++ 
++   return (
++     <div
++       className="table-renderer-diagnostics"
++       data-table-renderer-requested={diagnostics.requested}
++       data-table-renderer-active={diagnostics.active}
++       data-table-renderer-standard-four-player={diagnostics.standardFourPlayer ? 'true' : 'false'}
++       data-table-renderer-attempted-3d-mount={diagnostics.attempted3dMount ? 'true' : 'false'}
++       data-table-renderer-fallback-reason={diagnostics.fallbackReason}
++       data-table-renderer-player-count={standardFourPlayer.playerCount}
++       data-table-renderer-player-ids={standardFourPlayer.playerIds.join(',')}
++       data-table-interaction-contract={interactionActions ? 'shared' : 'none'}
++       data-initial-scene-ready={sceneReady ? 'true' : 'false'}
++       data-local-presentation-ready={localPresentationReady ? 'true' : 'false'}
++       data-critical-hand-packs-ready={criticalHandPacksReady ? 'true' : 'false'}
++       data-effective-hand-packs={effectiveHandPackKey}
++       data-presentation-revealed={initialPresentationReady ? 'true' : 'false'}
++       aria-busy={initialPresentationReady ? 'false' : 'true'}
++     >
++       {content}
++       {initialPresentationReady ? null : <SceneLoading />}
++     </div>
++   );
++ }
++ 
++ export function supports3DGameState(gameState: MahjongTableProps['gameState']): boolean {
++   return inspectStandardFourPlayerState(gameState).supported;
++ }
++
+
+ ❯ src/presentation3d/TableRenderer.test.ts:162:20
+    160|     const css = readFileSync(sourcePath('./table3d.css'), 'utf8')
+    161|       + readFileSync(sourcePath('./session/sceneSession.css'), 'utf8');
+    162|     expect(source).toContain('table-renderer-layer--3d');
+       |                    ^
+    163|     expect(source).toContain('<Table3DHud {...tableProps} doraIndicato…
+    164|     expect(source).toContain('centralHud={centralHud}');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  src/presentation3d/TableRenderer.test.ts > 3D table renderer selection > covers the mounted renderer until scene and local presentation are both ready
+AssertionError: expected 'import {\r\n  type ErrorInfo,\r\n  ty…' to contain '<Suspense fallback={null}>'
+
+- Expected
++ Received
+
+- <Suspense fallback={null}>
++ import {
++   type ErrorInfo,
++   type ReactNode,
++   useCallback,
++   useEffect,
++   useMemo,
++   useRef,
++   useState,
++ } from 'react';
++ import { LegacyTable2D, type LegacyTable2DProps } from '../components/game/LegacyTable2D';
++ import { preloadHandPacks, type HandPackId } from '../hand/handPacks';
++ import {
++   buildDoraIndicatorSlots,
++   buildTablePresentationState,
++   type TableInteractionActions,
++   type TablePresentationState,
++ } from '../presentation/table/TablePresentationContract';
++ import { Table3DCentralHud, Table3DHud } from './Table3DHud';
++ import {
++   resolveTableRenderer,
++   shouldRender3DTable,
++   type TableRendererMode,
++ } from './rendererMode';
++ import {
++   classifyTableRendererError,
++   inspectStandardFourPlayerState,
++   resolveTableRendererDiagnostics,
++   type TableRendererFallbackReason,
++ } from './rendererDiagnostics';
++ import type { DiscardSourceSnapshotStore } from '../presentation/handAnimation/DiscardSourceSnapshot';
++ import type { LocalHandAnimation3DState } from './animation/tableAnimation3D';
++ import type { TableVisualTheme } from './table/tableVisualTheme';
++ import type { RiichiStick3DAppearance } from './riichi/riichiStickAppearance';
++ import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
++ import { resolveEffectiveHandPackIds, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
++ import type { PlayerProfile } from '../profile/playerProfile';
++ import { buildTableSceneState } from './sceneState/buildTableSceneState';
++ import type { TileVisualSemanticContext } from '../presentation/table/tileVisualSemantics';
++ import {
++   resolveWinnerRevealPlayerId3D,
++   type WinPresentation3DState,
++ } from './win/winPresentation3D';
++ import { isInitialPresentationReady } from './initialSceneReady';
++ import { SceneErrorBoundary, SceneLoading } from './session/SceneErrorBoundary';
++ 
++ import { FormalTable3D } from './FormalTable3D';
++ 
++ type MahjongTableProps = LegacyTable2DProps;
++ 
++ type TableRendererProps = MahjongTableProps & Readonly<{
++   renderer?: TableRendererMode;
++   presentationState?: TablePresentationState;
++   interactionActions?: TableInteractionActions;
++   animationsEnabled?: boolean;
++   animationSessionKey?: string;
++   animationTurn?: number;
++   localDiscardSnapshots?: DiscardSourceSnapshotStore;
++   onLocalHandAnimationChange?: (state: LocalHandAnimation3DState | null) => void;
++   winPresentation3D?: WinPresentation3DState | null;
++   tableVisualTheme?: TableVisualTheme;
++   riichiStickAppearance?: RiichiStick3DAppearance;
++   appearanceSettings?: AppearanceSettings;
++   playerProfile?: PlayerProfile;
++   onActiveRendererChange?: (renderer: TableRendererMode) => void;
++   localPresentationReady?: boolean;
++   onInputResourcesReady?: () => void;
++ }>;
++ 
++ /** Session changes cancel the old scene, preload callbacks and error boundary together. */
++ export function TableRenderer(props: TableRendererProps) {
++   return <TableRendererSession key={props.animationSessionKey ?? 'table-3d'} {...props} />;
++ }
++ 
++ function TableRendererSession({
++   renderer,
++   presentationState,
++   interactionActions,
++   animationsEnabled = false,
++   animationSessionKey = 'table-3d',
++   animationTurn = 0,
++   localDiscardSnapshots,
++   onLocalHandAnimationChange,
++   winPresentation3D = null,
++   tableVisualTheme,
++   riichiStickAppearance,
++   appearanceSettings,
++   playerProfile,
++   onActiveRendererChange,
++   localPresentationReady = true,
++   onInputResourcesReady,
++   ...tableProps
++ }: TableRendererProps) {
++   const resolveCurrentMode = () => renderer ?? resolveTableRenderer(typeof window === 'undefined' ? '' : window.location.search);
++   const [mode, setMode] = useState<TableRendererMode>(resolveCurrentMode);
++   const [runtimeFailure, setRuntimeFailure] = useState<Exclude<TableRendererFallbackReason, 'none'> | null>(null);
++   const [sceneReady, setSceneReady] = useState(false);
++   const [criticalHandPacksReady, setCriticalHandPacksReady] = useState(false);
++   const handPackReadyGeneration = useRef(0);
++   const playerSlotAppearances = usePlayerSlotAppearances();
++   const standardFourPlayer = useMemo(
++     () => inspectStandardFourPlayerState(tableProps.gameState),
++     [tableProps.gameState.players],
++   );
++   const sharedPresentationState = useMemo(() => presentationState
++     ?? (standardFourPlayer.supported ? buildTablePresentationState(tableProps.gameState, {
++       localPlayerId: tableProps.bottomPlayerId,
++       bottomPlayerId: tableProps.bottomPlayerId,
++       seatMapping: tableProps.seatMapping,
++       revealOpponentHands: tableProps.revealOpponentHands,
++       revealedPlayerId: tableProps.revealedPlayerId,
++       canDiscardOverride: false,
++     }) : null), [
++       presentationState,
++       standardFourPlayer.supported,
++       tableProps.bottomPlayerId,
++       tableProps.gameState,
++       tableProps.revealOpponentHands,
++       tableProps.revealedPlayerId,
++       tableProps.seatMapping,
++     ]);
++   const doraIndicatorSlots = sharedPresentationState?.doraIndicatorSlots
++     ?? buildDoraIndicatorSlots(tableProps.gameState.doraIndicators);
++   const bottomPlayerId = tableProps.bottomPlayerId ?? 0;
++   const winnerRevealPlayerId = resolveWinnerRevealPlayerId3D(winPresentation3D, bottomPlayerId);
++   const sceneState = useMemo(() => {
++     if (!sharedPresentationState) return null;
++     if (winnerRevealPlayerId === undefined && !winPresentation3D?.revealedPlayerIds?.length) return sharedPresentationState.scene;
++     return buildTableSceneState(tableProps.gameState, {
++       bottomPlayerId,
++       seatMapping: tableProps.seatMapping,
++       revealOpponentHands: tableProps.revealOpponentHands,
++       revealedPlayerId: winnerRevealPlayerId,
++       revealedPlayerIds: winPresentation3D?.revealedPlayerIds,
++     });
++   }, [
++     sharedPresentationState,
++     bottomPlayerId,
++     tableProps.gameState,
++     tableProps.revealOpponentHands,
++     tableProps.seatMapping,
++     winnerRevealPlayerId,
++     winPresentation3D?.revealedPlayerIds,
++   ]);
++   const effectiveHandPackIds = useMemo(() => {
++     if (!sceneState) return [] as HandPackId[];
++     const settings = appearanceSettings ?? DEFAULT_APPEARANCE_SETTINGS;
++     return resolveEffectiveHandPackIds(
++       Object.values(sceneState.seats).map((seat) => seat.playerId),
++       playerSlotAppearances,
++       settings,
++     );
++   }, [appearanceSettings, playerSlotAppearances, sceneState]);
++   const effectiveHandPackKey = effectiveHandPackIds.join(',');
++   useEffect(() => {
++     if (mode !== '3d' || effectiveHandPackIds.length === 0) return undefined;
++     const generation = ++handPackReadyGeneration.current;
++     void preloadHandPacks(effectiveHandPackIds).then(() => {
++       if (generation === handPackReadyGeneration.current) setCriticalHandPacksReady(true);
++     });
++     return () => { handPackReadyGeneration.current += 1; };
++   }, [effectiveHandPackKey, mode]);
++   const attempted3dMount = mode === '3d' && standardFourPlayer.supported && runtimeFailure === null;
++   const diagnostics = resolveTableRendererDiagnostics(
++     mode,
++     standardFourPlayer.supported,
++     attempted3dMount,
++     sceneReady,
++     runtimeFailure,
++   );
++ 
++   useEffect(() => {
++     setMode(resolveCurrentMode());
++     setRuntimeFailure(null);
++     setSceneReady(false);
++     setCriticalHandPacksReady(false);
++   }, [renderer]);
++ 
++   useEffect(() => {
++     onActiveRendererChange?.(diagnostics.active);
++   }, [diagnostics.active, onActiveRendererChange]);
++ 
++   useEffect(() => {
++     if (renderer) return undefined;
++     const syncMode = () => {
++       setMode(resolveTableRenderer(window.location.search));
++       setRuntimeFailure(null);
++       setSceneReady(false);
++       setCriticalHandPacksReady(false);
++     };
++     window.addEventListener('popstate', syncMode);
++     return () => window.removeEventListener('popstate', syncMode);
++   }, [renderer]);
++ 
++   useEffect(() => {
++     if (!import.meta.env.DEV) return;
++     console.warn(`[TableRenderer] requested=${diagnostics.requested}`);
++     console.warn(
++       `[TableRenderer] standardFourPlayer=${diagnostics.standardFourPlayer}`,
++       {
++         playerCount: standardFourPlayer.playerCount,
++         playerIds: standardFourPlayer.playerIds,
++         missingPlayerIds: standardFourPlayer.missingPlayerIds,
++         duplicatePlayerIds: standardFourPlayer.duplicatePlayerIds,
++       },
++     );
++     console.warn(`[TableRenderer] attempting3dMount=${diagnostics.attempted3dMount}`);
++     console.warn(`[TableRenderer] active=${diagnostics.active}`);
++     if (diagnostics.fallbackReason !== 'none') {
++       console.warn(`[TableRenderer] fallback=${diagnostics.fallbackReason}`);
++     }
++   }, [
++     diagnostics.active,
++     diagnostics.attempted3dMount,
++     diagnostics.fallbackReason,
++     diagnostics.requested,
++     diagnostics.standardFourPlayer,
++     standardFourPlayer.duplicatePlayerIds,
++     standardFourPlayer.missingPlayerIds,
++     standardFourPlayer.playerCount,
++     standardFourPlayer.playerIds,
++   ]);
++ 
++   const fail = useCallback((
++     fallbackReason: Exclude<TableRendererFallbackReason, 'none'>,
++     error: unknown,
++     info?: ErrorInfo,
++   ) => {
++     if (import.meta.env.DEV) {
++       console.error(`[TableRenderer] fallback=${fallbackReason}`, error, info?.componentStack ?? '');
++     }
++     setSceneReady(false);
++     setRuntimeFailure(fallbackReason);
++   }, []);
++   const handleSceneError = useCallback((error: Error, info: ErrorInfo) => {
++     fail(classifyTableRendererError(error), error, info);
++   }, [fail]);
++   const handleSceneReady = useCallback(() => setSceneReady(true), []);
++   const handleSceneUnavailable = useCallback((error: Error) => {
++     fail('webgl-init-failure', error);
++   }, [fail]);
++   const centralHud = useMemo(() => (
++     <Table3DCentralHud
++       gameState={tableProps.gameState}
++       matchState={tableProps.matchState}
++       bottomPlayerId={tableProps.bottomPlayerId}
++       seatMapping={tableProps.seatMapping}
++       activeSeats={tableProps.activeSeats}
++       centerRoundLabel={tableProps.centerRoundLabel}
++       centerRemainingLabel={tableProps.centerRemainingLabel}
++       centerCornerLabels={tableProps.centerCornerLabels}
++     />
++   ), [
++     tableProps.activeSeats,
++     tableProps.bottomPlayerId,
++     tableProps.centerCornerLabels,
++     tableProps.centerRemainingLabel,
++     tableProps.centerRoundLabel,
++     tableProps.gameState,
++     tableProps.matchState,
++     tableProps.seatMapping,
++   ]);
++   const tileVisualContext = useMemo<TileVisualSemanticContext>(() => ({
++     hoveredTileType: tableProps.hoveredTileType,
++     sameTileHoverEnabled: tableProps.sameTileHoverEnabled,
++     doraGlowEnabled: tableProps.doraGlowEnabled,
++   }), [
++     tableProps.doraGlowEnabled,
++     tableProps.hoveredTileType,
++     tableProps.sameTileHoverEnabled,
++   ]);
++ 
++   const render3D = shouldRender3DTable(mode, runtimeFailure !== null) && standardFourPlayer.supported;
++   const initialPresentationReady = isInitialPresentationReady(sceneReady && criticalHandPacksReady, localPresentationReady);
++   useEffect(() => {
++     if (initialPresentationReady || !render3D) onInputResourcesReady?.();
++   }, [initialPresentationReady, render3D, onInputResourcesReady]);
++   if (!render3D || !sharedPresentationState || !sceneState) {
++     return <LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />;
++   }
++ 
++   const content: ReactNode = (
++       <SceneErrorBoundary
++         fallback={<LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />}
++         onError={handleSceneError}
++       >
++         <FormalTable3D
++               sceneState={sceneState}
++               animationsEnabled={animationsEnabled}
++               animationSessionKey={animationSessionKey}
++               animationTurn={animationTurn}
++               localDiscardSnapshots={localDiscardSnapshots}
++               onLocalHandAnimationChange={onLocalHandAnimationChange}
++               winPresentation3D={winPresentation3D}
++               tableVisualTheme={tableVisualTheme}
++               riichiStickAppearance={riichiStickAppearance}
++               appearanceSettings={appearanceSettings}
++               tileVisualContext={tileVisualContext}
++               centralHud={centralHud}
++               onReady={handleSceneReady}
++               onUnavailable={handleSceneUnavailable}
++           hud={<Table3DHud {...tableProps} doraIndicatorSlots={doraIndicatorSlots} playerProfile={playerProfile} />}
++         />
++       </SceneErrorBoundary>
++     );
++ 
++   return (
++     <div
++       className="table-renderer-diagnostics"
++       data-table-renderer-requested={diagnostics.requested}
++       data-table-renderer-active={diagnostics.active}
++       data-table-renderer-standard-four-player={diagnostics.standardFourPlayer ? 'true' : 'false'}
++       data-table-renderer-attempted-3d-mount={diagnostics.attempted3dMount ? 'true' : 'false'}
++       data-table-renderer-fallback-reason={diagnostics.fallbackReason}
++       data-table-renderer-player-count={standardFourPlayer.playerCount}
++       data-table-renderer-player-ids={standardFourPlayer.playerIds.join(',')}
++       data-table-interaction-contract={interactionActions ? 'shared' : 'none'}
++       data-initial-scene-ready={sceneReady ? 'true' : 'false'}
++       data-local-presentation-ready={localPresentationReady ? 'true' : 'false'}
++       data-critical-hand-packs-ready={criticalHandPacksReady ? 'true' : 'false'}
++       data-effective-hand-packs={effectiveHandPackKey}
++       data-presentation-revealed={initialPresentationReady ? 'true' : 'false'}
++       aria-busy={initialPresentationReady ? 'false' : 'true'}
++     >
++       {content}
++       {initialPresentationReady ? null : <SceneLoading />}
++     </div>
++   );
++ }
++ 
++ export function supports3DGameState(gameState: MahjongTableProps['gameState']): boolean {
++   return inspectStandardFourPlayerState(gameState).supported;
++ }
++
+
+ ❯ src/presentation3d/TableRenderer.test.ts:194:20
+    192|     const commitSource = readFileSync(sourcePath('./session/initialFra…
+    193|     expect(source).toContain('<SceneLoading />');
+    194|     expect(source).toContain('<Suspense fallback={null}>');
+       |                    ^
+    195|     expect(source).not.toContain('<Suspense fallback={<LegacyTable2D');
+    196|     expect(loadingSource).toContain('className="table-presentation-loa…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  src/presentation3d/table/centralConsoleLayout.test.ts > central console assembly > keeps the HUD center, ordinary river and non-riichi preview scale unchanged
+AssertionError: expected [ -0.1, 0.698, 1.9 ] to deeply equal [ -0.1, 0.698, 2.3 ]
+
+- Expected
++ Received
+
+  Array [
+    -0.1,
+    0.698,
+-   2.3,
++   1.9,
+  ]
+
+ ❯ src/presentation3d/table/centralConsoleLayout.test.ts:26:57
+     24|   });
+     25|   it('keeps the HUD center, ordinary river and non-riichi preview scal…
+     26|     expect(getCentralConsoleLayout().scoreHud.position).toEqual([-0.1,…
+       |                                                         ^
+     27|     expect(getCentralConsoleHudScale(720)).toBe(0.96);
+     28|     expect(getCentralConsoleHudScale(1080)).toBe(0.72);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+ Test Files  3 failed | 71 passed (74)
+      Tests  7 failed | 585 passed (592)
+   Start at  01:53:40
+   Duration  63.00s (transform 3.98s, setup 0ms, collect 39.24s, tests 76.08s, environment 13ms, prepare 8.27s)
+

@@ -1,0 +1,33 @@
+
+> local-mahjong-trainer@0.1.0 pretest
+> npm run generate:voice-packs && npm run test:voice-pack-index
+
+
+> local-mahjong-trainer@0.1.0 generate:voice-packs
+> node scripts/generateVoicePackIndex.mjs
+
+Generated Voice Pack index: 3 valid pack(s), 0 skipped.
+
+> local-mahjong-trainer@0.1.0 test:voice-pack-index
+> node scripts/verifyVoicePackIndex.mjs
+
+Voice Pack index lifecycle test passed.
+
+> local-mahjong-trainer@0.1.0 test
+> vitest run src/game/timeControl/timeControl.test.ts src/game/persistence src/components/ReplayDetail.test.tsx src/components/ReplayScreen.test.tsx
+
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/game/persistence/migration.test.ts (3 tests) 13ms
+ ✓ src/game/persistence/storageValidation.test.ts (17 tests) 23ms
+ ✓ src/game/persistence/saveManager.test.ts (13 tests) 33ms
+ ✓ src/game/timeControl/timeControl.test.ts (55 tests) 51ms
+ ✓ src/components/ReplayDetail.test.tsx (1 test) 33ms
+ ✓ src/components/ReplayScreen.test.tsx (25 tests) 128ms
+
+ Test Files  6 passed (6)
+      Tests  114 passed (114)
+   Start at  19:54:23
+   Duration  1.76s (transform 973ms, setup 0ms, collect 3.91s, tests 282ms, environment 1ms, prepare 767ms)
+

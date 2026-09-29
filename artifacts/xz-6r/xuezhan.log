@@ -1,0 +1,42 @@
+
+> local-mahjong-trainer@0.1.0 test:xuezhan
+> vitest run src/game/xuezhan
+
+
+ RUN  v2.1.9 C:/Users/Wenkai/.codex/visualizations/2026/09/22/01a0c8b7-cdb2-7933-81ee-e49432b9a594/xz6r-final
+
+ ✓ src/game/xuezhan/closeout.test.ts (2 tests) 68ms
+ ✓ src/game/xuezhan/runtime.test.ts (8 tests) 126ms
+ ✓ src/game/xuezhan/presentation.test.ts (1 test) 68ms
+ ✓ src/game/xuezhan/engine.test.ts (19 tests) 385ms
+   ✓ 血战权威流程 > 全预设完整小局、保存恢复与回放一致、非法版本拒绝 325ms
+stdout | src/game/xuezhan/boundaries.test.ts > 独立边界金样（生产初始牌与动作） > 难度与个性在相同合法局面产生可测分歧，不是换标签
+{ difficultyDisagreements: 43, personalityDisagreements: 33 }
+
+ ✓ src/game/xuezhan/boundaries.test.ts (11 tests) 1420ms
+   ✓ 独立边界金样（生产初始牌与动作） > 难度与个性在相同合法局面产生可测分歧，不是换标签 778ms
+stdout | src/game/xuezhan/transactions.test.ts > 清算计划、呼叫转移与终局边界 > 确定性完整批次逐筆退税来源、转移不重复退款、最高查叫金额与收款对象
+{"refunds":154,"transfers":3,"readyPayments":114}
+
+ ✓ src/game/xuezhan/transactions.test.ts (6 tests) 1839ms
+   ✓ 清算计划、呼叫转移与终局边界 > 确定性完整批次逐筆退税来源、转移不重复退款、最高查叫金额与收款对象 1798ms
+stdout | src/game/xuezhan/acceptance.test.ts > 全部暴露字段与合法配置组合 > 合法字段两两组合：逐对创建并走完一小局，记录数量
+{"matrix":"all-field-value-pairs","covered":3099,"invalidDependencyPairs":233}
+
+stdout | src/game/xuezhan/acceptance.test.ts > 固定种子完整压力批次 > 1000 小局：每预设200，另200合法随机配置；650步上限
+{"seeds":[10000,10999],"counts":{"declared":200,"declared-exchange":200,"dynamic":200,"dynamic-exchange":200,"random":200},"stats":{"rounds":1000,"maxSteps":92,"wins":851,"wall":929,"winningPlayers":855,"multiWinGroups":4,"wallByWonCount":[448,320,161,0],"threeWinners":71},"definitions":{"wins":"成功胡牌组数（多响计一组）","maxSteps":"已接受生产命令数，含准备和每位玩家响应","wall":"墙尽结束局数，不等于无人胡牌局数"}}
+
+ ✓ src/game/xuezhan/acceptance.test.ts (170 tests) 50386ms
+   ✓ 全部暴露字段与合法配置组合 > 合法字段两两组合：逐对创建并走完一小局，记录数量 36664ms
+   ✓ 固定种子完整压力批次 > 1000 小局：每预设200，另200合法随机配置；650步上限 13095ms
+
+ Test Files  7 passed (7)
+      Tests  217 passed (217)
+   Start at  02:57:40
+   Duration  50.94s (transform 418ms, setup 0ms, collect 1.35s, tests 54.29s, environment 1ms, prepare 763ms)
+
+npm notice
+npm notice New major version of npm available! 11.16.0 -> 12.0.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+npm notice To update run: npm install -g npm@12.0.2
+npm notice

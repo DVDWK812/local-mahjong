@@ -2,8 +2,18 @@ import { validateMatchState } from '../match/matchEngine';
 import { validateMatchLog } from '../replay/validation';
 import type { ReplayRecord, SavedMatch } from './storageTypes';
 import { validateTileInstanceRegions } from '../tileInstanceValidation';
+import { snapshotTimeControl } from '../timeControl/config';
+import { DecisionClock } from '../timeControl/decisionClock';
 
 export function validateSavedMatch(save: SavedMatch): void {
+  if (save.timeRuntime) {
+    if (save.timeRuntime.schemaVersion !== 1) throw new Error('不支持的计时存档版本');
+    const config = snapshotTimeControl(save.timeRuntime.config, 'four');
+    // Read-only validation: never start a timer while loading or replaying records.
+    new DecisionClock(config).restore(save.timeRuntime.clock);
+    if (!Array.isArray(save.timeRuntime.audit) || !save.timeRuntime.preferences || Object.values(save.timeRuntime.preferences).some(p =>
+      !p || typeof p.autoWin !== 'boolean' || typeof p.suppressCalls !== 'boolean' || typeof p.autoTsumogiri !== 'boolean')) throw new Error('自动操作存档损坏');
+  }
   if (!save.saveId) throw new Error('saveId is required');
   if (!save.savedAt) throw new Error('savedAt is required');
   const matchIssues = validateMatchState(save.matchState);

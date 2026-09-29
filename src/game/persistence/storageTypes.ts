@@ -15,6 +15,7 @@ export type SerializableMatchState = MatchState;
 export type SerializableGameState = GameState;
 
 export interface SavedMatch {
+  timeRuntime?: import('../timeControl/matchRuntime').RuntimeSave;
   version: number;
   saveId: string;
   savedAt: string;

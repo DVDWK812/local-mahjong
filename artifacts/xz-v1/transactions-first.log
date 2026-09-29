@@ -1,0 +1,14 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+stdout | src/game/xuezhan/transactions.test.ts > 清算计划、呼叫转移与终局边界 > 确定性完整批次逐筆退税来源、转移不重复退款、最高查叫金额与收款对象
+{"refunds":154,"transfers":3,"readyPayments":114}
+
+ ✓ src/game/xuezhan/transactions.test.ts (6 tests) 1218ms
+   ✓ 清算计划、呼叫转移与终局边界 > 确定性完整批次逐筆退税来源、转移不重复退款、最高查叫金额与收款对象 1196ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  21:22:40
+   Duration  1.56s (transform 73ms, setup 0ms, collect 98ms, tests 1.22s, environment 0ms, prepare 76ms)
+

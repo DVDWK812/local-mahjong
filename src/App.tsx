@@ -1,4 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { MatchRuntime } from './game/timeControl/matchRuntime';
+import { fourPlayerPolicy, FOUR_HUMAN } from './game/timeControl/fourPlayerPolicy';
+import { loadTimeDraft, saveTimeDraft, snapshotTimeControl, newMatchTimeControl, unlimitedTimeControl, type TimeControlConfig } from './game/timeControl/config';
+import { MatchClockHud } from './components/MatchClockHud';
+import { TimeControlSettings } from './components/TimeControlSettings';
+import { finishHandsForAuthoritativeInput } from './presentation/handAnimation/HandAnimationController';
 import type { AppScreen, RiichiLengthChoice, SetupSelection } from './app/navigation';
 import { advanceAutomaticGameState } from './app/automaticGameProgression';
 import { matchLengthForChoice, pathLabel, presetForChoice } from './app/navigation';
@@ -24,6 +30,14 @@ import { Board } from './components/Board';
 import { ExitGameDialog } from './components/ExitGameDialog';
 import { GameTypeMenu } from './components/GameTypeMenu';
 import { LocalModeMenu } from './components/LocalModeMenu';
+import { XuezhanSettings } from './components/XuezhanSettings';
+import { XuezhanScreen } from './components/XuezhanScreen';
+import { SanmaLengthMenu, SanmaSettings } from './components/SanmaSettings';
+import { SanmaScreen } from './components/SanmaScreen';
+import { createSanmaConfig, type SanmaConfig, type SanmaLength } from './game/sanma/config';
+import type { SanmaSave } from './game/sanma/persistence';
+import { createConfig as createXzConfig, type XzConfig } from './game/xuezhan/config';
+import { parseXzSave, XZ_SAVE_KEY, type XzSave } from './game/xuezhan/persistence';
 import { MainMenu } from './components/MainMenu';
 import { PlayerProfileDialog } from './components/PlayerProfileDialog';
 import { MatchResultDialog } from './components/MatchResultDialog';
@@ -41,7 +55,6 @@ import { declareKyuushuKyuuhai } from './game/abortiveDraw';
 import { canPon, executePon, passCall } from './game/callChecker';
 import { canChi, executeChi } from './game/chiChecker';
 import { declareRiichi, declareRon, declareTsumo, discardTile, passRon } from './game/engine';
-import { hasDrawAction } from './game/interaction';
 import { canChankan, canMinkan, declareChankanRon, executeKan, passChankan, type KanType } from './game/kanChecker';
 import { applyFinishedGameToMatch, chooseAgariYame, chooseMatchEnd, startMatch } from './game/match/matchEngine';
 import { getRulePreset, loadStoredRuleConfig, saveStoredRuleConfig, type RulePresetId } from './game/match/matchRules';
@@ -68,6 +81,7 @@ import { runPacedAutomaticAction } from './presentation/pacing/automaticActionPa
 import { useMatchPresentationEvents } from './presentation/matchPresentationEvents';
 
 interface ActiveGame {
+  runtime: MatchRuntime<GameState>;
   matchState: MatchState;
   gameState: GameState;
   matchLog: MatchLog;
@@ -102,7 +116,7 @@ const EXIT_SAVE_TIMEOUT_MS = 3000;
 const EXIT_SAVE_TIMEOUT_MESSAGE = '牌谱保存超时，可直接退出或重试保存。';
 const EXIT_SAVE_ERROR_MESSAGE = '牌谱保存失败，可直接退出或重试保存。';
 function isRealtimeAudioScreen(screen: AppScreen): boolean {
-  return screen === 'game' || screen === 'riichi-17-steps';
+  return screen === 'game' || screen === 'riichi-17-steps' || screen === 'xuezhan' || screen === 'sanma';
 }
 
 function bgmForScreen(screen: AppScreen): 'home' | 'game' | null {
@@ -116,6 +130,7 @@ export function resolveBgmScene(
   hasRiichi: boolean,
   riichiEnabled: boolean,
 ): 'home' | 'game' | 'riichi' | null {
+  if (screen === 'xuezhan') return 'game';
   if (isRealtimeAudioScreen(screen)) {
     return hasRiichi && riichiEnabled ? 'riichi' : 'game';
   }
@@ -131,7 +146,8 @@ function loadInitialRuleConfig(): FullRuleConfig {
   return loadStoredRuleConfig(window.localStorage);
 }
 
-function createActiveGame(config: FullRuleConfig): ActiveGame {
+function createActiveGame(config: FullRuleConfig, timeControl: TimeControlConfig): ActiveGame {
+  const timeSnapshot = snapshotTimeControl(timeControl, 'four');
   const matchState = startMatch(config.match);
   if (!matchState.currentGame) throw new Error('比赛未能创建东一局');
   const gameState = withRules(matchState.currentGame, config);
@@ -142,17 +158,10 @@ function createActiveGame(config: FullRuleConfig): ActiveGame {
     ruleConfig: config,
   });
   return {
+    runtime: new MatchRuntime(gameState, fourPlayerPolicy, timeSnapshot, undefined, undefined, undefined, true),
     matchState,
     gameState,
     matchLog: startRoundInMatchLog(emptyLog, gameState, matchState.handNumber),
-  };
-}
-
-function updateActiveGameState(activeGame: ActiveGame, gameState: GameState): ActiveGame {
-  return {
-    ...activeGame,
-    gameState,
-    matchLog: recordGameStateTransition(activeGame.matchLog, activeGame.gameState, gameState),
   };
 }
 
@@ -166,7 +175,12 @@ function applyMatchProgress(activeGame: ActiveGame, matchState: MatchState, next
   }
   if (nextGameState) {
     const gameState = withRules(nextGameState, config);
+    const runtime = new MatchRuntime(gameState, fourPlayerPolicy, activeGame.runtime.config, undefined, undefined, undefined, true);
+    Object.assign(runtime.preferences, structuredClone(activeGame.runtime.preferences));
+    runtime.audit.push(...activeGame.runtime.audit);
+    activeGame.runtime.dispose();
     return {
+      runtime,
       matchState,
       gameState,
       matchLog: startRoundInMatchLog(activeGame.matchLog, gameState, matchState.handNumber),
@@ -177,6 +191,7 @@ function applyMatchProgress(activeGame: ActiveGame, matchState: MatchState, next
 
 function createSavedMatch(activeGame: ActiveGame, ruleConfig: FullRuleConfig): SavedMatch {
   return {
+    timeRuntime: activeGame.runtime.snapshot(),
     version: CURRENT_SAVE_VERSION,
     saveId: `save-${Date.now()}`,
     savedAt: new Date().toISOString(),
@@ -188,9 +203,21 @@ function createSavedMatch(activeGame: ActiveGame, ruleConfig: FullRuleConfig): S
 }
 
 export default function App({ initialSeventeenGate }: { initialSeventeenGate?: import('./game/seventeenSteps').SeventeenStepsState } = {}) {
+  const [fourTime, setFourTime] = useState(() => loadTimeDraft('four', typeof window === 'undefined' ? undefined : window.localStorage));
+  const [seventeenTime, setSeventeenTime] = useState(() => loadTimeDraft('seventeen', typeof window === 'undefined' ? undefined : window.localStorage));
+  const [seventeenTimeSnapshot, setSeventeenTimeSnapshot] = useState<TimeControlConfig | undefined>();
   const testModeAvailability = currentTestModeAvailability();
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [appearanceDialogOpen, setAppearanceDialogOpen] = useState(false);
+  const [xzConfig, setXzConfig] = useState<XzConfig>(createXzConfig);
+  const [sanmaLength, setSanmaLength] = useState<SanmaLength>('east-only');
+  const [sanmaConfig, setSanmaConfig] = useState<SanmaConfig>(createSanmaConfig);
+  const [sanmaSaved, setSanmaSaved] = useState<SanmaSave | undefined>();
+  const [sanmaSession, setSanmaSession] = useState(0);
+  const [sanmaReplay, setSanmaReplay] = useState(false);
+  const [sanmaRiichi, setSanmaRiichi] = useState(false);
+  const [xzSaved, setXzSaved] = useState<XzSave | undefined>();
+  const [xzSession, setXzSession] = useState(0);
   const [audioDialogOpen, setAudioDialogOpen] = useState(() => typeof window !== 'undefined' && window.sessionStorage.getItem('local-mahjong.pending-voice-pack-manager') !== null);
   const [voiceManagementPackId, setVoiceManagementPackId] = useState<string | null>(() => typeof window === 'undefined' ? null : window.sessionStorage.getItem('local-mahjong.pending-voice-pack-manager'));
   const [voicePackCreationOpen, setVoicePackCreationOpen] = useState(false);
@@ -300,12 +327,17 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
   const voiceDirector = voiceDirectorRef.current;
   const audioScreenRef = useRef(state.screen);
   audioScreenRef.current = state.screen;
+  const [xzTesting, setXzTesting] = useState(false);
+  const [sanmaTesting, setSanmaTesting] = useState(false);
+  const sanmaTestingRef = useRef(sanmaTesting); sanmaTestingRef.current = sanmaTesting;
+  const xzTestingRef = useRef(xzTesting);
+  xzTestingRef.current = xzTesting;
   const voicePresentationRuntimeRef = useRef<VoicePresentationRuntime | null>(null);
   if (!voicePresentationRuntimeRef.current) {
     voicePresentationRuntimeRef.current = new VoicePresentationRuntime(
       voiceDirector,
       undefined,
-      () => isRealtimeAudioScreen(audioScreenRef.current),
+      () => isRealtimeAudioScreen(audioScreenRef.current) || audioScreenRef.current === 'test-mode' && (xzTestingRef.current || sanmaTestingRef.current),
     );
   }
   const voicePresentationRuntime = voicePresentationRuntimeRef.current;
@@ -349,8 +381,8 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
 
   useEffect(() => {
     const players = gameState?.players ?? [];
-    voiceDirector.setActorSeatContext({ playerIds: players.map((player) => player.id), playerCount: players.length });
-  }, [voiceDirector, gameState?.players]);
+    voiceDirector.setActorSeatContext(state.screen === 'sanma' || sanmaTesting ? { playerIds: [0, 1, 2], playerCount: 3 } : { playerIds: players.map((player) => player.id), playerCount: players.length });
+  }, [voiceDirector, gameState?.players, state.screen, sanmaTesting]);
 
   // This observes committed MatchState only. Voice playback stays behind the runtime EventBus consumer.
   useMatchPresentationEvents(activeGame && matchState && gameState ? {
@@ -375,7 +407,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
     const consumer = new AudioPresentationConsumer(
       audioManager,
       undefined,
-      () => isRealtimeAudioScreen(audioScreenRef.current),
+      () => isRealtimeAudioScreen(audioScreenRef.current) || audioScreenRef.current === 'test-mode' && (xzTestingRef.current || sanmaTestingRef.current),
     );
     return () => { consumer.dispose(); audioManager.stopSfx(); };
   }, [audioManager, state.screen]);
@@ -387,14 +419,14 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
   }, [audioManager]);
 
   useEffect(() => {
-    const hasRiichi = state.activeGame?.gameState.players.some((player) => player.riichi) ?? false;
-    const track = resolveBgmScene(state.screen, hasRiichi, audioSettings.riichiMusicEnabled);
+    const hasRiichi = state.screen === 'sanma' ? sanmaRiichi : state.activeGame?.gameState.players.some((player) => player.riichi) ?? false;
+    const track = state.screen === 'test-mode' && (xzTesting || sanmaTesting) ? 'game' : resolveBgmScene(state.screen, hasRiichi, audioSettings.riichiMusicEnabled);
     if (track) {
       audioManager.playBgm(track);
     } else {
       audioManager.stopBgm();
     }
-  }, [audioManager, state.screen, musicRevision, audioSettings.riichiMusicEnabled, state.activeGame?.gameState.players]);
+  }, [audioManager, state.screen, xzTesting, sanmaTesting, musicRevision, audioSettings.riichiMusicEnabled, state.activeGame?.gameState.players, sanmaRiichi]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -464,23 +496,14 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
     }
 
     const shouldAutoDrawHuman = gameState.currentPlayer === 0 && gameState.phase === 'draw';
-    const shouldAutoRiichiTsumogiri = gameState.currentPlayer === 0
-      && gameState.phase === 'discard'
-      && gameState.players[0].riichi
-      && !!gameState.players[0].drawnTile
-      && !hasDrawAction(gameState, 0);
     const shouldAutoAdvanceAI = isAIPlayer(gameState.currentPlayer) && (gameState.phase === 'draw' || gameState.phase === 'discard');
     const shouldAutoPassCall = gameState.phase === 'call-window' && !canPon(gameState, 0) && !canChi(gameState, 0) && !canMinkan(gameState, 0);
     const shouldAutoChankan = gameState.phase === 'chankan-window' && !canChankan(gameState, 0);
-    if (!shouldAutoDrawHuman && !shouldAutoRiichiTsumogiri && !shouldAutoAdvanceAI && !shouldAutoPassCall && !shouldAutoChankan) return;
+    if (!shouldAutoDrawHuman && !shouldAutoAdvanceAI && !shouldAutoPassCall && !shouldAutoChankan) return;
 
     let cancelled = false;
     void runPacedAutomaticAction(() => {
-      setState((current) => {
-        if (!current.activeGame || current.screen !== 'game' || current.exitDialogOpen || current.exiting) return current;
-        const currentGame = current.activeGame.gameState;
-        return { ...current, activeGame: updateActiveGameState(current.activeGame, advanceAutomaticGameState(currentGame)) };
-      });
+      state.activeGame?.runtime.advance(current => current === gameState ? advanceAutomaticGameState(current) : current);
     }, {
       gate: presentationPacingGate,
       isCancelled: () => cancelled,
@@ -494,20 +517,28 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
     setState((current) => ({ ...current, screen, menuNotice: null, ...patch }));
   }
 
-  function updateGame(updater: (game: GameState) => GameState) {
-    setState((current) => {
-      if (!current.activeGame) return current;
+  useEffect(() => {
+    const runtime = state.activeGame?.runtime;
+    if (!runtime) return;
+    const unsubscribe = runtime.subscribe(() => {
+      const snapshot = runtime.state;
+      const audit = [...runtime.audit];
+      setState(current => {
+      if (current.activeGame?.runtime !== runtime) return current;
       const before = current.activeGame.gameState;
-      const gameState = updater(before);
-      return {
-        ...current,
-        activeGame: {
-          ...current.activeGame,
-          gameState,
-          matchLog: recordGameStateTransition(current.activeGame.matchLog, before, gameState),
-        },
-      };
+      const log = before === snapshot ? current.activeGame.matchLog : recordGameStateTransition(current.activeGame.matchLog, before, snapshot);
+      return { ...current, activeGame: { ...current.activeGame, gameState: snapshot, matchLog: { ...log, timeControl: runtime.config, actionAudit: audit } } };
+      });
     });
+    const unsubscribeOpen = runtime.onInputOpen(finishHandsForAuthoritativeInput);
+    runtime.resumeAfterRemount();
+    return () => { unsubscribe(); unsubscribeOpen(); runtime.pause(); };
+  }, [state.activeGame?.runtime]);
+
+  const renderedDecisionId = state.activeGame?.runtime.decision(FOUR_HUMAN)?.id;
+  function updateGame(updater: (game: GameState) => GameState) {
+    const runtime = state.activeGame?.runtime;
+    runtime?.command(FOUR_HUMAN, renderedDecisionId, updater);
   }
 
   function handleRuleConfigChange(config: FullRuleConfig) {
@@ -760,10 +791,14 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
   }
 
   function startConfiguredGame() {
-    setState((current) => ({
+    if (state.screen !== 'match-settings') return;
+    let timeControl: TimeControlConfig;
+    try { timeControl = newMatchTimeControl(fourTime, 'four'); }
+    catch (error) { setState(current => ({ ...current, menuNotice: (error as Error).message })); return; }
+    setState((current) => current.screen !== 'match-settings' ? current : ({
       ...current,
       screen: 'game',
-      activeGame: createActiveGame(current.ruleConfig),
+      activeGame: createActiveGame(current.ruleConfig, timeControl),
       exitDialogOpen: false,
       exiting: false,
       exitSaveError: null,
@@ -783,7 +818,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
       return {
         ...current,
         screen: 'game',
-        activeGame: { matchState, gameState, matchLog },
+        activeGame: { matchState, gameState, matchLog, runtime: new MatchRuntime(gameState, fourPlayerPolicy, current.savedMatch.timeRuntime?.config ?? unlimitedTimeControl('four'), undefined, undefined, current.savedMatch.timeRuntime, true) },
         ruleConfig: current.savedMatch.ruleConfig,
         exitDialogOpen: false,
         exiting: false,
@@ -841,7 +876,10 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
 
   async function confirmExitGame() {
     if (state.exiting || exitSaveInProgressRef.current) return;
-    const snapshot = state.activeGame;
+    state.activeGame?.runtime.pause();
+    const original = state.activeGame;
+    const snapshot = original ? { ...original, gameState: original.runtime.state,
+      matchLog: { ...recordGameStateTransition(original.matchLog, original.gameState, original.runtime.state), timeControl: original.runtime.config, actionAudit: [...original.runtime.audit] } } : null;
     const save = snapshot && snapshot.matchState.phase !== 'match-ended'
       ? pendingExitSaveRef.current ?? createSavedMatch(snapshot, state.ruleConfig)
       : null;
@@ -880,6 +918,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
   }
 
   function cancelExitGame() {
+    state.activeGame?.runtime.activate();
     pendingExitSaveRef.current = null;
     pendingExitReplayRef.current = null;
     setState((current) => ({ ...current, exitDialogOpen: false, exiting: false, exitSaveError: null }));
@@ -978,10 +1017,19 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
         notice={state.menuNotice}
         onBack={() => setScreen('main-menu')}
         onRiichi={() => setScreen('riichi-player-count')}
+        onXuezhan={() => setScreen('xuezhan-settings')}
         onComingSoon={(label) => setState((current) => ({ ...current, menuNotice: `${label}敬请期待。` }))}
       />
     );
   }
+
+  if (state.screen === 'xuezhan-settings') {
+    return <><XuezhanSettings onBack={() => setScreen('local-mode-menu')} onAudio={openAudioSettings} onAppearance={() => setAppearanceDialogOpen(true)}
+      onStart={config => { setXzConfig(config); setXzSaved(undefined); setXzSession(n => n + 1); setScreen('xuezhan'); }}
+      onResume={() => { const raw = window.localStorage.getItem(XZ_SAVE_KEY); if (!raw) throw new Error('没有血战存档'); const saved = parseXzSave(raw); setXzConfig(saved.config); setXzSaved(saved); setXzSession(n => n + 1); setScreen('xuezhan'); }} />
+      {renderAudioSettingsDialog()}{appearanceDialogOpen && <AppearanceSettingsDialog settings={appearanceSettings} onChange={handleAppearanceSettingsChange} onDeleteAsset={handleDeleteLibraryAsset} onClose={() => setAppearanceDialogOpen(false)} />}</>;
+  }
+  if (state.screen === 'xuezhan') return <><XuezhanScreen key={xzSession} config={xzConfig} saved={xzSaved} onExit={() => setScreen('xuezhan-settings')} appearance={appearanceSettings} profile={state.playerProfile} onAudio={openAudioSettings} />{renderAudioSettingsDialog()}</>;
 
   if (state.screen === 'riichi-player-count') {
     return (
@@ -989,7 +1037,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
         notice={state.menuNotice}
         onBack={() => setScreen('local-mode-menu')}
         onFourPlayer={() => setScreen('riichi-four-player-length', { selection: { playerCount: 4 } })}
-        onThreePlayer={() => setState((current) => ({ ...current, menuNotice: '三人间敬请期待。' }))}
+        onThreePlayer={() => setScreen('riichi-three-player-length', { selection: { playerCount: 3 } })}
         on17Steps={() => setScreen('riichi-17-steps-settings')}
         onWashizu={() => setScreen('riichi-washizu')}
         onSuperpower={() => setScreen('riichi-superpower')}
@@ -998,16 +1046,25 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
     );
   }
 
+  if (state.screen === 'riichi-three-player-length') return <SanmaLengthMenu onBack={() => setScreen('riichi-player-count')} onChoose={length => { setSanmaLength(length); setScreen('sanma-settings', { selection: { playerCount: 3, lengthChoice: length === 'east-only' ? 'three-east' : 'three-south' } }); }} />;
+  if (state.screen === 'sanma-settings') return <SanmaSettings key={sanmaLength} length={sanmaLength} profile={state.playerProfile} onBack={() => setScreen('riichi-three-player-length')}
+    onStart={config => { setSanmaConfig(config); setSanmaSaved(undefined); setSanmaReplay(false); setSanmaRiichi(false); setSanmaSession(n => n + 1); setScreen('sanma'); }}
+    onResume={(save, replay) => { setSanmaConfig(save.state.config); setSanmaLength(save.state.config.length); setSanmaSaved(save); setSanmaReplay(!!replay); setSanmaRiichi(false); setSanmaSession(n => n + 1); setScreen('sanma'); }} />;
+  if (state.screen === 'sanma') return <><SanmaScreen onVoiceStop={() => voiceDirector.stop()} key={sanmaSession} config={sanmaConfig} saved={sanmaSaved} replayOnly={sanmaReplay} onExit={() => setScreen('sanma-settings')}
+    appearance={appearanceSettings} profile={state.playerProfile} onAudio={openAudioSettings} onState={s => setSanmaRiichi(s.players.some(p => p.riichi))} />{renderAudioSettingsDialog()}</>;
+
   if (state.screen === 'riichi-17-steps-settings') {
     return (
       <SeventeenStepsMatchSettings
+        timeControl={seventeenTime}
+        onTimeControlChange={value => { setSeventeenTime(value); saveTimeDraft('seventeen', value, window.localStorage); }}
         config={state.seventeenStepsConfig}
         onBack={() => setScreen('riichi-player-count')}
         onConfigChange={(config) => {
           setState((current) => ({ ...current, seventeenStepsConfig: config }));
           if (typeof window !== 'undefined') saveStoredSeventeenStepsMatchConfig(config, window.localStorage);
         }}
-        onStart={() => setScreen('riichi-17-steps')}
+        onStart={() => { try { setSeventeenTimeSnapshot(newMatchTimeControl(seventeenTime, 'seventeen')); setScreen('riichi-17-steps'); } catch { /* inline validation */ } }}
       />
     );
   }
@@ -1015,7 +1072,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
   if (state.screen === 'riichi-17-steps') {
     return (
       <>
-        <SeventeenStepsScreen initialState={import.meta.env.DEV ? initialSeventeenGate : undefined} matchConfig={state.seventeenStepsConfig} ruleConfig={state.ruleConfig} playerProfile={state.playerProfile} appearanceSettings={appearanceSettings} onBack={() => setScreen('riichi-17-steps-settings')} onOpenAudioSettings={openAudioSettings} />
+        <SeventeenStepsScreen timeControl={seventeenTimeSnapshot} initialState={import.meta.env.DEV ? initialSeventeenGate : undefined} matchConfig={state.seventeenStepsConfig} ruleConfig={state.ruleConfig} playerProfile={state.playerProfile} appearanceSettings={appearanceSettings} onBack={() => setScreen('riichi-17-steps-settings')} onOpenAudioSettings={openAudioSettings} />
         {renderAudioSettingsDialog()}
       </>
     );
@@ -1059,6 +1116,8 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
             onAIPlayerSettingsChange={(aiPlayerSettings) => setState((current) => ({ ...current, aiPlayerSettings }))}
             onConfigChange={handleRuleConfigChange}
           />
+          <TimeControlSettings mode="four" value={fourTime} onChange={value => { setFourTime(value); saveTimeDraft('four', value, window.localStorage); }} />
+          {state.menuNotice && <p role="alert">{state.menuNotice}</p>}
           <div className="settings-footer">
             <button type="button" onClick={() => setScreen('riichi-four-player-length')}>返回</button>
             <button type="button" onClick={startConfiguredGame}>开始游戏</button>
@@ -1103,6 +1162,9 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
       <TestModeScreen
         key={state.testScenario?.id ?? 'test-mode-library'}
         initialScenario={state.testScenario}
+        onXzSessionChange={setXzTesting}
+        onSanmaSessionChange={setSanmaTesting}
+        onSanmaVoiceStop={() => voiceDirector.stop()}
         onExit={() => setScreen('main-menu', { testScenario: null })}
       />
     );
@@ -1134,6 +1196,9 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
         </section>
       ) : null}
       <Board
+        authoritativeInputOpen={activeGame.runtime.budgetView(FOUR_HUMAN)?.status === 'open'}
+        suppressCalls={activeGame.runtime.preference(FOUR_HUMAN).suppressCalls}
+        onInputResourcesReady={() => activeGame.runtime.resourcesReady()}
         gameState={gameState}
         winPresentationController={winPresentationController}
         settlementPresentationCoordinator={settlementPresentationCoordinator}
@@ -1146,9 +1211,9 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
         onDiscard={(playerId, tileInstanceId) => updateGame((current) => discardTile(current, playerId, tileInstanceId))}
         onDeclareRiichi={(playerId, tileInstanceId) => updateGame((current) => declareRiichi(current, playerId, tileInstanceId))}
         onDeclareKyuushuKyuuhai={(playerId) => updateGame((current) => declareKyuushuKyuuhai(current, playerId))}
-        onPon={(playerId) => updateGame((current) => executePon(current, playerId))}
-        onChi={(playerId, optionIndex) => updateGame((current) => executeChi(current, playerId, optionIndex))}
-        onKan={(playerId, kanType, tileId) => updateGame((current) => executeKan(current, playerId, kanType, tileId))}
+        onPon={(playerId) => { if (!activeGame.runtime.preference(FOUR_HUMAN).suppressCalls) updateGame((current) => executePon(current, playerId)); }}
+        onChi={(playerId, optionIndex) => { if (!activeGame.runtime.preference(FOUR_HUMAN).suppressCalls) updateGame((current) => executeChi(current, playerId, optionIndex)); }}
+        onKan={(playerId, kanType, tileId) => { if (!activeGame.runtime.preference(FOUR_HUMAN).suppressCalls) updateGame((current) => executeKan(current, playerId, kanType, tileId)); }}
         onChankanRon={(playerId) => updateGame((current) => declareChankanRon(current, playerId))}
         onPassChankan={(playerId) => updateGame((current) => passChankan(current, playerId))}
         onPassCall={() => updateGame((current) => passCall(current))}
@@ -1165,9 +1230,11 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
         tsumoGiriDisplayEnabled={state.tsumoGiriDisplayEnabled}
         onOpenRulesGuide={() => setState((current) => ({ ...current, rulesGuideOpen: true }))}
         onOpenAudioSettings={openAudioSettings}
-        onReturnMenu={() => matchState.phase === 'match-ended' ? void confirmExitGame() : setState((current) => current.exitDialogOpen
-          ? current
-          : { ...current, exitDialogOpen: true, exitSaveError: null })}
+        onReturnMenu={() => {
+          if (matchState.phase === 'match-ended') { void confirmExitGame(); return; }
+          activeGame.runtime.pause();
+          setState(current => current.exitDialogOpen ? current : { ...current, exitDialogOpen: true, exitSaveError: null });
+        }}
       />
       {state.rulesGuideOpen ? (
         <RulesGuideScreen
@@ -1176,6 +1243,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
           onBack={() => setState((current) => ({ ...current, rulesGuideOpen: false }))}
         />
       ) : null}
+      <MatchClockHud runtime={activeGame.runtime} participantId={FOUR_HUMAN} />
       <MatchResultDialog matchState={matchState} onNewMatch={() => setState((current) => ({ ...current, screen: 'main-menu', activeGame: null }))} />
       {state.exitDialogOpen ? (
         <ExitGameDialog

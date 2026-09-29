@@ -1,3 +1,4 @@
+import { FormalGameScreen } from './FormalGameScreen';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { getPresentationFeatures } from '../../config/presentationFeatures';
 import type { MatchState } from '../../game/match/types';
@@ -24,8 +25,6 @@ import { AnalysisDrawer } from './AnalysisDrawer';
 import { GameEventOverlay } from './GameEventOverlay';
 import { GameTopBar } from './GameTopBar';
 import { HandAnimationOverlay } from './HandAnimationOverlay';
-import { LocalHandArea } from './LocalHandArea';
-import { TileFaceDomAppearance } from '../../presentation/appearance/TileFaceDomAppearance';
 import { TableRenderer } from '../../presentation3d/TableRenderer';
 import type { TableRendererMode } from '../../presentation3d/rendererMode';
 import type { LocalHandAnimation3DState } from '../../presentation3d/animation/tableAnimation3D';
@@ -44,6 +43,8 @@ interface GameScreenProps {
   analysisOpen: boolean;
   actionPrompt?: ReactNode;
   canDiscard: boolean;
+  onInputResourcesReady?: () => void;
+  authoritativeInputOpen?: boolean;
   allowedDiscardInstanceIds?: readonly string[];
   kuikaeForbiddenTileIds?: readonly TileId[];
   onOpenRulesGuide?: () => void;
@@ -78,6 +79,8 @@ export function GameScreen({
   analysisOpen,
   actionPrompt,
   canDiscard,
+  onInputResourcesReady,
+  authoritativeInputOpen = false,
   allowedDiscardInstanceIds,
   kuikaeForbiddenTileIds = [],
   onOpenRulesGuide,
@@ -261,14 +264,10 @@ export function GameScreen({
 
   useEffect(() => () => discardSourceSnapshots.clear(), [discardSourceSnapshots]);
 
-  return (
-    <main
-      className="game-screen"
-      data-testid="game-screen"
-      data-round-end-presentation-pending={roundEndPresentationPending ? 'true' : 'false'}
-      data-local-presentation-ready={localPresentationReady ? 'true' : 'false'}
-    >
-      <GameTopBar
+  return <FormalGameScreen
+    data-round-end-presentation-pending={roundEndPresentationPending ? 'true' : 'false'}
+    data-local-presentation-ready={localPresentationReady ? 'true' : 'false'}
+    topBar={<GameTopBar
         currentPlayerDisplayName={activeTableRenderer === '3d' ? resolvePlayerSlotNickname(gameState.currentPlayer, playerProfile?.nickname, slotNicknames, gameState.players[gameState.currentPlayer].name) : undefined}
         gameState={gameState}
         matchState={matchState}
@@ -277,38 +276,36 @@ export function GameScreen({
         onOpenAudioSettings={onOpenAudioSettings ?? (() => undefined)}
         onToggleAnalysis={onToggleAnalysis}
         onReturnMenu={onReturnMenu}
-      />
-      <TableRenderer gameState={gameState} matchState={matchState} bottomPlayerId={tableBottomPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} presentationState={sharedTablePresentationState} interactionActions={tableInteractionActions} animationsEnabled={realtimeHandAnimationsEnabled} animationSessionKey={handAnimationSessionKey} animationTurn={gameState.turn} localDiscardSnapshots={discardSourceSnapshots} onLocalHandAnimationChange={handleLocalHandAnimationChange} winPresentation3D={winPresentation3D} appearanceSettings={appearanceSettings} playerProfile={playerProfile} onActiveRendererChange={setActiveTableRenderer} localPresentationReady={localPresentationReady} />
-      <TileFaceDomAppearance settings={activeTableRenderer === '3d' ? appearanceSettings : undefined} onReady={activeTableRenderer === '3d' ? handleLocalHandAssetsReady : undefined}>
-      <LocalHandArea
-        player={localPlayer}
-        identityPlayer={fixedBottomPlayer}
-        playerProfile={playerProfile}
-        meldPlayer={fixedBottomPlayer}
-        isCurrent={gameState.currentPlayer === localPlayerId}
-        canDiscard={canDiscard}
-        allowedDiscardInstanceIds={allowedDiscardInstanceIds}
-        kuikaeForbiddenTileIds={kuikaeForbiddenTileIds}
-        onDiscard={onDiscard}
-        presentation={sharedTablePresentationState.localHand}
-        interactionActions={tableInteractionActions}
-        onDiscardSourceCapture={realtimeHandAnimationsEnabled ? captureDiscardSource : undefined}
-        doraIndicators={gameState.doraIndicators}
-        doraGlowEnabled={doraGlowEnabled}
-        doraBorderEnabled={activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.borderEnabled === 1}
-        doraBreathingEnabled={activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.breathingEnabled === 1}
-        hoveredTileType={hoveredTileType}
-        sameTileHoverEnabled={sameTileHoverEnabled}
-        onHoveredTileTypeChange={onHoveredTileTypeChange}
-        tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled}
-        screenSpaceOverlay={activeTableRenderer === '3d'}
-        retainDiscardSourceSnapshot={activeTableRenderer === '3d'}
-        discardSnapshot={activeTableRenderer === '3d' ? localDiscardSnapshot : null}
-        localHandAnimation={activeTableRenderer === '3d' ? localHandAnimation : null}
-        onPresentationReady={activeTableRenderer === '3d' ? handleLocalHandLayoutReady : undefined}
-        handPack={localHandPack}
-      />
-      <WinPresentationOverlay
+      />}
+    table={<TableRenderer onInputResourcesReady={onInputResourcesReady} gameState={gameState} matchState={matchState} bottomPlayerId={tableBottomPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} presentationState={sharedTablePresentationState} interactionActions={tableInteractionActions} animationsEnabled={realtimeHandAnimationsEnabled} animationSessionKey={handAnimationSessionKey} animationTurn={gameState.turn} localDiscardSnapshots={discardSourceSnapshots} onLocalHandAnimationChange={handleLocalHandAnimationChange} winPresentation3D={winPresentation3D} appearanceSettings={appearanceSettings} playerProfile={playerProfile} onActiveRendererChange={setActiveTableRenderer} localPresentationReady={localPresentationReady} />}
+    appearance={{ settings: activeTableRenderer === '3d' ? appearanceSettings : undefined, onReady: activeTableRenderer === '3d' ? handleLocalHandAssetsReady : undefined }}
+    localHand={{player: localPlayer,
+identityPlayer: fixedBottomPlayer,
+playerProfile: playerProfile,
+meldPlayer: fixedBottomPlayer,
+isCurrent: gameState.currentPlayer === localPlayerId,
+canDiscard: canDiscard,
+allowedDiscardInstanceIds: allowedDiscardInstanceIds,
+kuikaeForbiddenTileIds: kuikaeForbiddenTileIds,
+onDiscard: onDiscard,
+presentation: sharedTablePresentationState.localHand,
+interactionActions: tableInteractionActions,
+onDiscardSourceCapture: realtimeHandAnimationsEnabled ? captureDiscardSource : undefined,
+doraIndicators: gameState.doraIndicators,
+doraGlowEnabled: doraGlowEnabled,
+doraBorderEnabled: activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.borderEnabled === 1,
+doraBreathingEnabled: activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.breathingEnabled === 1,
+hoveredTileType: hoveredTileType,
+sameTileHoverEnabled: sameTileHoverEnabled,
+onHoveredTileTypeChange: onHoveredTileTypeChange,
+tsumoGiriDisplayEnabled: tsumoGiriDisplayEnabled,
+screenSpaceOverlay: activeTableRenderer === '3d',
+retainDiscardSourceSnapshot: activeTableRenderer === '3d',
+discardSnapshot: activeTableRenderer === '3d' ? localDiscardSnapshot : null,
+localHandAnimation: activeTableRenderer === '3d' && !authoritativeInputOpen ? localHandAnimation : null,
+onPresentationReady: activeTableRenderer === '3d' ? handleLocalHandLayoutReady : undefined,
+handPack: localHandPack}}
+    winOverlay={<WinPresentationOverlay
         gameState={gameState}
         sessionKey={handAnimationSessionKey}
         doraGlowEnabled={doraGlowEnabled}
@@ -318,28 +315,21 @@ export function GameScreen({
         rendererMode={activeTableRenderer}
         on3DPresentationChange={handleWinPresentation3DChange}
         onRoundEndSettled={settleRoundEndPresentation}
-      />
-      </TileFaceDomAppearance>
-      <HandAnimationOverlay
+      />}
+    handOverlay={<HandAnimationOverlay
         bottomPlayerId={tableBottomPlayerId}
         discardSourceSnapshots={discardSourceSnapshots}
         enabled={realtimeHandAnimationsEnabled && activeTableRenderer === '2d'}
         sessionKey={handAnimationSessionKey}
         turn={gameState.turn}
-      />
-      <GameEventOverlay bottomPlayerId={tableBottomPlayerId} enabled={eventOverlayEnabled} onRoundEndSettled={settleRoundEndPresentation} />
-      {actionPrompt ? (
-        <div className="game-prompt-layer">
-          {actionPrompt}
-        </div>
-      ) : null}
-      {tenpaiDisplay ? <div className="game-tenpai-layer"><TenpaiWaitPanel display={tenpaiDisplay} /></div> : null}
-      <AnalysisDrawer open={analysisOpen} gameState={gameState} onClose={onCloseAnalysis} />
-      {roundEndPresentationPending ? null : (
-        <ResultDialog gameState={gameState} onReset={onReset} doraGlowEnabled={doraGlowEnabled} winPresentationController={winPresentationController} settlementPresentationCoordinator={settlementPresentationCoordinator} />
-      )}
-    </main>
-  );
+      />}
+    eventOverlay={<GameEventOverlay bottomPlayerId={tableBottomPlayerId} enabled={eventOverlayEnabled} onRoundEndSettled={settleRoundEndPresentation} />}
+    actionPrompt={actionPrompt}
+    tenpai={tenpaiDisplay ? <TenpaiWaitPanel display={tenpaiDisplay} /> : null}
+    details={<AnalysisDrawer open={analysisOpen} gameState={gameState} onClose={onCloseAnalysis} />}
+    result={roundEndPresentationPending ? null : <ResultDialog gameState={gameState} onReset={onReset} doraGlowEnabled={doraGlowEnabled} winPresentationController={winPresentationController} settlementPresentationCoordinator={settlementPresentationCoordinator} />}
+  />;
+
 }
 
 export function buildWinPresentationKey(gameState: GameState, sessionKey: string): string | null {

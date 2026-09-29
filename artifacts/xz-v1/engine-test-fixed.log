@@ -1,0 +1,10 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/game/xuezhan/engine.test.ts (19 tests) 150ms
+
+ Test Files  1 passed (1)
+      Tests  19 passed (19)
+   Start at  21:02:41
+   Duration  533ms (transform 79ms, setup 0ms, collect 105ms, tests 150ms, environment 0ms, prepare 91ms)
+

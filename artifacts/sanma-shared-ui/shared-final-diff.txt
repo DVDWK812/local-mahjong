@@ -1,0 +1,395 @@
+diff --git a/src/components/ResultDialog.tsx b/src/components/ResultDialog.tsx
+index 5a3693a..a6c85c1 100644
+--- a/src/components/ResultDialog.tsx
++++ b/src/components/ResultDialog.tsx
+@@ -41,7 +41,7 @@ interface ResultShellProps {
+   continueLabel: string;
+ }
+ 
+-function ResultShell({ title, subtitle, children, onReset, continueLabel }: ResultShellProps) {
++export function ResultShell({ title, subtitle, children, onReset, continueLabel }: ResultShellProps) {
+   return (
+     <div className="result-backdrop" role="presentation">
+       <section className="result-dialog" role="dialog" aria-modal="true" aria-labelledby="result-title">
+@@ -60,7 +60,7 @@ function ResultShell({ title, subtitle, children, onReset, continueLabel }: Resu
+   );
+ }
+ 
+-function HandPreview({ title, tiles, doraIndicators = [], doraGlowEnabled = true }: { title: string; tiles: TileModel[]; doraIndicators?: TileModel[]; doraGlowEnabled?: boolean }) {
++export function HandPreview({ title, tiles, doraIndicators = [], doraGlowEnabled = true }: { title: string; tiles: TileModel[]; doraIndicators?: TileModel[]; doraGlowEnabled?: boolean }) {
+   return (
+     <div className="result-hand">
+       <span>{title}</span>
+@@ -101,7 +101,7 @@ function SeventeenStepsDrawAnalysis({ waits, kazoeYakumanMode }: { waits: Sevent
+   );
+ }
+ 
+-function WinHandPreview({ gameState, winner, doraGlowEnabled = true, showDoraIndicators = true }: { gameState: GameState; winner: WinnerResultViewModel; doraGlowEnabled?: boolean; showDoraIndicators?: boolean }) {
++function WinHandPreview({ gameState, winner, doraGlowEnabled = true, showDoraIndicators = true }: { gameState: Pick<GameState, 'doraIndicators'>; winner: WinnerResultViewModel; doraGlowEnabled?: boolean; showDoraIndicators?: boolean }) {
+   return (
+     <div className="result-tile-sections" aria-label="和牌牌组">
+       {showDoraIndicators ? (
+@@ -127,7 +127,7 @@ function WinHandPreview({ gameState, winner, doraGlowEnabled = true, showDoraInd
+       {winner.player.calls.length > 0 ? (
+         <section className="result-tile-section result-melds" aria-label="副露">
+           <span>副露</span>
+-          <PlayerMelds player={winner.player} seatClass="result-melds-seat" doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />
++          <PlayerMelds player={winner.player} displayMelds={winner.displayMelds} seatClass="result-melds-seat" doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />
+         </section>
+       ) : null}
+       {winner.uraDoraIndicators.length > 0 ? (
+@@ -152,9 +152,9 @@ function formatDelta(points: number): string {
+   return '±0';
+ }
+ 
+-function ResultDeltas({ rows }: { rows: readonly PlayerScoreChangeViewModel[] }) {
++export function ResultDeltas({ rows }: { rows: readonly PlayerScoreChangeViewModel[] }) {
+   return (
+-    <section className="result-deltas" aria-label="四家点数变化">
++    <section className="result-deltas" aria-label={rows.length === 4 ? '四家点数变化' : '玩家点数变化'}>
+       <h3>点数变化</h3>
+       <div className="result-delta-grid">
+       {rows.map((row) => {
+@@ -330,8 +330,21 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
+       onReset={continueStage}
+       continueLabel={continueLabel}
+     >
+-      <div className="result-winners">
+-        {viewModel.winners.map((winner) => {
++      <WinnerResultCards winners={viewModel.winners} gameState={gameState} resultRiichiSticks={resultRiichiSticks} winPresentation={winPresentation} winPresentationController={winPresentationController} doraGlowEnabled={doraGlowEnabled} showDoraIndicators={showDoraIndicators} />
++      {!settlementPresentationCoordinator && (!winPresentationController || viewModel.winners.every((winner) => winPresentation.sequences.find((sequence) => sequence.winnerId === winner.source.winner)?.sequenceCompleted === true))
++        ? <ResultDeltas rows={viewModel.scoreChanges} />
++        : null}
++    </ResultShell>
++  );
++}
++
++/** Scored, read-only rows: this component never invokes a scoring engine. */
++export function WinnerResultCards({ winners, gameState, resultRiichiSticks, winPresentation = EMPTY_WIN_PRESENTATION, winPresentationController, doraGlowEnabled = true, showDoraIndicators = true, northBonus }: {
++  winners: readonly WinnerResultViewModel[]; gameState: Pick<GameState, 'dealer' | 'honba' | 'doraIndicators'>; resultRiichiSticks: number;
++  winPresentation?: WinResultPresentationState; winPresentationController?: WinResultPresentationController; doraGlowEnabled?: boolean; showDoraIndicators?: boolean; northBonus?: Partial<Record<PlayerId, number>>;
++}) {
++  return (      <div className="result-winners">
++        {winners.map((winner) => {
+           const win = winner.source;
+           const sequence = winPresentation.sequences.find((candidate) => candidate.winnerId === win.winner);
+           const hasYakuman = win.yaku.some((yaku) => yaku.yakuman) || (win.yakumanMultiplier ?? 0) > 0;
+@@ -384,6 +397,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
+                       <span>宝牌 <strong>{winner.dora.available ? winner.dora.dora ?? 0 : '—'}</strong></span>
+                       <span>里宝牌 <strong>{winner.dora.available ? winner.dora.uraDora ?? 0 : '—'}</strong></span>
+                       <span>赤宝牌 <strong>{winner.dora.available ? winner.dora.redDora ?? 0 : '—'}</strong></span>
++                      {northBonus?.[winner.player.id] !== undefined ? <span>拔北 <strong>{northBonus[winner.player.id]}</strong></span> : null}
+                       <span>合计 <strong>{winner.dora.available ? winner.dora.totalDora ?? '—' : '未提供'}</strong></span>
+                     </div>
+                     <div className="result-authoritative-total">
+@@ -398,9 +412,5 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
+           );
+         })}
+       </div>
+-      {!settlementPresentationCoordinator && (!winPresentationController || viewModel.winners.every((winner) => winPresentation.sequences.find((sequence) => sequence.winnerId === winner.source.winner)?.sequenceCompleted === true))
+-        ? <ResultDeltas rows={viewModel.scoreChanges} />
+-        : null}
+-    </ResultShell>
+-  );
++);
+ }
+diff --git a/src/components/game/GameScreen.tsx b/src/components/game/GameScreen.tsx
+index 7e1ef31..72f96ca 100644
+--- a/src/components/game/GameScreen.tsx
++++ b/src/components/game/GameScreen.tsx
+@@ -1,3 +1,4 @@
++import { FormalGameScreen } from './FormalGameScreen';
+ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+ import { getPresentationFeatures } from '../../config/presentationFeatures';
+ import type { MatchState } from '../../game/match/types';
+@@ -24,8 +25,6 @@ import { AnalysisDrawer } from './AnalysisDrawer';
+ import { GameEventOverlay } from './GameEventOverlay';
+ import { GameTopBar } from './GameTopBar';
+ import { HandAnimationOverlay } from './HandAnimationOverlay';
+-import { LocalHandArea } from './LocalHandArea';
+-import { TileFaceDomAppearance } from '../../presentation/appearance/TileFaceDomAppearance';
+ import { TableRenderer } from '../../presentation3d/TableRenderer';
+ import type { TableRendererMode } from '../../presentation3d/rendererMode';
+ import type { LocalHandAnimation3DState } from '../../presentation3d/animation/tableAnimation3D';
+@@ -44,6 +43,8 @@ interface GameScreenProps {
+   analysisOpen: boolean;
+   actionPrompt?: ReactNode;
+   canDiscard: boolean;
++  onInputResourcesReady?: () => void;
++  authoritativeInputOpen?: boolean;
+   allowedDiscardInstanceIds?: readonly string[];
+   kuikaeForbiddenTileIds?: readonly TileId[];
+   onOpenRulesGuide?: () => void;
+@@ -78,6 +79,8 @@ export function GameScreen({
+   analysisOpen,
+   actionPrompt,
+   canDiscard,
++  onInputResourcesReady,
++  authoritativeInputOpen = false,
+   allowedDiscardInstanceIds,
+   kuikaeForbiddenTileIds = [],
+   onOpenRulesGuide,
+@@ -261,14 +264,10 @@ export function GameScreen({
+ 
+   useEffect(() => () => discardSourceSnapshots.clear(), [discardSourceSnapshots]);
+ 
+-  return (
+-    <main
+-      className="game-screen"
+-      data-testid="game-screen"
+-      data-round-end-presentation-pending={roundEndPresentationPending ? 'true' : 'false'}
+-      data-local-presentation-ready={localPresentationReady ? 'true' : 'false'}
+-    >
+-      <GameTopBar
++  return <FormalGameScreen
++    data-round-end-presentation-pending={roundEndPresentationPending ? 'true' : 'false'}
++    data-local-presentation-ready={localPresentationReady ? 'true' : 'false'}
++    topBar={<GameTopBar
+         currentPlayerDisplayName={activeTableRenderer === '3d' ? resolvePlayerSlotNickname(gameState.currentPlayer, playerProfile?.nickname, slotNicknames, gameState.players[gameState.currentPlayer].name) : undefined}
+         gameState={gameState}
+         matchState={matchState}
+@@ -277,38 +276,36 @@ export function GameScreen({
+         onOpenAudioSettings={onOpenAudioSettings ?? (() => undefined)}
+         onToggleAnalysis={onToggleAnalysis}
+         onReturnMenu={onReturnMenu}
+-      />
+-      <TableRenderer gameState={gameState} matchState={matchState} bottomPlayerId={tableBottomPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} presentationState={sharedTablePresentationState} interactionActions={tableInteractionActions} animationsEnabled={realtimeHandAnimationsEnabled} animationSessionKey={handAnimationSessionKey} animationTurn={gameState.turn} localDiscardSnapshots={discardSourceSnapshots} onLocalHandAnimationChange={handleLocalHandAnimationChange} winPresentation3D={winPresentation3D} appearanceSettings={appearanceSettings} playerProfile={playerProfile} onActiveRendererChange={setActiveTableRenderer} localPresentationReady={localPresentationReady} />
+-      <TileFaceDomAppearance settings={activeTableRenderer === '3d' ? appearanceSettings : undefined} onReady={activeTableRenderer === '3d' ? handleLocalHandAssetsReady : undefined}>
+-      <LocalHandArea
+-        player={localPlayer}
+-        identityPlayer={fixedBottomPlayer}
+-        playerProfile={playerProfile}
+-        meldPlayer={fixedBottomPlayer}
+-        isCurrent={gameState.currentPlayer === localPlayerId}
+-        canDiscard={canDiscard}
+-        allowedDiscardInstanceIds={allowedDiscardInstanceIds}
+-        kuikaeForbiddenTileIds={kuikaeForbiddenTileIds}
+-        onDiscard={onDiscard}
+-        presentation={sharedTablePresentationState.localHand}
+-        interactionActions={tableInteractionActions}
+-        onDiscardSourceCapture={realtimeHandAnimationsEnabled ? captureDiscardSource : undefined}
+-        doraIndicators={gameState.doraIndicators}
+-        doraGlowEnabled={doraGlowEnabled}
+-        doraBorderEnabled={activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.borderEnabled === 1}
+-        doraBreathingEnabled={activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.breathingEnabled === 1}
+-        hoveredTileType={hoveredTileType}
+-        sameTileHoverEnabled={sameTileHoverEnabled}
+-        onHoveredTileTypeChange={onHoveredTileTypeChange}
+-        tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled}
+-        screenSpaceOverlay={activeTableRenderer === '3d'}
+-        retainDiscardSourceSnapshot={activeTableRenderer === '3d'}
+-        discardSnapshot={activeTableRenderer === '3d' ? localDiscardSnapshot : null}
+-        localHandAnimation={activeTableRenderer === '3d' ? localHandAnimation : null}
+-        onPresentationReady={activeTableRenderer === '3d' ? handleLocalHandLayoutReady : undefined}
+-        handPack={localHandPack}
+-      />
+-      <WinPresentationOverlay
++      />}
++    table={<TableRenderer onInputResourcesReady={onInputResourcesReady} gameState={gameState} matchState={matchState} bottomPlayerId={tableBottomPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} presentationState={sharedTablePresentationState} interactionActions={tableInteractionActions} animationsEnabled={realtimeHandAnimationsEnabled} animationSessionKey={handAnimationSessionKey} animationTurn={gameState.turn} localDiscardSnapshots={discardSourceSnapshots} onLocalHandAnimationChange={handleLocalHandAnimationChange} winPresentation3D={winPresentation3D} appearanceSettings={appearanceSettings} playerProfile={playerProfile} onActiveRendererChange={setActiveTableRenderer} localPresentationReady={localPresentationReady} />}
++    appearance={{ settings: activeTableRenderer === '3d' ? appearanceSettings : undefined, onReady: activeTableRenderer === '3d' ? handleLocalHandAssetsReady : undefined }}
++    localHand={{player: localPlayer,
++identityPlayer: fixedBottomPlayer,
++playerProfile: playerProfile,
++meldPlayer: fixedBottomPlayer,
++isCurrent: gameState.currentPlayer === localPlayerId,
++canDiscard: canDiscard,
++allowedDiscardInstanceIds: allowedDiscardInstanceIds,
++kuikaeForbiddenTileIds: kuikaeForbiddenTileIds,
++onDiscard: onDiscard,
++presentation: sharedTablePresentationState.localHand,
++interactionActions: tableInteractionActions,
++onDiscardSourceCapture: realtimeHandAnimationsEnabled ? captureDiscardSource : undefined,
++doraIndicators: gameState.doraIndicators,
++doraGlowEnabled: doraGlowEnabled,
++doraBorderEnabled: activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.borderEnabled === 1,
++doraBreathingEnabled: activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.breathingEnabled === 1,
++hoveredTileType: hoveredTileType,
++sameTileHoverEnabled: sameTileHoverEnabled,
++onHoveredTileTypeChange: onHoveredTileTypeChange,
++tsumoGiriDisplayEnabled: tsumoGiriDisplayEnabled,
++screenSpaceOverlay: activeTableRenderer === '3d',
++retainDiscardSourceSnapshot: activeTableRenderer === '3d',
++discardSnapshot: activeTableRenderer === '3d' ? localDiscardSnapshot : null,
++localHandAnimation: activeTableRenderer === '3d' && !authoritativeInputOpen ? localHandAnimation : null,
++onPresentationReady: activeTableRenderer === '3d' ? handleLocalHandLayoutReady : undefined,
++handPack: localHandPack}}
++    winOverlay={<WinPresentationOverlay
+         gameState={gameState}
+         sessionKey={handAnimationSessionKey}
+         doraGlowEnabled={doraGlowEnabled}
+@@ -318,28 +315,21 @@ export function GameScreen({
+         rendererMode={activeTableRenderer}
+         on3DPresentationChange={handleWinPresentation3DChange}
+         onRoundEndSettled={settleRoundEndPresentation}
+-      />
+-      </TileFaceDomAppearance>
+-      <HandAnimationOverlay
++      />}
++    handOverlay={<HandAnimationOverlay
+         bottomPlayerId={tableBottomPlayerId}
+         discardSourceSnapshots={discardSourceSnapshots}
+         enabled={realtimeHandAnimationsEnabled && activeTableRenderer === '2d'}
+         sessionKey={handAnimationSessionKey}
+         turn={gameState.turn}
+-      />
+-      <GameEventOverlay bottomPlayerId={tableBottomPlayerId} enabled={eventOverlayEnabled} onRoundEndSettled={settleRoundEndPresentation} />
+-      {actionPrompt ? (
+-        <div className="game-prompt-layer">
+-          {actionPrompt}
+-        </div>
+-      ) : null}
+-      {tenpaiDisplay ? <div className="game-tenpai-layer"><TenpaiWaitPanel display={tenpaiDisplay} /></div> : null}
+-      <AnalysisDrawer open={analysisOpen} gameState={gameState} onClose={onCloseAnalysis} />
+-      {roundEndPresentationPending ? null : (
+-        <ResultDialog gameState={gameState} onReset={onReset} doraGlowEnabled={doraGlowEnabled} winPresentationController={winPresentationController} settlementPresentationCoordinator={settlementPresentationCoordinator} />
+-      )}
+-    </main>
+-  );
++      />}
++    eventOverlay={<GameEventOverlay bottomPlayerId={tableBottomPlayerId} enabled={eventOverlayEnabled} onRoundEndSettled={settleRoundEndPresentation} />}
++    actionPrompt={actionPrompt}
++    tenpai={tenpaiDisplay ? <TenpaiWaitPanel display={tenpaiDisplay} /> : null}
++    details={<AnalysisDrawer open={analysisOpen} gameState={gameState} onClose={onCloseAnalysis} />}
++    result={roundEndPresentationPending ? null : <ResultDialog gameState={gameState} onReset={onReset} doraGlowEnabled={doraGlowEnabled} winPresentationController={winPresentationController} settlementPresentationCoordinator={settlementPresentationCoordinator} />}
++  />;
++
+ }
+ 
+ export function buildWinPresentationKey(gameState: GameState, sessionKey: string): string | null {
+diff --git a/src/presentation3d/Table3DScene.tsx b/src/presentation3d/Table3DScene.tsx
+index 59a3f6a..2721f0f 100644
+--- a/src/presentation3d/Table3DScene.tsx
++++ b/src/presentation3d/Table3DScene.tsx
+@@ -6,9 +6,10 @@ import { FixedTableCamera, TABLE_CAMERA } from './camera/FixedTableCamera';
+ import type { Table3DSeat } from './coordinates/seatTransforms';
+ import { Hand3D } from './hand/Hand3D';
+ import { TableLighting } from './lighting/TableLighting';
++import { NorthTiles3D } from './meld/NorthTiles3D';
+ import { Meld3D } from './meld/Meld3D';
+ import { River3D } from './river/River3D';
+-import type { TableSceneState } from './sceneState/tableSceneTypes';
++import type { OccupiedTableSceneState } from './sceneState/tableSceneTypes';
+ import { TableMesh } from './table/TableMesh';
+ import { TableEnvironment } from './table/TableEnvironment';
+ import { DEFAULT_TABLE_VISUAL_THEME, type TableVisualTheme } from './table/tableVisualTheme';
+@@ -37,7 +38,7 @@ import { AvatarFrameTuningPanel } from './table/AvatarFrameTuningPanel';
+ import { resolveHandPackForPlayer, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
+ 
+ type Table3DSceneProps = Readonly<{
+-  sceneState: TableSceneState;
++  sceneState: OccupiedTableSceneState;
+   animationsEnabled?: boolean;
+   animationSessionKey?: string;
+   animationTurn?: number;
+@@ -67,6 +68,7 @@ const StableTableScene = memo(function StableTableScene({
+   handPresentation,
+   hiddenRiverKeys,
+   hiddenMeldTileKeys,
++  hiddenNorthKeys,
+   winPresentation3D,
+   winHandPack,
+   tableVisualTheme,
+@@ -75,11 +77,12 @@ const StableTableScene = memo(function StableTableScene({
+   centralHud,
+   onTileLayerReady,
+ }: Readonly<{
+-  sceneState: TableSceneState;
++  sceneState: OccupiedTableSceneState;
+   hiddenHandKeys: TableAnimation3DRenderState['hiddenHandKeys'];
+   handPresentation?: import('../presentation/handAnimation/HandPresentationSnapshot').HandPresentationFrame;
+   hiddenRiverKeys: TableAnimation3DRenderState['hiddenRiverKeys'];
+   hiddenMeldTileKeys: TableAnimation3DRenderState['hiddenMeldTileKeys'];
++  hiddenNorthKeys?: ReadonlySet<string>;
+   winPresentation3D?: WinPresentation3DState | null;
+   winHandPack?: import('../hand/handPacks').HandPack;
+   tableVisualTheme: TableVisualTheme;
+@@ -98,35 +101,36 @@ const StableTableScene = memo(function StableTableScene({
+       {centralHud ? <CentralConsoleHudAnchor3D riichiLanes>{centralHud}</CentralConsoleHudAnchor3D> : null}
+       <Suspense fallback={null}>
+         <TileTextureWarmup />
+-        {SEAT_ORDER.map((seat) => (
++        {SEAT_ORDER.flatMap((seat) => { const seatState = sceneState.seats[seat]; return seatState ? [ (
+           <group key={seat}>
+             {seat === 'bottom' ? null : (
+               <Hand3D
+-                seatState={sceneState.seats[seat]}
++                seatState={seatState}
+                 winHandPack={winHandPack}
+-                handPresentation={handPresentation?.snapshot.playerId === sceneState.seats[seat].playerId ? handPresentation : undefined}
++                handPresentation={handPresentation?.snapshot.playerId === seatState.playerId ? handPresentation : undefined}
+                 hiddenTileKeys={hiddenHandKeys}
+-                winPresentation={winPresentation3D?.action.playerId === sceneState.seats[seat].playerId || winPresentation3D?.revealedPlayerIds?.includes(sceneState.seats[seat].playerId)
++                winPresentation={winPresentation3D?.action.playerId === seatState.playerId || winPresentation3D?.revealedPlayerIds?.includes(seatState.playerId)
+                   ? winPresentation3D
+                   : null}
+                 visualContext={tileVisualContext}
+               />
+             )}
+             <River3D
+-              seatState={sceneState.seats[seat]}
++              seatState={seatState}
+               hiddenTileKeys={hiddenRiverKeys}
+-              winningRiverIndex={winningRiverTarget?.playerId === sceneState.seats[seat].playerId
++              winningRiverIndex={winningRiverTarget?.playerId === seatState.playerId
+                 ? winningRiverTarget.riverIndex
+                 : undefined}
+               visualContext={tileVisualContext}
+             />
+             <Meld3D
+-              seatState={sceneState.seats[seat]}
++              seatState={seatState}
+               hiddenTileKeys={hiddenMeldTileKeys}
+               visualContext={tileVisualContext}
+             />
++            <NorthTiles3D seatState={seatState} hiddenKeys={hiddenNorthKeys} />
+           </group>
+-        ))}
++        ) ] : []; })}
+         <SceneLayerReady onReady={onTileLayerReady} />
+       </Suspense>
+     </>
+@@ -160,10 +164,10 @@ export function Table3DScene({
+   const playerSlotAppearances = usePlayerSlotAppearances();
+   const winningRiverTarget = resolveWinningRiverTarget3D(winPresentation3D ?? null);
+   const winningRevealSeat = winPresentation3D
+-    ? SEAT_ORDER.find((seat) => sceneState.seats[seat].playerId === winPresentation3D.action.playerId)
++    ? SEAT_ORDER.find((seat) => sceneState.seats[seat]?.playerId === winPresentation3D.action.playerId)
+     : undefined;
+   const winningRevealFaceUpCount = winningRevealSeat
+-    ? sceneState.seats[winningRevealSeat].hand.filter((tile) => tile.faceState === 'face-up').length
++    ? sceneState.seats[winningRevealSeat]?.hand.filter((tile) => tile.faceState === 'face-up').length
+     : undefined;
+   const sourceStoreRef = useRef<DiscardSource3DStore | null>(null);
+   if (!sourceStoreRef.current) sourceStoreRef.current = new DiscardSource3DStore();
+@@ -211,8 +215,8 @@ export function Table3DScene({
+     animation.hiddenRiichiSeats,
+   );
+   const tableSceneReady = tileLayerReady && riichiLayerReady;
+-  const criticalPlayerIds = SEAT_ORDER.map((seat) => sceneState.seats[seat].playerId);
+-  const criticalRiichiPlayerIds = visibleRiichiSeats.map((seat) => sceneState.seats[seat].playerId);
++  const criticalPlayerIds = Object.values(sceneState.seats).map(seat => seat.playerId);
++  const criticalRiichiPlayerIds = visibleRiichiSeats.flatMap((seat) => sceneState.seats[seat] ? [sceneState.seats[seat]!.playerId] : []);
+   const handleRendererReady = useCallback(() => setRendererReady(true), []);
+   const handleTileLayerReady = useCallback(() => setTileLayerReady(true), []);
+   const handleRiichiLayerReady = useCallback(() => setRiichiLayerReady(true), []);
+@@ -246,9 +250,9 @@ export function Table3DScene({
+       data-tile-hover-identity={tileVisualContext?.hoveredTileType ?? ''}
+       data-dora-glow-enabled={tileVisualContext?.doraGlowEnabled === true ? 'true' : 'false'}
+       data-visible-dora-tile-count={SEAT_ORDER.reduce((count, seat) => count
+-        + sceneState.seats[seat].river.filter((tile) => tile.visible && tile.tile?.doraKind).length
+-        + sceneState.seats[seat].melds.reduce((meldCount, meld) => meldCount
+-          + meld.tiles.filter((tile) => tile.faceState === 'face-up' && tile.tile?.doraKind).length, 0), 0)}
++        + (sceneState.seats[seat]?.river.filter((tile) => tile.visible && tile.tile?.doraKind).length ?? 0)
++        + (sceneState.seats[seat]?.melds.reduce((meldCount, meld) => meldCount
++          + meld.tiles.filter((tile) => tile.faceState === 'face-up' && tile.tile?.doraKind).length, 0) ?? 0), 0)}
+       data-dora-sweep-active-count="0"
+       data-dora-sweep-pulse-count="0"
+       data-dora-sweep-last-start-ms="0"
+@@ -290,6 +294,7 @@ export function Table3DScene({
+                   handPresentation={animation.active?.handPresentation}
+                   hiddenRiverKeys={animation.hiddenRiverKeys}
+                   hiddenMeldTileKeys={animation.hiddenMeldTileKeys}
++                  hiddenNorthKeys={animation.hiddenNorthKeys}
+                   winPresentation3D={winPresentation3D}
+                   winHandPack={resolveHandPackForPlayer(winPresentation3D?.action.playerId ?? 0, playerSlotAppearances, appearanceSettings)}
+                   tableVisualTheme={tableVisualTheme}

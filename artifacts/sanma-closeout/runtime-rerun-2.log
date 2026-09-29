@@ -1,0 +1,18 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/game/sanma/timing.test.ts (15 tests) 6611ms
+   ✓ runtime full matches with policy audit > east-only/loss/short=false/seed=308 734ms
+   ✓ runtime full matches with policy audit > east-only/split_missing_share_ceil100/short=false/seed=308 358ms
+   ✓ runtime full matches with policy audit > hanchan/loss/short=false/seed=308 766ms
+   ✓ runtime full matches with policy audit > hanchan/split_missing_share_ceil100/short=false/seed=308 1191ms
+   ✓ runtime full matches with policy audit > east-only/loss/short=true/seed=308 803ms
+   ✓ runtime full matches with policy audit > east-only/split_missing_share_ceil100/short=true/seed=308 767ms
+   ✓ runtime full matches with policy audit > hanchan/loss/short=true/seed=308 775ms
+   ✓ runtime full matches with policy audit > hanchan/split_missing_share_ceil100/short=true/seed=308 1180ms
+
+ Test Files  1 passed (1)
+      Tests  15 passed (15)
+   Start at  00:47:09
+   Duration  7.11s (transform 133ms, setup 0ms, collect 188ms, tests 6.61s, environment 0ms, prepare 89ms)
+

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type MouseEventHandler, type PointerEventHandler } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState, type MouseEventHandler, type PointerEventHandler } from 'react';
+import { TileDoraContext } from '../presentation/table/TileDoraContext';
 import { getTileAlt, getTileAltById, getTileBackImage, getTileImage, getTileImageById, getTilePlaceholderImage, isRedFive } from '../game/tileAssets';
 import type { Tile as TileModel, TileId } from '../game/types';
 import { suitClass } from '../game/tileUtils';
@@ -85,7 +86,9 @@ export function Tile({
         ? getTileAltById(tileId)
         : '缺失牌图';
   const showRedBadge = !!tile && !isFaceDown && isRedFive(tile);
-  const doraKind = isFaceDown ? null : resolveTileDoraVisualKind(tile, doraIndicators);
+  const modeDoraIds = useContext(TileDoraContext);
+  const modeDora = tile && modeDoraIds?.includes(tile.id);
+  const doraKind = isFaceDown ? null : modeDoraIds ? modeDora ? tile?.red ? 'tile--double-dora' : 'tile--dora' : tile?.red ? 'tile--red-dora' : null : resolveTileDoraVisualKind(tile, doraIndicators);
   const canReportHover = sameTileHoverEnabled && !isFaceDown && tileId !== undefined;
   const visualSemantics = resolveTileVisualSemantics({
     tileId,
@@ -177,14 +180,14 @@ export function Tile({
 
   if (!interactive) {
     return (
-      <span className={classNames} role="img" aria-label={alt} data-tile-state={tileState} data-drawn={drawn || undefined} data-riichi-candidate={riichiCandidate || undefined}>
+      <span className={classNames} role="img" aria-label={alt} data-tile-state={tileState} data-tile-instance={isFaceDown ? undefined : tile?.instanceId} data-drawn={drawn || undefined} data-riichi-candidate={riichiCandidate || undefined}>
         {content}
       </span>
     );
   }
 
   return (
-    <button className={classNames} type="button" onPointerDown={onPointerDown} onClick={onClick} disabled={isDisabled} aria-label={alt} aria-pressed={selected || undefined} data-tile-state={tileState} data-drawn={drawn || undefined} data-riichi-candidate={riichiCandidate || undefined}>
+    <button className={classNames} type="button" onPointerDown={onPointerDown} onClick={onClick} disabled={isDisabled} aria-label={alt} aria-pressed={selected || undefined} data-tile-state={tileState} data-tile-instance={isFaceDown ? undefined : tile?.instanceId} data-drawn={drawn || undefined} data-riichi-candidate={riichiCandidate || undefined}>
       {content}
     </button>
   );

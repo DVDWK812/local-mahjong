@@ -1,0 +1,210 @@
+ M package.json
+ M src/App.tsx
+ M src/app/navigation.ts
+ M src/components/Board.tsx
+ M src/components/LocalModeMenu.tsx
+ M src/components/RiichiModeMenu.tsx
+ M src/components/SeventeenStepsMatchSettings.tsx
+ M src/components/SeventeenStepsScreen.tsx
+ M src/components/TestModeScreen.tsx
+ M src/components/game/GameScreen.tsx
+ M src/game/persistence/storageTypes.ts
+ M src/game/persistence/storageValidation.ts
+ M src/game/replay/types.ts
+ M src/game/seventeenSteps.ts
+ M src/game/shanten.ts
+ M src/game/testMode/catalog.ts
+ M src/game/testMode/resultsStorage.ts
+ M src/presentation/handAnimation/HandAnimationController.ts
+ M src/presentation3d/Table3DHud.tsx
+ M src/presentation3d/TableRenderer.tsx
+ M src/presentation3d/hand/Hand3D.tsx
+ M src/presentation3d/participants/ParticipantScene.tsx
+ M src/presentation3d/participants/ParticipantTable.tsx
+ M src/presentation3d/participants/participantLayout.ts
+ M src/presentation3d/participants/participantPresentation.ts
+ M src/presentation3d/sceneState/buildTableSceneState.ts
+ M src/presentation3d/sceneState/tableSceneTypes.ts
+ M src/presentation3d/table/tablePresentationTuning.ts
+ M vite.config.ts
+?? artifacts/hud-v2-four-1080.png
+?? artifacts/hud-v2-four-720.png
+?? artifacts/hud-v2-qa.md
+?? artifacts/hud-v2-seventeen-1080.png
+?? artifacts/hud-v2-seventeen-720.png
+?? artifacts/hud-v2-tooltip-720.png
+?? artifacts/infra-v1-audit.md
+?? artifacts/infra-v1-four-1080.png
+?? artifacts/infra-v1-four-720.png
+?? artifacts/infra-v1-logs/hud-v2-build.log
+?? artifacts/infra-v1-logs/hud-v2-final-build.log
+?? artifacts/infra-v1-logs/hud-v2-final-test.log
+?? artifacts/infra-v1-logs/hud-v2-full-test.log
+?? artifacts/infra-v1-logs/hud-v2-repair.log
+?? artifacts/infra-v1-logs/hud-v2-targeted.log
+?? artifacts/infra-v1-logs/infra-v1-baseline-test-escalated.log
+?? artifacts/infra-v1-logs/infra-v1-baseline-test.log
+?? artifacts/infra-v1-logs/infra-v1-build.log
+?? artifacts/infra-v1-logs/infra-v1-clock-expanded.log
+?? artifacts/infra-v1-logs/infra-v1-final-build.log
+?? artifacts/infra-v1-logs/infra-v1-final-pause-regression.log
+?? artifacts/infra-v1-logs/infra-v1-final-test.log
+?? artifacts/infra-v1-logs/infra-v1-full-test.log
+?? artifacts/infra-v1-logs/infra-v1-pause-test.log
+?? artifacts/infra-v1-logs/infra-v1-repair-test.log
+?? artifacts/infra-v1-logs/infra-v1-targeted-2.log
+?? artifacts/infra-v1-logs/infra-v1-targeted.log
+?? artifacts/infra-v1-report.md
+?? artifacts/infra-v1-seventeen-1080.png
+?? artifacts/infra-v1-seventeen-720.png
+?? artifacts/sanma-v1/ACCEPTANCE.md
+?? artifacts/sanma-v1/ai-regression-recheck.log
+?? artifacts/sanma-v1/baseline-head.txt
+?? artifacts/sanma-v1/baseline-status.txt
+?? artifacts/sanma-v1/baseline-tests.log
+?? artifacts/sanma-v1/baseline.patch
+?? artifacts/sanma-v1/browser-events.json
+?? artifacts/sanma-v1/build.log
+?? artifacts/sanma-v1/dev-server.log
+?? artifacts/sanma-v1/diff-check.log
+?? artifacts/sanma-v1/double-ron-720.png
+?? artifacts/sanma-v1/edge-scenarios.log
+?? artifacts/sanma-v1/final-diff-stat.txt
+?? artifacts/sanma-v1/final-scene-network.json
+?? artifacts/sanma-v1/final-status.txt
+?? artifacts/sanma-v1/final-test-entry-dom.txt
+?? artifacts/sanma-v1/final-tests.log
+?? artifacts/sanma-v1/final-tracked-diff.patch
+?? artifacts/sanma-v1/final-validation.log
+?? artifacts/sanma-v1/fingerprint-recheck-dom.txt
+?? artifacts/sanma-v1/fixture-recheck.log
+?? artifacts/sanma-v1/formal-completion-dom.txt
+?? artifacts/sanma-v1/formal-south-720.png
+?? artifacts/sanma-v1/formal-south-result-720.png
+?? artifacts/sanma-v1/integration.log
+?? artifacts/sanma-v1/long-river-1080.png
+?? artifacts/sanma-v1/long-river-720.png
+?? artifacts/sanma-v1/long-run-results.json
+?? artifacts/sanma-v1/long-run.log
+?? artifacts/sanma-v1/low-full-1080.png
+?? artifacts/sanma-v1/scenario-results.json
+?? artifacts/sanma-v1/scenarios.log
+?? artifacts/sanma-v1/stage01-tests.log
+?? artifacts/sanma-v1/stage2-tests.log
+?? artifacts/sanma-v1/targeted.log
+?? artifacts/sanma-v1/types-current.log
+?? artifacts/sanma-v1/types.log
+?? artifacts/xz-v1/.gitignore
+?? artifacts/xz-v1/acceptance-final.log
+?? artifacts/xz-v1/acceptance-first.log
+?? artifacts/xz-v1/audit.md
+?? artifacts/xz-v1/baseline-test-unrestricted.log
+?? artifacts/xz-v1/baseline-test.log
+?? artifacts/xz-v1/boundaries-and-hud-final.log
+?? artifacts/xz-v1/boundaries-first.log
+?? artifacts/xz-v1/boundaries-second.log
+?? artifacts/xz-v1/browser-bundle-completion.log
+?? artifacts/xz-v1/browser-bundle-final.log
+?? artifacts/xz-v1/browser-bundle-visual-final.log
+?? artifacts/xz-v1/browser-bundle.log
+?? artifacts/xz-v1/browser-evidence.md
+?? artifacts/xz-v1/browser-preview-5186.log
+?? artifacts/xz-v1/browser-preview.log
+?? artifacts/xz-v1/core-acceptance.log
+?? artifacts/xz-v1/dev-server.log
+?? artifacts/xz-v1/diff-check.log
+?? artifacts/xz-v1/engine-test-fixed.log
+?? artifacts/xz-v1/engine-test.log
+?? artifacts/xz-v1/expanded-tests.log
+?? artifacts/xz-v1/final-diff-stat.txt
+?? artifacts/xz-v1/final-status.txt
+?? artifacts/xz-v1/manual-review.md
+?? artifacts/xz-v1/production-build-completion.log
+?? artifacts/xz-v1/production-build-final.log
+?? artifacts/xz-v1/production-build-visual-final.log
+?? artifacts/xz-v1/production-build.log
+?? artifacts/xz-v1/project-final-test.log
+?? artifacts/xz-v1/project-final-unrestricted.log
+?? artifacts/xz-v1/project-final.log
+?? artifacts/xz-v1/project-rerun.log
+?? artifacts/xz-v1/report.md
+?? artifacts/xz-v1/restore-validation.log
+?? artifacts/xz-v1/serialized-restore-fix.log
+?? artifacts/xz-v1/shared-diff.patch
+?? artifacts/xz-v1/start-diff.patch
+?? artifacts/xz-v1/start-status.txt
+?? artifacts/xz-v1/transactions-first.log
+?? artifacts/xz-v1/types-current.log
+?? artifacts/xz-v1/types-engine.log
+?? artifacts/xz-v1/types-expanded.log
+?? artifacts/xz-v1/types-final.log
+?? artifacts/xz-v1/types-hand.log
+?? artifacts/xz-v1/types-hud.log
+?? artifacts/xz-v1/types-initial.log
+?? artifacts/xz-v1/types-integrated.log
+?? artifacts/xz-v1/types-latest.log
+?? artifacts/xz-v1/types-ui.log
+?? artifacts/xz-v1/xuezhan-final-matrix.log
+?? artifacts/xz-v1/xuezhan-final.log
+?? docs/SANMA_V1.md
+?? scripts/xzBuildStamp.ts
+?? src/components/MatchClockHud.tsx
+?? src/components/SanmaScreen.tsx
+?? src/components/SanmaSettings.tsx
+?? src/components/SanmaTestTab.tsx
+?? src/components/TimeControlSettings.tsx
+?? src/components/XuezhanHud.tsx
+?? src/components/XuezhanScreen.tsx
+?? src/components/XuezhanSettings.tsx
+?? src/components/XuezhanTestTab.tsx
+?? src/components/matchClockHud.css
+?? src/components/sanma.css
+?? src/components/xuezhan.css
+?? src/game/sanma/ai.ts
+?? src/game/sanma/config.ts
+?? src/game/sanma/edgeScenarios.ts
+?? src/game/sanma/engine.ts
+?? src/game/sanma/fixtures.ts
+?? src/game/sanma/hand.ts
+?? src/game/sanma/integration.test.ts
+?? src/game/sanma/invariants.ts
+?? src/game/sanma/longRun.test.ts
+?? src/game/sanma/longRun.ts
+?? src/game/sanma/persistence.ts
+?? src/game/sanma/rules.test.ts
+?? src/game/sanma/runtime.ts
+?? src/game/sanma/scenarios.test.ts
+?? src/game/sanma/scenarios.ts
+?? src/game/sanma/scoring.ts
+?? src/game/sanma/testOutput.d.ts
+?? src/game/sanma/types.ts
+?? src/game/sanma/visualFixtures.ts
+?? src/game/sanma/wall.test.ts
+?? src/game/sanma/wall.ts
+?? src/game/timeControl/config.ts
+?? src/game/timeControl/decisionClock.ts
+?? src/game/timeControl/fourPlayerPolicy.ts
+?? src/game/timeControl/matchRuntime.ts
+?? src/game/timeControl/seventeenPolicy.ts
+?? src/game/timeControl/timeControl.test.ts
+?? src/game/xuezhan/acceptance.test.ts
+?? src/game/xuezhan/ai.ts
+?? src/game/xuezhan/boundaries.test.ts
+?? src/game/xuezhan/buildStamp.d.ts
+?? src/game/xuezhan/config.ts
+?? src/game/xuezhan/engine.test.ts
+?? src/game/xuezhan/engine.ts
+?? src/game/xuezhan/fields.ts
+?? src/game/xuezhan/persistence.ts
+?? src/game/xuezhan/presentation.test.ts
+?? src/game/xuezhan/runtime.test.ts
+?? src/game/xuezhan/runtime.ts
+?? src/game/xuezhan/scenarios.ts
+?? src/game/xuezhan/scoring.ts
+?? src/game/xuezhan/transactions.test.ts
+?? src/game/xuezhan/types.ts
+?? src/presentation/table/sanmaPresentation.ts
+?? src/presentation/table/xuezhanPresentation.ts
+?? src/presentation3d/participants/SanmaMotion3D.tsx
+?? src/presentation3d/participants/SanmaPublicTiles.tsx
+?? src/presentation3d/participants/useSanmaAnimation.ts

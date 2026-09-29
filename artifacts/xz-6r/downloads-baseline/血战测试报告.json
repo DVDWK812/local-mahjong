@@ -1,0 +1,1164 @@
+{
+  "mode": "xuezhan",
+  "code": {
+    "commit": "5620bbbb4f73fa1001d663f49c98ad88e75b58e8",
+    "fingerprint": "4c2e19b00d290c60bf972097014f1b88048398ba1efd3d2ce388883afd22f598",
+    "snapshotId": "d9068d2f09c3130a6cfc1cf361d87e33b6e84786cf5a5061518391733456c648",
+    "buildMode": "production"
+  },
+  "results": {
+    "XZ-TRIPLE": {
+      "caseVersion": 1,
+      "ruleId": "xz1-85a129c426e0db96",
+      "caseHash": "db8f5ec88b067780",
+      "code": {
+        "commit": "5620bbbb4f73fa1001d663f49c98ad88e75b58e8",
+        "fingerprint": "4c2e19b00d290c60bf972097014f1b88048398ba1efd3d2ce388883afd22f598",
+        "snapshotId": "d9068d2f09c3130a6cfc1cf361d87e33b6e84786cf5a5061518391733456c648",
+        "buildMode": "production"
+      },
+      "batch": "xz-1790094832247",
+      "at": "2026-09-22T16:33:52.248Z",
+      "execution": "browser",
+      "automatic": "通过",
+      "manual": "待复核",
+      "notes": "",
+      "evidence": {
+        "mode": "xuezhan",
+        "schemaVersion": 1,
+        "config": {
+          "mode": "xuezhan",
+          "rules": {
+            "schemaVersion": 1,
+            "ruleVersion": 1,
+            "preset": "dynamic",
+            "presetVersion": 1,
+            "rounds": 1,
+            "startingScore": 100,
+            "bankruptcy": false,
+            "firstDealer": 0,
+            "dealerPolicy": "rotate",
+            "drawDealer": "rotate",
+            "exchange": 0,
+            "direction": "random",
+            "missing": "dynamic",
+            "unclearedCalls": false,
+            "selfDrawOnly": false,
+            "multiWin": true,
+            "passWin": "until-draw",
+            "robKong": true,
+            "base": 1,
+            "cap": 3,
+            "selfDraw": "base",
+            "selfDrawExtra": 1,
+            "extraAfterCap": false,
+            "patterns": {
+              "allTriplets": {
+                "enabled": true,
+                "fan": 1
+              },
+              "pure": {
+                "enabled": true,
+                "fan": 2
+              },
+              "sevenPairs": {
+                "enabled": true,
+                "fan": 2
+              },
+              "root": {
+                "enabled": true,
+                "fan": 1
+              },
+              "kongDraw": {
+                "enabled": true,
+                "fan": 1
+              },
+              "kongDiscard": {
+                "enabled": true,
+                "fan": 1
+              },
+              "robKong": {
+                "enabled": true,
+                "fan": 1
+              },
+              "lastDraw": {
+                "enabled": false,
+                "fan": 1
+              },
+              "lastDiscard": {
+                "enabled": false,
+                "fan": 1
+              },
+              "concealed": {
+                "enabled": false,
+                "fan": 1
+              },
+              "middle": {
+                "enabled": false,
+                "fan": 1
+              },
+              "singlePair": {
+                "enabled": false,
+                "fan": 1
+              },
+              "jiang": {
+                "enabled": false,
+                "fan": 2
+              },
+              "terminals": {
+                "enabled": false,
+                "fan": 2
+              },
+              "heaven": {
+                "enabled": false,
+                "fan": 3
+              },
+              "earth": {
+                "enabled": false,
+                "fan": 3
+              }
+            },
+            "kongPay": true,
+            "directPay": "source",
+            "directRate": 2,
+            "addedRate": 1,
+            "concealedRate": 2,
+            "directResponsibility": false,
+            "transfer": false,
+            "transferSplit": "nearest",
+            "pig": true,
+            "pigPenalty": "cap",
+            "pigRate": 8,
+            "pigIncludesWon": true,
+            "readyPay": true,
+            "readyPolicy": "structural",
+            "pigAlsoReady": false,
+            "refund": "not-ready"
+          },
+          "ruleId": "xz1-85a129c426e0db96",
+          "time": {
+            "schemaVersion": 1,
+            "turn": {
+              "kind": "banked",
+              "decisionBaseMs": 5000,
+              "bankPerHandMs": 20000
+            },
+            "preparation": {
+              "exchange": {
+                "kind": "fixed",
+                "durationMs": 30000
+              },
+              "missing": {
+                "kind": "fixed",
+                "durationMs": 10000
+              }
+            }
+          },
+          "ai": [
+            {
+              "playerId": 1,
+              "difficulty": "shintentai",
+              "personality": "balanced"
+            },
+            {
+              "playerId": 2,
+              "difficulty": "shintentai",
+              "personality": "balanced"
+            },
+            {
+              "playerId": 3,
+              "difficulty": "shintentai",
+              "personality": "balanced"
+            }
+          ],
+          "preferences": {
+            "autoWin": false,
+            "suppressCalls": false,
+            "autoTsumogiri": false,
+            "legalHelp": true,
+            "waitsHelp": true,
+            "fanHelp": true,
+            "spectator": true
+          }
+        },
+        "seed": 55,
+        "initialWall": [
+          {
+            "id": 0,
+            "suit": "man",
+            "rank": 1,
+            "red": false,
+            "instanceId": "xz:1:2"
+          },
+          {
+            "id": 21,
+            "suit": "sou",
+            "rank": 4,
+            "red": false,
+            "instanceId": "xz:1:87"
+          },
+          {
+            "id": 5,
+            "suit": "man",
+            "rank": 6,
+            "red": false,
+            "instanceId": "xz:1:21"
+          },
+          {
+            "id": 8,
+            "suit": "man",
+            "rank": 9,
+            "red": false,
+            "instanceId": "xz:1:35"
+          },
+          {
+            "id": 1,
+            "suit": "man",
+            "rank": 2,
+            "red": false,
+            "instanceId": "xz:1:4"
+          },
+          {
+            "id": 4,
+            "suit": "man",
+            "rank": 5,
+            "red": false,
+            "instanceId": "xz:1:17"
+          },
+          {
+            "id": 1,
+            "suit": "man",
+            "rank": 2,
+            "red": false,
+            "instanceId": "xz:1:5"
+          },
+          {
+            "id": 5,
+            "suit": "man",
+            "rank": 6,
+            "red": false,
+            "instanceId": "xz:1:22"
+          },
+          {
+            "id": 24,
+            "suit": "sou",
+            "rank": 7,
+            "red": false,
+            "instanceId": "xz:1:97"
+          },
+          {
+            "id": 3,
+            "suit": "man",
+            "rank": 4,
+            "red": false,
+            "instanceId": "xz:1:13"
+          },
+          {
+            "id": 13,
+            "suit": "pin",
+            "rank": 5,
+            "red": false,
+            "instanceId": "xz:1:54"
+          },
+          {
+            "id": 13,
+            "suit": "pin",
+            "rank": 5,
+            "red": false,
+            "instanceId": "xz:1:55"
+          },
+          {
+            "id": 23,
+            "suit": "sou",
+            "rank": 6,
+            "red": false,
+            "instanceId": "xz:1:93"
+          },
+          {
+            "id": 1,
+            "suit": "man",
+            "rank": 2,
+            "red": false,
+            "instanceId": "xz:1:6"
+          },
+          {
+            "id": 2,
+            "suit": "man",
+            "rank": 3,
+            "red": false,
+            "instanceId": "xz:1:9"
+          },
+          {
+            "id": 3,
+            "suit": "man",
+            "rank": 4,
+            "red": false,
+            "instanceId": "xz:1:15"
+          },
+          {
+            "id": 2,
+            "suit": "man",
+            "rank": 3,
+            "red": false,
+            "instanceId": "xz:1:8"
+          },
+          {
+            "id": 3,
+            "suit": "man",
+            "rank": 4,
+            "red": false,
+            "instanceId": "xz:1:14"
+          },
+          {
+            "id": 4,
+            "suit": "man",
+            "rank": 5,
+            "red": false,
+            "instanceId": "xz:1:18"
+          },
+          {
+            "id": 5,
+            "suit": "man",
+            "rank": 6,
+            "red": false,
+            "instanceId": "xz:1:20"
+          },
+          {
+            "id": 6,
+            "suit": "man",
+            "rank": 7,
+            "red": false,
+            "instanceId": "xz:1:25"
+          },
+          {
+            "id": 7,
+            "suit": "man",
+            "rank": 8,
+            "red": false,
+            "instanceId": "xz:1:29"
+          },
+          {
+            "id": 0,
+            "suit": "man",
+            "rank": 1,
+            "red": false,
+            "instanceId": "xz:1:3"
+          },
+          {
+            "id": 15,
+            "suit": "pin",
+            "rank": 7,
+            "red": false,
+            "instanceId": "xz:1:61"
+          },
+          {
+            "id": 16,
+            "suit": "pin",
+            "rank": 8,
+            "red": false,
+            "instanceId": "xz:1:67"
+          },
+          {
+            "id": 17,
+            "suit": "pin",
+            "rank": 9,
+            "red": false,
+            "instanceId": "xz:1:70"
+          },
+          {
+            "id": 0,
+            "suit": "man",
+            "rank": 1,
+            "red": false,
+            "instanceId": "xz:1:1"
+          },
+          {
+            "id": 9,
+            "suit": "pin",
+            "rank": 1,
+            "red": false,
+            "instanceId": "xz:1:37"
+          },
+          {
+            "id": 10,
+            "suit": "pin",
+            "rank": 2,
+            "red": false,
+            "instanceId": "xz:1:41"
+          },
+          {
+            "id": 11,
+            "suit": "pin",
+            "rank": 3,
+            "red": false,
+            "instanceId": "xz:1:45"
+          },
+          {
+            "id": 10,
+            "suit": "pin",
+            "rank": 2,
+            "red": false,
+            "instanceId": "xz:1:40"
+          },
+          {
+            "id": 11,
+            "suit": "pin",
+            "rank": 3,
+            "red": false,
+            "instanceId": "xz:1:47"
+          },
+          {
+            "id": 12,
+            "suit": "pin",
+            "rank": 4,
+            "red": false,
+            "instanceId": "xz:1:49"
+          },
+          {
+            "id": 13,
+            "suit": "pin",
+            "rank": 5,
+            "red": false,
+            "instanceId": "xz:1:52"
+          },
+          {
+            "id": 14,
+            "suit": "pin",
+            "rank": 6,
+            "red": false,
+            "instanceId": "xz:1:58"
+          },
+          {
+            "id": 15,
+            "suit": "pin",
+            "rank": 7,
+            "red": false,
+            "instanceId": "xz:1:62"
+          },
+          {
+            "id": 15,
+            "suit": "pin",
+            "rank": 7,
+            "red": false,
+            "instanceId": "xz:1:60"
+          },
+          {
+            "id": 16,
+            "suit": "pin",
+            "rank": 8,
+            "red": false,
+            "instanceId": "xz:1:66"
+          },
+          {
+            "id": 17,
+            "suit": "pin",
+            "rank": 9,
+            "red": false,
+            "instanceId": "xz:1:69"
+          },
+          {
+            "id": 0,
+            "suit": "man",
+            "rank": 1,
+            "red": false,
+            "instanceId": "xz:1:0"
+          },
+          {
+            "id": 18,
+            "suit": "sou",
+            "rank": 1,
+            "red": false,
+            "instanceId": "xz:1:73"
+          },
+          {
+            "id": 19,
+            "suit": "sou",
+            "rank": 2,
+            "red": false,
+            "instanceId": "xz:1:76"
+          },
+          {
+            "id": 20,
+            "suit": "sou",
+            "rank": 3,
+            "red": false,
+            "instanceId": "xz:1:83"
+          },
+          {
+            "id": 19,
+            "suit": "sou",
+            "rank": 2,
+            "red": false,
+            "instanceId": "xz:1:78"
+          },
+          {
+            "id": 20,
+            "suit": "sou",
+            "rank": 3,
+            "red": false,
+            "instanceId": "xz:1:81"
+          },
+          {
+            "id": 21,
+            "suit": "sou",
+            "rank": 4,
+            "red": false,
+            "instanceId": "xz:1:85"
+          },
+          {
+            "id": 22,
+            "suit": "sou",
+            "rank": 5,
+            "red": false,
+            "instanceId": "xz:1:88"
+          },
+          {
+            "id": 23,
+            "suit": "sou",
+            "rank": 6,
+            "red": false,
+            "instanceId": "xz:1:92"
+          },
+          {
+            "id": 24,
+            "suit": "sou",
+            "rank": 7,
+            "red": false,
+            "instanceId": "xz:1:99"
+          },
+          {
+            "id": 24,
+            "suit": "sou",
+            "rank": 7,
+            "red": false,
+            "instanceId": "xz:1:96"
+          },
+          {
+            "id": 25,
+            "suit": "sou",
+            "rank": 8,
+            "red": false,
+            "instanceId": "xz:1:100"
+          },
+          {
+            "id": 26,
+            "suit": "sou",
+            "rank": 9,
+            "red": false,
+            "instanceId": "xz:1:105"
+          },
+          {
+            "id": 5,
+            "suit": "man",
+            "rank": 6,
+            "red": false,
+            "instanceId": "xz:1:23"
+          },
+          {
+            "id": 22,
+            "suit": "sou",
+            "rank": 5,
+            "red": false,
+            "instanceId": "xz:1:90"
+          },
+          {
+            "id": 1,
+            "suit": "man",
+            "rank": 2,
+            "red": false,
+            "instanceId": "xz:1:7"
+          },
+          {
+            "id": 8,
+            "suit": "man",
+            "rank": 9,
+            "red": false,
+            "instanceId": "xz:1:33"
+          },
+          {
+            "id": 6,
+            "suit": "man",
+            "rank": 7,
+            "red": false,
+            "instanceId": "xz:1:26"
+          },
+          {
+            "id": 8,
+            "suit": "man",
+            "rank": 9,
+            "red": false,
+            "instanceId": "xz:1:32"
+          },
+          {
+            "id": 24,
+            "suit": "sou",
+            "rank": 7,
+            "red": false,
+            "instanceId": "xz:1:98"
+          },
+          {
+            "id": 26,
+            "suit": "sou",
+            "rank": 9,
+            "red": false,
+            "instanceId": "xz:1:107"
+          },
+          {
+            "id": 7,
+            "suit": "man",
+            "rank": 8,
+            "red": false,
+            "instanceId": "xz:1:28"
+          },
+          {
+            "id": 9,
+            "suit": "pin",
+            "rank": 1,
+            "red": false,
+            "instanceId": "xz:1:39"
+          },
+          {
+            "id": 6,
+            "suit": "man",
+            "rank": 7,
+            "red": false,
+            "instanceId": "xz:1:24"
+          },
+          {
+            "id": 25,
+            "suit": "sou",
+            "rank": 8,
+            "red": false,
+            "instanceId": "xz:1:102"
+          },
+          {
+            "id": 4,
+            "suit": "man",
+            "rank": 5,
+            "red": false,
+            "instanceId": "xz:1:19"
+          },
+          {
+            "id": 10,
+            "suit": "pin",
+            "rank": 2,
+            "red": false,
+            "instanceId": "xz:1:43"
+          },
+          {
+            "id": 22,
+            "suit": "sou",
+            "rank": 5,
+            "red": false,
+            "instanceId": "xz:1:91"
+          },
+          {
+            "id": 21,
+            "suit": "sou",
+            "rank": 4,
+            "red": false,
+            "instanceId": "xz:1:84"
+          },
+          {
+            "id": 26,
+            "suit": "sou",
+            "rank": 9,
+            "red": false,
+            "instanceId": "xz:1:106"
+          },
+          {
+            "id": 2,
+            "suit": "man",
+            "rank": 3,
+            "red": false,
+            "instanceId": "xz:1:11"
+          },
+          {
+            "id": 25,
+            "suit": "sou",
+            "rank": 8,
+            "red": false,
+            "instanceId": "xz:1:103"
+          },
+          {
+            "id": 3,
+            "suit": "man",
+            "rank": 4,
+            "red": false,
+            "instanceId": "xz:1:12"
+          },
+          {
+            "id": 13,
+            "suit": "pin",
+            "rank": 5,
+            "red": false,
+            "instanceId": "xz:1:53"
+          },
+          {
+            "id": 18,
+            "suit": "sou",
+            "rank": 1,
+            "red": false,
+            "instanceId": "xz:1:72"
+          },
+          {
+            "id": 17,
+            "suit": "pin",
+            "rank": 9,
+            "red": false,
+            "instanceId": "xz:1:71"
+          },
+          {
+            "id": 9,
+            "suit": "pin",
+            "rank": 1,
+            "red": false,
+            "instanceId": "xz:1:38"
+          },
+          {
+            "id": 18,
+            "suit": "sou",
+            "rank": 1,
+            "red": false,
+            "instanceId": "xz:1:75"
+          },
+          {
+            "id": 12,
+            "suit": "pin",
+            "rank": 4,
+            "red": false,
+            "instanceId": "xz:1:50"
+          },
+          {
+            "id": 19,
+            "suit": "sou",
+            "rank": 2,
+            "red": false,
+            "instanceId": "xz:1:79"
+          },
+          {
+            "id": 20,
+            "suit": "sou",
+            "rank": 3,
+            "red": false,
+            "instanceId": "xz:1:82"
+          },
+          {
+            "id": 4,
+            "suit": "man",
+            "rank": 5,
+            "red": false,
+            "instanceId": "xz:1:16"
+          },
+          {
+            "id": 25,
+            "suit": "sou",
+            "rank": 8,
+            "red": false,
+            "instanceId": "xz:1:101"
+          },
+          {
+            "id": 20,
+            "suit": "sou",
+            "rank": 3,
+            "red": false,
+            "instanceId": "xz:1:80"
+          },
+          {
+            "id": 11,
+            "suit": "pin",
+            "rank": 3,
+            "red": false,
+            "instanceId": "xz:1:44"
+          },
+          {
+            "id": 23,
+            "suit": "sou",
+            "rank": 6,
+            "red": false,
+            "instanceId": "xz:1:94"
+          },
+          {
+            "id": 26,
+            "suit": "sou",
+            "rank": 9,
+            "red": false,
+            "instanceId": "xz:1:104"
+          },
+          {
+            "id": 16,
+            "suit": "pin",
+            "rank": 8,
+            "red": false,
+            "instanceId": "xz:1:64"
+          },
+          {
+            "id": 12,
+            "suit": "pin",
+            "rank": 4,
+            "red": false,
+            "instanceId": "xz:1:48"
+          },
+          {
+            "id": 22,
+            "suit": "sou",
+            "rank": 5,
+            "red": false,
+            "instanceId": "xz:1:89"
+          },
+          {
+            "id": 14,
+            "suit": "pin",
+            "rank": 6,
+            "red": false,
+            "instanceId": "xz:1:59"
+          },
+          {
+            "id": 17,
+            "suit": "pin",
+            "rank": 9,
+            "red": false,
+            "instanceId": "xz:1:68"
+          },
+          {
+            "id": 14,
+            "suit": "pin",
+            "rank": 6,
+            "red": false,
+            "instanceId": "xz:1:56"
+          },
+          {
+            "id": 10,
+            "suit": "pin",
+            "rank": 2,
+            "red": false,
+            "instanceId": "xz:1:42"
+          },
+          {
+            "id": 11,
+            "suit": "pin",
+            "rank": 3,
+            "red": false,
+            "instanceId": "xz:1:46"
+          },
+          {
+            "id": 15,
+            "suit": "pin",
+            "rank": 7,
+            "red": false,
+            "instanceId": "xz:1:63"
+          },
+          {
+            "id": 19,
+            "suit": "sou",
+            "rank": 2,
+            "red": false,
+            "instanceId": "xz:1:77"
+          },
+          {
+            "id": 9,
+            "suit": "pin",
+            "rank": 1,
+            "red": false,
+            "instanceId": "xz:1:36"
+          },
+          {
+            "id": 8,
+            "suit": "man",
+            "rank": 9,
+            "red": false,
+            "instanceId": "xz:1:34"
+          },
+          {
+            "id": 16,
+            "suit": "pin",
+            "rank": 8,
+            "red": false,
+            "instanceId": "xz:1:65"
+          },
+          {
+            "id": 6,
+            "suit": "man",
+            "rank": 7,
+            "red": false,
+            "instanceId": "xz:1:27"
+          },
+          {
+            "id": 7,
+            "suit": "man",
+            "rank": 8,
+            "red": false,
+            "instanceId": "xz:1:30"
+          },
+          {
+            "id": 2,
+            "suit": "man",
+            "rank": 3,
+            "red": false,
+            "instanceId": "xz:1:10"
+          },
+          {
+            "id": 21,
+            "suit": "sou",
+            "rank": 4,
+            "red": false,
+            "instanceId": "xz:1:86"
+          },
+          {
+            "id": 12,
+            "suit": "pin",
+            "rank": 4,
+            "red": false,
+            "instanceId": "xz:1:51"
+          },
+          {
+            "id": 18,
+            "suit": "sou",
+            "rank": 1,
+            "red": false,
+            "instanceId": "xz:1:74"
+          },
+          {
+            "id": 14,
+            "suit": "pin",
+            "rank": 6,
+            "red": false,
+            "instanceId": "xz:1:57"
+          },
+          {
+            "id": 7,
+            "suit": "man",
+            "rank": 8,
+            "red": false,
+            "instanceId": "xz:1:31"
+          },
+          {
+            "id": 23,
+            "suit": "sou",
+            "rank": 6,
+            "red": false,
+            "instanceId": "xz:1:95"
+          }
+        ],
+        "actions": [
+          {
+            "seq": 1,
+            "hand": 1,
+            "seat": 0,
+            "action": {
+              "type": "discard",
+              "tile": "xz:1:2"
+            }
+          },
+          {
+            "seq": 2,
+            "hand": 1,
+            "seat": 1,
+            "action": {
+              "type": "win"
+            }
+          },
+          {
+            "seq": 3,
+            "hand": 1,
+            "seat": 2,
+            "action": {
+              "type": "win"
+            }
+          },
+          {
+            "seq": 4,
+            "hand": 1,
+            "seat": 3,
+            "action": {
+              "type": "win"
+            }
+          }
+        ],
+        "digest": "500b44543d549676",
+        "accounting": {
+          "wins": [
+            {
+              "id": "h1:w1",
+              "winners": [
+                1,
+                2,
+                3
+              ],
+              "from": 0,
+              "tileId": "xz:1:2",
+              "scores": [
+                {
+                  "shape": "normal",
+                  "patterns": [],
+                  "fan": 0,
+                  "cappedFan": 0,
+                  "base": 1,
+                  "payment": 1,
+                  "label": "平胡"
+                },
+                {
+                  "shape": "normal",
+                  "patterns": [],
+                  "fan": 0,
+                  "cappedFan": 0,
+                  "base": 1,
+                  "payment": 1,
+                  "label": "平胡"
+                },
+                {
+                  "shape": "normal",
+                  "patterns": [],
+                  "fan": 0,
+                  "cappedFan": 0,
+                  "base": 1,
+                  "payment": 1,
+                  "label": "平胡"
+                }
+              ],
+              "kind": "discard",
+              "action": 4
+            }
+          ],
+          "ledger": [
+            {
+              "from": 0,
+              "amount": 1,
+              "to": 1,
+              "key": "h1:w1:1:0",
+              "transactionId": "h1:w1",
+              "reason": "win",
+              "sourceKong": null,
+              "id": "h1:l1",
+              "sourceAction": 4
+            },
+            {
+              "from": 0,
+              "amount": 1,
+              "to": 2,
+              "key": "h1:w1:2:0",
+              "transactionId": "h1:w1",
+              "reason": "win",
+              "sourceKong": null,
+              "id": "h1:l2",
+              "sourceAction": 4
+            },
+            {
+              "from": 0,
+              "amount": 1,
+              "to": 3,
+              "key": "h1:w1:3:0",
+              "transactionId": "h1:w1",
+              "reason": "win",
+              "sourceKong": null,
+              "id": "h1:l3",
+              "sourceAction": 4
+            }
+          ],
+          "results": [
+            {
+              "hand": 1,
+              "reason": "three-winners",
+              "scores": [
+                97,
+                101,
+                101,
+                101
+              ],
+              "deltas": [
+                -3,
+                1,
+                1,
+                1
+              ],
+              "wins": [
+                {
+                  "id": "h1:w1",
+                  "winners": [
+                    1,
+                    2,
+                    3
+                  ],
+                  "from": 0,
+                  "tileId": "xz:1:2",
+                  "scores": [
+                    {
+                      "shape": "normal",
+                      "patterns": [],
+                      "fan": 0,
+                      "cappedFan": 0,
+                      "base": 1,
+                      "payment": 1,
+                      "label": "平胡"
+                    },
+                    {
+                      "shape": "normal",
+                      "patterns": [],
+                      "fan": 0,
+                      "cappedFan": 0,
+                      "base": 1,
+                      "payment": 1,
+                      "label": "平胡"
+                    },
+                    {
+                      "shape": "normal",
+                      "patterns": [],
+                      "fan": 0,
+                      "cappedFan": 0,
+                      "base": 1,
+                      "payment": 1,
+                      "label": "平胡"
+                    }
+                  ],
+                  "kind": "discard",
+                  "action": 4
+                }
+              ],
+              "ledger": [
+                {
+                  "from": 0,
+                  "amount": 1,
+                  "to": 1,
+                  "key": "h1:w1:1:0",
+                  "transactionId": "h1:w1",
+                  "reason": "win",
+                  "sourceKong": null,
+                  "id": "h1:l1",
+                  "sourceAction": 4
+                },
+                {
+                  "from": 0,
+                  "amount": 1,
+                  "to": 2,
+                  "key": "h1:w1:2:0",
+                  "transactionId": "h1:w1",
+                  "reason": "win",
+                  "sourceKong": null,
+                  "id": "h1:l2",
+                  "sourceAction": 4
+                },
+                {
+                  "from": 0,
+                  "amount": 1,
+                  "to": 3,
+                  "key": "h1:w1:3:0",
+                  "transactionId": "h1:w1",
+                  "reason": "win",
+                  "sourceKong": null,
+                  "id": "h1:l3",
+                  "sourceAction": 4
+                }
+              ],
+              "classifications": [
+                "花猪",
+                "已胡",
+                "已胡",
+                "已胡"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -3,6 +3,14 @@ import type { TestCaseOutcome, TestCaseResult } from './catalog';
 export const TEST_CASE_RESULTS_STORAGE_VERSION = 1 as const;
 export const TEST_CASE_RESULTS_STORAGE_KEY = `local-mahjong.test-mode.case-results.v${TEST_CASE_RESULTS_STORAGE_VERSION}`;
 
+/** Versioned partitions for additional modes; the original result key is never migrated or cleared. */
+export class ModeResultsStorage<T> {
+  readonly key: string;
+  constructor(private readonly storage: Pick<Storage, 'getItem' | 'setItem'>, mode: string, private readonly version: number) { this.key = `local-mahjong.test-mode.${mode}.v${version}`; }
+  load(): Record<string, T> { try { const value = JSON.parse(this.storage.getItem(this.key) ?? 'null'); return value?.version === this.version && value.results && typeof value.results === 'object' ? value.results : {}; } catch { return {}; } }
+  save(results: Record<string, T>): void { this.storage.setItem(this.key, JSON.stringify({ version: this.version, results })); }
+}
+
 interface StoredTestCaseResultsV1 {
   version: typeof TEST_CASE_RESULTS_STORAGE_VERSION;
   results: Record<string, TestCaseResult>;

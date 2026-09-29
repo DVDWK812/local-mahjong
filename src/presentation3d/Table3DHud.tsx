@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore, type ComponentProps, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type ComponentProps, type CSSProperties, type ReactNode } from 'react';
 import { DoraIndicatorStack } from '../components/game/DoraIndicatorStack';
 import { MahjongTable } from '../components/game/MahjongTable';
 import type { PlayerPosition } from '../components/game/PlayerZone';
@@ -45,6 +45,12 @@ export function Table3DHud({
   tsumoGiriDisplayEnabled = true,
   playerProfile,
 }: Table3DHudProps) {
+  const mapping = seatMapping ?? getSceneSeatMapping(bottomPlayerId);
+  const seats = { south: mapping.bottomPlayerId, east: mapping.rightPlayerId, north: mapping.topPlayerId, west: mapping.leftPlayerId };
+  return <Table3DHudView players={POSITIONS.filter(position => !activeSeats || activeSeats.includes(position)).map(position => ({ position, player: gameState.players[seats[position]] }))} playerProfile={playerProfile} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} dora={<DoraIndicatorStack gameState={gameState} matchState={matchState} slots={doraIndicatorSlots} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />} />;
+}
+
+export function Table3DHudView({ players, playerProfile, tsumoGiriDisplayEnabled = true, dora }: { players: readonly { position: PlayerPosition; player: PlayerState; nickname?: string; status?: ReactNode; anchorCentered?: boolean }[]; playerProfile?: PlayerProfile; tsumoGiriDisplayEnabled?: boolean; dora?: ReactNode }) {
   const slotAvatars = usePlayerSlotAvatars();
   const slotNicknames = usePlayerSlotNicknames();
   useSyncExternalStore(
@@ -74,29 +80,13 @@ export function Table3DHud({
     observer.observe(hud);
     return () => observer.disconnect();
   }, []);
-  const mapping = seatMapping ?? getSceneSeatMapping(bottomPlayerId);
-  const seats: Record<PlayerPosition, PlayerId> = {
-    south: mapping.bottomPlayerId,
-    east: mapping.rightPlayerId,
-    north: mapping.topPlayerId,
-    west: mapping.leftPlayerId,
-  };
-  const visiblePositions = POSITIONS.filter((position) => !activeSeats || activeSeats.includes(position));
   return (
     <section ref={hudRef} className="table-3d-hud" aria-label="3D 牌桌信息层">
       <div className="table-3d-dora-layer" aria-label="3D 宝牌信息层">
-        <DoraIndicatorStack
-          gameState={gameState}
-          matchState={matchState}
-          slots={doraIndicatorSlots}
-          hoveredTileType={hoveredTileType}
-          sameTileHoverEnabled={sameTileHoverEnabled}
-          onHoveredTileTypeChange={onHoveredTileTypeChange}
-        />
+        {dora}
       </div>
-      {visiblePositions.map((position) => {
-        const playerId = seats[position];
-        const player = gameState.players[playerId];
+      {players.map(({ position, player, nickname, status, anchorCentered }) => {
+        const playerId = player.id;
         const frameTuning = getAvatarFrameTuning(
           PLAYER_SLOTS[position],
           viewportSize.width,
@@ -110,7 +100,7 @@ export function Table3DHud({
             data-player-zone={position}
             data-player-index={playerId}
             style={{
-              '--avatar-frame-offset-x': `${frameTuning.x}px`,
+              '--avatar-frame-offset-x': `${anchorCentered ? 0 : frameTuning.x}px`,
               '--avatar-frame-offset-y': `${frameTuning.y}px`,
               '--avatar-frame-size': frameTuning.size,
             } as CSSProperties}
@@ -120,7 +110,8 @@ export function Table3DHud({
               position={position}
               tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled}
               avatarId={resolvePlayerSlotAvatar(playerId, playerProfile?.avatarId, slotAvatars)}
-              nickname={resolvePlayerSlotNickname(playerId, playerProfile?.nickname, slotNicknames, player.name)}
+              status={status}
+              nickname={nickname ?? resolvePlayerSlotNickname(playerId, playerProfile?.nickname, slotNicknames, player.name)}
             />
           </div>
         );
@@ -146,6 +137,20 @@ export function Table3DCentralHud({
     north: mapping.topPlayerId,
     west: mapping.leftPlayerId,
   };
+  return <Table3DCentralHudView>
+      <TableCenter
+        gameState={gameState}
+        matchState={matchState}
+        seatMapping={mapping}
+        activePlayerIds={activeSeats?.map((position) => seats[position])}
+        roundLabel={centerRoundLabel}
+        remainingLabel={centerRemainingLabel}
+        centerCornerLabels={centerCornerLabels}
+      />
+  </Table3DCentralHudView>;
+}
+
+export function Table3DCentralHudView({ children }: { children: ReactNode }) {
   return (
     <div
       className="table-3d-console-hud"
@@ -156,15 +161,7 @@ export function Table3DCentralHud({
         '--center-size': `${CENTRAL_SCORE_CSS_SIZE}px`,
       } as CSSProperties}
     >
-      <TableCenter
-        gameState={gameState}
-        matchState={matchState}
-        seatMapping={mapping}
-        activePlayerIds={activeSeats?.map((position) => seats[position])}
-        roundLabel={centerRoundLabel}
-        remainingLabel={centerRemainingLabel}
-        centerCornerLabels={centerCornerLabels}
-      />
+      {children}
     </div>
   );
 }
@@ -175,12 +172,14 @@ export function Table3DPlayerFrame({
   tsumoGiriDisplayEnabled,
   avatarId,
   nickname,
+  status,
 }: Readonly<{
   player: Pick<PlayerState, 'name' | 'river'>;
   position: PlayerPosition;
   tsumoGiriDisplayEnabled: boolean;
   avatarId?: PlayerProfile['avatarId'];
   nickname: string;
+  status?: ReactNode;
 }>) {
   const initial = player.name.trim().slice(0, 1) || '玩';
   const lastDiscard = player.river[player.river.length - 1];
@@ -201,6 +200,7 @@ export function Table3DPlayerFrame({
           </span>
         ) : null}
       </span>
+      {status}
     </div>
   );
 }

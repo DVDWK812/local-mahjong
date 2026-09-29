@@ -1,4 +1,5 @@
 import type { CandidateFrame } from './candidateAnimation';
+import type { SanmaMotionFrame } from './useSanmaAnimation';
 import { preloadHandPacks, type HandPackId } from '../../hand/handPacks';
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { SceneErrorBoundary, SceneLoading } from '../session/SceneErrorBoundary';
@@ -25,18 +26,19 @@ export type ParticipantTableProps = {
   appearanceSlots?: PlayerSlotAppearances;
   dora?: ReactNode;
   candidateFrame?: CandidateFrame | null;
+  sanmaFrame?: SanmaMotionFrame | null;
   onCandidatePrepared?: (eventId: string) => void;
   onAnimationReady?: (ready: boolean) => void;
   currentParticipantId?: string;
 };
 // Parent audio/UI updates are not scene changes and must not request demand frames.
 export const ParticipantTable = memo(function ParticipantTable(props: ParticipantTableProps) { return <TableSession key={props.sessionKey} {...props} />; });
-function TableSession({ participants, mapping, preset, sessionKey, localReady, settings = DEFAULT_APPEARANCE_SETTINGS, profile, label, appearanceSlots, dora, currentParticipantId, candidateFrame, onAnimationReady, onCandidatePrepared }: ParticipantTableProps) {
+function TableSession({ participants, mapping, preset, sessionKey, localReady, settings = DEFAULT_APPEARANCE_SETTINGS, profile, label, appearanceSlots, dora, currentParticipantId, candidateFrame, sanmaFrame, onAnimationReady, onCandidatePrepared }: ParticipantTableProps) {
   const [sceneReady, setSceneReady] = useState(false);
   const [failure, setFailure] = useState('none');
   const [hudReady, setHudReady] = useState(false);
   const hudRoot = useRef<HTMLElement>(null);
-  const [packReady, setPackReady] = useState(preset !== 'duel');
+  const [packReady, setPackReady] = useState(preset !== 'duel' && preset !== 'sanma');
   const ready = isInitialPresentationReady(sceneReady, localReady && hudReady && packReady);
   const handleReady = useCallback(() => setSceneReady(true), []);
   const fail = useCallback((error: Error) => setFailure(classifyTableRendererError(error)), []);
@@ -44,14 +46,14 @@ function TableSession({ participants, mapping, preset, sessionKey, localReady, s
   const nicknames = usePlayerSlotNicknames();
   const savedAppearances = usePlayerSlotAppearances();
   const appearances = appearanceSlots ?? savedAppearances;
-  const packKey = preset === 'duel' ? [...new Set(participants.map(p => resolveHandPackForPlayer(p.appearanceSlot, appearances, settings).id))].join(',') : '';
+  const packKey = preset === 'duel' || preset === 'sanma' ? [...new Set(participants.map(p => resolveHandPackForPlayer(p.appearanceSlot, appearances, settings).id))].join(',') : '';
   useEffect(() => {
     let live = true;
     if (!packKey) return;
     void preloadHandPacks(packKey.split(',') as HandPackId[]).then(() => { if (live) setPackReady(true); });
     return () => { live = false; };
   }, [packKey]);
-  useEffect(() => { onAnimationReady?.(ready && failure === 'none'); }, [ready, failure, onAnimationReady]);
+  useEffect(() => { onAnimationReady?.(ready && failure === 'none' || preset === 'sanma' && failure !== 'none' && localReady); }, [ready, failure, preset, localReady, onAnimationReady]);
   const placed = resolveParticipantLayout(participants, mapping, preset);
   const centralHud = useMemo(() => preset === 'duel' ? <DuelCentralHud participants={participants} mapping={mapping} label={label} currentParticipantId={currentParticipantId} /> : undefined, [participants, mapping, preset, label, currentParticipantId]);
   const avatarSignature = JSON.stringify(participants.map(p => p.profile?.avatarId ?? resolvePlayerSlotAvatar(p.appearanceSlot, profile?.avatarId, avatars)));
@@ -70,7 +72,7 @@ function TableSession({ participants, mapping, preset, sessionKey, localReady, s
     <p>3D 暂不可用，已切换安全平面显示。</p>
     {participants.map(p => <div key={p.id}><strong>{p.name} · {p.score}</strong><div>{p.discardedTiles.map(tile => <Tile key={tile.instanceId} tile={tile} compact interactive={false} />)}</div></div>)}
   </section>;
-  const scene = <Suspense fallback={null}><Scene participants={participants} mapping={mapping} preset={preset} settings={settings} appearanceSlots={appearanceSlots} sessionKey={sessionKey} onReady={handleReady} onUnavailable={fail} centralHud={centralHud} candidateFrame={candidateFrame} onCandidatePrepared={onCandidatePrepared} /></Suspense>;
+  const scene = <Suspense fallback={null}><Scene participants={participants} mapping={mapping} preset={preset} settings={settings} appearanceSlots={appearanceSlots} sessionKey={sessionKey} onReady={handleReady} onUnavailable={fail} centralHud={centralHud} candidateFrame={candidateFrame} sanmaFrame={sanmaFrame} onCandidatePrepared={onCandidatePrepared} /></Suspense>;
   return <section ref={hudRoot} className={`participant-table ${preset === 'duel' ? 'table-renderer-layer' : ''}`} aria-label={label} data-table-renderer-requested="3d" data-table-renderer-active={failure === 'none' ? sceneReady ? '3d' : 'loading' : '2d'}
     data-table-renderer-fallback-reason={failure} data-presentation-revealed={ready || failure !== 'none'} data-participant-count={participants.length}>
     {failure !== 'none' ? fallback : <SceneErrorBoundary fallback={fallback} onError={fail}>
@@ -81,8 +83,8 @@ function TableSession({ participants, mapping, preset, sessionKey, localReady, s
       data-hand-pack={resolveHandPackForPlayer(p.appearanceSlot, appearances, settings).id}
       style={{ left: `${layout.hud[0]}%`, top: `${layout.hud[1]}%` } as CSSProperties}>
       <PlayerAvatar avatarId={p.profile?.avatarId ?? resolvePlayerSlotAvatar(p.appearanceSlot, profile?.avatarId, avatars)} />
-      <strong>{p.profile?.nickname ?? resolvePlayerSlotNickname(p.appearanceSlot, profile?.nickname, nicknames, p.name)}</strong>
-      <span>{p.score.toLocaleString()}{p.remainingSteps === undefined ? '' : ` · 剩 ${p.remainingSteps} 步`}</span>
+      <strong>{preset === 'sanma' ? p.name : p.profile?.nickname ?? resolvePlayerSlotNickname(p.appearanceSlot, profile?.nickname, nicknames, p.name)}</strong>
+      <span>{p.score.toLocaleString()}{p.remainingSteps === undefined ? '' : ` · 剩 ${p.remainingSteps} 步`}{p.seatWind ? ` · ${{ east: '东', south: '南', west: '西', north: '北' }[p.seatWind]}家${p.riichi ? ' · 立直' : ''} · 拔北${p.north?.length ?? 0}` : ''}</span>
     </div>) : null}
     {!ready && failure === 'none' ? <SceneLoading /> : null}
   </section>;

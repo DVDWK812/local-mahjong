@@ -1,0 +1,12 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ scripts/xzBuildStamp.test.ts (10 tests) 17ms
+ ✓ src/game/sanma/timing.test.ts (7 tests) 61ms
+ ✓ src/game/ai.test.ts (23 tests) 351ms
+
+ Test Files  3 passed (3)
+      Tests  40 passed (40)
+   Start at  00:43:33
+   Duration  1.44s (transform 373ms, setup 0ms, collect 605ms, tests 429ms, environment 0ms, prepare 1.30s)
+

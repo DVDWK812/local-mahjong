@@ -1,0 +1,26 @@
+[
+  {
+    "path": "long-river-1080-cdp.png",
+    "format": "PNG",
+    "pixels": [
+      1920,
+      1080
+    ]
+  },
+  {
+    "path": "long-river-720-cdp.png",
+    "format": "PNG",
+    "pixels": [
+      1280,
+      720
+    ]
+  },
+  {
+    "path": "long-river-720-primary.png",
+    "format": "JPEG",
+    "pixels": [
+      1389,
+      781
+    ]
+  }
+]

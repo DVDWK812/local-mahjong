@@ -92,7 +92,7 @@ describe('37-slot face editor and renderer contract', () => {
     const html = renderToStaticMarkup(<Tile id={0} interactive={false} />);
     expect(html).toContain('/src/assets/tiles/m1.png'); expect(html).not.toContain('tile--custom-face-3d');
     const source = (path: string) => readFileSync(decodeURIComponent(new URL(path, import.meta.url).pathname).replace(/^\/([A-Za-z]:)/, '$1'), 'utf8');
-    expect(source('../../components/game/GameScreen.tsx')).toContain("settings={activeTableRenderer === '3d' ? appearanceSettings : undefined}");
+    expect(source('../../components/game/GameScreen.tsx')).toContain("settings: activeTableRenderer === '3d' ? appearanceSettings : undefined");
     for (const consumer of ['Hand3D', 'River3D', 'Meld3D']) expect(source(`../../presentation3d/${consumer.replace('3D', '').toLowerCase()}/${consumer}.tsx`)).toContain('<Tile3D');
     expect(source('../../presentation3d/animation/HandAction3D.tsx')).toContain('<Tile3D');
     expect(source('../../presentation3d/appearance/AppearanceResources3D.tsx')).not.toMatch(/useFrame|requestAnimationFrame|setInterval/);

@@ -1,0 +1,50 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/game/sanma/longRun.test.ts (40 tests) 48811ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=1 854ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=2 970ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=3 408ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=4 563ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=5 786ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=6 847ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=7 1068ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=8 425ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=9 842ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=10 603ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=1 723ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=2 951ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=3 788ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=4 573ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=5 819ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=6 1213ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=7 720ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=8 457ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=9 927ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=10 644ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=1 2934ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=2 1891ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=3 1112ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=4 1355ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=5 1499ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=6 1708ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=7 2098ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=8 1409ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=9 2227ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=10 1168ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=1 2791ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=2 2130ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=3 1493ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=4 1430ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=5 1473ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=6 1773ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=7 651ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=8 1307ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=9 1894ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=10 1287ms
+
+ Test Files  1 passed (1)
+      Tests  40 passed (40)
+   Start at  21:56:57
+   Duration  49.32s (transform 131ms, setup 0ms, collect 194ms, tests 48.81s, environment 0ms, prepare 100ms)
+

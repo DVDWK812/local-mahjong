@@ -1,0 +1,40 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+stdout | src/game/xuezhan/acceptance.test.ts > 全部暴露字段与合法配置组合 > 合法字段两两组合：逐对创建、校验与保存，记录数量
+{"matrix":"all-field-value-pairs","covered":3099,"invalidDependencyPairs":233}
+
+ ❯ src/game/xuezhan/acceptance.test.ts (158 tests | 1 failed) 13128ms
+   × 浏览器和 CLI 同源血战场景 > XZ-TRIPLE 5ms
+     → expected 'Error: 三响独立金样不符' to be undefined
+   ✓ 固定种子完整压力批次 > 1000 小局：每预设200，另200合法随机配置；650步上限 12631ms
+stdout | src/game/xuezhan/acceptance.test.ts > 固定种子完整压力批次 > 1000 小局：每预设200，另200合法随机配置；650步上限
+{"seeds":[10000,10999],"counts":{"declared":200,"declared-exchange":200,"dynamic":200,"dynamic-exchange":200,"random":200},"stats":{"rounds":1000,"maxSteps":92,"wins":851,"wall":929}}
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/game/xuezhan/acceptance.test.ts > 浏览器和 CLI 同源血战场景 > XZ-TRIPLE
+AssertionError: expected 'Error: 三响独立金样不符' to be undefined
+
+- Expected: 
+undefined
+
++ Received: 
+"Error: 三响独立金样不符"
+
+ ❯ src/game/xuezhan/acceptance.test.ts:10:106
+      8| import { ModeResultsStorage } from '../testMode/resultsStorage';
+      9| describe('浏览器和 CLI 同源血战场景', () => {
+     10|   for (const test of xzCases()) it(test.id, () => { const result = run…
+       |                                                                                                          ^
+     11|   it('血战结果分区不改旧模式记录', () => {
+     12|     const map = new Map<string, string>([['local-mahjong.test-mode.cas…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 157 passed (158)
+   Start at  21:13:14
+   Duration  13.51s (transform 79ms, setup 0ms, collect 115ms, tests 13.13s, environment 0ms, prepare 76ms)
+

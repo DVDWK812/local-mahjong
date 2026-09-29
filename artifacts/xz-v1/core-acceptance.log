@@ -1,0 +1,19 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/game/xuezhan/runtime.test.ts (6 tests) 24ms
+ ✓ src/game/xuezhan/engine.test.ts (19 tests) 165ms
+stdout | src/game/xuezhan/acceptance.test.ts > 全部暴露字段与合法配置组合 > 合法字段两两组合：逐对创建、校验与保存，记录数量
+{"matrix":"all-field-value-pairs","covered":3099,"invalidDependencyPairs":233}
+
+stdout | src/game/xuezhan/acceptance.test.ts > 固定种子完整压力批次 > 1000 小局：每预设200，另200合法随机配置；650步上限
+{"seeds":[10000,10999],"counts":{"declared":200,"declared-exchange":200,"dynamic":200,"dynamic-exchange":200,"random":200},"stats":{"rounds":1000,"maxSteps":92,"wins":851,"wall":929}}
+
+ ✓ src/game/xuezhan/acceptance.test.ts (158 tests) 13803ms
+   ✓ 固定种子完整压力批次 > 1000 小局：每预设200，另200合法随机配置；650步上限 13272ms
+
+ Test Files  3 passed (3)
+      Tests  183 passed (183)
+   Start at  21:16:47
+   Duration  14.23s (transform 167ms, setup 0ms, collect 367ms, tests 13.99s, environment 0ms, prepare 250ms)
+

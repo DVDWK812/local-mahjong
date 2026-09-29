@@ -1,0 +1,130 @@
+[
+  {
+    "length": "east-only",
+    "payment": "loss",
+    "short": false,
+    "seed": 308,
+    "points": [
+      35000,
+      40000,
+      40000
+    ],
+    "sources": {
+      "manual": 80,
+      "ai-policy": 151
+    },
+    "steps": 235
+  },
+  {
+    "length": "east-only",
+    "payment": "split_missing_share_ceil100",
+    "short": false,
+    "seed": 308,
+    "points": [
+      35000,
+      40000,
+      40000
+    ],
+    "sources": {
+      "manual": 80,
+      "ai-policy": 151
+    },
+    "steps": 235
+  },
+  {
+    "length": "hanchan",
+    "payment": "loss",
+    "short": false,
+    "seed": 308,
+    "points": [
+      35000,
+      40000,
+      40000
+    ],
+    "sources": {
+      "manual": 130,
+      "ai-policy": 255
+    },
+    "steps": 393
+  },
+  {
+    "length": "hanchan",
+    "payment": "split_missing_share_ceil100",
+    "short": false,
+    "seed": 308,
+    "points": [
+      35000,
+      40000,
+      40000
+    ],
+    "sources": {
+      "manual": 130,
+      "ai-policy": 255
+    },
+    "steps": 393
+  },
+  {
+    "length": "east-only",
+    "payment": "loss",
+    "short": true,
+    "seed": 308,
+    "points": [
+      35000,
+      40000,
+      40000
+    ],
+    "sources": {
+      "manual": 80,
+      "ai-policy": 151
+    },
+    "steps": 235
+  },
+  {
+    "length": "east-only",
+    "payment": "split_missing_share_ceil100",
+    "short": true,
+    "seed": 308,
+    "points": [
+      35000,
+      40000,
+      40000
+    ],
+    "sources": {
+      "manual": 80,
+      "ai-policy": 151
+    },
+    "steps": 235
+  },
+  {
+    "length": "hanchan",
+    "payment": "loss",
+    "short": true,
+    "seed": 308,
+    "points": [
+      35000,
+      40000,
+      40000
+    ],
+    "sources": {
+      "manual": 130,
+      "ai-policy": 255
+    },
+    "steps": 393
+  },
+  {
+    "length": "hanchan",
+    "payment": "split_missing_share_ceil100",
+    "short": true,
+    "seed": 308,
+    "points": [
+      35000,
+      40000,
+      40000
+    ],
+    "sources": {
+      "manual": 130,
+      "ai-policy": 255
+    },
+    "steps": 393
+  }
+]

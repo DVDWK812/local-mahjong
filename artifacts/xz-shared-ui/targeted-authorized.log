@@ -1,0 +1,31 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/game/xuezhan/presentation.test.ts (1 test) 36ms
+ ❯ src/components/XuezhanHud.test.tsx (3 tests | 1 failed) 66ms
+   × shared XZ presentation > displays all three win ranks and the actual settled scores 26ms
+     → expected '<div class="table-3d-console-hud" ari…' to contain '·第2胡'
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/XuezhanHud.test.tsx > shared XZ presentation > displays all three win ranks and the actual settled scores
+AssertionError: expected '<div class="table-3d-console-hud" ari…' to contain '·第2胡'
+
+Expected: "·第2胡"
+Received: "<div class="table-3d-console-hud" aria-label="3D 中央信息区" data-hud-anchor="central-console-3d" style="--table-3d-hud-font-size:clamp(23px, 0.8vw, 14px);--center-size:350px"><div class="xz-center"><section class="table-center" aria-label="中央计分区"><div class="center-score-grid"><div class="center-score center-score--south  center-score--dealer" data-center-slot="bottom" data-center-player="0"><span><b class="dealer-marker">庄</b>你</span><strong>97</strong></div><div class="center-score center-score--east  " data-center-slot="right" data-center-player="1"><span>右家·第1胡</span><strong>101</strong></div><div class="center-score center-score--north  " data-center-slot="top" data-center-player="2"><span>对家·第1胡</span><strong>101</strong></div><div class="center-score center-score--west  " data-center-slot="left" data-center-player="3"><span>左家·第1胡</span><strong>101</strong></div><div class="center-round"><strong>血战到底</strong><span>第1/1局</span><span>余55 · 活跃1</span></div></div></section><div class="xz-center-stage"><span>不换牌 · 自由打缺</span><span>本局结束 · 明细见账本</span></div></div></div>"
+
+ ❯ src/components/XuezhanHud.test.tsx:25:48
+     23|     for (const seat of [1, 2, 3] as const) s = applyXz(s, seat, { type…
+     24|     const html = renderToStaticMarkup(<XuezhanCenter state={s} />);
+     25|     for (const rank of [1, 2, 3]) expect(html).toContain(`·第${rank}胡…
+       |                                                ^
+     26|     expect(html).toContain('本局结束');
+     27|     expect(html).toContain('自由打缺');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 3 passed (4)
+   Start at  22:37:24
+   Duration  1.24s (transform 394ms, setup 0ms, collect 1.13s, tests 102ms, environment 0ms, prepare 188ms)
+

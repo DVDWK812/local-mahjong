@@ -1,0 +1,59 @@
+- main:
+  - strong: 三人东 · 东1局 · 0本场
+  - generic: 余牌 50 · 供托 0 · 自摸有损
+  - button "保存并退出"
+  - button "继续比赛" [active]
+  - button "规则与账本"
+  - button "声音"
+  - region "三人立直麻将":
+    - generic: 三人立直麻将
+    - strong: 玩家
+    - generic: 35,000 · 东家 · 拔北1
+    - strong: 电脑一
+    - generic: 35,000 · 南家 · 拔北0
+    - strong: 电脑二
+    - generic: 35,000 · 西家 · 拔北0
+  - strong: 玩家行动
+  - generic "表宝牌指示牌":
+    - img "一筒":
+      - img "一筒"
+  - generic: 庄家：玩家
+  - region "三人操作区":
+    - status: 玩家行动（已暂停）
+  - region "本家手牌":
+    - button "三筒" [disabled]:
+      - img "三筒"
+    - button "四筒" [disabled]:
+      - img "四筒"
+    - button "六筒" [disabled]:
+      - img "六筒"
+    - button "六筒" [disabled]:
+      - img "六筒"
+    - button "八筒" [disabled]:
+      - img "八筒"
+    - button "九筒" [disabled]:
+      - img "九筒"
+    - button "九筒" [disabled]:
+      - img "九筒"
+    - button "三索" [disabled]:
+      - img "三索"
+    - button "六索" [disabled]:
+      - img "六索"
+    - button "九索" [disabled]:
+      - img "九索"
+    - button "东" [disabled]:
+      - img "东"
+    - button "南" [disabled]:
+      - img "南"
+    - button "白" [disabled]:
+      - img "白"
+    - button "中" [disabled]:
+      - img "中"
+  - complementary "比赛计时与自动操作":
+    - button "收起自动操作" [expanded]: ‹
+    - button "自动和牌": 和
+    - button "不碰杠": 鸣
+    - button "自动摸切": 切
+    - timer "计时已暂停":
+      - generic: 0s
+      - generic: 2s

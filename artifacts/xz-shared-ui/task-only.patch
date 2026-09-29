@@ -1,0 +1,309 @@
+--- before/src/components/XuezhanScreen.tsx
++++ src/components/XuezhanScreen.tsx
+@@ -1,7 +1,7 @@
+ import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
+ import { MatchRuntime } from '../game/timeControl/matchRuntime';
+ import { xzPolicy } from '../game/xuezhan/runtime';
+-import { activeSeats, applyXz, assertXzInvariants, createXzMatch, legalActions, participantId, readyScores, SEATS } from '../game/xuezhan/engine';
++import { applyXz, assertXzInvariants, createXzMatch, legalActions, participantId, readyScores, SEATS } from '../game/xuezhan/engine';
+ import { chooseXzAction, observeXz } from '../game/xuezhan/ai';
+ import { replayXz, saveXz, writeXzSave, type XzSave } from '../game/xuezhan/persistence';
+ import type { Seat, XzAction, XzState } from '../game/xuezhan/types';
+@@ -14,9 +14,10 @@
+ import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
+ import type { PlayerProfile } from '../profile/playerProfile';
+ import { Tile } from './Tile';
+-import { XuezhanHud } from './XuezhanHud';
++import { XuezhanCenter, XuezhanHud } from './XuezhanHud';
+ import { XuezhanResults } from './XuezhanResults';
+ import { MatchClockHud } from './MatchClockHud';
++import { GameTopBarFrame } from './game/GameTopBar';
+ import { LocalHandArea } from './game/LocalHandArea';
+ import { DiscardSourceSnapshotStore } from '../presentation/handAnimation/DiscardSourceSnapshot';
+ import type { LocalHandAnimation3DState } from '../presentation3d/animation/tableAnimation3D';
+@@ -98,14 +99,14 @@
+   const status = s.phase === 'exchange' ? `同色换${s.config.rules.exchange}张 · 已提交 ${Object.keys(s.exchanges).length}/4` : s.phase === 'missing' ? `选择定缺 · 已提交 ${Object.keys(s.declarations).length}/4` : s.phase === 'response' ? '等待全部响应裁定' : s.phase === 'ended' ? s.completed ? '整场结束' : '小局结束' : `轮到 ${s.players[s.current].name}`;
+   const allLedger = [...s.results.filter(r => r.hand !== s.handNumber).flatMap(r => r.ledger), ...s.ledger];
+   return <TileFaceDomAppearance settings={settings}><main className="xz-game game-screen" data-xz-legal-help={s.config.preferences.legalHelp} data-xz-phase={s.phase} data-xz-hand={s.handNumber} data-xz-sequence={s.sequence}>
+-    <header className="xz-game-header"><strong>血战到底 · 第 {s.handNumber}/{s.config.rules.rounds} 局</strong><span>{status} · 活跃 {activeSeats(s).length} · 余牌 {s.wall.length}</span>
++    <GameTopBarFrame actions={<>
+       <button onClick={() => { if (!props.isolated) save(); props.onExit(); }}>{props.isolated ? '退出测试场景' : '保存并退出'}</button><button disabled={isReplay} onClick={() => runtime.paused ? runtime.activate() : runtime.pause()}>{runtime.paused ? '继续比赛' : '暂停'}</button>
+       {!props.isolated && <button onClick={save}>保存</button>}<button onClick={() => setDetails(v => !v)}>规则与账本</button>{props.onAudio && <button onClick={props.onAudio}>声音</button>}
+       {props.isolated && <><label><input type="checkbox" checked={fullControl} onChange={e => { setFullControl(e.target.checked); if (e.target.checked) runtime.pause(); else runtime.activate(); }} />完全控制（冻结计时）</label><label><input type="checkbox" checked={omniscient} onChange={e => setOmniscient(e.target.checked)} />测试全知</label><button onClick={step}>逐步执行</button></>}
+-    </header>
++    </>}><strong>血战到底 · 第 {s.handNumber}/{s.config.rules.rounds} 局</strong><span>{status}</span></GameTopBarFrame>
+     <section className="xz-scene table-3d-scene" data-table-renderer-requested="3d" data-table-renderer-fallback-reason={fallback ? 'unavailable' : 'none'} data-table-renderer-active={fallback ? '2d' : ready ? '3d' : 'loading'}>
+-      {fallback ? <p>3D 暂不可用，已切换安全牌桌；规则正常运行。</p> : <SceneErrorBoundary fallback={<p>3D 暂不可用</p>} onError={sceneUnavailable}><Suspense fallback={<p>加载公共牌桌素材…</p>}><Scene sceneState={view.scene} appearanceSettings={settings} animationsEnabled animationSessionKey={`xz:${s.seed}:${s.handNumber}`} animationTurn={s.sequence} localDiscardSnapshots={discardSources} onLocalHandAnimationChange={setLocalAnimation} onReady={sceneReady} onUnavailable={sceneUnavailable} /></Suspense></SceneErrorBoundary>}
+-      <XuezhanHud state={s} profile={props.profile} />
++      {fallback ? <p>3D 暂不可用，已切换安全牌桌；规则正常运行。</p> : <SceneErrorBoundary fallback={<p>3D 暂不可用</p>} onError={sceneUnavailable}><Suspense fallback={<p>加载公共牌桌素材…</p>}><Scene centralHud={<XuezhanCenter state={s} />} sceneState={view.scene} appearanceSettings={settings} animationsEnabled animationSessionKey={`xz:${s.seed}:${s.handNumber}`} animationTurn={s.sequence} localDiscardSnapshots={discardSources} onLocalHandAnimationChange={setLocalAnimation} onReady={sceneReady} onUnavailable={sceneUnavailable} /></Suspense></SceneErrorBoundary>}
++      <XuezhanHud players={view.players} state={s} profile={props.profile} />
+       {fallback && <div className="xz-fallback-rivers">{s.players.map(p => <div key={p.id}>{p.name}牌河：{p.river.filter(t => !t.claimed).map(t => <Tile key={t.instanceId} tile={t} compact interactive={false} />)}</div>)}</div>}
+     </section>
+     <section className="xz-controls" aria-label="血战操作区"><p role="status">{runtime.error ? `对局已停止：${runtime.error}` : message || (s.players[0].won !== null && s.phase !== 'ended' ? '你已胡牌，正在观战；其他玩家继续本局。' : status)}</p>
+--- before/src/components/XuezhanHud.tsx
++++ src/components/XuezhanHud.tsx
+@@ -1,22 +1,30 @@
+-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+ import type { XzState } from '../game/xuezhan/types';
++import type { PlayerState } from '../game/types';
+ import type { PlayerProfile } from '../profile/playerProfile';
+-import { Table3DPlayerFrame } from '../presentation3d/Table3DHud';
+-import { getAvatarFrameTuning, TABLE_PRESENTATION_TUNING } from '../presentation3d/table/tablePresentationTuning';
+-import { resolvePlayerSlotAvatar, resolvePlayerSlotNickname, usePlayerSlotAvatars, usePlayerSlotNicknames } from '../presentation/appearance/playerSlotAvatars';
++import { Table3DHudView, Table3DCentralHudView } from '../presentation3d/Table3DHud';
++import { TableCenterView } from './game/TableCenter';
+ const positions = ['south', 'east', 'north', 'west'] as const;
+ const slots = ['bottom', 'right', 'top', 'left'] as const;
+-/** Same cards, avatars and frozen responsive placement as the four-player HUD. */
+-export function XuezhanHud({ state, profile }: { state: XzState; profile?: PlayerProfile }) {
+-  const ref = useRef<HTMLElement>(null), avatars = usePlayerSlotAvatars(), nicknames = usePlayerSlotNicknames();
+-  const [size, setSize] = useState<{ width: number; height: number }>({ width: TABLE_PRESENTATION_TUNING.responsiveLayout.referenceWidth, height: TABLE_PRESENTATION_TUNING.responsiveLayout.referenceHeight });
+-  useEffect(() => { const root = ref.current; if (!root) return; const update = () => { const r = root.getBoundingClientRect(); if (r.width && r.height) setSize({ width: r.width, height: r.height }); }; const observer = new ResizeObserver(update); observer.observe(root); update(); return () => observer.disconnect(); }, []);
+-  return <section ref={ref} className="table-3d-hud" aria-label="血战四座信息">{state.players.map(p => {
+-    const tuning = getAvatarFrameTuning(slots[p.id], size.width, size.height);
+-    return <div key={p.participantId} className={`table-3d-player-frame table-3d-player-frame--${positions[p.id]} xz-player-frame`} data-participant-id={p.participantId} data-won={p.won !== null}
+-      style={{ '--avatar-frame-offset-x': `${tuning.x}px`, '--avatar-frame-offset-y': `${tuning.y}px`, '--avatar-frame-size': tuning.size } as CSSProperties}>
+-      <Table3DPlayerFrame player={p} position={positions[p.id]} tsumoGiriDisplayEnabled={false} avatarId={resolvePlayerSlotAvatar(p.id, profile?.avatarId, avatars)} nickname={resolvePlayerSlotNickname(p.id, profile?.nickname, nicknames, p.name)}
+-        status={<span className="xz-player-status">{p.score} 分<br />{p.won !== null ? `已胡 · 顺位 ${p.won}` : p.missing === null ? state.config.rules.missing === 'dynamic' ? '自由打缺' : '待定缺' : `缺${['万', '筒', '条'][p.missing]}`}</span>} />
+-    </div>;
+-  })}</section>;
++const names = ['你', '右家', '对家', '左家'];
++/** Consume the formal seat/card system, with the top card centered on its seat anchor. */
++export function XuezhanHud({ state, players, profile }: { state: XzState; players: PlayerState[]; profile?: PlayerProfile }) {
++  return <Table3DHudView playerProfile={profile} tsumoGiriDisplayEnabled={false} players={players.map(p => ({
++    player: p, position: positions[p.id], anchorCentered: p.id === 2,
++    status: <span className="table-3d-player-copy">{state.players[p.id].won !== null ? `第${state.players[p.id].won}胡` : state.players[p.id].missing === null ? state.config.rules.missing === 'dynamic' ? '自由打缺' : '待定缺' : `缺${['万', '筒', '条'][state.players[p.id].missing!]}`} · {p.score}分</span>,
++  }))} />;
+ }
++
++/** Read-only projection of the match state; no scoring or action decisions here. */
++export function XuezhanCenter({ state: s }: { state: XzState }) {
++  const exchange = s.config.rules.exchange === 0 ? '不换牌' : s.phase === 'exchange' ? `换${s.config.rules.exchange}张 ${Object.keys(s.exchanges).length}/4` : '换牌完成';
++  const missing = s.config.rules.missing === 'dynamic' ? '自由打缺' : s.phase === 'exchange' ? '待定缺' : s.phase === 'missing' ? `定缺 ${Object.keys(s.declarations).length}/4` : '定缺完成';
++  return <Table3DCentralHudView><div className="xz-center">
++    <TableCenterView scores={s.players.map(p => ({ playerId: p.id, className: `center-score--${positions[p.id]}`, slot: slots[p.id], score: p.score, wind: 'east', current: s.current === p.id && s.phase !== 'ended', dealer: s.dealer === p.id,
++      label: <span>{s.dealer === p.id && <b className="dealer-marker">庄</b>}{names[p.id]}{p.won !== null && <span className="xz-center-rank">第{p.won}胡</span>}</span>,
++    }))} roundLabel="血战到底" remainingLabel={null}>
++      <span>第{s.handNumber}/{s.config.rules.rounds}局</span>
++      <span>余{s.wall.length} · 活跃{s.players.filter(p => p.won === null).length}</span>
++    </TableCenterView>
++    <div className="xz-center-stage"><span>{s.phase === 'ended' ? `${s.results.find(r => r.hand === s.handNumber)?.reason === 'wall' ? '流局清算' : '本局结束'} · 见账本` : `${exchange} · ${missing}`}</span></div>
++  </div></Table3DCentralHudView>;
++}
+--- before/src/components/xuezhan.css
++++ src/components/xuezhan.css
+@@ -1,15 +1,31 @@
+ .xz-settings .menu-panel{max-width:1100px;width:min(1100px,96vw)}
+ .xz-settings .settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+ .xz-settings label{display:flex;flex-direction:column;gap:6px}.xz-settings small{opacity:.8;line-height:1.5}.xz-settings select,.xz-settings input:not([type=checkbox]),.xz-settings textarea{padding:8px;max-width:100%}.xz-rule-group{padding:14px 0;border-bottom:1px solid #ffffff30}.xz-rule-group summary{cursor:pointer;font-weight:700;margin-bottom:10px}.xz-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.xz-primary{margin-top:20px;padding:14px 30px}.xz-settings pre,.xz-details pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:320px;overflow:auto}
+-.xz-game{position:relative;height:100dvh;min-height:560px;overflow:hidden;background:#071712;color:#f4eee0;font-size:14px}.xz-game button,.xz-tests button{padding:7px 12px;border-radius:6px;border:1px solid #9d825a;background:#213d35;color:#fff;cursor:pointer}.xz-game button:disabled{opacity:.4;cursor:default}.xz-game-header{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px;background:#071712e8;z-index:5}.xz-game-header>span{margin-right:auto}.xz-scene{position:absolute!important;inset:0;height:100%;width:100%}.xz-seat{position:absolute;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#102d27e8;border:1px solid #876e49;border-radius:8px;padding:6px;max-width:230px;pointer-events:none}.xz-seat img{width:40px;height:40px;object-fit:cover}.xz-seat .player-avatar{width:40px;height:40px}.xz-seat-0{bottom:25%;left:4%}.xz-seat-1{top:36%;right:2%}.xz-seat-2{top:10%;left:42%}.xz-seat-3{top:36%;left:2%}.xz-seat[data-won=true]{border-color:#e8bd65}.xz-controls{position:absolute;bottom:8px;left:8%;right:8%;z-index:5;text-align:center;background:linear-gradient(transparent,#071712ed 28%);padding:12px 8px 4px}.xz-controls p{margin:5px}.xz-controls>button{margin:4px}.xz-local-hand{display:flex;justify-content:center;align-items:flex-end;gap:3px;min-height:70px}.xz-local-hand .tile{width:clamp(35px,3.65vw,64px);height:clamp(52px,5.4vw,94px);min-width:0;padding:0;border:0;background:transparent}.xz-local-hand .xz-playable{filter:drop-shadow(0 0 3px #e5c67a)}.xz-local-hand .tile:disabled{opacity:.65}.xz-local-hand .tile.drawn{margin-left:10px}.xz-result{position:absolute;z-index:7;right:16px;top:90px;max-height:65vh;overflow:auto;background:#12342ff5;border:1px solid #b49a64;padding:20px;border-radius:12px}.xz-result p{margin:8px}.xz-details{position:absolute;z-index:10;inset:60px 4% 20px;background:#102923fa;padding:20px;overflow:auto;border:1px solid #b49a64}.xz-details table{width:100%;text-align:left}.xz-details td,.xz-details th{padding:8px;border-bottom:1px solid #ffffff30}.xz-tests{padding:24px;background:#102923;color:#eee;min-height:100vh}.xz-test-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}.xz-test-grid article{border:1px solid #7f7151;border-radius:9px;padding:16px}.xz-tabs{display:flex;gap:12px;padding:12px;background:#142d27}.xz-tabs button{padding:10px 20px}.xz-tests input,.xz-tests select{padding:8px}.xz-tests textarea{width:100%;min-height:65px}.xz-test-grid li{margin:5px}.xz-test-status{display:block;padding:8px;background:#ffffff12}
+-@media(max-height:800px){.xz-game-header{font-size:12px;padding:5px}.xz-game-header button{padding:5px 8px}.xz-controls{bottom:2px}.xz-controls p{font-size:12px}.xz-seat-0{bottom:29%}.xz-result{top:65px;padding:12px}.xz-local-hand .tile{max-height:70px;max-width:48px}}
+-.xz-hand-spacer{height:90px}.xz-game .table-3d-badge{display:none}.xz-game .local-hand-area--screen-space{z-index:6}.xz-game .local-hand-row{display:flex;align-items:flex-end;gap:2px}.xz-game .local-hand-area--screen-space .tile{pointer-events:auto}.xz-game .xz-controls{pointer-events:none}.xz-game .xz-controls button{pointer-events:auto}
+-.xz-test-session{height:100dvh;overflow:hidden}.xz-test-controls{position:fixed;z-index:8;top:42px;left:8px;display:flex;align-items:center;gap:8px;font-size:12px;background:#12362eed;padding:5px;border-radius:5px}.xz-test-controls button{padding:4px 8px}.xz-game .local-hand-area--screen-space .tile:disabled{opacity:1}.xz-game .xz-scene>.table-3d-scene{height:100%;margin:0}.xz-game .xz-scene{margin:0;border:0}.xz-game .local-hand-area--screen-space .tile:not(:disabled){cursor:pointer}
+-.xz-game[data-xz-legal-help=true] .local-hand-area--interactive .tile:not(:disabled){filter:drop-shadow(0 0 3px #e9c06a)}
+-.xz-game[data-xz-legal-help=true] .local-hand-area--interactive .tile:disabled{opacity:.55}
+-.xz-scene>.table-3d-hud{position:absolute;inset:0}.xz-player-status{color:#fff1d5;border-radius:5px;padding:3px;font-size:12px;white-space:nowrap}.xz-player-frame[data-won=true] .xz-player-status{outline:1px solid #e8bd65}.xz-fallback-rivers{position:absolute;inset:15% 20% 30%;overflow:auto}
++.xz-game{position:relative;height:100dvh;min-height:560px;overflow:hidden;background:#071712;color:#f4eee0;font-size:14px}.xz-controls button,.xz-details button,.xz-result button,.xz-tests button{padding:7px 12px;border-radius:6px;border:1px solid #9d825a;background:#213d35;color:#fff;cursor:pointer}.xz-controls button:disabled{opacity:.4;cursor:default}.xz-scene{position:absolute!important;inset:0;height:100%;width:100%}.xz-controls{position:absolute;bottom:8px;left:8%;right:8%;z-index:5;text-align:center;background:linear-gradient(transparent,#071712ed 28%);padding:12px 8px 4px}.xz-controls p{margin:5px}.xz-controls>button{margin:4px}.xz-result{position:absolute;z-index:7;right:16px;top:90px;max-height:65vh;overflow:auto;background:#12342ff5;border:1px solid #b49a64;padding:20px;border-radius:12px}.xz-result p{margin:8px}.xz-details{position:absolute;z-index:10;inset:60px 4% 20px;background:#102923fa;padding:20px;overflow:auto;border:1px solid #b49a64}.xz-details table{width:100%;text-align:left}.xz-details td,.xz-details th{padding:8px;border-bottom:1px solid #ffffff30}.xz-tests{padding:24px;background:#102923;color:#eee;min-height:100vh}.xz-test-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}.xz-test-grid article{border:1px solid #7f7151;border-radius:9px;padding:16px}.xz-tabs{display:flex;gap:12px;padding:12px;background:#142d27}.xz-tabs button{padding:10px 20px}.xz-tests input,.xz-tests select{padding:8px}.xz-tests textarea{width:100%;min-height:65px}.xz-test-grid li{margin:5px}.xz-test-status{display:block;padding:8px;background:#ffffff12}
++@media(max-height:800px){.xz-controls{bottom:2px}.xz-controls p{font-size:12px}.xz-result{top:65px;padding:12px}}
++.xz-hand-spacer{height:90px}.xz-game .table-3d-badge{display:none}.xz-game .xz-controls{pointer-events:none}.xz-game .xz-controls button{pointer-events:auto}
++.xz-test-session{height:100dvh;overflow:hidden}.xz-test-controls{position:fixed;z-index:8;top:42px;left:8px;display:flex;align-items:center;gap:8px;font-size:12px;background:#12362eed;padding:5px;border-radius:5px}.xz-test-controls button{padding:4px 8px}.xz-game .xz-scene>.table-3d-scene{height:100%;margin:0}.xz-game .xz-scene{margin:0;border:0}
++
++
++.xz-scene>.table-3d-hud{position:absolute;inset:0}.xz-fallback-rivers{position:absolute;inset:15% 20% 30%;overflow:auto}
+ .xz-game .xz-controls{background:none}.xz-test-controls{color:#f4eee0}
+ .xz-game .xz-result{top:100px;right:50%;transform:translateX(50%);width:min(490px,90vw);max-height:calc(100dvh - 300px);padding:12px;display:flex;flex-direction:column;gap:8px}
+ .xz-result-heading,.xz-result-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
+ .xz-result-scroll{overflow:auto;min-height:0;padding-right:6px;overscroll-behavior:contain}
+ .xz-result table{width:100%;text-align:left;border-collapse:collapse}.xz-result td,.xz-result th{padding:6px;border-bottom:1px solid #ffffff30}.xz-result h3{font-size:14px;margin:12px 0 6px}.xz-winner{padding:8px 0;border-bottom:1px solid #ffffff30}.xz-winner summary{cursor:pointer;line-height:1.6}.xz-game .xz-result-collapsed{width:auto;right:16px;transform:none}.xz-win-summary{max-height:48px;overflow:auto;pointer-events:auto}
++
++/* Shared toolbar and tile appearance remain authoritative. Only XZ composition lives here. */
++.xz-game > .game-top-bar{position:relative;grid-template-columns:minmax(0,1fr) auto;align-self:start}
++.xz-game .xz-scene{top:58px;height:calc(100% - 58px)}
++.xz-center{grid-area:center;position:relative;width:100%;height:100%}
++.xz-center .table-center{width:100%;height:100%}
++.xz-center .center-score-grid{grid-template-columns:1fr 1.25fr 1fr;grid-template-rows:1fr 1.4fr 1fr}
++.xz-center .table-center .center-round,.xz-center .table-center .center-score{font-size:25px}
++.xz-center-stage{position:absolute;bottom:3px;left:0;right:0;display:grid;text-align:center;font-size:23px;color:#edf7ef;white-space:nowrap}
++.xz-center .center-score--south{margin-bottom:28px}
++
++.xz-game .table-3d-player-frame--north{top:13%}
++.xz-game .xz-controls{bottom:0;padding-bottom:0}
++.xz-game .xz-controls>p{position:absolute;bottom:142px;left:50%;width:max-content;max-width:45vw;text-align:left}
++
++.xz-center-rank{display:block;font-size:20px}
+--- before/src/components/game/GameTopBar.tsx
++++ src/components/game/GameTopBar.tsx
+@@ -42,18 +42,23 @@
+ 
+ export function GameTopBarView({ analysisOpen, onOpenRulesGuide, onOpenAudioSettings, onToggleAnalysis, onReturnMenu, modeLabel, currentName, currentWind, phaseLabel, controls }: Omit<GameTopBarProps, 'gameState' | 'matchState' | 'phaseLabelOverride' | 'currentPlayerDisplayName'> & { currentName: string; currentWind: Wind; phaseLabel: string; controls?: ReactNode }) {
+   return (
+-    <header className="game-top-bar" aria-label="对局状态栏">
+-      <div className="game-top-bar-section game-top-bar-section--turn">
+-        <span>{modeLabel ? `模式：${modeLabel}　` : ''}轮到：{windNames[currentWind]}家 {currentName}</span>
+-        <span>{phaseLabel}</span>
+-      </div>
+-      <div className="game-top-bar-actions">
++    <GameTopBarFrame actions={<>
+         {controls}
+         <button type="button" className="game-top-bar-music" aria-label="音乐设置" title="音乐设置" onClick={onOpenAudioSettings}>♪</button>
+         <button type="button" onClick={onOpenRulesGuide}>规则说明</button>
+         <button type="button" aria-pressed={analysisOpen} onClick={onToggleAnalysis}>牌局分析</button>
+         <button type="button" onClick={onReturnMenu}>返回菜单</button>
+-      </div>
+-    </header>
++      </>}>
++        <span>{modeLabel ? `模式：${modeLabel}　` : ''}轮到：{windNames[currentWind]}家 {currentName}</span>
++        <span>{phaseLabel}</span>
++    </GameTopBarFrame>
+   );
+ }
++
++/** Shared visual shell; each mode supplies its own authoritative actions. */
++export function GameTopBarFrame({ children, actions }: { children: ReactNode; actions: ReactNode }) {
++  return <header className="game-top-bar" aria-label="对局状态栏">
++    <div className="game-top-bar-section game-top-bar-section--turn">{children}</div>
++    <div className="game-top-bar-actions">{actions}</div>
++  </header>;
++}
+--- before/src/components/game/TableCenter.tsx
++++ src/components/game/TableCenter.tsx
+@@ -1,3 +1,4 @@
++import type { ReactNode } from 'react';
+ import type { MatchState } from '../../game/match/types';
+ import type { GameState, PlayerId, Wind } from '../../game/types';
+ import type { TableSeatMapping } from './MahjongTable';
+@@ -54,14 +55,14 @@
+   return <TableCenterView scores={scorePositions.map(entry => ({ ...entry, score: gameState.players[entry.playerId].score, wind: gameState.players[entry.playerId].seatWind, current: gameState.currentPlayer === entry.playerId, dealer: gameState.dealer === entry.playerId }))} roundLabel={roundText(gameState, matchState, roundLabel)} honba={gameState.honba} remainingLabel={remainingLabel === undefined ? `剩余${gameState.wall.length}张` : remainingLabel} centerCornerLabels={centerCornerLabels} />;
+ }
+ 
+-export interface CenterScore { playerId: PlayerId; className: string; slot: 'top' | 'left' | 'right' | 'bottom'; score: number; wind: Wind; current: boolean; dealer: boolean }
+-export function TableCenterView({ scores, roundLabel, honba, remainingLabel, centerCornerLabels }: { scores: readonly CenterScore[]; roundLabel: string; honba: number; remainingLabel?: string | null; centerCornerLabels?: TableCenterProps['centerCornerLabels'] }) {
++export interface CenterScore { playerId: PlayerId; className: string; slot: 'top' | 'left' | 'right' | 'bottom'; score: number; wind: Wind; current: boolean; dealer: boolean; label?: ReactNode }
++export function TableCenterView({ scores, roundLabel, honba, remainingLabel, centerCornerLabels, children }: { scores: readonly CenterScore[]; roundLabel: string; honba?: number; children?: ReactNode; remainingLabel?: string | null; centerCornerLabels?: TableCenterProps['centerCornerLabels'] }) {
+   return (
+     <section className="table-center" aria-label="中央计分区">
+       {centerCornerLabels?.topLeft ? <span className="table-center-corner table-center-corner--top-left">{centerCornerLabels.topLeft}</span> : null}
+       {centerCornerLabels?.bottomRight ? <span className="table-center-corner table-center-corner--bottom-right">{centerCornerLabels.bottomRight}</span> : null}
+       <div className="center-score-grid">
+-        {scores.map(({ playerId, className, slot, score, wind, current, dealer }) => {
++        {scores.map(({ playerId, className, slot, score, wind, current, dealer, label }) => {
+           return (
+             <div
+               key={slot}
+@@ -69,14 +70,15 @@
+               data-center-slot={slot}
+               data-center-player={playerId}
+             >
+-              <SeatWindLabel isDealer={dealer} wind={wind} />
++              {label ?? <SeatWindLabel isDealer={dealer} wind={wind} />}
+               <strong>{score.toLocaleString()}</strong>
+             </div>
+           );
+         })}
+         <div className="center-round">
+           <strong>{roundLabel}</strong>
+-          <span>{honba}本场</span>
++          {honba !== undefined && <span>{honba}本场</span>}
++          {children}
+           {remainingLabel === null ? null : <span>{remainingLabel}</span>}
+         </div>
+       </div>
+--- before/src/presentation3d/Table3DHud.tsx
++++ src/presentation3d/Table3DHud.tsx
+@@ -50,7 +50,7 @@
+   return <Table3DHudView players={POSITIONS.filter(position => !activeSeats || activeSeats.includes(position)).map(position => ({ position, player: gameState.players[seats[position]] }))} playerProfile={playerProfile} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} dora={<DoraIndicatorStack gameState={gameState} matchState={matchState} slots={doraIndicatorSlots} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />} />;
+ }
+ 
+-export function Table3DHudView({ players, playerProfile, tsumoGiriDisplayEnabled = true, dora }: { players: readonly { position: PlayerPosition; player: PlayerState; nickname?: string }[]; playerProfile?: PlayerProfile; tsumoGiriDisplayEnabled?: boolean; dora: ReactNode }) {
++export function Table3DHudView({ players, playerProfile, tsumoGiriDisplayEnabled = true, dora }: { players: readonly { position: PlayerPosition; player: PlayerState; nickname?: string; status?: ReactNode; anchorCentered?: boolean }[]; playerProfile?: PlayerProfile; tsumoGiriDisplayEnabled?: boolean; dora?: ReactNode }) {
+   const slotAvatars = usePlayerSlotAvatars();
+   const slotNicknames = usePlayerSlotNicknames();
+   useSyncExternalStore(
+@@ -85,7 +85,7 @@
+       <div className="table-3d-dora-layer" aria-label="3D 宝牌信息层">
+         {dora}
+       </div>
+-      {players.map(({ position, player, nickname }) => {
++      {players.map(({ position, player, nickname, status, anchorCentered }) => {
+         const playerId = player.id;
+         const frameTuning = getAvatarFrameTuning(
+           PLAYER_SLOTS[position],
+@@ -100,7 +100,7 @@
+             data-player-zone={position}
+             data-player-index={playerId}
+             style={{
+-              '--avatar-frame-offset-x': `${frameTuning.x}px`,
++              '--avatar-frame-offset-x': `${anchorCentered ? 0 : frameTuning.x}px`,
+               '--avatar-frame-offset-y': `${frameTuning.y}px`,
+               '--avatar-frame-size': frameTuning.size,
+             } as CSSProperties}
+@@ -110,6 +110,7 @@
+               position={position}
+               tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled}
+               avatarId={resolvePlayerSlotAvatar(playerId, playerProfile?.avatarId, slotAvatars)}
++              status={status}
+               nickname={nickname ?? resolvePlayerSlotNickname(playerId, playerProfile?.nickname, slotNicknames, player.name)}
+             />
+           </div>
+--- before/src/presentation/table/xuezhanPresentation.ts
++++ src/presentation/table/xuezhanPresentation.ts
+@@ -8,7 +8,7 @@
+ import type { PlayerState } from '../../game/types';
+ const seats: Table3DSeat[] = ['bottom', 'right', 'top', 'left'];
+ /** A projection only. No Riichi GameState is created and no Riichi Rules are called. */
+-export function presentXz(s: XzState, selected: string[] = [], revealWon = true, testOmniscient = false): { scene: TableSceneState; player: PlayerState; hand: LocalHandPresentation; actions: ReturnType<typeof legalActions> } {
++export function presentXz(s: XzState, selected: string[] = [], revealWon = true, testOmniscient = false): { scene: TableSceneState; players: PlayerState[]; player: PlayerState; hand: LocalHandPresentation; actions: ReturnType<typeof legalActions> } {
+   const players: PlayerState[] = s.players.map(p => ({
+     id: p.id, name: p.name, score: p.score, hand: p.hand, calls: p.melds, river: p.river, drawnTile: p.hand.find(t => t.instanceId === p.drawn) ?? null,
+     seatWind: (['east', 'south', 'west', 'north'] as const)[p.id], riichi: false, riichiState: null,
+@@ -16,7 +16,7 @@
+   const scene: TableSceneState = { seats: Object.fromEntries(s.players.map(p => [seats[p.id], { ...buildSeatSceneState(players[p.id], seats[p.id], p.id === 0 || testOmniscient || revealWon && p.won !== null, true, []), exposedHand: testOmniscient || revealWon && p.won !== null }])) as TableSceneState['seats'], wall: s.wall.map((tile, index) => ({ key: `xz-wall-${tile.instanceId}`, faceState: 'face-down', orientation: 'upright', slotIndex: 55 - s.wall.length + index, visible: true })), deadWall: [], doraIndicators: [] };
+   const p = s.players[0], playable = s.phase === 'exchange' && !s.exchanges[0] ? p.hand : legalDiscards(s, 0), ids = playable.map(t => t.instanceId);
+   const tiles = [...p.hand.filter(t => t.instanceId !== p.drawn), ...p.hand.filter(t => t.instanceId === p.drawn)];
+-  return { scene, player: players[0], hand: { playerId: 0, tiles: tiles.map(tile => ({ tile, drawn: tile.instanceId === p.drawn, playable: ids.includes(tile.instanceId), selected: selected.includes(tile.instanceId), riichiCandidate: false })), canDiscard: s.phase === 'turn' && ids.length > 0, playableTileInstanceIds: ids, selectedTileInstanceId: selected[0] ?? null, drawnTileInstanceId: p.drawn, riichiCandidateInstanceIds: [], kuikaeForbiddenTileIds: [] }, actions: legalActions(s, 0) };
++  return { scene, players, player: players[0], hand: { playerId: 0, tiles: tiles.map(tile => ({ tile, drawn: tile.instanceId === p.drawn, playable: ids.includes(tile.instanceId), selected: selected.includes(tile.instanceId), riichiCandidate: false })), canDiscard: s.phase === 'turn' && ids.length > 0, playableTileInstanceIds: ids, selectedTileInstanceId: selected[0] ?? null, drawnTileInstanceId: p.drawn, riichiCandidateInstanceIds: [], kuikaeForbiddenTileIds: [] }, actions: legalActions(s, 0) };
+ }
+ export function xzInteraction(select: (id: string | null) => void, discard: (id: string) => void): TableInteractionActions { return { selectTile: select, discard }; }
+ /** Only common semantic events. Blood-battle scoring never enters Riichi yaku/settlement consumers. */
+--- before/src/components/XuezhanHud.test.tsx
++++ src/components/XuezhanHud.test.tsx
+@@ -0,0 +1,39 @@
++import { describe, expect, it } from 'vitest';
++import { renderToStaticMarkup } from 'react-dom/server';
++import { XuezhanCenter } from './XuezhanHud';
++import { GameTopBarView } from './game/GameTopBar';
++import { TableCenterView } from './game/TableCenter';
++import { applyXz } from '../game/xuezhan/engine';
++import { loadXzScenario, xzCases } from '../game/xuezhan/scenarios';
++const load = (id: string) => loadXzScenario(xzCases().find(c => c.id === id)!.scenario);
++describe('shared XZ presentation', () => {
++  it('shows authoritative exchange progress without riichi counters', () => {
++    let s = load('XZ-PRESET-2');
++    const tiles = s.players[0].hand.filter(t => t.id < 9).slice(0, 3).map(t => t.instanceId);
++    s = applyXz(s, 0, { type: 'exchange', tiles });
++    const html = renderToStaticMarkup(<XuezhanCenter state={s} />);
++    expect(html).toContain('换3张 1/4');
++    expect(html).toContain('待定缺');
++    expect(html).toContain('血战到底');
++    expect(html).not.toContain('本场');
++    expect(html.match(/data-center-player=/g)).toHaveLength(4);
++  });
++  it('preserves the shared first-win rank for simultaneous winners', () => {
++    let s = load('XZ-TRIPLE');
++    for (const seat of [1, 2, 3] as const) s = applyXz(s, seat, { type: 'win' });
++    const html = renderToStaticMarkup(<XuezhanCenter state={s} />);
++    expect(html.match(/第1胡/g)).toHaveLength(3);
++    expect(html).not.toContain('第2胡');
++    expect(html).toContain('本局结束');
++    expect(html).toContain('余55 · 活跃1');
++    expect(html).toContain('<strong>97</strong>');
++    expect(html.match(/<strong>101<\/strong>/g)).toHaveLength(3);
++  });
++  it('preserves the formal riichi toolbar and center defaults', () => {
++    const noop = () => {};
++    const bar = renderToStaticMarkup(<GameTopBarView currentName="测试玩家" currentWind="east" phaseLabel="打牌" analysisOpen={false} onOpenRulesGuide={noop} onOpenAudioSettings={noop} onToggleAnalysis={noop} onReturnMenu={noop} />);
++    for (const label of ['规则说明', '牌局分析', '返回菜单', '音乐设置', '东家']) expect(bar).toContain(label);
++    const center = renderToStaticMarkup(<TableCenterView scores={[]} roundLabel="东1局" honba={2} remainingLabel="剩余30张" />);
++    expect(center).toContain('2本场'); expect(center).toContain('剩余30张');
++  });
++});

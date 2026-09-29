@@ -1,0 +1,79 @@
+- main:
+  - generic "对局状态栏":
+    - strong: 血战到底 · 第 1/4 局
+    - generic: 选择定缺 · 已提交 0/4
+    - button "保存并退出"
+    - button "继续比赛" [active]
+    - button "保存"
+    - button "规则与账本"
+    - button "声音"
+  - region "3D 麻将桌技术样板":
+    - generic "3D 中央信息区":
+      - region "中央计分区":
+        - generic: 你
+        - strong: "100"
+        - generic: 庄右家
+        - strong: "100"
+        - generic: 对家
+        - strong: "100"
+        - generic: 左家
+        - strong: "100"
+        - strong: 血战到底
+        - generic: 第1/4局
+        - generic: 余55 · 活跃4
+      - generic: 换牌完成 · 定缺 0/4
+  - region "3D 牌桌信息层":
+    - generic "3D 宝牌信息层"
+    - strong: 血战复核员
+    - generic: 待定缺 · 100分
+    - strong: 右席复核
+    - generic: 待定缺 · 100分
+    - strong: 上席复核
+    - generic: 待定缺 · 100分
+    - strong: 左席复核
+    - generic: 待定缺 · 100分
+  - region "血战操作区":
+    - status: 选择定缺 · 已提交 0/4
+    - button "定缺万"
+    - button "定缺筒"
+    - button "定缺条"
+  - region "本家手牌":
+    - button "二万" [disabled]:
+      - img "二万"
+    - button "五万" [disabled]:
+      - img "五万"
+    - button "六万" [disabled]:
+      - img "六万"
+    - button "八万" [disabled]:
+      - img "八万"
+    - button "四筒" [disabled]:
+      - img "四筒"
+    - button "四筒" [disabled]:
+      - img "四筒"
+    - button "五筒" [disabled]:
+      - img "五筒"
+    - button "六筒" [disabled]:
+      - img "六筒"
+    - button "九筒" [disabled]:
+      - img "九筒"
+    - button "三索" [disabled]:
+      - img "三索"
+    - button "五索" [disabled]:
+      - img "五索"
+    - button "六索" [disabled]:
+      - img "六索"
+    - button "六索" [disabled]:
+      - img "六索"
+  - complementary "比赛计时与自动操作":
+    - button "收起自动操作" [expanded]: ‹
+    - button "自动和牌" [pressed]:
+      - text: 和
+      - generic: ✓
+    - button "不碰杠" [pressed]:
+      - text: 鸣
+      - generic: ⊘
+    - button "自动摸切" [pressed]:
+      - text: 切
+      - generic: ✓
+    - timer "计时已暂停":
+      - generic: ∞

@@ -1,0 +1,92 @@
+- main:
+  - strong: 三人东 · 东3局 · 0本场
+  - generic: 余牌 52 · 供托 0 · 自摸有损
+  - button "保存并退出"
+  - button "暂停"
+  - button "规则与账本"
+  - region "三人立直麻将":
+    - generic: 三人立直麻将
+    - strong: 你
+    - generic: 39,000 · 东家 · 立直 · 拔北2
+    - strong: 电脑一
+    - generic: 33,000 · 南家 · 拔北0
+    - strong: 电脑二
+    - generic: 33,000 · 西家 · 拔北0
+  - strong: 你行动
+  - generic "表宝牌指示牌":
+    - img "东":
+      - img "东"
+  - generic: 庄家：你
+  - region "三人操作区":
+    - status: 你行动
+    - button "自摸"
+  - region "本家手牌":
+    - button "二筒" [disabled]:
+      - img "二筒"
+    - button "三筒" [disabled]:
+      - img "三筒"
+    - button "四筒" [disabled]:
+      - img "四筒"
+    - button "六筒" [disabled]:
+      - img "六筒"
+    - button "七筒" [disabled]:
+      - img "七筒"
+    - button "八筒" [disabled]:
+      - img "八筒"
+    - button "二索" [disabled]:
+      - img "二索"
+    - button "三索" [disabled]:
+      - img "三索"
+    - button "四索" [disabled]:
+      - img "四索"
+    - button "四索" [disabled]:
+      - img "四索"
+    - button "五索" [disabled]:
+      - img "五索"
+    - button "六索" [disabled]:
+      - img "六索"
+    - button "七索" [disabled]:
+      - img "七索"
+    - button "七索":
+      - img "七索"
+  - complementary "比赛计时与自动操作":
+    - button "收起自动操作" [expanded]: ‹
+    - button "自动和牌": 和
+    - button "不碰杠": 鸣
+    - button "自动摸切": 切
+    - timer "响应剩余时间":
+      - generic: 5s
+      - generic: 20s
+  - complementary:
+    - checkbox "完全控制（关闭 AI）" [checked]
+    - text: 完全控制（关闭 AI）
+    - text: 观察与操作席
+    - combobox "三人观察席":
+      - option "你" [selected]
+      - option "电脑一"
+      - option "电脑二"
+    - button "单步推进"
+    - button "测试时钟＋5秒"
+    - button "关闭自动操作"
+- complementary:
+  - strong: SM-13-EAST-END · 东三常规终局
+  - paragraph: 种子100 · 三人东 · 有损
+  - generic "操作与预期"
+  - paragraph: 真人自摸
+  - paragraph: 检查和了止与三列排名
+  - paragraph: 预期：东三庄家第一达目标，和了止
+  - paragraph: 人工重点：确认操作按钮和权威输出一致
+  - paragraph: 人工重点：检查三席身份、牌河、副露与拔北区
+  - paragraph: 先暂停；勾选完全控制关闭 AI；关闭自动操作清除当前观察席的自动设置（换席后分别关闭）。暂停时单步推进一次后仍暂停。测试时钟＋5秒会主动触发权威超时。听感核查请在本人浏览器移除 mute=1 后重新加载，并在声音设置取消静音；自动验证始终静音。
+  - button "同seed重置场景"
+  - button "返回三人测试Tab"
+  - button "运行当前场景自动检查"
+  - paragraph: 自动：未运行
+  - paragraph
+  - text: 人工核查
+  - combobox "SM-13-EAST-END人工核查":
+    - option "待核查" [selected]
+    - option "通过"
+    - option "不通过"
+  - textbox "SM-13-EAST-END人工备注"
+  - button "导出诊断报告"

@@ -11,6 +11,7 @@ export const VOICE_EVENT_PRIORITIES = {
   'action.kan': 70,
   'action.ankan': 70,
   'action.kakan': 70,
+  'action.nuki': 70,
   'game.draw': 85,
   'game.four_winds_abortive_draw': 85,
   'game.four_kans_abortive_draw': 85,
@@ -30,6 +31,7 @@ export interface VoiceEvent {
 
 /** Converts confirmed presentation events to one mutually exclusive semantic VoiceEvent. */
 export function voiceEventFromPresentation(event: PresentationEvent): VoiceEvent | undefined {
+  if (event.type === 'north_declared') return createVoiceEvent(event.declarationId, 'action.nuki', event.playerId);
   if (event.type === 'tile_discarded') return createVoiceEvent(event.eventId, voiceKeyForTile(event.tile), event.playerId);
   if (event.type === 'riichi_declared') return createVoiceEvent(event.eventId, event.kind === 'double-riichi' ? 'action.double_riichi' : 'action.riichi', event.playerId);
   if (event.type === 'meld_declared') {

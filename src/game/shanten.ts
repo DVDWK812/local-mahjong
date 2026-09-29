@@ -29,7 +29,7 @@ export interface DiscardRecommendation {
 const TERMINAL_OR_HONOR_IDS = new Set<TileId>([0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33]);
 const ORPHAN_IDS = [...TERMINAL_OR_HONOR_IDS];
 
-export function standardShanten(hand: Tile[] | TileCounts): number {
+export function standardShanten(hand: Tile[] | TileCounts, fixedMelds = 0): number {
   const counts = normalizeCounts(hand);
   let best = 8;
 
@@ -91,13 +91,13 @@ export function standardShanten(hand: Tile[] | TileCounts): number {
     if (!found) evaluate(melds, pairs, taatsu);
   }
 
-  removeMelds(cloneCounts(counts), 0, 0, 0, 0);
+  removeMelds(cloneCounts(counts), 0, fixedMelds, 0, 0);
 
   for (let i = 0; i < 34; i += 1) {
     if (counts[i] >= 2) {
       const work = cloneCounts(counts);
       work[i] -= 2;
-      removeMelds(work, 0, 0, 1, 0);
+      removeMelds(work, 0, fixedMelds, 1, 0);
     }
   }
 

@@ -1,0 +1,46 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ❯ src/game/sanma/scenarios.test.ts (79 tests | 2 failed) 614ms
+   × 统一三人fixture registry：自动测试与测试Tab共用 > SM-11-PAO-RON 第三者放铳与包牌均摊 16ms
+     → Error: 手牌缺少18: expected false to be true // Object.is equality
+   × 统一三人fixture registry：自动测试与测试Tab共用 > SM-09-EIGHT 四杠加四北共八次补牌 3ms
+     → Fixture 无可分配牌：30
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/game/sanma/scenarios.test.ts > 统一三人fixture registry：自动测试与测试Tab共用 > SM-11-PAO-RON 第三者放铳与包牌均摊
+AssertionError: Error: 手牌缺少18: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/game/sanma/scenarios.test.ts:9:41
+      7|     const result = runSanmaCase(t); rows.push({ caseId: t.caseId, pass…
+      8|     mkdirSync('artifacts/sanma-v1', { recursive: true }); writeFileSyn…
+      9|     expect(result.passed, result.error).toBe(true);
+       |                                         ^
+     10|   });
+     11| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/game/sanma/scenarios.test.ts > 统一三人fixture registry：自动测试与测试Tab共用 > SM-09-EIGHT 四杠加四北共八次补牌
+Error: Fixture 无可分配牌：30
+ ❯ take src/game/sanma/fixtures.ts:25:291
+
+ ❯ Module.sanmaFixture src/game/sanma/fixtures.ts:44:56
+ ❯ loadSanmaCase src/game/sanma/scenarios.ts:87:25
+ ❯ Module.runSanmaCase src/game/sanma/scenarios.ts:92:15
+ ❯ src/game/sanma/scenarios.test.ts:7:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 77 passed (79)
+   Start at  22:27:46
+   Duration  1.57s (transform 357ms, setup 0ms, collect 484ms, tests 614ms, environment 0ms, prepare 140ms)
+

@@ -1,0 +1,67 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ scripts/xzBuildStamp.test.ts (10 tests) 12ms
+ ✓ src/game/timeControl/timeControl.test.ts (58 tests) 35ms
+ ✓ src/game/ai.test.ts (23 tests) 320ms
+ ❯ src/game/sanma/timing.test.ts (15 tests | 4 failed) 5349ms
+   ✓ runtime full matches with policy audit > east-only/loss/short=false/seed=308 790ms
+   ✓ runtime full matches with policy audit > east-only/split_missing_share_ceil100/short=false/seed=308 366ms
+   ✓ runtime full matches with policy audit > hanchan/loss/short=false/seed=308 767ms
+   ✓ runtime full matches with policy audit > hanchan/split_missing_share_ceil100/short=false/seed=308 1243ms
+   × runtime full matches with policy audit > east-only/loss/short=true/seed=308 365ms
+     → expected 45 to be +0 // Object.is equality
+   × runtime full matches with policy audit > east-only/split_missing_share_ceil100/short=true/seed=308 203ms
+     → expected 45 to be +0 // Object.is equality
+   × runtime full matches with policy audit > hanchan/loss/short=true/seed=308 762ms
+     → expected 105 to be +0 // Object.is equality
+   × runtime full matches with policy audit > hanchan/split_missing_share_ceil100/short=true/seed=308 808ms
+     → expected 105 to be +0 // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/game/sanma/timing.test.ts > runtime full matches with policy audit > east-only/loss/short=true/seed=308
+ FAIL  src/game/sanma/timing.test.ts > runtime full matches with policy audit > east-only/split_missing_share_ceil100/short=true/seed=308
+AssertionError: expected 45 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 45
+
+ ❯ src/game/sanma/timing.test.ts:70:85
+     68|       expect(r.state.completed).toBe(true);
+     69|       const sources = r.audit.reduce<Record<string, number>>((a, row) …
+     70|       expect(sources['ai-policy']).toBeGreaterThan(0); expect(sources.…
+       |                                                                                     ^
+     71|       runs.push({ length, payment, short, seed: 308, points: [config.s…
+     72|       mkdirSync('artifacts/sanma-closeout', { recursive: true }); writ…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/game/sanma/timing.test.ts > runtime full matches with policy audit > hanchan/loss/short=true/seed=308
+ FAIL  src/game/sanma/timing.test.ts > runtime full matches with policy audit > hanchan/split_missing_share_ceil100/short=true/seed=308
+AssertionError: expected 105 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 105
+
+ ❯ src/game/sanma/timing.test.ts:70:85
+     68|       expect(r.state.completed).toBe(true);
+     69|       const sources = r.audit.reduce<Record<string, number>>((a, row) …
+     70|       expect(sources['ai-policy']).toBeGreaterThan(0); expect(sources.…
+       |                                                                                     ^
+     71|       runs.push({ length, payment, short, seed: 308, points: [config.s…
+     72|       mkdirSync('artifacts/sanma-closeout', { recursive: true }); writ…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  4 failed | 102 passed (106)
+   Start at  00:45:57
+   Duration  5.91s (transform 470ms, setup 0ms, collect 890ms, tests 5.72s, environment 1ms, prepare 447ms)
+

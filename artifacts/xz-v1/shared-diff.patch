@@ -1,0 +1,184 @@
+diff --git a/package.json b/package.json
+index a1e0988..79e8f45 100644
+--- a/package.json
++++ b/package.json
+@@ -12,7 +12,9 @@
+     "prebuild": "npm run generate:voice-packs",
+     "build": "tsc && vite build",
+     "preview": "vite preview",
+-    "test": "vitest run"
++    "test": "vitest run",
++    "test:xuezhan": "vitest run src/game/xuezhan",
++    "check:types": "tsc --noEmit"
+   },
+   "dependencies": {
+     "@react-three/drei": "^10.7.8",
+diff --git a/src/app/navigation.ts b/src/app/navigation.ts
+index 97daaad..23bad8b 100644
+--- a/src/app/navigation.ts
++++ b/src/app/navigation.ts
+@@ -10,7 +10,11 @@ export type AppScreen =
+   | 'riichi-superpower'
+   | 'riichi-four-player-length'
+   | 'riichi-three-player-length'
++  | 'sanma-settings'
++  | 'sanma'
+   | 'match-settings'
++  | 'xuezhan-settings'
++  | 'xuezhan'
+   | 'rules-guide'
+   | 'game'
+   | 'replay-library'
+diff --git a/src/components/LocalModeMenu.tsx b/src/components/LocalModeMenu.tsx
+index e8e4795..a18e961 100644
+--- a/src/components/LocalModeMenu.tsx
++++ b/src/components/LocalModeMenu.tsx
+@@ -4,10 +4,11 @@ interface LocalModeMenuProps {
+   notice?: string | null;
+   onBack: () => void;
+   onRiichi: () => void;
++  onXuezhan?: () => void;
+   onComingSoon: (label: string) => void;
+ }
+ 
+-export function LocalModeMenu({ notice, onBack, onRiichi, onComingSoon }: LocalModeMenuProps) {
++export function LocalModeMenu({ notice, onBack, onRiichi, onXuezhan, onComingSoon }: LocalModeMenuProps) {
+   return (
+     <main className="menu-page">
+       <section className="menu-panel">
+@@ -18,7 +19,7 @@ export function LocalModeMenu({ notice, onBack, onRiichi, onComingSoon }: LocalM
+         <div className="menu-actions">
+           <button type="button" onClick={() => onComingSoon('剧情模式')}>剧情模式 <span>敬请期待</span></button>
+           <button type="button" onClick={onRiichi}>立直麻将</button>
+-          <button type="button" onClick={() => onComingSoon('血战到底')}>血战到底 <span>敬请期待</span></button>
++          <button type="button" onClick={onXuezhan}>血战到底</button>
+           <button type="button" onClick={() => onComingSoon('国标麻将')}>国标麻将 <span>敬请期待</span></button>
+         </div>
+       </section>
+diff --git a/src/game/testMode/catalog.ts b/src/game/testMode/catalog.ts
+index 07dd36f..d76a5fd 100644
+--- a/src/game/testMode/catalog.ts
++++ b/src/game/testMode/catalog.ts
+@@ -12,11 +12,11 @@ export interface TestCaseResult {
+   testedAt: string;
+ }
+ 
+-export interface TestCaseDefinition {
++export interface TestCaseDefinition<Scenario = TestScenarioV1> {
+   id: string;
+   version: number;
+   type: TestCaseType;
+-  scenario: TestScenarioV1;
++  scenario: Scenario;
+   keywords: string[];
+   steps: string[];
+   expectedResults: string[];
+diff --git a/src/game/testMode/resultsStorage.ts b/src/game/testMode/resultsStorage.ts
+index aa46cc6..cd85842 100644
+--- a/src/game/testMode/resultsStorage.ts
++++ b/src/game/testMode/resultsStorage.ts
+@@ -3,6 +3,14 @@ import type { TestCaseOutcome, TestCaseResult } from './catalog';
+ export const TEST_CASE_RESULTS_STORAGE_VERSION = 1 as const;
+ export const TEST_CASE_RESULTS_STORAGE_KEY = `local-mahjong.test-mode.case-results.v${TEST_CASE_RESULTS_STORAGE_VERSION}`;
+ 
++/** Versioned partitions for additional modes; the original result key is never migrated or cleared. */
++export class ModeResultsStorage<T> {
++  readonly key: string;
++  constructor(private readonly storage: Pick<Storage, 'getItem' | 'setItem'>, mode: string, private readonly version: number) { this.key = `local-mahjong.test-mode.${mode}.v${version}`; }
++  load(): Record<string, T> { try { const value = JSON.parse(this.storage.getItem(this.key) ?? 'null'); return value?.version === this.version && value.results && typeof value.results === 'object' ? value.results : {}; } catch { return {}; } }
++  save(results: Record<string, T>): void { this.storage.setItem(this.key, JSON.stringify({ version: this.version, results })); }
++}
++
+ interface StoredTestCaseResultsV1 {
+   version: typeof TEST_CASE_RESULTS_STORAGE_VERSION;
+   results: Record<string, TestCaseResult>;
+diff --git a/src/presentation3d/Table3DHud.tsx b/src/presentation3d/Table3DHud.tsx
+index d91a6c8..ac91097 100644
+--- a/src/presentation3d/Table3DHud.tsx
++++ b/src/presentation3d/Table3DHud.tsx
+@@ -1,4 +1,4 @@
+-import { useEffect, useRef, useState, useSyncExternalStore, type ComponentProps, type CSSProperties } from 'react';
++import { useEffect, useRef, useState, useSyncExternalStore, type ComponentProps, type CSSProperties, type ReactNode } from 'react';
+ import { DoraIndicatorStack } from '../components/game/DoraIndicatorStack';
+ import { MahjongTable } from '../components/game/MahjongTable';
+ import type { PlayerPosition } from '../components/game/PlayerZone';
+@@ -175,12 +175,14 @@ export function Table3DPlayerFrame({
+   tsumoGiriDisplayEnabled,
+   avatarId,
+   nickname,
++  status,
+ }: Readonly<{
+   player: Pick<PlayerState, 'name' | 'river'>;
+   position: PlayerPosition;
+   tsumoGiriDisplayEnabled: boolean;
+   avatarId?: PlayerProfile['avatarId'];
+   nickname: string;
++  status?: ReactNode;
+ }>) {
+   const initial = player.name.trim().slice(0, 1) || '玩';
+   const lastDiscard = player.river[player.river.length - 1];
+@@ -201,6 +203,7 @@ export function Table3DPlayerFrame({
+           </span>
+         ) : null}
+       </span>
++      {status}
+     </div>
+   );
+ }
+diff --git a/src/presentation3d/hand/Hand3D.tsx b/src/presentation3d/hand/Hand3D.tsx
+index e737d02..2a8c0a2 100644
+--- a/src/presentation3d/hand/Hand3D.tsx
++++ b/src/presentation3d/hand/Hand3D.tsx
+@@ -62,7 +62,7 @@ export function Hand3D({
+   const hoverRevisionRef = useRef(0);
+   const ownsPointer = presentation !== undefined;
+   const hasDrawnTile = seatState.hand.some((tile) => tile.drawn);
+-  const ronFlat = winPresentation?.action.winType === 'ron'
++  const ronFlat = seatState.exposedHand === true || winPresentation?.action.winType === 'ron'
+     && (winPresentation.phase !== 'ready' || winPresentation.action.playerId !== seatState.playerId);
+   const winMotion = resolveWinnerHandMotion3D(seatState.seat, ronFlat ? 'hold' : 'ready');
+   const tsumo = winPresentation?.action.winType === 'tsumo' ? winPresentation : null;
+diff --git a/src/presentation3d/sceneState/buildTableSceneState.ts b/src/presentation3d/sceneState/buildTableSceneState.ts
+index af1e46f..11e2fa4 100644
+--- a/src/presentation3d/sceneState/buildTableSceneState.ts
++++ b/src/presentation3d/sceneState/buildTableSceneState.ts
+@@ -79,7 +79,7 @@ export function getSceneSeatMapping(bottomPlayerId: PlayerId): TableSceneSeatMap
+   };
+ }
+ 
+-function buildSeatSceneState(
++export function buildSeatSceneState(
+   player: PlayerState,
+   seat: Table3DSeat,
+   handVisible: boolean,
+diff --git a/src/presentation3d/sceneState/tableSceneTypes.ts b/src/presentation3d/sceneState/tableSceneTypes.ts
+index 1d3ddfd..4175763 100644
+--- a/src/presentation3d/sceneState/tableSceneTypes.ts
++++ b/src/presentation3d/sceneState/tableSceneTypes.ts
+@@ -37,6 +37,8 @@ export type SeatSceneState = Readonly<{
+   seat: Table3DSeat;
+   playerId: PlayerId;
+   riichi: boolean;
++  /** Publicly exposed hand, independent of any variant's win animation. */
++  exposedHand?: boolean;
+   hand: readonly HandSceneTile[];
+   river: readonly RiverSceneTile[];
+   melds: readonly MeldSceneState[];
+diff --git a/vite.config.ts b/vite.config.ts
+index 4b5f931..fcdbd85 100644
+--- a/vite.config.ts
++++ b/vite.config.ts
+@@ -11,6 +11,7 @@ import { LocalGeneratedVoiceRegistry } from './scripts/localGeneratedVoiceRegist
+ import { FishVoiceCreationError, FishVoiceCreationService } from './scripts/fishVoiceCreationService.mjs';
+ import cloneLanguageMapping from './src/audio/voice/fishCloneLanguages.json';
+ import { tableRendererUrlBanner } from './scripts/tableRendererUrlBanner';
++import { xzBuildStamp } from './scripts/xzBuildStamp';
+ 
+ const projectRoot = path.dirname(fileURLToPath(import.meta.url));
+ const voiceRoot = path.join(projectRoot, 'src', 'music', 'voice_lines');
+@@ -202,4 +203,4 @@ const runtimeVoicePackFiles = [
+   '**/src/music/voice_lines/generated_voices.json',
+ ];
+ 
+-export default defineConfig({ plugins: [react(), tableRendererUrlBanner(), localVoiceBridge()], server: { host: '127.0.0.1', watch: { ignored: runtimeVoicePackFiles } } });
++export default defineConfig({ plugins: [react(), tableRendererUrlBanner(), localVoiceBridge(), xzBuildStamp(projectRoot)], server: { host: '127.0.0.1', watch: { ignored: runtimeVoicePackFiles } } });

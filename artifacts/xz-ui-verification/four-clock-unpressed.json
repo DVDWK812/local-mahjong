@@ -1,0 +1,45 @@
+{
+  "canvas": 1,
+  "clock": [
+    {
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px none rgb(245, 243, 222)",
+      "color": "rgb(245, 243, 222)",
+      "font": "24px Inter, \"Segoe UI\", \"Microsoft YaHei\", Arial, sans-serif",
+      "fontSize": "24px",
+      "padding": "0px",
+      "pressed": null,
+      "text": "‹"
+    },
+    {
+      "bg": "rgb(240, 240, 240)",
+      "border": "1.66667px outset rgb(0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "font": "14px Inter, \"Segoe UI\", \"Microsoft YaHei\", Arial, sans-serif",
+      "fontSize": "14px",
+      "padding": "3px",
+      "pressed": "false",
+      "text": "和"
+    },
+    {
+      "bg": "rgb(240, 240, 240)",
+      "border": "1.66667px outset rgb(0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "font": "14px Inter, \"Segoe UI\", \"Microsoft YaHei\", Arial, sans-serif",
+      "fontSize": "14px",
+      "padding": "3px",
+      "pressed": "false",
+      "text": "鸣"
+    },
+    {
+      "bg": "rgb(240, 240, 240)",
+      "border": "1.66667px outset rgb(0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "font": "14px Inter, \"Segoe UI\", \"Microsoft YaHei\", Arial, sans-serif",
+      "fontSize": "14px",
+      "padding": "3px",
+      "pressed": "false",
+      "text": "切"
+    }
+  ]
+}

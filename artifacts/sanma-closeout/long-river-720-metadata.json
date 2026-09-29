@@ -1,0 +1,25 @@
+{
+  "canvas": [
+    {
+      "css": [
+        1333,
+        610
+      ],
+      "height": 609,
+      "width": 1333
+    }
+  ],
+  "caseId": "SM-18-LONG-RIVER",
+  "dpr": 0.9599999570846548,
+  "renderer": [],
+  "viewport": [
+    1333,
+    750
+  ],
+  "requestedViewport": [
+    1280,
+    720
+  ],
+  "ruleVersion": "sanma-riichi-v1",
+  "fingerprint": "6800b91c34d3 (720 capture before final AI fixture test); see final build-stamp.json"
+}

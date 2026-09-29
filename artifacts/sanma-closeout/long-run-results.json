@@ -1,0 +1,922 @@
+[
+  {
+    "seed": 1,
+    "length": "east-only",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 204,
+      "roundTransition": 3,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 4,
+    "steps": 207,
+    "end": "和了止",
+    "scores": [
+      36400,
+      28600,
+      40000
+    ]
+  },
+  {
+    "seed": 2,
+    "length": "east-only",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 188,
+      "roundTransition": 3,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 4,
+    "steps": 191,
+    "end": "常规终局",
+    "scores": [
+      32200,
+      53900,
+      18900
+    ]
+  },
+  {
+    "seed": 3,
+    "length": "east-only",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 122,
+      "roundTransition": 4,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 5,
+    "steps": 126,
+    "end": "常规终局",
+    "scores": [
+      42000,
+      25600,
+      37400
+    ]
+  },
+  {
+    "seed": 4,
+    "length": "east-only",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 133,
+      "roundTransition": 2,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 3,
+    "steps": 135,
+    "end": "和了止",
+    "scores": [
+      16300,
+      25000,
+      63700
+    ]
+  },
+  {
+    "seed": 5,
+    "length": "east-only",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 180,
+      "roundTransition": 4,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 5,
+    "steps": 184,
+    "end": "常规终局",
+    "scores": [
+      59200,
+      8500,
+      37300
+    ]
+  },
+  {
+    "seed": 6,
+    "length": "east-only",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 179,
+      "roundTransition": 4,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 5,
+    "steps": 183,
+    "end": "追加场达标",
+    "scores": [
+      45900,
+      21600,
+      37500
+    ]
+  },
+  {
+    "seed": 7,
+    "length": "east-only",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 232,
+      "roundTransition": 5,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 6,
+    "steps": 237,
+    "end": "常规终局",
+    "scores": [
+      35400,
+      48800,
+      20800
+    ]
+  },
+  {
+    "seed": 8,
+    "length": "east-only",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 95,
+      "roundTransition": 2,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 3,
+    "steps": 97,
+    "end": "和了止",
+    "scores": [
+      26200,
+      26800,
+      52000
+    ]
+  },
+  {
+    "seed": 9,
+    "length": "east-only",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 214,
+      "roundTransition": 3,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 4,
+    "steps": 217,
+    "end": "常规终局",
+    "scores": [
+      67200,
+      16100,
+      21700
+    ]
+  },
+  {
+    "seed": 10,
+    "length": "east-only",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 155,
+      "roundTransition": 4,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 5,
+    "steps": 159,
+    "end": "和了止",
+    "scores": [
+      8600,
+      34000,
+      62400
+    ]
+  },
+  {
+    "seed": 1,
+    "length": "east-only",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 204,
+      "roundTransition": 3,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 4,
+    "steps": 207,
+    "end": "和了止",
+    "scores": [
+      36400,
+      28600,
+      40000
+    ]
+  },
+  {
+    "seed": 2,
+    "length": "east-only",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 188,
+      "roundTransition": 3,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 4,
+    "steps": 191,
+    "end": "常规终局",
+    "scores": [
+      30200,
+      62400,
+      12400
+    ]
+  },
+  {
+    "seed": 3,
+    "length": "east-only",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 201,
+      "roundTransition": 5,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 6,
+    "steps": 206,
+    "end": "常规终局",
+    "scores": [
+      46400,
+      36100,
+      22500
+    ]
+  },
+  {
+    "seed": 4,
+    "length": "east-only",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 133,
+      "roundTransition": 2,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 3,
+    "steps": 135,
+    "end": "和了止",
+    "scores": [
+      13300,
+      22000,
+      69700
+    ]
+  },
+  {
+    "seed": 5,
+    "length": "east-only",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 182,
+      "roundTransition": 4,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 5,
+    "steps": 186,
+    "end": "常规终局",
+    "scores": [
+      66200,
+      5500,
+      33300
+    ]
+  },
+  {
+    "seed": 6,
+    "length": "east-only",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 236,
+      "roundTransition": 4,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 5,
+    "steps": 240,
+    "end": "追加场达标",
+    "scores": [
+      47300,
+      21400,
+      36300
+    ]
+  },
+  {
+    "seed": 7,
+    "length": "east-only",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 144,
+      "roundTransition": 2,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 3,
+    "steps": 146,
+    "end": "击飞",
+    "scores": [
+      -1200,
+      91200,
+      15000
+    ]
+  },
+  {
+    "seed": 8,
+    "length": "east-only",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 95,
+      "roundTransition": 2,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 3,
+    "steps": 97,
+    "end": "和了止",
+    "scores": [
+      24200,
+      24800,
+      56000
+    ]
+  },
+  {
+    "seed": 9,
+    "length": "east-only",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 214,
+      "roundTransition": 3,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 4,
+    "steps": 217,
+    "end": "常规终局",
+    "scores": [
+      71200,
+      14100,
+      19700
+    ]
+  },
+  {
+    "seed": 10,
+    "length": "east-only",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 155,
+      "roundTransition": 4,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 5,
+    "steps": 159,
+    "end": "和了止",
+    "scores": [
+      8100,
+      33500,
+      63400
+    ]
+  },
+  {
+    "seed": 1,
+    "length": "hanchan",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 527,
+      "roundTransition": 10,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 11,
+    "steps": 537,
+    "end": "击飞",
+    "scores": [
+      -13200,
+      67400,
+      50800
+    ]
+  },
+  {
+    "seed": 2,
+    "length": "hanchan",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 556,
+      "roundTransition": 11,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 12,
+    "steps": 567,
+    "end": "常规终局",
+    "scores": [
+      18000,
+      56100,
+      30900
+    ]
+  },
+  {
+    "seed": 3,
+    "length": "hanchan",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 251,
+      "roundTransition": 7,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 8,
+    "steps": 258,
+    "end": "常规终局",
+    "scores": [
+      31100,
+      27800,
+      46100
+    ]
+  },
+  {
+    "seed": 4,
+    "length": "hanchan",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 339,
+      "roundTransition": 7,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 8,
+    "steps": 346,
+    "end": "击飞",
+    "scores": [
+      -4000,
+      37600,
+      71400
+    ]
+  },
+  {
+    "seed": 5,
+    "length": "hanchan",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 309,
+      "roundTransition": 7,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 8,
+    "steps": 316,
+    "end": "常规终局",
+    "scores": [
+      49100,
+      21500,
+      34400
+    ]
+  },
+  {
+    "seed": 6,
+    "length": "hanchan",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 403,
+      "roundTransition": 9,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 10,
+    "steps": 412,
+    "end": "击飞",
+    "scores": [
+      60900,
+      -5700,
+      49800
+    ]
+  },
+  {
+    "seed": 7,
+    "length": "hanchan",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 438,
+      "roundTransition": 9,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 10,
+    "steps": 447,
+    "end": "常规终局",
+    "scores": [
+      51600,
+      38700,
+      14700
+    ]
+  },
+  {
+    "seed": 8,
+    "length": "hanchan",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 324,
+      "roundTransition": 7,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 8,
+    "steps": 331,
+    "end": "常规终局",
+    "scores": [
+      32100,
+      31200,
+      41700
+    ]
+  },
+  {
+    "seed": 9,
+    "length": "hanchan",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 464,
+      "roundTransition": 8,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 9,
+    "steps": 472,
+    "end": "常规终局",
+    "scores": [
+      70800,
+      10800,
+      23400
+    ]
+  },
+  {
+    "seed": 10,
+    "length": "hanchan",
+    "policy": "loss",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 297,
+      "roundTransition": 10,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 11,
+    "steps": 307,
+    "end": "和了止",
+    "scores": [
+      13400,
+      30800,
+      60800
+    ]
+  },
+  {
+    "seed": 1,
+    "length": "hanchan",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 662,
+      "roundTransition": 15,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 16,
+    "steps": 677,
+    "end": "常规终局",
+    "scores": [
+      7100,
+      54300,
+      43600
+    ]
+  },
+  {
+    "seed": 2,
+    "length": "hanchan",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 556,
+      "roundTransition": 11,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 12,
+    "steps": 567,
+    "end": "常规终局",
+    "scores": [
+      18300,
+      64500,
+      22200
+    ]
+  },
+  {
+    "seed": 3,
+    "length": "hanchan",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 342,
+      "roundTransition": 8,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 9,
+    "steps": 350,
+    "end": "常规终局",
+    "scores": [
+      60600,
+      25100,
+      19300
+    ]
+  },
+  {
+    "seed": 4,
+    "length": "hanchan",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 212,
+      "roundTransition": 4,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 5,
+    "steps": 216,
+    "end": "击飞",
+    "scores": [
+      -3100,
+      32300,
+      75800
+    ]
+  },
+  {
+    "seed": 5,
+    "length": "hanchan",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 311,
+      "roundTransition": 7,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 8,
+    "steps": 318,
+    "end": "常规终局",
+    "scores": [
+      57600,
+      17000,
+      30400
+    ]
+  },
+  {
+    "seed": 6,
+    "length": "hanchan",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 400,
+      "roundTransition": 8,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 9,
+    "steps": 408,
+    "end": "击飞",
+    "scores": [
+      77300,
+      -4400,
+      32100
+    ]
+  },
+  {
+    "seed": 7,
+    "length": "hanchan",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 144,
+      "roundTransition": 2,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 3,
+    "steps": 146,
+    "end": "击飞",
+    "scores": [
+      -1200,
+      91200,
+      15000
+    ]
+  },
+  {
+    "seed": 8,
+    "length": "hanchan",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 324,
+      "roundTransition": 7,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 8,
+    "steps": 331,
+    "end": "常规终局",
+    "scores": [
+      32100,
+      29700,
+      43200
+    ]
+  },
+  {
+    "seed": 9,
+    "length": "hanchan",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 464,
+      "roundTransition": 8,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 9,
+    "steps": 472,
+    "end": "常规终局",
+    "scores": [
+      73800,
+      10800,
+      20400
+    ]
+  },
+  {
+    "seed": 10,
+    "length": "hanchan",
+    "policy": "split_missing_share_ceil100",
+    "startingPoints": 35000,
+    "targetPoints": 40000,
+    "returnPoints": 40000,
+    "actionSources": {
+      "policy": 355,
+      "roundTransition": 10,
+      "explicitAuto": 0,
+      "timeout": 0
+    },
+    "clockCoverage": "none-direct-policy",
+    "rounds": 11,
+    "steps": 365,
+    "end": "和了止",
+    "scores": [
+      12500,
+      31000,
+      61500
+    ]
+  }
+]

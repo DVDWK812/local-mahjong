@@ -1,0 +1,98 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/game/xuezhan/runtime.test.ts (8 tests) 177ms
+ ✓ src/game/testMode/resultsStorage.test.ts (4 tests) 30ms
+ ✓ src/game/sanma/rules.test.ts (7 tests) 63ms
+ ✓ scripts/xzBuildStamp.test.ts (10 tests) 34ms
+ ✓ src/game/timeControl/timeControl.test.ts (58 tests) 89ms
+ ✓ src/game/xuezhan/engine.test.ts (19 tests) 637ms
+   ✓ 血战权威流程 > 全预设完整小局、保存恢复与回放一致、非法版本拒绝 571ms
+ ✓ src/game/sanma/wall.test.ts (4 tests) 137ms
+ ✓ src/game/xuezhan/closeout.test.ts (2 tests) 85ms
+ ✓ src/game/ai.test.ts (23 tests) 799ms
+ ✓ src/game/sanma/evidence.test.ts (1 test) 2ms
+ ✓ src/game/xuezhan/presentation.test.ts (1 test) 76ms
+ ✓ src/game/sanma/scenarios.test.ts (79 tests) 1124ms
+   ✓ 统一三人fixture registry：自动测试与测试Tab共用 > SM-18-LONG-RIVER 合法行牌形成的长牌河 371ms
+stdout | src/game/xuezhan/boundaries.test.ts > 独立边界金样（生产初始牌与动作） > 难度与个性在相同合法局面产生可测分歧，不是换标签
+{ difficultyDisagreements: 43, personalityDisagreements: 33 }
+
+ ✓ src/game/xuezhan/boundaries.test.ts (11 tests) 2776ms
+   ✓ 独立边界金样（生产初始牌与动作） > 清算开关与花猪叠加：固定罚额和最高查叫金额分别受控 321ms
+   ✓ 独立边界金样（生产初始牌与动作） > 难度与个性在相同合法局面产生可测分歧，不是换标签 1710ms
+ ✓ src/game/xuezhan/transactions.test.ts (6 tests) 3349ms
+   ✓ 清算计划、呼叫转移与终局边界 > 确定性完整批次逐筆退税来源、转移不重复退款、最高查叫金额与收款对象 3299ms
+stdout | src/game/xuezhan/transactions.test.ts > 清算计划、呼叫转移与终局边界 > 确定性完整批次逐筆退税来源、转移不重复退款、最高查叫金额与收款对象
+{"refunds":154,"transfers":3,"readyPayments":114}
+
+ ✓ src/game/sanma/integration.test.ts (9 tests) 5713ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > east-only/loss的每个可视化场景执行断言并经JSON序列化重建 2320ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > east-only/split_missing_share_ceil100的每个可视化场景执行断言并经JSON序列化重建 1288ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > hanchan/loss的每个可视化场景执行断言并经JSON序列化重建 1003ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > hanchan/split_missing_share_ceil100的每个可视化场景执行断言并经JSON序列化重建 1066ms
+ ✓ src/game/sanma/timing.test.ts (15 tests) 10023ms
+   ✓ runtime full matches with policy audit > east-only/loss/short=false/seed=308 2108ms
+   ✓ runtime full matches with policy audit > east-only/split_missing_share_ceil100/short=false/seed=308 739ms
+   ✓ runtime full matches with policy audit > hanchan/loss/short=false/seed=308 1166ms
+   ✓ runtime full matches with policy audit > hanchan/split_missing_share_ceil100/short=false/seed=308 1581ms
+   ✓ runtime full matches with policy audit > east-only/loss/short=true/seed=308 880ms
+   ✓ runtime full matches with policy audit > east-only/split_missing_share_ceil100/short=true/seed=308 841ms
+   ✓ runtime full matches with policy audit > hanchan/loss/short=true/seed=308 1092ms
+   ✓ runtime full matches with policy audit > hanchan/split_missing_share_ceil100/short=true/seed=308 1535ms
+ ✓ src/game/sanma/longRun.test.ts (40 tests) 59167ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=1 1895ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=2 1382ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=3 566ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=4 793ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=5 1024ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=6 988ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=7 1544ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=8 641ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=9 1144ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=10 786ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=1 993ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=2 1200ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=3 1031ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=4 737ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=5 976ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=6 1335ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=7 810ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=8 561ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=9 1064ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=10 950ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=1 2593ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=2 2736ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=3 1163ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=4 1575ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=5 1693ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=6 2169ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=7 2387ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=8 1635ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=9 2473ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=10 1376ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=1 3145ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=2 2807ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=3 1670ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=4 916ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=5 1692ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=6 2022ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=7 801ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=8 1671ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=9 2458ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=10 1765ms
+stdout | src/game/xuezhan/acceptance.test.ts > 全部暴露字段与合法配置组合 > 合法字段两两组合：逐对创建并走完一小局，记录数量
+{"matrix":"all-field-value-pairs","covered":3099,"invalidDependencyPairs":233}
+
+stdout | src/game/xuezhan/acceptance.test.ts > 固定种子完整压力批次 > 1000 小局：每预设200，另200合法随机配置；650步上限
+{"seeds":[10000,10999],"counts":{"declared":200,"declared-exchange":200,"dynamic":200,"dynamic-exchange":200,"random":200},"stats":{"rounds":1000,"maxSteps":92,"wins":851,"wall":929,"winningPlayers":855,"multiWinGroups":4,"wallByWonCount":[448,320,161,0],"threeWinners":71},"definitions":{"wins":"成功胡牌组数（多响计一组）","maxSteps":"已接受生产命令数，含准备和每位玩家响应","wall":"墙尽结束局数，不等于无人胡牌局数"}}
+
+ ✓ src/game/xuezhan/acceptance.test.ts (170 tests) 63952ms
+   ✓ 全部暴露字段与合法配置组合 > 合法字段两两组合：逐对创建并走完一小局，记录数量 46657ms
+   ✓ 固定种子完整压力批次 > 1000 小局：每预设200，另200合法随机配置；650步上限 16103ms
+
+ Test Files  18 passed (18)
+      Tests  467 passed (467)
+   Start at  00:48:22
+   Duration  64.72s (transform 2.38s, setup 0ms, collect 5.35s, tests 148.23s, environment 3ms, prepare 2.05s)
+

@@ -12,11 +12,11 @@ export interface TestCaseResult {
   testedAt: string;
 }
 
-export interface TestCaseDefinition {
+export interface TestCaseDefinition<Scenario = TestScenarioV1> {
   id: string;
   version: number;
   type: TestCaseType;
-  scenario: TestScenarioV1;
+  scenario: Scenario;
   keywords: string[];
   steps: string[];
   expectedResults: string[];

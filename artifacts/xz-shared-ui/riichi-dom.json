@@ -1,0 +1,27 @@
+{
+  "canvas": 1,
+  "gap": "2px",
+  "h": 720,
+  "renderer": [
+    "3d"
+  ],
+  "tile": [
+    {
+      "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+      "border": "0px none rgba(16, 16, 16, 0.3)",
+      "padding": "0px",
+      "rect": {
+        "bottom": 711.3672103881836,
+        "height": 61.18489837646485,
+        "left": 345.4492492675781,
+        "right": 388.99091720581055,
+        "top": 650.1823120117188,
+        "width": 43.54166793823242,
+        "x": 345.4492492675781,
+        "y": 650.1823120117188
+      },
+      "src": "/src/assets/tiles/m1.png"
+    }
+  ],
+  "w": 1281
+}

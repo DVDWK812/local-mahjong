@@ -1,0 +1,60 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ❯ src/game/xuezhan/boundaries.test.ts (9 tests | 3 failed) 342ms
+   × 独立边界金样（生产初始牌与动作） > 自摸按三、二、一家活跃付款；已胡积分不参与后续胡分 9ms
+     → 夹具需要第五张 2
+   × 独立边界金样（生产初始牌与动作） > 点杠花包赔把活跃付款合并给放杠者；普通支付仍逐家 7ms
+     → expected 5 to be 3 // Object.is equality
+   × 独立边界金样（生产初始牌与动作） > 难度与个性在相同合法局面产生可测分歧，不是换标签 67ms
+     → expected 0 to be greater than 0
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/game/xuezhan/boundaries.test.ts > 独立边界金样（生产初始牌与动作） > 自摸按三、二、一家活跃付款；已胡积分不参与后续胡分
+Error: 夹具需要第五张 2
+ ❯ src/game/xuezhan/scenarios.ts:20:141
+
+ ❯ src/game/xuezhan/scenarios.ts:20:68
+ ❯ Module.wallForHands src/game/xuezhan/scenarios.ts:20:51
+ ❯ make src/game/xuezhan/boundaries.test.ts:12:203
+ ❯ src/game/xuezhan/boundaries.test.ts:15:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/game/xuezhan/boundaries.test.ts > 独立边界金样（生产初始牌与动作） > 点杠花包赔把活跃付款合并给放杠者；普通支付仍逐家
+AssertionError: expected 5 to be 3 // Object.is equality
+
+- Expected
++ Received
+
+- 3
++ 5
+
+ ❯ src/game/xuezhan/boundaries.test.ts:26:39
+     24|       let s = make([[0], ids('111234 3456789'), [], []], { directRespo…
+     25|       s = act(s, 0, { type: 'discard', tile: s.players[0].hand.find(t …
+     26|       expect(winScore(s, 1)?.payment).toBe(3); s = act(s, 1, { type: '…
+       |                                       ^
+     27|       expect(s.players.map(p => p.score)).toEqual(directResponsibility…
+     28|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/game/xuezhan/boundaries.test.ts > 独立边界金样（生产初始牌与动作） > 难度与个性在相同合法局面产生可测分歧，不是换标签
+AssertionError: expected 0 to be greater than 0
+ ❯ src/game/xuezhan/boundaries.test.ts:96:62
+     94|       if (a('kishin', 'defensive') !== a('kishin', 'aggressive')) pers…
+     95|     }
+     96|     expect(levels).toBeGreaterThan(0); expect(personalities).toBeGreat…
+       |                                                              ^
+     97|   });
+     98| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 6 passed (9)
+   Start at  21:37:04
+   Duration  769ms (transform 100ms, setup 0ms, collect 130ms, tests 342ms, environment 0ms, prepare 92ms)
+

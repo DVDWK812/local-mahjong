@@ -1,0 +1,92 @@
+- main:
+  - strong: 三人东 · 东3局 · 2本场
+  - generic: 余牌 0 · 供托 0 · 自摸有损
+  - button "保存并退出"
+  - button "暂停"
+  - button "规则与账本"
+  - button "声音"
+  - region "三人立直麻将":
+    - generic: 三人立直麻将
+    - strong: 玩家
+    - generic: 1,000 · 南家 · 拔北0
+    - strong: 电脑一
+    - generic: 1,000 · 西家 · 拔北0
+    - strong: 电脑二
+    - generic: 1,000 · 东家 · 拔北0
+  - strong: 荒牌流局
+  - generic "表宝牌指示牌":
+    - img "一索":
+      - img "一索"
+  - generic: 庄家：电脑二
+  - region "三人操作区":
+    - status: 荒牌流局
+  - region "本家手牌":
+    - button "九万" [disabled]:
+      - img "九万"
+    - button "一筒" [disabled]:
+      - img "一筒"
+    - button "三筒" [disabled]:
+      - img "三筒"
+    - button "五筒" [disabled]:
+      - img "五筒"
+    - button "七筒" [disabled]:
+      - img "七筒"
+    - button "九筒" [disabled]:
+      - img "九筒"
+    - button "二索" [disabled]:
+      - img "二索"
+    - button "三索" [disabled]:
+      - img "三索"
+    - button "四索" [disabled]:
+      - img "四索"
+    - button "四索" [disabled]:
+      - img "四索"
+    - button "七索" [disabled]:
+      - img "七索"
+    - button "七索" [disabled]:
+      - img "七索"
+    - button "北" [disabled]:
+      - img "北"
+  - complementary "比赛计时与自动操作":
+    - button "收起自动操作" [expanded]: ‹
+    - button "自动和牌": 和
+    - button "不碰杠": 鸣
+    - button "自动摸切": 切
+  - dialog "三人整场结果":
+    - heading "整场结束 · 常规终局" [level=2]
+    - article:
+      - strong: 玩家
+      - paragraph: 1000 点
+      - paragraph: 本局 +0
+      - paragraph: 成绩 20
+    - article:
+      - strong: 电脑一
+      - paragraph: 1000 点
+      - paragraph: 本局 +0
+      - paragraph: 成绩 0
+    - article:
+      - strong: 电脑二
+      - paragraph: 1000 点
+      - paragraph: 本局 +0
+      - paragraph: 成绩 -20
+    - paragraph: 听牌：无人
+    - button "查看逐笔账本" [active]
+    - button "返回"
+  - complementary:
+    - button "关闭明细"
+    - heading "规则、逐笔账本与牌谱" [level=2]
+    - paragraph: sanma-riichi-v1 · 种子3374887155 · 182步
+    - generic "本场规则快照"
+    - table:
+      - rowgroup:
+        - row "事务 原因 付款 收款 点数":
+          - columnheader "事务"
+          - columnheader "原因"
+          - columnheader "付款"
+          - columnheader "收款"
+          - columnheader "点数"
+      - rowgroup
+    - button "保存当前状态"
+    - button "导出三人牌谱"
+    - button "从头回放"
+    - button "检查当前状态"

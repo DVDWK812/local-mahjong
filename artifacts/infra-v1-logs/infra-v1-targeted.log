@@ -1,0 +1,58 @@
+
+> local-mahjong-trainer@0.1.0 pretest
+> npm run generate:voice-packs && npm run test:voice-pack-index
+
+
+> local-mahjong-trainer@0.1.0 generate:voice-packs
+> node scripts/generateVoicePackIndex.mjs
+
+Generated Voice Pack index: 3 valid pack(s), 0 skipped.
+
+> local-mahjong-trainer@0.1.0 test:voice-pack-index
+> node scripts/verifyVoicePackIndex.mjs
+
+Voice Pack index lifecycle test passed.
+
+> local-mahjong-trainer@0.1.0 test
+> vitest run src/game/timeControl/timeControl.test.ts src/game/seventeenSteps.test.ts src/components/SeventeenStepsScreen.test.tsx src/components/MatchSettings.test.tsx
+
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/game/seventeenSteps.test.ts (22 tests) 28ms
+ ❯ src/game/timeControl/timeControl.test.ts (36 tests | 1 failed) 33ms
+   × mode policies > selection completion distinguishes invalid pool, exhausted budget, and no completion 7ms
+     → expected { kind: 'failed', …(1) } to deeply equal { kind: 'failed', …(1) }
+ ✓ src/components/MatchSettings.test.tsx (27 tests) 185ms
+ ✓ src/components/SeventeenStepsScreen.test.tsx (4 tests) 759ms
+   ✓ 17步正式游戏界面接入 > 进入正式 game-screen，并且只显示上下两个有效座位 591ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/game/timeControl/timeControl.test.ts > mode policies > selection completion distinguishes invalid pool, exhausted budget, and no completion
+AssertionError: expected { kind: 'failed', …(1) } to deeply equal { kind: 'failed', …(1) }
+
+- Expected
++ Received
+
+  Object {
+    "kind": "failed",
+-   "reason": "invalid-pool",
++   "reason": "no-completion",
+  }
+
+ ❯ src/game/timeControl/timeControl.test.ts:145:99
+    143|     const s = createSeventeenStepsGame(); expect(completeSelection(s, …
+    144|     s.players[0].sourceTiles = []; expect(completeSelection(s)).toEqua…
+    145|     s.players[0].sourceTiles = [createTile(0, 0), createTile(0, 0)]; e…
+       |                                                                                                   ^
+    146|   });
+    147|   it('last legal selection wins over incomplete edits; confirmation en…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  1 failed | 88 passed (89)
+   Start at  19:19:42
+   Duration  2.52s (transform 869ms, setup 0ms, collect 2.19s, tests 1.00s, environment 1ms, prepare 460ms)
+

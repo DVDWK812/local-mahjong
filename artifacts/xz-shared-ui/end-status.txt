@@ -1,0 +1,110 @@
+ M package.json
+ M src/App.tsx
+ M src/app/navigation.ts
+ M src/audio/AudioManager.ts
+ M src/audio/voice/VoiceDirector.ts
+ M src/audio/voice/voiceEvents.ts
+ M src/components/ActionPrompt.tsx
+ M src/components/Board.tsx
+ M src/components/LocalModeMenu.tsx
+ M src/components/MatchResultDialog.tsx
+ M src/components/PlayerMelds.tsx
+ M src/components/ResultDialog.tsx
+ M src/components/RiichiModeMenu.tsx
+ M src/components/SeventeenStepsMatchSettings.tsx
+ M src/components/SeventeenStepsScreen.tsx
+ M src/components/TestModeScreen.tsx
+ M src/components/Tile.tsx
+ M src/components/game/AnalysisDrawer.tsx
+ M src/components/game/GameScreen.tsx
+ M src/components/game/GameTopBar.tsx
+ M src/components/game/TableCenter.tsx
+ M src/game/ai.test.ts
+ M src/game/persistence/storageTypes.ts
+ M src/game/persistence/storageValidation.ts
+ M src/game/replay/types.ts
+ M src/game/seventeenSteps.ts
+ M src/game/shanten.ts
+ M src/game/testMode/catalog.ts
+ M src/game/testMode/resultsStorage.ts
+ M src/presentation/PresentationEventBus.ts
+ M src/presentation/appearance/tileFaceIntegration.test.tsx
+ M src/presentation/handAnimation/HandAnimationConsumer.ts
+ M src/presentation/handAnimation/HandAnimationController.ts
+ M src/presentation/result/resultViewModel.ts
+ M src/presentation3d/Table3DHud.tsx
+ M src/presentation3d/Table3DScene.test.ts
+ M src/presentation3d/Table3DScene.tsx
+ M src/presentation3d/TableRenderer.test.ts
+ M src/presentation3d/TableRenderer.tsx
+ M src/presentation3d/animation/HandAction3D.tsx
+ M src/presentation3d/animation/tableAnimation3D.ts
+ M src/presentation3d/animation/useTableAnimation3D.ts
+ M src/presentation3d/dora/doraSweep3DTrigger.ts
+ M src/presentation3d/hand/Hand3D.tsx
+ M src/presentation3d/participants/ParticipantScene.tsx
+ M src/presentation3d/participants/ParticipantTable.tsx
+ M src/presentation3d/participants/participantLayout.ts
+ M src/presentation3d/participants/participantPresentation.ts
+ M src/presentation3d/riichi/RiichiSticks3D.tsx
+ M src/presentation3d/sceneState/buildTableSceneState.test.ts
+ M src/presentation3d/sceneState/buildTableSceneState.ts
+ M src/presentation3d/sceneState/tableSceneTypes.ts
+ M src/presentation3d/table/tablePresentationTuning.ts
+ M vite.config.ts
+?? artifacts/hud-v2-four-1080.png
+?? artifacts/hud-v2-four-720.png
+?? artifacts/hud-v2-qa.md
+?? artifacts/hud-v2-seventeen-1080.png
+?? artifacts/hud-v2-seventeen-720.png
+?? artifacts/hud-v2-tooltip-720.png
+?? artifacts/infra-v1-audit.md
+?? artifacts/infra-v1-four-1080.png
+?? artifacts/infra-v1-four-720.png
+?? artifacts/infra-v1-logs/
+?? artifacts/infra-v1-report.md
+?? artifacts/infra-v1-seventeen-1080.png
+?? artifacts/infra-v1-seventeen-720.png
+?? artifacts/sanma-closeout/
+?? artifacts/sanma-seat-voice/
+?? artifacts/sanma-shared-ui/
+?? artifacts/sanma-v1/
+?? artifacts/xz-6r/
+?? artifacts/xz-shared-ui/
+?? artifacts/xz-v1/
+?? docs/SANMA_V1.md
+?? scripts/xzBuildStamp.test.ts
+?? scripts/xzBuildStamp.ts
+?? scripts/xzCloseoutSnapshot.mjs
+?? src/audio/voice/sanmaNorthVoice.test.ts
+?? src/components/MatchClockHud.tsx
+?? src/components/SanmaScreen.tsx
+?? src/components/SanmaSettings.tsx
+?? src/components/SanmaTestTab.tsx
+?? src/components/TimeControlSettings.tsx
+?? src/components/XuezhanHud.test.tsx
+?? src/components/XuezhanHud.tsx
+?? src/components/XuezhanResults.tsx
+?? src/components/XuezhanScreen.tsx
+?? src/components/XuezhanSettings.tsx
+?? src/components/XuezhanTestTab.tsx
+?? src/components/game/FormalGameScreen.tsx
+?? src/components/matchClockHud.css
+?? src/components/sanma.css
+?? src/components/xuezhan.css
+?? src/game/sanma/
+?? src/game/timeControl/
+?? src/game/xuezhan/
+?? src/presentation/table/TileDoraContext.ts
+?? src/presentation/table/sanmaFormalScene.test.tsx
+?? src/presentation/table/sanmaFormalScene.ts
+?? src/presentation/table/sanmaPresentation.ts
+?? src/presentation/table/sanmaResultPresentation.ts
+?? src/presentation/table/sanmaTenpaiPresentation.ts
+?? src/presentation/table/xuezhanPresentation.ts
+?? src/presentation3d/FormalTable3D.tsx
+?? src/presentation3d/animation/northDomSource.ts
+?? src/presentation3d/meld/NorthTiles3D.tsx
+?? src/presentation3d/participants/SanmaMotion3D.tsx
+?? src/presentation3d/participants/SanmaPublicTiles.tsx
+?? src/presentation3d/participants/useSanmaAnimation.ts

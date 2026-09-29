@@ -1,0 +1,7 @@
+02:32:45 [vite] (client) Re-optimizing dependencies because vite config has changed
+
+  VITE v6.4.3  ready in 663 ms
+
+  ➜  Local 3D:     http://127.0.0.1:5187/
+  ➜  Legacy 2.5D:  http://127.0.0.1:5187/?table3d=0
+  ➜  press h + enter to show help

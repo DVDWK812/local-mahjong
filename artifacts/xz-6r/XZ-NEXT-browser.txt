@@ -1,0 +1,103 @@
+- button "返回血战用例"
+- button "重置固定场景"
+- generic: 隔离测试 · 完整小局后进入下一局
+- main:
+  - strong: 血战到底 · 第 1/2 局
+  - generic: 小局结束 · 活跃 1 · 余牌 55
+  - button "退出测试场景"
+  - button "继续比赛"
+  - button "规则与账本"
+  - checkbox "完全控制（冻结计时）" [checked]
+  - text: 完全控制（冻结计时）
+  - checkbox "测试全知"
+  - text: 测试全知
+  - button "逐步执行"
+  - region "3D 麻将桌技术样板"
+  - region "血战四座信息":
+    - strong: 你
+    - text: 97 分
+    - text: 自由打缺
+    - strong: Player 2
+    - text: 101 分
+    - text: 已胡 · 顺位 1
+    - strong: Player 3
+    - text: 101 分
+    - text: 已胡 · 顺位 1
+    - strong: Player 4
+    - text: 101 分
+    - text: 已胡 · 顺位 1
+  - region "血战操作区":
+    - status: 小局结束
+    - paragraph: 你放炮：电脑 1 平胡 0番→计0番；电脑 2 平胡 0番→计0番；电脑 3 平胡 0番→计0番
+  - region "本家手牌":
+    - button "二万" [disabled]:
+      - img "二万"
+    - button "二万" [disabled]:
+      - img "二万"
+    - button "四万" [disabled]:
+      - img "四万"
+    - button "五万" [disabled]:
+      - img "五万"
+    - button "六万" [disabled]:
+      - img "六万"
+    - button "六万" [disabled]:
+      - img "六万"
+    - button "六万" [disabled]:
+      - img "六万"
+    - button "九万" [disabled]:
+      - img "九万"
+    - button "五筒" [disabled]:
+      - img "五筒"
+    - button "五筒" [disabled]:
+      - img "五筒"
+    - button "四索" [disabled]:
+      - img "四索"
+    - button "六索" [disabled]:
+      - img "六索"
+    - button "七索" [disabled]:
+      - img "七索"
+  - complementary "比赛计时与自动操作":
+    - button "收起自动操作" [expanded]: ‹
+    - button "自动和牌": 和
+    - button "不碰杠": 鸣
+    - button "自动摸切": 切
+  - region "血战胡牌与结算信息":
+    - strong: 小局结算
+    - button "收起结果" [expanded]
+    - generic "血战结果明细（可滚动）":
+      - paragraph: 三家已胡
+      - table:
+        - rowgroup:
+          - row "玩家 状态 总分 本局":
+            - columnheader "玩家"
+            - columnheader "状态"
+            - columnheader "总分"
+            - columnheader "本局"
+        - rowgroup:
+          - row "你 未胡 97 -3":
+            - rowheader "你"
+            - cell "未胡"
+            - cell "97"
+            - cell "-3"
+          - row "电脑 1 已胡 101 1":
+            - rowheader "电脑 1"
+            - cell "已胡"
+            - cell "101"
+            - cell "1"
+          - row "电脑 2 已胡 101 1":
+            - rowheader "电脑 2"
+            - cell "已胡"
+            - cell "101"
+            - cell "1"
+          - row "电脑 3 已胡 101 1":
+            - rowheader "电脑 3"
+            - cell "已胡"
+            - cell "101"
+            - cell "1"
+      - heading "你放炮 · 3 家胡牌" [level=3]
+      - generic "电脑 1 · 平胡 · 0番 → 计0番"
+      - generic "电脑 2 · 平胡 · 0番 → 计0番"
+      - generic "电脑 3 · 平胡 · 0番 → 计0番"
+    - button "下一局"
+    - button "查看逐笔账本"
+    - button "返回"

@@ -206,6 +206,7 @@ export class AudioManager {
     const previous = this.settings;
     this.settings = normalizeAudioSettings(settings);
     if (this.getEffectiveVolume('sfx') <= 0) this.stopSfx();
+    if (this.getEffectiveVolume('voice') <= 0) [...this.activeVoice].forEach(handle => this.releaseCallbacks.get(handle)?.());
     if (this.bgmHandle && this.currentBgmId) {
       this.bgmHandle.setVolume(this.getEffectiveCategoryVolume(bgmCategoryFor(this.currentBgmId)));
     }
@@ -349,7 +350,7 @@ export class AudioManager {
   }
 
   createVoicePlayback(id: string, src: string, volume: number): ManagedVoicePlayback | undefined {
-    if (this.disposed || !this.settings.voiceEnabled) return undefined;
+    if (this.disposed || this.getEffectiveVolume('voice') <= 0) return undefined;
     const handle = this.backend.createPlayback({ id, channel: 'voice', src, loop: false, source: 'self-generated' });
     if (this.activeVoice.size >= MAX_ACTIVE_VOICE) {
       const oldest = this.activeVoice.values().next().value as AudioPlaybackHandle | undefined;
@@ -361,7 +362,10 @@ export class AudioManager {
       }
     }
     this.activeVoice.add(handle);
-    handle.setVolume(volume);
+    const setVoiceVolume = (value: number) => handle.setVolume(this.settings.masterEnabled && this.settings.voiceEnabled
+      ? this.settings.masterVolume * Math.max(0, Math.min(1, value)) : 0);
+    setVoiceVolume(volume);
+    const endedListeners = new Set<() => void>();
     let stopped = false;
     let removeEnded: () => void = () => undefined;
     const stop = () => {
@@ -371,9 +375,15 @@ export class AudioManager {
       this.activeVoice.delete(handle);
       this.releaseCallbacks.delete(handle);
       handle.dispose();
+      [...endedListeners].forEach(listener => listener());
+      endedListeners.clear();
     };
     removeEnded = handle.onEnded(stop);
-    return { handle, stop };
+    this.releaseCallbacks.set(handle, stop);
+    return { handle: {
+      play: () => handle.play(), pause: () => handle.pause(), dispose: stop,
+      onEnded: listener => { endedListeners.add(listener); return () => endedListeners.delete(listener); }, setVolume: setVoiceVolume,
+    }, stop };
   }
 
   playTemporary(track: MusicTrackDefinition): void {

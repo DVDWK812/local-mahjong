@@ -102,7 +102,7 @@ export const TABLE_PRESENTATION_TUNING = {
   centralHud: {
     position: [0, CENTRAL_CONSOLE_DIMENSIONS.panelSurfaceY + 0.008, 0] as const,
     hudOnlyOffsetX: -0.1,
-    hudOnlyOffsetZ: 0.3,
+    hudOnlyOffsetZ: -0.1,
     rotation: [-Math.PI / 2, 0, 0] as const,
     compactViewportMaxHeight: 800,
     compactScale: 0.96,

@@ -1,0 +1,11 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/game/sanma/scenarios.test.ts (79 tests) 878ms
+   ✓ 统一三人fixture registry：自动测试与测试Tab共用 > SM-18-LONG-RIVER 合法行牌形成的长牌河 360ms
+
+ Test Files  1 passed (1)
+      Tests  79 passed (79)
+   Start at  22:44:11
+   Duration  1.71s (transform 286ms, setup 0ms, collect 398ms, tests 878ms, environment 0ms, prepare 94ms)
+

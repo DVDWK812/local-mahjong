@@ -75,8 +75,12 @@ describe('UI-5C GameState to TableSceneState adapter', () => {
     expect(oneOpen.seats.right.hand.every((entry) => entry.tile === undefined)).toBe(true);
   });
 
-  it('preserves authoritative hand order, red-five state, and the separated drawn tile', () => {
-    const gameState = createInitialGameState();
+  it.each([
+    [0, 'tile--red-dora'],
+    [3, 'tile--double-dora'],
+  ] as const)('preserves authoritative hand order and red-five semantics with indicator %s', (indicatorId, doraKind) => {
+    // The red-five expectation must not depend on the randomly dealt indicator.
+    const gameState = { ...createInitialGameState(), doraIndicators: [tile(indicatorId, 'fixed-indicator')] };
     const first = tile(0, 'hand-first');
     const redFive = tile(4, 'hand-red-five', { red: true });
     const drawn = tile(33, 'hand-drawn');
@@ -92,7 +96,7 @@ describe('UI-5C GameState to TableSceneState adapter', () => {
     expect(scene.seats.bottom.hand[1].tile).toEqual({
       id: 4,
       red: true,
-      doraKind: 'tile--red-dora',
+      doraKind,
     });
     expect(scene.seats.bottom.hand[2].drawn).toBe(true);
   });

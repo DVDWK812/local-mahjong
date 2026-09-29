@@ -1,0 +1,38 @@
+[
+  {
+    "name": "baseline-triple-720-valid.png",
+    "bytes": 238929,
+    "pixels": [
+      1229,
+      691
+    ],
+    "sha256": "90a330530525b9e642ff150ff0777ecc4b63fca16fb5c0b6c444b38389f69623"
+  },
+  {
+    "name": "final-open-720-valid.png",
+    "bytes": 234391,
+    "pixels": [
+      1229,
+      691
+    ],
+    "sha256": "666bb25e90a42ed894a1431a1c4080ef704278732200d6ea111cd2f715bff4bb"
+  },
+  {
+    "name": "final-third-detail-720.png",
+    "bytes": 231311,
+    "pixels": [
+      1229,
+      691
+    ],
+    "sha256": "e953ecb54a9bf1d91aaafa2d1471d2b2c928592538ebeb6c8e631ffa48159bc1"
+  },
+  {
+    "name": "final-triple-1080-valid.png",
+    "bytes": 388242,
+    "pixels": [
+      1843,
+      1037
+    ],
+    "sha256": "f864ecf2994ec11a089709e18079684b6559db7a6cace9b572f7af0b7d0d1440"
+  }
+]

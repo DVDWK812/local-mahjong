@@ -35,6 +35,7 @@ export interface DoraResultViewModel {
 }
 
 export interface WinnerResultViewModel {
+  readonly displayMelds?: import('../../game/meldDisplayAdapter').MeldDisplayModel[];
   readonly key: string;
   readonly source: WinResultEntry;
   readonly player: PlayerState;

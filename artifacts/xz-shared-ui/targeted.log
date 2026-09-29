@@ -1,0 +1,21 @@
+failed to load config from C:\Users\Wenkai\Desktop\UNSW\local-mahjong-voice-phase1\vite.config.ts
+
+⎯⎯⎯⎯⎯⎯⎯ Startup Error ⎯⎯⎯⎯⎯⎯⎯⎯
+Error: spawn EPERM
+    at ChildProcess.spawn (node:internal/child_process:441:11)
+    at Object.spawn (node:child_process:796:9)
+    at ensureServiceIsRunning (C:\Users\Wenkai\Desktop\UNSW\local-mahjong-voice-phase1\node_modules\vitest\node_modules\esbuild\lib\main.js:1975:29)
+    at build (C:\Users\Wenkai\Desktop\UNSW\local-mahjong-voice-phase1\node_modules\vitest\node_modules\esbuild\lib\main.js:1873:26)
+    at bundleConfigFile (file:///C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1/node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:66845:24)
+    at loadConfigFromFile (file:///C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1/node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:66815:27)
+    at resolveConfig (file:///C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1/node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:66416:30)
+    at _createServer (file:///C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1/node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:63015:24)
+    at createServer (file:///C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1/node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:63012:10)
+    at createViteServer (file:///C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1/node_modules/vitest/dist/chunks/cli-api.DqsSTaIi.js:9842:24) {
+  errno: -4048,
+  code: 'EPERM',
+  syscall: 'spawn'
+}
+
+
+

@@ -11,6 +11,7 @@ import { LocalGeneratedVoiceRegistry } from './scripts/localGeneratedVoiceRegist
 import { FishVoiceCreationError, FishVoiceCreationService } from './scripts/fishVoiceCreationService.mjs';
 import cloneLanguageMapping from './src/audio/voice/fishCloneLanguages.json';
 import { tableRendererUrlBanner } from './scripts/tableRendererUrlBanner';
+import { xzBuildStamp } from './scripts/xzBuildStamp';
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 const voiceRoot = path.join(projectRoot, 'src', 'music', 'voice_lines');
@@ -202,4 +203,4 @@ const runtimeVoicePackFiles = [
   '**/src/music/voice_lines/generated_voices.json',
 ];
 
-export default defineConfig({ plugins: [react(), tableRendererUrlBanner(), localVoiceBridge()], server: { host: '127.0.0.1', watch: { ignored: runtimeVoicePackFiles } } });
+export default defineConfig({ plugins: [react(), tableRendererUrlBanner(), localVoiceBridge(), xzBuildStamp(projectRoot)], server: { host: '127.0.0.1', watch: { ignored: runtimeVoicePackFiles } } });

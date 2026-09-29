@@ -1,4 +1,5 @@
 import type {
+  NorthCommittedPresentationEvent,
   MeldDeclaredPresentationEvent,
   RiichiDeclaredPresentationEvent,
   TileDiscardedPresentationEvent,
@@ -12,7 +13,7 @@ import {
   getRiverTileTransforms,
 } from '../coordinates/sceneTransforms';
 import { getSeatDirection, type Table3DSeat } from '../coordinates/seatTransforms';
-import type { MeldSceneState, TableSceneState } from '../sceneState/tableSceneTypes';
+import type { MeldSceneState, OccupiedTableSceneState } from '../sceneState/tableSceneTypes';
 import type { TileFaceState, TileOrientation } from '../tile/tileOrientation';
 import type { TileDefinition } from '../tile/tileTextures';
 import { getGroundedTileCenterY } from '../tile/tileGrounding';
@@ -22,9 +23,11 @@ import {
   TABLE_PRESENTATION_TUNING,
 } from '../table/tablePresentationTuning';
 import type { DiscardSource3DStore, WorldPoint3D } from './DiscardSource3D';
+import { northTileTransform } from '../meld/NorthTiles3D';
 import { createHandPresentationSnapshot, type HandPresentationFrame, type HandPresentationSnapshot } from '../../presentation/handAnimation/HandPresentationSnapshot';
 
 export type TableAnimation3DAction =
+  | NorthCommittedPresentationEvent
   | TileDrawnPresentationEvent
   | TileDiscardedPresentationEvent
   | RiichiDeclaredPresentationEvent
@@ -71,6 +74,7 @@ export type TableAnimation3DPlan = Readonly<{
   }>;
   hiddenHandKey?: string;
   hiddenRiverKey?: string;
+  hiddenNorthKey?: string;
   hiddenMeldTileKeys?: readonly string[];
   hiddenRiichiSeat?: Table3DSeat;
   localDomDraw: boolean;
@@ -110,6 +114,7 @@ export function getTableAnimation3DHoldMs(action: TableAnimation3DAction): numbe
   if (action.type === 'tile_discarded') return TABLE_ANIMATION_3D_CADENCE.discardHoldMs;
   if (action.type === 'tile_drawn') return TABLE_ANIMATION_3D_CADENCE.drawHoldMs;
   if (action.type === 'riichi_declared') return TABLE_ANIMATION_3D_CADENCE.riichiHoldMs;
+  if (action.type === 'north_committed') return TABLE_ANIMATION_3D_CADENCE.meldHoldMs;
   return action.meldType === 'kan'
     ? TABLE_ANIMATION_3D_CADENCE.kanHoldMs
     : TABLE_ANIMATION_3D_CADENCE.meldHoldMs;
@@ -117,14 +122,25 @@ export function getTableAnimation3DHoldMs(action: TableAnimation3DAction): numbe
 
 export function resolveTableAnimation3DPlan(
   action: TableAnimation3DAction,
-  sceneState: TableSceneState,
+  sceneState: OccupiedTableSceneState,
   sourceStore: DiscardSource3DStore,
   sessionKey: string,
 ): TableAnimation3DPlan | null {
   const seat = findSeat(sceneState, action.playerId);
   if (!seat) return null;
   const seatState = sceneState.seats[seat];
+  if (!seatState) return null;
 
+  if (action.type === 'north_committed') {
+    const index = seatState.north?.findIndex(t => t.tile?.id === action.tile.id && t.key.endsWith(action.tile.instanceId)) ?? -1;
+    if (index < 0) return null;
+    const source = getHandTileTransform(seat, Math.max(0, action.sourceIndex), action.sourceCount, false);
+    const destination = northTileTransform(seat, index);
+    return { action, seat, entry: outwardPoint(seat, source.position, ENTRY_DISTANCE), source: source.position, destination: destination.position,
+      sourceRotationX: source.rotationX, sourceRotationY: source.rotationY, destinationRotationX: 0, destinationRotationY: destination.rotationY,
+      sourceScale: getHandTileScale(seat), destinationScale: TABLE_PRESENTATION_TUNING.tileScale.meld, tile: action.tile, faceState: 'face-up',
+      showPrimaryTile: true, hiddenNorthKey: seatState.north![index].key, localDomDraw: false };
+  }
   if (action.type === 'tile_drawn') {
     const drawnIndex = seatState.hand.findIndex((tile) => tile.drawn);
     if (drawnIndex < 0) return null;
@@ -417,9 +433,9 @@ function getSeatDirectionRotation(seat: Table3DSeat): number {
   return getHandTileTransform(seat, 0, 1, false).rotationY;
 }
 
-function findSeat(sceneState: TableSceneState, playerId: number): Table3DSeat | null {
+function findSeat(sceneState: OccupiedTableSceneState, playerId: number): Table3DSeat | null {
   return (Object.keys(sceneState.seats) as Table3DSeat[])
-    .find((seat) => sceneState.seats[seat].playerId === playerId) ?? null;
+    .find((seat) => sceneState.seats[seat]?.playerId === playerId) ?? null;
 }
 
 function outwardPoint(seat: Table3DSeat, point: WorldPoint3D, distance: number): WorldPoint3D {

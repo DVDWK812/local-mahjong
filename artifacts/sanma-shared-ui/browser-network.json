@@ -1,0 +1,1559 @@
+[
+  {
+    "scope": "four",
+    "resources": 250,
+    "failed": [],
+    "audio": [
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_chi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_double_riichi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_ankan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_kakan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_kan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_pon.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/flavor_close_game.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_ron.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_tsumo.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_nuki.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_riichi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/flavor_lose.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_end.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/flavor_win.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_four_riichi_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_four_kans_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_nine_terminals_and_honors_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_nagashi_mangan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_four_winds_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_start.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/result_fourth_place.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/result_third_place.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_baiman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/result_second_place.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_double_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_mangan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_haneman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_counted_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_sanbaiman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m3.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m7.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m9.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m8.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m4.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p4.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p3.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p7.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s8.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s7.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_z5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_z1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s9.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_one_pin_moon.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_pei.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_noten.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_quadruple_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_pinfu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_riichi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_quintuple_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_ryanpeikou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_renhou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_rinshan_kaihou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_sanankou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_sanshoku.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_sanrenkou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_sankantsu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_sanshoku_doukou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_shiisanpuutaa.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_shousangen.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_sextuple_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_suukantsu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_suurenkou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_tanyao.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_shaa.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_tenhou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_ton.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_toitoi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_tenpai.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_triple_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yakuman_chinroutou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yaku_tsubamegaeshi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yakuman_daisangen.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yakuman_daisuushi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yakuman_chuuren.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yakuman_kokushi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yakuman_ryuuiisou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yakuman_shousuushi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yakuman_suuankou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yakuman_suuankou_tanki.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/yakuman_tsuuiisou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/action_ankan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/action_chi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/action_double_riichi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/action_kakan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/action_kan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/action_nuki.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/action_pon.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/action_riichi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/action_ron.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/flavor_close_game.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/action_tsumo.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/flavor_lose.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/game_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/flavor_win.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/game_end.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/game_four_kans_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/game_four_riichi_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/game_four_winds_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/game_nagashi_mangan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/game_nine_terminals_and_honors_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/result_fourth_place.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/result_second_place.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/game_start.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/result_third_place.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/score_baiman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/score_counted_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/score_double_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/score_haneman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/score_mangan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/score_sanbaiman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/score_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/tile_m1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/tile_m2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/tile_m3.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/tile_m4.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/tile_m5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/tile_m6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/yaya-001/audio/tile_m7.mp3?import",
+        "status": 200
+      }
+    ]
+  },
+  {
+    "scope": "south",
+    "resources": 250,
+    "failed": [],
+    "audio": [
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_ankan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_kakan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_pon.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_riichi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_kan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_nuki.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_chi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_double_riichi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_ron.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_four_winds_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/flavor_lose.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/flavor_win.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_end.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_four_kans_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_tsumo.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/flavor_close_game.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_four_riichi_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_nagashi_mangan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_start.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_nine_terminals_and_honors_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/result_fourth_place.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_sanbaiman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_baiman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/result_third_place.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_haneman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_counted_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/result_second_place.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_double_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_mangan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m3.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m4.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m8.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m7.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m9.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p4.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p7.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p9.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p8.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s8.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_z1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_z2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s7.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s4.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s3.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_z6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_z3.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_z7.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_chankan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_chiihou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_chinitsu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_daichikurin.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_chiitoitsu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_chanta.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_daichisei.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_daisuulin.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_3.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_11.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_13.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_4.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_haku.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_8.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_go_men_zei.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_honitsu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_houtei.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_ishigami_sannen.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_honroutou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_iipeikou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_ittsu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_ippatsu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_isshoku_sanjun.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_kokushi_13_wait.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_kanfuri.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_pei.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_pinfu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_ryanpeikou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_quintuple_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_renhou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_quadruple_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_rinshan_kaihou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_sankantsu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_sanrenkou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_sanshoku.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_shousangen.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_suukantsu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_shaa.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_sextuple_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_tenpai.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_toitoi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_triple_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_ton.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yakuman_chinroutou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yakuman_kokushi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yakuman_daisangen.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_tsubamegaeshi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yakuman_chuuren.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yakuman_ryuuiisou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yakuman_suuankou_tanki.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yakuman_shousuushi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yakuman_daisuushi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/action_kakan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yakuman_tsuuiisou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/action_kan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/action_nuki.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/action_ron.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/flavor_win.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/game_four_kans_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/game_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/score_baiman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/score_counted_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/result_second_place.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/game_start.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/tile_m1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/score_haneman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/score_mangan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/tile_m2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/score_sanbaiman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/score_double_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/tile_m6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/tile_m4.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/tile_m5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/tile_m8.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/tile_m9.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/tile_m3.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/tile_p2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/tile_p1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/tile_p3.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/tile_p5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/tile_p7.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/tile_p4.mp3?import",
+        "status": 200
+      }
+    ]
+  },
+  {
+    "scope": "cases",
+    "resources": 250,
+    "failed": [],
+    "audio": [
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_ankan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_ron.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_chi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_double_riichi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_kakan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_kan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_nuki.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_pon.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_riichi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/action_tsumo.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/flavor_close_game.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/flavor_lose.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/flavor_win.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_end.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_four_kans_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_four_riichi_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_four_winds_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_nagashi_mangan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_nine_terminals_and_honors_abortive_draw.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/game_start.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/result_fourth_place.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/result_second_place.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/result_third_place.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_baiman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_counted_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_double_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_haneman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_mangan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_sanbaiman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/score_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m3.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m4.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m7.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p3.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m9.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_m8.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p4.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p7.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p8.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_p9.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s3.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s4.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s7.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s8.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_s9.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_z1.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_z2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_z3.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_z4.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_z5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_z6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/tile_z7.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_chankan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_chanta.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_chiihou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_chiitoitsu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_chinitsu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_chun.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_daichikurin.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_daichisei.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_daisharin.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_daisuulin.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_10.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_11.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_12.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_2.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_13.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_3.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_6.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_4.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_5.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_7.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_go_men_zei.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_many.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_8.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_dora_9.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_haitei.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_honitsu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_honroutou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_ippatsu.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_houtei.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_iipeikou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_noten.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_nine_pin_fish.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_one_pin_moon.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_quintuple_yakuman.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yaku_riichi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yakuman_suuankou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yakuman_suuankou_tanki.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/voice-20260821-001/audio/yakuman_tsuuiisou.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/action_ankan.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/action_chi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/action_double_riichi.mp3?import",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/music/voice_lines/xiaozhang/audio/action_kakan.mp3?import",
+        "status": 200
+      }
+    ]
+  }
+]

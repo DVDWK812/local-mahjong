@@ -1,0 +1,38 @@
+
+> local-mahjong-trainer@0.1.0 test:xuezhan
+> vitest run src/game/xuezhan
+
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/game/xuezhan/runtime.test.ts (7 tests) 295ms
+ ✓ src/game/xuezhan/engine.test.ts (19 tests) 650ms
+   ✓ 血战权威流程 > 全预设完整小局、保存恢复与回放一致、非法版本拒绝 528ms
+ ✓ src/game/xuezhan/presentation.test.ts (1 test) 78ms
+stdout | src/game/xuezhan/boundaries.test.ts > 独立边界金样（生产初始牌与动作） > 难度与个性在相同合法局面产生可测分歧，不是换标签
+{ difficultyDisagreements: 43, personalityDisagreements: 33 }
+
+ ✓ src/game/xuezhan/boundaries.test.ts (11 tests) 2874ms
+   ✓ 独立边界金样（生产初始牌与动作） > 清算开关与花猪叠加：固定罚额和最高查叫金额分别受控 435ms
+   ✓ 独立边界金样（生产初始牌与动作） > 破产仅在完整小局结算后结束；首胡多人时由出牌者坐庄 384ms
+   ✓ 独立边界金样（生产初始牌与动作） > 难度与个性在相同合法局面产生可测分歧，不是换标签 1699ms
+stdout | src/game/xuezhan/transactions.test.ts > 清算计划、呼叫转移与终局边界 > 确定性完整批次逐筆退税来源、转移不重复退款、最高查叫金额与收款对象
+{"refunds":154,"transfers":3,"readyPayments":114}
+
+ ✓ src/game/xuezhan/transactions.test.ts (6 tests) 3715ms
+   ✓ 清算计划、呼叫转移与终局边界 > 确定性完整批次逐筆退税来源、转移不重复退款、最高查叫金额与收款对象 3654ms
+stdout | src/game/xuezhan/acceptance.test.ts > 全部暴露字段与合法配置组合 > 合法字段两两组合：逐对创建并走完一小局，记录数量
+{"matrix":"all-field-value-pairs","covered":3099,"invalidDependencyPairs":233}
+
+stdout | src/game/xuezhan/acceptance.test.ts > 固定种子完整压力批次 > 1000 小局：每预设200，另200合法随机配置；650步上限
+{"seeds":[10000,10999],"counts":{"declared":200,"declared-exchange":200,"dynamic":200,"dynamic-exchange":200,"random":200},"stats":{"rounds":1000,"maxSteps":92,"wins":851,"wall":929}}
+
+ ✓ src/game/xuezhan/acceptance.test.ts (170 tests) 121054ms
+   ✓ 全部暴露字段与合法配置组合 > 合法字段两两组合：逐对创建并走完一小局，记录数量 91443ms
+   ✓ 固定种子完整压力批次 > 1000 小局：每预设200，另200合法随机配置；650步上限 28425ms
+
+ Test Files  6 passed (6)
+      Tests  214 passed (214)
+   Start at  22:10:52
+   Duration  122.11s (transform 1.51s, setup 0ms, collect 3.00s, tests 128.67s, environment 1ms, prepare 857ms)
+

@@ -1,0 +1,55 @@
+diff --git a/src/game/ai.test.ts b/src/game/ai.test.ts
+index 9361365..5e91312 100644
+--- a/src/game/ai.test.ts
++++ b/src/game/ai.test.ts
+@@ -1,4 +1,4 @@
+-import { describe, expect, it } from 'vitest';
++import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
+ import { advanceAIAction, getVisibleCountsForPlayer, isAIPlayer, selectAIDiscardTile } from './ai';
+ import { createInitialGameState, declareRiichi, discardTile, getRiichiDiscardCandidates } from './engine';
+ import { createTile } from './tileUtils';
+@@ -48,6 +48,15 @@ function riichiReadyState(playerId: PlayerId = 1): GameState {
+ }
+ 
+ describe('AI auto play', () => {
++  // Seed 308 fixes wall, dora and replacement draws for legality fixtures.
++  beforeEach(() => {
++    let seed = 308;
++    vi.spyOn(Math, 'random').mockImplementation(() => {
++      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
++      return seed / 4294967296;
++    });
++  });
++  afterEach(() => vi.restoreAllMocks());
+   it('identifies Player 2-4 as AI and Player 1 as human', () => {
+     expect(isAIPlayer(0)).toBe(false);
+     expect(isAIPlayer(1)).toBe(true);
+@@ -296,11 +305,28 @@ describe('AI auto play', () => {
+     expect(counts[31]).toBe(4);
+   });
+ 
++  it('an unrelated non-lower pon option adds a pass step before the next draw', () => {
++    let state = createInitialGameState();
++    state = setHand(state, 0, [1, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22, 27, 31, 33]);
++    state = setHand(state, 1, [4, 6, 8, 10, 12, 14, 18, 20, 22, 24, 27, 31, 33]);
++    state = setHand(state, 2, [0, 2, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]);
++    state = setHand(state, 3, [1, 1, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]);
++    const window = discardTile({ ...state, currentPlayer: 0, phase: 'discard' }, 0, state.players[0].hand[0].instanceId);
++    expect(window.phase).toBe('call-window');
++    const after = advanceAIAction(window, () => 0);
++    expect(after.players[2].calls).toHaveLength(0);
++    expect(after.players[3].calls).toHaveLength(0);
++    expect(after.phase).toBe('draw');
++    expect(after.currentPlayer).toBe(1);
++  });
++
+   it('AI does not perform illegal chi from a non-lower seat and passes normally', () => {
+     let state = createInitialGameState();
+     state = setHand(state, 0, [1, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22, 27, 31, 33]);
+     state = setHand(state, 1, [4, 6, 8, 10, 12, 14, 18, 20, 22, 24, 27, 31, 33]);
+     state = setHand(state, 2, [0, 2, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]);
++    // Seat 3 previously retained a random hand and could legally pon/ron.
++    state = setHand(state, 3, [0, 4, 8, 9, 13, 17, 18, 22, 26, 28, 30, 31, 33]);
+     state = { ...state, currentPlayer: 0, phase: 'discard' };
+     const afterDiscard = discardTile(state, 0, state.players[0].hand[0].instanceId);
+     const after = advanceAIAction(afterDiscard, () => 0);

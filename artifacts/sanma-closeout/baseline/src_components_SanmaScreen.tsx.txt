@@ -1,0 +1,158 @@
+import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { MatchRuntime } from '../game/timeControl/matchRuntime';
+import { sanmaPolicy, SanmaTestClock } from '../game/sanma/runtime';
+import { applySanma, createSanma, legalSanmaActions, participantId } from '../game/sanma/engine';
+import { chooseSanmaAction, observeSanma } from '../game/sanma/ai';
+import { assertSanma } from '../game/sanma/invariants';
+import { downloadSanma, replaySanma, saveSanma, writeSanmaSave, SANMA_HISTORY_KEY, type SanmaSave } from '../game/sanma/persistence';
+import type { SanmaConfig } from '../game/sanma/config';
+import { SANMA_SEATS, type SanmaAction, type SanmaSeat, type SanmaState } from '../game/sanma/types';
+import { presentSanma, publishSanmaTransition, sanmaInteraction } from '../presentation/table/sanmaPresentation';
+import { runPacedAutomaticAction } from '../presentation/pacing/automaticActionPacing';
+import { finishHandsForAuthoritativeInput } from '../presentation/handAnimation/HandAnimationController';
+import { presentationPacingGate } from '../presentation/pacing/PresentationPacingGate';
+import { presentationEventBus } from '../presentation/PresentationEventBus';
+import { ParticipantTable } from '../presentation3d/participants/ParticipantTable';
+import { useSanmaAnimation, sanmaHandFrame } from '../presentation3d/participants/useSanmaAnimation';
+import type { DiscardSourceCapture } from '../presentation/handAnimation/DiscardSourceSnapshot';
+import { TileFaceDomAppearance } from '../presentation/appearance/TileFaceDomAppearance';
+import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
+import { resolveHandPackForPlayer, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
+import type { PlayerProfile } from '../profile/playerProfile';
+import { tileLabel, windLabel } from '../game/tileUtils';
+import { LocalHandArea } from './game/LocalHandArea';
+import { MatchClockHud } from './MatchClockHud';
+import { Tile } from './Tile';
+import './sanma.css';
+
+interface Props { config: SanmaConfig; initialState?: SanmaState; saved?: SanmaSave; isolated?: boolean; seed?: number; replayOnly?: boolean;
+  onExit: () => void; appearance?: AppearanceSettings; profile?: PlayerProfile; onAudio?: () => void; onState?: (state: SanmaState) => void; testClock?: SanmaTestClock }
+const labels: Record<SanmaAction['type'], string> = { discard: '弃牌', riichi: '立直', north: '拔北', ankan: '暗杠', kakan: '加杠', ron: '荣和', tsumo: '自摸', pass: '过', pon: '碰', minkan: '明杠', abort: '九种九牌', next: '下一局' };
+export function SanmaScreen(props: Props) {
+  const [root] = useState(() => props.saved?.initial ?? props.initialState ?? createSanma(props.config, props.seed ?? Date.now() >>> 0));
+  const [clock] = useState(() => props.testClock ?? (props.isolated ? new SanmaTestClock() : undefined));
+  const [runtime] = useState(() => new MatchRuntime(props.saved?.state ?? root, sanmaPolicy, props.config.time, clock, 0, props.saved?.runtime));
+  const [, render] = useReducer(n => n + 1, 0), [ready, setReady] = useState(false), [domReady, setDomReady] = useState(false);
+  const [viewer, setViewer] = useState<SanmaSeat>(0), [selected, setSelected] = useState<string | null>(null), [riichiChoosing, setRiichiChoosing] = useState(false);
+  const [fullControl, setFullControl] = useState(!!props.isolated), [details, setDetails] = useState(false), [message, setMessage] = useState('');
+  const [replayStep, setReplayStep] = useState<number | null>(props.replayOnly ? props.saved?.state.actions.length ?? 0 : null);
+  const [resultVisible, setResultVisible] = useState(!!runtime.state.result);
+  const appearances = usePlayerSlotAppearances(), appearance = props.appearance ?? DEFAULT_APPEARANCE_SETTINGS;
+  const previous = useRef(runtime.state), initialized = useRef(false), savedSequence = useRef(-1), historySaved = useRef(false), liveProps = useRef(props); liveProps.current = props;
+  const state = runtime.state, replay = replayStep !== null;
+  const archive = useMemo(() => saveSanma(state, undefined, root, !!props.isolated), [state, root, props.isolated]);
+  const s = useMemo(() => replay ? replaySanma(archive, replayStep!) : state, [archive, replay, replayStep, state]);
+  const view = useMemo(() => presentSanma(s, viewer, selected, riichiChoosing, replay && s.phase === 'ended'), [s, viewer, selected, riichiChoosing, replay]);
+  const sourceCapture = useRef<DiscardSourceCapture | null>(null);
+  const motion = useSanmaAnimation(`sanma:${s.seed}:${s.roundSerial}:${viewer}`, ready && !replay, action => {
+    const participant = view.participants.find(p => p.appearanceSlot === action.playerId);
+    const seat = view.mapping.find(m => m.participantId === participant?.id)?.seat;
+    if (!participant || !seat) return null;
+    const tile = action.type === 'tile_discarded' ? action.handHistory?.discardedTile ?? null : view.players[action.playerId]?.drawnTile ?? null;
+    return { seat, tile, count: s.players[action.playerId].hand.length, river: participant.discardedTiles,
+      pack: resolveHandPackForPlayer(action.playerId, appearances, appearance), rect: action.type === 'tile_discarded' && sourceCapture.current?.tileInstanceId === tile?.instanceId ? sourceCapture.current?.sourceTileRect : undefined };
+  });
+  useEffect(() => runtime.subscribe(render), [runtime]);
+  const attachment = useRef(0);
+  useEffect(() => { const generation = ++attachment.current; runtime.resumeAfterRemount(); return () => {
+    runtime.pause(); finishHandsForAuthoritativeInput();
+    queueMicrotask(() => { if (attachment.current === generation) runtime.dispose(); });
+  }; }, [runtime]);
+  useEffect(() => { if (ready && domReady && !props.replayOnly && !initialized.current) {
+    initialized.current = true; runtime.activate(); liveProps.current.onState?.(runtime.state);
+    if (!props.saved && !props.isolated) presentationEventBus.publish({ type: 'match_started', matchId: `sanma:${root.seed}`, activePlayerIds: [0, 1, 2] });
+  } }, [ready, domReady, runtime, props.replayOnly, props.saved, props.isolated, root.seed]);
+  useLayoutEffect(() => {
+    if (previous.current !== state) {
+      if (!replay) publishSanmaTransition(previous.current, state);
+      previous.current = state; liveProps.current.onState?.(state); setRiichiChoosing(false); setSelected(null);
+    }
+  }, [state, replay]);
+  useEffect(() => {
+    if (!s.result) { setResultVisible(false); return; }
+    let active = true;
+    void presentationPacingGate.waitUntilClear({ timeoutMs: 15000 }).then(() => { if (active) setResultVisible(true); });
+    return () => { active = false; };
+  }, [s.result]);
+  const saveCurrent = useCallback(() => {
+    try { writeSanmaSave(localStorage, saveSanma(runtime.state, runtime.snapshot(), root, !!props.isolated)); setMessage('已保存三人比赛及剩余时间'); }
+    catch (e) { setMessage(`保存失败：${e}`); }
+  }, [runtime, root, props.isolated]);
+  useEffect(() => {
+    if (props.isolated || props.replayOnly) return;
+    const saveLatest = () => {
+      if (!initialized.current || savedSequence.current === runtime.state.sequence) return;
+      try { writeSanmaSave(localStorage, saveSanma(runtime.state, runtime.snapshot(), root)); savedSequence.current = runtime.state.sequence; } catch (e) { setMessage(`自动保存失败：${e}`); }
+    };
+    const unsub = runtime.subscribe(saveLatest);
+    const unload = () => { savedSequence.current = -1; saveLatest(); };
+    window.addEventListener('beforeunload', unload);
+    return () => { unload(); unsub(); window.removeEventListener('beforeunload', unload); };
+  }, [runtime, root, props.isolated, props.replayOnly]);
+  useEffect(() => {
+    if (!state.completed || props.isolated || props.replayOnly || historySaved.current) return;
+    try { const history = JSON.parse(localStorage.getItem(SANMA_HISTORY_KEY) ?? '[]') as SanmaSave[]; localStorage.setItem(SANMA_HISTORY_KEY, JSON.stringify([archive, ...history.filter(h => h.state.seed !== state.seed)].slice(0, 12))); historySaved.current = true; }
+    catch (e) { setMessage(`牌谱写入失败，请导出保留：${e}`); }
+  }, [state.completed, archive, props.isolated, props.replayOnly]);
+  const command = useCallback((seat: SanmaSeat, action: SanmaAction) => {
+    if (replay) return;
+    finishHandsForAuthoritativeInput();
+    if (action.type === 'next') runtime.advance(current => applySanma(current, seat, action));
+    else runtime.command(participantId(seat), runtime.decision(participantId(seat))?.id, current => applySanma(current, seat, action));
+  }, [runtime, replay]);
+  useEffect(() => {
+    if (!ready || !domReady || fullControl || replay || runtime.paused || state.phase === 'ended') return;
+    const seat = SANMA_SEATS.find(id => id !== 0 && legalSanmaActions(state, id).length); if (seat === undefined) return;
+    let cancelled = false;
+    void runPacedAutomaticAction(() => {
+      if (runtime.state !== state || runtime.paused) return;
+      const action = chooseSanmaAction(observeSanma(state, seat), state.config.ai[seat - 1]); if (action) command(seat, action);
+    }, { isCancelled: () => cancelled });
+    return () => { cancelled = true; };
+  }, [runtime, state, fullControl, replay, ready, domReady, runtime.paused, command]);
+  const step = () => {
+    const wasPaused = runtime.paused; if (wasPaused) runtime.activate();
+    const seat = SANMA_SEATS.find(id => legalSanmaActions(runtime.state, id).length);
+    if (seat !== undefined) { const a = chooseSanmaAction(observeSanma(runtime.state, seat), seat === 0 ? undefined : s.config.ai[seat - 1]); if (a) command(seat, a); }
+    if (wasPaused) runtime.pause();
+  };
+  const usable = useCallback((value: boolean) => { if (value) setReady(true); }, []), handReady = useCallback(() => setDomReady(true), []);
+  const interaction = sanmaInteraction(setSelected, id => command(viewer, { type: riichiChoosing ? 'riichi' : 'discard', tile: id }));
+  const available = view.legal.filter(a => a.type !== 'discard' && a.type !== 'riichi' && a.type !== 'next');
+  const title = s.config.length === 'east-only' ? '三人东' : '三人南';
+  const status = s.phase === 'response' ? `${s.players[s.response!.actor].name}${s.response!.kind === 'north' ? '宣言拔北' : s.response!.kind === 'discard' ? '弃牌' : '宣言杠'}，等待响应` : s.phase === 'ended' ? s.result!.reason : `${s.players[s.current].name}行动`;
+  return <TileFaceDomAppearance settings={appearance}><main className="sanma-game game-screen" data-sanma-phase={s.phase} data-sanma-sequence={s.sequence} data-sanma-participants={s.players.length} data-sanma-payment={s.config.tsumoPolicy}>
+    <header className="sanma-topbar"><strong>{title} · {windLabel(s.roundWind)}{s.handNumber}局 · {s.honba}本场</strong><span>余牌 {s.wall.live.length} · 供托 {s.pot} · 自摸{ s.config.tsumoPolicy === 'loss' ? '有损' : '无损' }</span>
+      <button onClick={() => { if (!props.replayOnly) saveCurrent(); props.onExit(); }}>{props.replayOnly ? '返回牌谱' : '保存并退出'}</button>
+      {!replay && <button onClick={() => runtime.paused ? runtime.activate() : runtime.pause()}>{runtime.paused ? '继续比赛' : '暂停'}</button>}<button onClick={() => setDetails(v => !v)}>规则与账本</button>{props.onAudio && <button onClick={props.onAudio}>声音</button>}
+    </header>
+    <section className="sanma-table-area"><ParticipantTable participants={view.participants} mapping={view.mapping} preset="sanma" sessionKey={`sanma:${s.seed}:${s.roundSerial}`} localReady={domReady} onAnimationReady={usable} settings={appearance} profile={props.profile} label="三人立直麻将" currentParticipantId={participantId(s.current)} sanmaFrame={motion} />
+      <div className="sanma-center"><strong>{status}</strong><div className="sanma-dora" aria-label="表宝牌指示牌">{view.dora.map(t => <Tile key={t.instanceId} tile={t} compact interactive={false} />)}</div><span>庄家：{s.players[s.dealer].name}</span></div>
+    </section>
+    <section className="sanma-actions" aria-label="三人操作区"><p role="status">{message || status}{runtime.paused ? '（已暂停）' : ''}</p>
+      {available.map((a, i) => <button key={`${a.type}:${i}`} disabled={!initialized.current || runtime.paused || replay} onClick={() => command(viewer, a)}>{labels[a.type]}{'tile' in a ? ` ${tileLabel(s.wall.tiles[s.players[viewer].hand.find(index => s.wall.tiles[index].instanceId === a.tile)!])}` : ''}</button>)}
+      {view.legal.some(a => a.type === 'riichi') && <button disabled={runtime.paused || replay} aria-pressed={riichiChoosing} onClick={() => setRiichiChoosing(v => !v)}>{riichiChoosing ? '取消立直选牌' : '立直'}</button>}
+      {riichiChoosing && <span>请选择高亮候选牌完成立直</span>}
+    </section>
+    <LocalHandArea player={view.player} meldPlayer={{ ...view.player, calls: [] }} isCurrent={s.current === viewer} canDiscard={view.hand.canDiscard && !runtime.paused && !replay}
+      presentation={{ ...view.hand, tiles: view.hand.tiles.map(t => ({ ...t, playable: t.playable && initialized.current && !runtime.paused && !replay })) }} interactionActions={interaction}
+      onDiscardSourceCapture={capture => { sourceCapture.current = capture; }}
+      localHandAnimation={motion?.local && (motion.action.type === 'tile_drawn' || motion.action.type === 'tile_discarded') ? { eventId: motion.action.eventId, kind: motion.action.type === 'tile_drawn' ? 'draw' : 'discard', phase: motion.phase, progress: motion.progress, handPresentation: sanmaHandFrame(motion) } : null}
+      onDiscard={(_, id) => interaction.discard(id)} screenSpaceOverlay playerProfile={viewer === 0 ? props.profile : undefined} onPresentationReady={handReady} handPack={resolveHandPackForPlayer(viewer, appearances, appearance)} doraGlowEnabled={false} />
+    {!replay && <MatchClockHud runtime={runtime} participantId={participantId(viewer)} />}
+    {props.isolated && !replay && <aside className="sanma-test-controls"><label><input type="checkbox" checked={fullControl} onChange={e => setFullControl(e.target.checked)} />完全控制（关闭 AI）</label><label>观察与操作席<select aria-label="三人观察席" value={viewer} onChange={e => setViewer(Number(e.target.value) as SanmaSeat)}>{s.players.map(p => <option value={p.id} key={p.id}>{p.name}</option>)}</select></label><button onClick={step}>单步推进</button><button onClick={() => clock?.advance(5000)}>测试时钟＋5秒</button><button onClick={() => { for (const key of ['autoWin', 'suppressCalls', 'autoTsumogiri'] as const) runtime.setPreference(participantId(viewer), key, false); }}>关闭自动操作</button></aside>}
+    {resultVisible && s.result && <section className="sanma-result" role="dialog" aria-label={s.completed ? '三人整场结果' : '三人小局结果'}><h2>{s.completed ? `整场结束 · ${s.endReason}` : s.result.reason}</h2>
+      <div className="sanma-result-players">{(s.completed ? s.ranking.map(r => s.players[r.player]) : s.players).map(p => <article key={p.id}><strong>{p.name}</strong><p>{p.score} 点</p><p>本局 {s.result!.deltas[p.id] >= 0 ? '+' : ''}{s.result!.deltas[p.id]}</p>{s.completed && <p>成绩 {s.ranking.find(r => r.player === p.id)!.result}</p>}</article>)}</div>
+      {s.result.winners.map(w => <div className="sanma-win" key={w.winner}><strong>{s.players[w.winner].name} · {w.score.han}番 {w.score.fu}符 · {s.result!.reason === '流局满贯' ? '流局满贯' : w.score.yaku.map(y => y.name).join('、')}</strong><p>宝牌{w.score.dora} · 赤{w.score.redDora} · 里{w.score.uraDora} · 拔北{w.score.northDora}</p><div>{s.players[w.winner].hand.map(index => <Tile tile={s.wall.tiles[index]} key={index} compact interactive={false} />)}{w.from !== null && <Tile tile={s.wall.tiles[w.tile]} compact interactive={false} />}</div></div>)}
+      {s.result.kind === 'exhaustive' && <p>听牌：{s.result.tenpai.map(i => s.players[i].name).join('、') || '无人'}</p>}
+      {!s.completed && !replay && <button onClick={() => command(0, { type: 'next' })}>下一局</button>}<button onClick={() => setDetails(true)}>查看逐笔账本</button><button onClick={() => { saveCurrent(); props.onExit(); }}>返回</button>
+    </section>}
+    {details && <aside className="sanma-details"><button onClick={() => setDetails(false)}>关闭明细</button><h2>规则、逐笔账本与牌谱</h2><p>{s.config.ruleVersion} · 种子{s.seed} · {s.sequence}步</p><details><summary>本场规则快照</summary><pre>{JSON.stringify(s.config, null, 2)}</pre></details>
+      <table><thead><tr><th>事务</th><th>原因</th><th>付款</th><th>收款</th><th>点数</th></tr></thead><tbody>{s.ledger.map(e => <tr key={e.id}><td>{e.transaction}</td><td>{{ win: '和牌', honba: '本场', riichi: '立直供托', sticks: '供托领取', noten: '不听罚符', liability: '包牌', nagashi: '流局满贯' }[e.reason]}</td><td>{e.from === 'pot' ? '供托' : s.players[e.from].name}</td><td>{e.to === 'pot' ? '供托' : s.players[e.to].name}</td><td>{e.amount}</td></tr>)}</tbody></table>
+      <button onClick={saveCurrent}>保存当前状态</button><button onClick={() => downloadSanma('三人牌谱.json', saveSanma(state, runtime.snapshot(), root, !!props.isolated))}>导出三人牌谱</button>
+      <button onClick={() => { runtime.pause(); setReplayStep(root.actions.length); }}>从头回放</button><button onClick={() => { try { assertSanma(s); setMessage('实体牌、阶段和点棒账本检查通过'); } catch (e) { setMessage(String(e)); } }}>检查当前状态</button>
+      {props.isolated && <><h3>测试全明牌检查（不传给 AI）</h3>{s.players.map(p => <p key={p.id}>{p.name}：{p.hand.map(i => tileLabel(s.wall.tiles[i])).join(' ')}</p>)}<pre>{JSON.stringify(s.events.slice(-20), null, 2)}</pre></>}
+    </aside>}
+    {replay && <nav className="sanma-replay" aria-label="三人回放控制"><strong>回放 {replayStep}/{state.actions.length}</strong><button onClick={() => setReplayStep(Math.max(root.actions.length, replayStep! - 1))}>上一步</button><button onClick={() => setReplayStep(Math.min(state.actions.length, replayStep! + 1))}>下一步</button><button onClick={() => setReplayStep(Math.min(state.actions.length, replayStep! + 10))}>快进10步</button><input aria-label="三人回放进度" type="range" min={root.actions.length} max={state.actions.length} value={replayStep!} onChange={e => setReplayStep(Number(e.target.value))} />{!props.replayOnly && <button onClick={() => { setReplayStep(null); runtime.activate(); }}>退出回放</button>}<button onClick={props.onExit}>返回</button></nav>}
+  </main></TileFaceDomAppearance>;
+}

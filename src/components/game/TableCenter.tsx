@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { MatchState } from '../../game/match/types';
 import type { GameState, PlayerId, Wind } from '../../game/types';
 import type { TableSeatMapping } from './MahjongTable';
@@ -51,29 +52,34 @@ export function TableCenter({ gameState, matchState, seatMapping = {
     { playerId: seatMapping.rightPlayerId, className: 'center-score--east', slot: 'right' as const },
     { playerId: seatMapping.bottomPlayerId, className: 'center-score--south', slot: 'bottom' as const },
   ].filter(({ playerId }) => !activePlayerIds || activePlayerIds.includes(playerId));
+  return <TableCenterView scores={scorePositions.map(entry => ({ ...entry, score: gameState.players[entry.playerId].score, wind: gameState.players[entry.playerId].seatWind, current: gameState.currentPlayer === entry.playerId, dealer: gameState.dealer === entry.playerId }))} roundLabel={roundText(gameState, matchState, roundLabel)} honba={gameState.honba} remainingLabel={remainingLabel === undefined ? `剩余${gameState.wall.length}张` : remainingLabel} centerCornerLabels={centerCornerLabels} />;
+}
+
+export interface CenterScore { playerId: PlayerId; className: string; slot: 'top' | 'left' | 'right' | 'bottom'; score: number; wind: Wind; current: boolean; dealer: boolean; label?: ReactNode }
+export function TableCenterView({ scores, roundLabel, honba, remainingLabel, centerCornerLabels, children }: { scores: readonly CenterScore[]; roundLabel: string; honba?: number; children?: ReactNode; remainingLabel?: string | null; centerCornerLabels?: TableCenterProps['centerCornerLabels'] }) {
   return (
     <section className="table-center" aria-label="中央计分区">
       {centerCornerLabels?.topLeft ? <span className="table-center-corner table-center-corner--top-left">{centerCornerLabels.topLeft}</span> : null}
       {centerCornerLabels?.bottomRight ? <span className="table-center-corner table-center-corner--bottom-right">{centerCornerLabels.bottomRight}</span> : null}
       <div className="center-score-grid">
-        {scorePositions.map(({ playerId, className, slot }) => {
-          const player = gameState.players[playerId];
+        {scores.map(({ playerId, className, slot, score, wind, current, dealer, label }) => {
           return (
             <div
               key={slot}
-              className={`center-score ${className} ${gameState.currentPlayer === playerId ? 'center-score--current' : ''} ${gameState.dealer === playerId ? 'center-score--dealer' : ''}`}
+              className={`center-score ${className} ${current ? 'center-score--current' : ''} ${dealer ? 'center-score--dealer' : ''}`}
               data-center-slot={slot}
               data-center-player={playerId}
             >
-              <SeatWindLabel isDealer={gameState.dealer === playerId} wind={player.seatWind} />
-              <strong>{player.score.toLocaleString()}</strong>
+              {label ?? <SeatWindLabel isDealer={dealer} wind={wind} />}
+              <strong>{score.toLocaleString()}</strong>
             </div>
           );
         })}
         <div className="center-round">
-          <strong>{roundText(gameState, matchState, roundLabel)}</strong>
-          <span>{gameState.honba}本场</span>
-          {remainingLabel === null ? null : <span>{remainingLabel ?? `剩余${gameState.wall.length}张`}</span>}
+          <strong>{roundLabel}</strong>
+          {honba !== undefined && <span>{honba}本场</span>}
+          {children}
+          {remainingLabel === null ? null : <span>{remainingLabel}</span>}
         </div>
       </div>
     </section>

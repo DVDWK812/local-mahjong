@@ -30,7 +30,7 @@ const SEAT_ORDER: readonly Table3DSeat[] = ['bottom', 'right', 'top', 'left'];
 export function buildTableSceneState(
   gameState: GameState,
   options: BuildTableSceneStateOptions = {},
-): TableSceneState {
+): TableSceneState & { seats: Readonly<Record<Table3DSeat, SeatSceneState>> } {
   const mapping = options.seatMapping ?? getSceneSeatMapping(options.bottomPlayerId ?? 0);
   const playerIds: Record<Table3DSeat, PlayerId> = {
     bottom: mapping.bottomPlayerId,
@@ -79,7 +79,7 @@ export function getSceneSeatMapping(bottomPlayerId: PlayerId): TableSceneSeatMap
   };
 }
 
-function buildSeatSceneState(
+export function buildSeatSceneState(
   player: PlayerState,
   seat: Table3DSeat,
   handVisible: boolean,

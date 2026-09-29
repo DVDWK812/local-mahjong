@@ -1,0 +1,59 @@
+[
+  {
+    "name": "XZ-TRIPLE-复现.json",
+    "bytes": 20527,
+    "sha256": "77bc9ef0cb81d10d771e614d6ac323e5b6c67e34b7ae32d7f71a643c46d7d226",
+    "original": "C:/Users/Wenkai/Downloads/XZ-TRIPLE-复现.json",
+    "originalIdentical": true,
+    "downloadedAt": "2026-09-22T17:10:04.598Z",
+    "mode": "xuezhan",
+    "schemaVersion": 1,
+    "ruleId": "xz1-85a129c426e0db96",
+    "actions": 4,
+    "runtime": false,
+    "ledger": 3
+  },
+  {
+    "name": "血战回放.json",
+    "bytes": 21270,
+    "sha256": "d33bb60fc6edd03243dbbcc032617dcbdf08dce8b99dc7104d536f3d0729b542",
+    "original": "C:/Users/Wenkai/Downloads/血战回放.json",
+    "originalIdentical": true,
+    "downloadedAt": "2026-09-22T17:12:05.977Z",
+    "mode": "xuezhan",
+    "schemaVersion": 1,
+    "ruleId": "xz1-85a129c426e0db96",
+    "actions": 4,
+    "runtime": true,
+    "ledger": 3
+  },
+  {
+    "name": "血战测试报告 (1).json",
+    "bytes": 551474,
+    "sha256": "e50d2794d9e8b6ee5ceaec4fb309508b4a159820ae63d47e8cecc0a7e879cf91",
+    "original": "C:/Users/Wenkai/Downloads/血战测试报告 (1).json",
+    "originalIdentical": true,
+    "downloadedAt": "2026-09-22T17:10:04.325Z",
+    "mode": "xuezhan",
+    "schemaVersion": 1,
+    "code": {
+      "commit": "5620bbbb4f73fa1001d663f49c98ad88e75b58e8",
+      "fingerprint": "d77d6134017e491bf927401cf84557a98446016705c1f043a2823996b5303c60",
+      "snapshotId": "4f994175d7dfaf280fef0774b1285df29ccea82948c1973f99430b49c6a800cf",
+      "buildMode": "diagnostic"
+    },
+    "cases": 19,
+    "runtime": false
+  },
+  {
+    "name": "血战配置.json",
+    "bytes": 3040,
+    "sha256": "0babe6e8ce588e66ffbc4fbe14b2beb2980832b18bf9eb878daa870bb63a9fb3",
+    "original": "C:/Users/Wenkai/Downloads/血战配置.json",
+    "originalIdentical": true,
+    "downloadedAt": "2026-09-23T14:45:48.565Z",
+    "mode": "xuezhan",
+    "ruleId": "xz1-1982481566c4d915",
+    "runtime": false
+  }
+]

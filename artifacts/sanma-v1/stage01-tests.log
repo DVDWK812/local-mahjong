@@ -1,0 +1,10 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/game/sanma/wall.test.ts (4 tests) 54ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  21:40:08
+   Duration  626ms (transform 115ms, setup 0ms, collect 158ms, tests 54ms, environment 0ms, prepare 176ms)
+

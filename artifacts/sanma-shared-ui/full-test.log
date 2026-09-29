@@ -1,0 +1,843 @@
+
+> local-mahjong-trainer@0.1.0 pretest
+> npm run generate:voice-packs && npm run test:voice-pack-index
+
+
+> local-mahjong-trainer@0.1.0 generate:voice-packs
+> node scripts/generateVoicePackIndex.mjs
+
+Generated Voice Pack index: 3 valid pack(s), 0 skipped.
+
+> local-mahjong-trainer@0.1.0 test:voice-pack-index
+> node scripts/verifyVoicePackIndex.mjs
+
+Voice Pack index lifecycle test passed.
+
+> local-mahjong-trainer@0.1.0 test
+> vitest run
+
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation/PresentationEventBus.test.ts (21 tests) 47ms
+ ✓ src/presentation3d/coordinates/sceneTransforms.test.ts (16 tests) 17ms
+ ✓ src/game/timeControl/timeControl.test.ts (58 tests) 55ms
+ ✓ src/game/replay/roundReplay.test.ts (12 tests) 26ms
+ ✓ src/game/ai.test.ts (24 tests) 563ms
+ ✓ src/game/seventeenSteps.test.ts (22 tests) 37ms
+ ✓ src/game/testMode/testMode.test.ts (16 tests) 183ms
+ ✓ src/presentation3d/sceneState/buildTableSceneState.test.ts (15 tests) 32ms
+ ✓ src/presentation3d/animation/tableAnimation3D.test.ts (35 tests) 54ms
+ ✓ src/components/MatchSettings.test.tsx (27 tests) 283ms
+ ✓ src/presentation3d/participants/candidateAnimation.test.ts (32 tests) 43ms
+ ✓ src/presentation/handAnimation/HandAnimationController.test.ts (14 tests) 14ms
+ ✓ src/components/game/DiscardRiver.test.tsx (21 tests) 57ms
+ ✓ src/components/ReplayScreen.test.tsx (25 tests) 220ms
+ ✓ src/audio/musicLibrary.test.ts (26 tests) 27ms
+ ✓ src/audio/voice/VoiceDirector.test.ts (18 tests) 17ms
+ ✓ src/components/voice/VoiceManagementScreen.test.tsx (18 tests) 124ms
+ ✓ src/presentation/manualGateFixes.test.ts (19 tests) 91ms
+ ✓ src/presentation/appearance/appearanceLibrary.test.ts (14 tests) 28ms
+ ✓ src/components/AudioSettingsDialog.test.tsx (19 tests) 364ms
+ ✓ src/components/game/HandAnimationOverlay.test.tsx (27 tests) 65ms
+ ✓ src/presentation3d/animation/handPresentation.test.tsx (18 tests) 98ms
+ ✓ src/presentation3d/Table3DScene.test.ts (10 tests) 9ms
+ ✓ src/components/game/LocalHandArea.test.tsx (14 tests) 104ms
+ ✓ src/game/kanChecker.test.ts (7 tests) 26ms
+ ✓ src/game/tenpaiDisplay.test.tsx (20 tests) 121ms
+ ✓ src/audio/AudioManager.test.ts (61 tests) 1557ms
+ ✓ src/components/game/GameScreen.test.tsx (13 tests) 457ms
+ ✓ src/presentation3d/TableRenderer.test.ts (15 tests) 143ms
+ ✓ src/game/score/yakuChecker.test.ts (23 tests) 18ms
+ ✓ src/presentation/gamePresentationEvents.test.ts (7 tests) 24ms
+ ✓ src/components/rulesGuide/RulesGuideScreen.test.tsx (14 tests) 723ms
+ ✓ src/game/score/fu/fuCalculator.test.ts (31 tests) 11ms
+ ✓ src/game/xuezhan/engine.test.ts (19 tests) 576ms
+   ✓ 血战权威流程 > 全预设完整小局、保存恢复与回放一致、非法版本拒绝 491ms
+stderr | scripts/localVoiceGenerationService.test.mjs > LocalVoiceGenerationService > 接受 BOM 包裹的纯 JSON，并拒绝日志污染、缺字段和异常退出的响应
+Voice generator diagnostic {
+  code: 'GENERATOR_INVALID_RESPONSE',
+  exitCode: 0,
+  stdoutBytes: 244,
+  stderrBytes: 0
+}
+
+stderr | scripts/localVoiceGenerationService.test.mjs > LocalVoiceGenerationService > 接受 BOM 包裹的纯 JSON，并拒绝日志污染、缺字段和异常退出的响应
+Voice generator diagnostic {
+  code: 'GENERATOR_INVALID_RESPONSE',
+  exitCode: 0,
+  stdoutBytes: 80,
+  stderrBytes: 0
+}
+
+stderr | scripts/localVoiceGenerationService.test.mjs > LocalVoiceGenerationService > 接受 BOM 包裹的纯 JSON，并拒绝日志污染、缺字段和异常退出的响应
+Voice generator diagnostic {
+  code: 'GENERATOR_PROCESS_FAILED',
+  exitCode: 2,
+  stdoutBytes: 0,
+  stderrBytes: 13
+}
+
+ ✓ scripts/localVoiceGenerationService.test.mjs (11 tests) 111ms
+ ✓ src/game/persistence/saveManager.test.ts (13 tests) 51ms
+ ✓ src/game/score/ancientYaku.test.ts (16 tests) 20ms
+ ✓ src/audio/voice/voiceGenerationStatus.test.ts (11 tests) 69ms
+ ✓ src/game/interactionFlow.test.ts (11 tests) 106ms
+ ✓ src/presentation/animation/AnimationScheduler.test.ts (14 tests) 15ms
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 原子创建标准 Pack，复制 145 条母版且生成可发现 index
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 只生成安全 ASCII ID，重复创建使用安全后缀
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 只生成安全 ASCII ID，重复创建使用安全后缀
+Generated Voice Pack index: 2 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 索引拒绝无效母版时回滚已原子移动的 Pack
+Generated Voice Pack index: 0 valid pack(s), 1 skipped.
+
+stderr | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 索引拒绝无效母版时回滚已原子移动的 Pack
+Skipped Voice Pack voice-20260822-001: CSV is missing required column(s): category, action, tts_text, locale, character, emotion
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 只解析 manifest 明确声明的 MP3，拒绝路径穿越和未声明文件
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+ ✓ src/presentation/pacing/PresentationPacingGate.test.ts (16 tests) 12ms
+ ✓ src/game/winChecker.test.ts (9 tests) 31ms
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 删除用户 Pack 后立即重建索引；内置校长角色始终受服务端保护
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 删除用户 Pack 后立即重建索引；内置校长角色始终受服务端保护
+Generated Voice Pack index: 0 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > EPERM rename 重试后仍可完成 Pack 删除
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > EPERM rename 会 fallback 到 fs.rm；仍被占用时返回 PACK_IN_USE
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+ ✓ src/presentation/PresentationAudioCue.test.ts (13 tests) 25ms
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > EPERM rename 会 fallback 到 fs.rm；仍被占用时返回 PACK_IN_USE
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+ ✓ scripts/localVoicePackService.test.mjs (10 tests) 327ms
+ ✓ src/presentation/winAnimation/WinPresentationController.test.ts (9 tests) 16ms
+ ✓ src/audio/voice/VoicePresentationRuntime.integration.test.tsx (3 tests) 36ms
+ ✓ src/game/xuezhan/runtime.test.ts (8 tests) 165ms
+ ✓ src/components/WinResultDialog.test.tsx (11 tests) 105ms
+ ✓ src/components/DoraGlow.test.tsx (11 tests) 29ms
+stdout | src/game/xuezhan/boundaries.test.ts > 独立边界金样（生产初始牌与动作） > 难度与个性在相同合法局面产生可测分歧，不是换标签
+{ difficultyDisagreements: 43, personalityDisagreements: 33 }
+
+ ✓ src/game/xuezhan/boundaries.test.ts (11 tests) 2502ms
+   ✓ 独立边界金样（生产初始牌与动作） > 难度与个性在相同合法局面产生可测分歧，不是换标签 1575ms
+ ✓ src/hand/HandVisualController.test.ts (21 tests) 116ms
+ ✓ src/game/scoreCalculator.test.ts (18 tests) 12ms
+ ✓ src/components/game/PlayerZone.test.tsx (7 tests) 64ms
+ ❯ src/presentation/appearance/tileFaceIntegration.test.tsx (8 tests | 1 failed) 40ms
+   × 37-slot face editor and renderer contract > keeps legacy DOM default assets and restricts the custom provider to 3D consumers 15ms
+     → expected 'import { FormalGameScreen } from \'./…' to contain 'settings={activeTableRenderer === \'3…'
+ ✓ src/components/WinResultPresentation.test.tsx (6 tests) 74ms
+ ✓ src/presentation3d/participants/participantPresentation.test.tsx (7 tests) 48ms
+ ✓ src/game/match/matchEngine.test.ts (12 tests) 27ms
+ ✓ src/presentation3d/appearance/AppearanceTextureCache.test.ts (7 tests) 9ms
+ ✓ src/presentation/eventOverlay/EventOverlayController.test.ts (5 tests) 13ms
+ ✓ src/game/riichiClaimedDiscard.test.ts (6 tests) 25ms
+ ✓ src/presentation/handAnimation/HandAnimationConsumer.test.ts (8 tests) 11ms
+ ✓ src/presentation3d/dora/DoraSweep3DController.test.ts (10 tests) 11ms
+ ✓ src/components/TestMode.test.tsx (13 tests) 383ms
+ ✓ src/game/shanten.test.ts (21 tests) 318ms
+ ✓ src/presentation/table/sanmaFormalScene.test.tsx (9 tests) 376ms
+ ✓ src/components/NavigationMenus.test.tsx (19 tests) 63ms
+ ✓ src/components/ResultDialog.test.tsx (5 tests) 61ms
+ ✓ src/presentation3d/tile/tileMaterials.test.ts (9 tests) 8ms
+ ✓ src/presentation/appearance/playerSlotAppearance.test.ts (5 tests) 7ms
+ ✓ src/components/ActionPromptCallOptions.test.tsx (7 tests) 168ms
+ ✓ src/game/riichiDiscardLegality.test.ts (5 tests) 58ms
+ ✓ src/audio/voice/winVoiceSequence.test.ts (6 tests) 8ms
+ ✓ src/audio/voice/WinResultPresentationController.test.ts (6 tests) 9ms
+ ✓ src/presentation3d/participants/participantBaseline.test.tsx (4 tests) 74ms
+ ✓ src/components/SameTileHover.test.tsx (11 tests) 25ms
+ ✓ src/game/persistence/storageValidation.test.ts (17 tests) 28ms
+ ✓ src/components/game/TableLayoutRegression.test.tsx (10 tests) 135ms
+ ✓ src/presentation3d/session/SceneCanvasHost.test.tsx (7 tests) 22ms
+ ✓ scripts/fishVoiceCreationService.test.mjs (7 tests) 17ms
+ ✓ src/components/voice/CreateVoicePackScreen.test.tsx (9 tests) 25ms
+stdout | src/game/xuezhan/transactions.test.ts > 清算计划、呼叫转移与终局边界 > 确定性完整批次逐筆退税来源、转移不重复退款、最高查叫金额与收款对象
+{"refunds":154,"transfers":3,"readyPayments":114}
+
+ ✓ src/game/xuezhan/transactions.test.ts (6 tests) 3391ms
+   ✓ 清算计划、呼叫转移与终局边界 > 确定性完整批次逐筆退税来源、转移不重复退款、最高查叫金额与收款对象 3345ms
+ ✓ src/game/sanma/rules.test.ts (7 tests) 65ms
+ ✓ src/audio/voice/SettlementPresentationCoordinator.test.ts (5 tests) 12ms
+ ✓ src/presentation3d/participants/participantRiverCompact.test.ts (4 tests) 14ms
+ ✓ src/presentation/appearance/appearanceAssetResolver.test.ts (6 tests) 9ms
+ ✓ src/presentation3d/table/tablePresentationTuning.test.ts (5 tests) 6ms
+ ✓ src/components/InteractionFlow.test.tsx (9 tests) 156ms
+ ✓ src/audio/audioSettingsStorage.test.ts (8 tests) 7ms
+ ✓ src/game/kuikae.test.ts (8 tests) 28ms
+ ✓ src/audio/voice/VoicePackRepository.test.ts (8 tests) 8ms
+ ✓ src/audio/voice/effectiveGenerationConfig.test.ts (6 tests) 7ms
+ ✓ src/audio/musicRegistry.test.ts (17 tests) 7ms
+ ✓ src/presentation/result/resultViewModel.test.ts (6 tests) 24ms
+ ✓ src/audio/voice/VoicePresentationConsumer.test.ts (5 tests) 8ms
+ ✓ src/game/furiten.test.ts (6 tests) 27ms
+ ✓ src/presentation3d/table/FeltDecoration3D.test.ts (7 tests) 10ms
+ ✓ src/game/score/scoringContextIntegration.test.ts (6 tests) 21ms
+ ✓ src/game/score/yaku/remainingModernYaku.test.ts (10 tests) 17ms
+ ✓ src/presentation/appearance/appearanceSettings.test.ts (6 tests) 9ms
+ ✓ src/presentation3d/dora/doraSweep3DTrigger.test.ts (5 tests) 19ms
+ ✓ src/components/ActionPromptRiichiCandidates.test.tsx (3 tests) 110ms
+ ✓ src/components/ReplayLayout.test.tsx (8 tests) 83ms
+ ✓ src/presentation/table/TablePresentationContract.test.ts (7 tests) 76ms
+ ↓ src/game/seventeenStepsAI.pressure.test.ts (1 test | 1 skipped)
+ ✓ src/game/abortiveDraw.test.ts (9 tests) 18ms
+ ✓ src/audio/AudioPresentationConsumer.test.ts (6 tests) 7ms
+ ✓ src/game/match/matchRules.test.ts (10 tests) 7ms
+ ✓ src/audio/voice/VoicePackEditingService.test.ts (7 tests) 21ms
+ ✓ src/components/settings/AvatarPicker.test.tsx (7 tests) 77ms
+ ✓ src/game/callChecker.test.ts (5 tests) 20ms
+ ✓ src/game/riichiCallRestrictions.test.ts (4 tests) 18ms
+ ✓ src/presentation3d/tile/doraBreathingVisual.test.ts (5 tests) 6ms
+ ✓ src/components/AppearanceSettingsDialog.test.tsx (6 tests) 35ms
+ ✓ src/game/riichiFlowRegression.test.tsx (5 tests) 103ms
+ ✓ src/components/settings/VoicePackSettings.test.tsx (4 tests) 19ms
+stderr | src/presentation3d/appearance/playerAppearanceConsumers.test.tsx > real 3D consumer owner contracts > riichi animation/release and static sticks consume the same actor texture for all four players
+React does not recognize the `userData` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `userdata` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
+Received `true` for a non-boolean attribute `visible`.
+
+If you want to write it to the DOM, pass a string instead: visible="true" or visible={value.toString()}.
+
+ ✓ src/presentation3d/appearance/playerAppearanceConsumers.test.tsx (2 tests) 77ms
+ ✓ scripts/fishAudioModelDiscovery.test.mjs (4 tests) 32ms
+ ✓ src/presentation3d/hand/handInteraction.test.ts (7 tests) 6ms
+ ✓ src/game/score/scoringIntegration.test.ts (5 tests) 28ms
+ ✓ src/components/PlayerProfileIntegration.test.tsx (5 tests) 449ms
+   ✓ PlayerProfile 表现层接入 > 17 步使用同一个 Profile 展示昵称和头像 307ms
+ ✓ scripts/generateTransparentTileFaces.test.mjs (12 tests) 656ms
+ ✓ src/game/score/sanankouProvenance.test.ts (5 tests) 5ms
+ ✓ src/audio/musicPreferences.test.ts (5 tests) 6ms
+ ✓ src/game/match/endConditions.test.ts (6 tests) 19ms
+ ✓ src/game/score/pointCalculator.test.ts (20 tests) 9ms
+ ✓ src/components/game/DoraIndicatorStack.test.tsx (6 tests) 37ms
+ ✓ src/game/exhaustiveDraw.test.ts (6 tests) 20ms
+ ✓ src/components/TileImageRendering.test.tsx (5 tests) 30ms
+ ✓ src/app/automaticGameProgression.test.ts (3 tests) 19ms
+ ✓ src/game/suukanSanraSettlement.test.ts (3 tests) 21ms
+ ✓ src/presentation/appearance/playerSlotAvatars.test.ts (5 tests) 6ms
+ ✓ src/game/abortiveDrawIntegration.test.ts (5 tests) 26ms
+ ✓ src/game/chiChecker.test.ts (6 tests) 21ms
+ ✓ scripts/removeDeprecatedVoiceLines.test.mjs (1 test) 48ms
+ ✓ src/game/chankan.test.ts (4 tests) 29ms
+ ✓ src/presentation/eventOverlay/EventOverlayConsumer.test.ts (4 tests) 6ms
+stderr | src/presentation3d/animation/flashLifecycle.test.tsx > local discard / ron / tsumo frames keep the same scene and visible seats without loading fresh textures
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+
+ ✓ src/presentation3d/animation/flashLifecycle.test.tsx (1 test) 68ms
+ ✓ src/presentation3d/tile/tileFaceVisibility.test.tsx (4 tests) 15ms
+ ✓ src/presentation3d/riichi/RiichiStick3D.test.ts (5 tests) 6ms
+ ✓ src/hand/handPacks.test.ts (6 tests) 15ms
+ ✓ src/audio/voice/voicePreferences.test.ts (7 tests) 4ms
+ ✓ src/presentation3d/tile/tileTextures.test.ts (6 tests) 6ms
+ ✓ src/game/testMode/resultsStorage.test.ts (4 tests) 26ms
+ ✓ src/components/ActionPromptClickTargets.test.tsx (3 tests) 142ms
+ ✓ src/components/game/MahjongTable.test.tsx (5 tests) 172ms
+ ✓ src/presentation/handAnimation/DiscardSourceSnapshot.test.ts (4 tests) 4ms
+ ✓ src/game/exhaustiveDrawIntegration.test.ts (4 tests) 26ms
+ ✓ src/game/replay/eventRecorder.test.ts (3 tests) 20ms
+ ✓ src/audio/musicLibraryStorage.test.ts (2 tests) 5ms
+ ✓ src/components/TileOperationStates.test.tsx (3 tests) 14ms
+ ✓ src/game/northPlayerRiichi.test.ts (3 tests) 62ms
+ ✓ src/presentation3d/win/winPresentation3D.test.ts (3 tests) 15ms
+ ✓ src/components/PlayerMelds.test.tsx (4 tests) 28ms
+ ✓ src/components/TestModePerspective.test.tsx (1 test) 204ms
+ ✓ src/game/riichi.test.ts (5 tests) 42ms
+ ✓ src/presentation3d/table/feltSurfaceUv.test.ts (2 tests) 7ms
+ ✓ src/presentation3d/animation/animationRuntime.test.ts (3 tests) 5ms
+ ✓ src/dev/finalGate/FinalGate.test.tsx (3 tests) 36ms
+ ✓ src/presentation/table/tileVisualSemantics.test.ts (4 tests) 4ms
+ ✓ src/audio/voice/voiceSynthesisSettings.test.ts (5 tests) 4ms
+ ✓ src/profile/playerProfileStorage.test.ts (5 tests) 4ms
+ ✓ src/game/match/matchIntegration.test.ts (4 tests) 20ms
+ ✓ src/game/tileAssets.test.ts (4 tests) 6ms
+ ✓ src/game/nextRoundReset.test.ts (1 test) 16ms
+ ✓ src/presentation3d/table/CentralConsoleHudAnchor3D.test.ts (4 tests) 4ms
+ ✓ src/presentation3d/appearance/AppearanceResources3D.test.ts (5 tests) 5ms
+ ✓ src/presentation3d/tile/tileVisualAnatomy.test.ts (3 tests) 3ms
+ ✓ src/audio/audioBackend.test.ts (4 tests) 6ms
+ ✓ src/game/meldDisplayAdapter.test.ts (5 tests) 16ms
+ ✓ scripts/localGeneratedVoiceRegistry.test.mjs (2 tests) 184ms
+ ✓ scripts/reorderVoiceLineCatalog.test.mjs (2 tests) 47ms
+ ✓ src/game/match/endChoice.test.ts (4 tests) 17ms
+ ✓ src/presentation3d/tile/tileGrounding.test.ts (3 tests) 3ms
+ ✓ src/game/sanma/integration.test.ts (9 tests) 8620ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > east-only/loss的每个可视化场景执行断言并经JSON序列化重建 2172ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > east-only/split_missing_share_ceil100的每个可视化场景执行断言并经JSON序列化重建 2149ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > hanchan/loss的每个可视化场景执行断言并经JSON序列化重建 2087ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > hanchan/split_missing_share_ceil100的每个可视化场景执行断言并经JSON序列化重建 2128ms
+ ✓ src/game/sanma/wall.test.ts (4 tests) 180ms
+ ✓ scripts/xzBuildStamp.test.ts (10 tests) 21ms
+ ✓ src/game/match/finalRanking.test.ts (5 tests) 4ms
+ ✓ src/game/riichiVisualState.test.ts (4 tests) 119ms
+ ✓ src/dev/finalGate/scenarios.test.ts (28 tests) 357ms
+ ✓ src/components/game/TableCenter.test.tsx (4 tests) 31ms
+ ✓ src/presentation/winAnimation/WinPresentationConsumer.test.ts (2 tests) 4ms
+ ✓ src/presentation/animation/animationFrameTask.test.ts (3 tests) 7ms
+ ✓ src/components/game/GameEventOverlay.test.tsx (4 tests) 13ms
+ ✓ src/presentation3d/camera/FixedTableCamera.test.ts (3 tests) 4ms
+ ✓ src/audio/voice/voicePreview.test.ts (3 tests) 6ms
+ ✓ src/presentation/matchPresentationEvents.test.ts (2 tests) 16ms
+ ✓ src/components/game/DiscardRiverRiichiClaimed.test.tsx (2 tests) 25ms
+ ✓ src/components/ExhaustiveDrawDialog.test.tsx (2 tests) 45ms
+ ✓ src/game/score/yakuhaiNames.test.ts (3 tests) 8ms
+ ✓ src/presentation3d/Table3DHud.test.tsx (2 tests) 62ms
+ ✓ src/presentation3d/dora/doraLayout.test.ts (3 tests) 5ms
+ ✓ src/game/match/roundTransition.test.ts (5 tests) 4ms
+ ✓ src/components/game/localHandPresentationReady.test.ts (3 tests) 5ms
+ ✓ src/presentation3d/tile/tileFootprintPacking.test.ts (3 tests) 3ms
+ ✓ src/profile/playerProfile.test.ts (4 tests) 4ms
+ ✓ src/styles/designTokens.test.ts (3 tests) 5ms
+ ✓ src/audio/voice/CreatedVoiceService.test.ts (3 tests) 11ms
+ ✓ scripts/syncVoiceLineCatalog.test.mjs (1 test) 41ms
+ ✓ src/game/score/scoringAdapter.test.ts (4 tests) 5ms
+ ✓ src/components/settings/AppearanceImageLibrary.test.tsx (2 tests) 12ms
+ ✓ src/game/xuezhan/closeout.test.ts (2 tests) 77ms
+ ✓ src/game/persistence/migration.test.ts (3 tests) 18ms
+ ✓ src/audio/voice/matchVoiceSequence.test.ts (3 tests) 4ms
+ ✓ src/components/MeldDisplay.test.tsx (3 tests) 23ms
+ ✓ src/components/game/RiichiStick.test.tsx (3 tests) 10ms
+ ❯ src/presentation3d/table/centralConsoleLayout.test.ts (3 tests | 1 failed) 12ms
+   × central console assembly > keeps the HUD center, ordinary river and non-riichi preview scale unchanged 8ms
+     → expected [ -0.1, 0.698, 1.9 ] to deeply equal [ -0.1, 0.698, 2.3 ]
+ ✓ src/components/SeventeenStepsScreen.test.tsx (4 tests) 1752ms
+   ✓ 17步正式游戏界面接入 > 进入正式 game-screen，并且只显示上下两个有效座位 682ms
+   ✓ 17步正式游戏界面接入 > 构筑阶段显示比赛摘要和全宽构筑内容 1067ms
+ ✓ src/audio/voice/drawVoiceSequence.test.ts (3 tests) 3ms
+ ✓ src/game/replay/replayPlayback.test.ts (3 tests) 5ms
+ ✓ src/components/game/GameResponsiveLayout.test.tsx (4 tests) 4ms
+ ✓ src/audio/voice/VoicePackService.test.ts (3 tests) 8ms
+ ✓ src/components/game/WinPresentationOverlay.test.tsx (3 tests) 5ms
+ ✓ src/components/game/HandTrack.test.tsx (4 tests) 29ms
+ ✓ src/audio/voice/ttsTextSynchronization.test.ts (4 tests) 4ms
+ ✓ src/presentation3d/animation/DiscardSource3D.test.ts (2 tests) 4ms
+ ✓ src/components/MatchResultDialog.test.tsx (1 test) 27ms
+ ✓ src/presentation3d/tile/tileFaceTextures3d.test.ts (2 tests) 5ms
+ ✓ src/audio/voice/voiceLineGroups.test.ts (3 tests) 5ms
+ ✓ scripts/tableRendererUrlBanner.test.ts (2 tests) 5ms
+ ✓ src/presentation3d/tile/tileGalleryData.test.ts (4 tests) 4ms
+ ✓ src/game/replay/replayIntegration.test.ts (2 tests) 6ms
+ ✓ src/presentation/appearance/appearanceAssetStorage.test.ts (2 tests) 5ms
+ ✓ src/components/MatchSettingsExtraRoundDefaults.test.tsx (3 tests) 17ms
+ ✓ src/presentation3d/Table3DHudAvatar.test.tsx (1 test) 85ms
+ ✓ src/presentation3d/coordinates/seatTransforms.test.ts (3 tests) 4ms
+ ✓ src/components/settings/ImagePickerCropDialog.test.ts (2 tests) 19ms
+ ✓ src/presentation/winAnimation/tsumoSlapMotion.test.ts (2 tests) 7ms
+ ✓ src/presentation3d/lighting/TableLighting.test.tsx (2 tests) 4ms
+ ✓ src/components/ReplayControls.test.tsx (1 test) 9ms
+ ✓ src/app/navigation.test.ts (4 tests) 3ms
+ ✓ src/components/SeventeenStepsMatchSettings.test.tsx (1 test) 15ms
+ ✓ src/game/replay/eventReducer.test.ts (2 tests) 6ms
+ ✓ src/components/game/AnalysisDrawer.test.tsx (2 tests) 41ms
+ ✓ src/presentation3d/initialSceneReady.test.ts (2 tests) 3ms
+ ✓ src/game/replay/replayEngine.test.ts (2 tests) 6ms
+ ✓ src/game/xuezhan/presentation.test.ts (1 test) 90ms
+ ✓ src/game/seventeenStepsMatch.test.ts (1 test) 4ms
+ ✓ src/audio/voice/tileVoice.test.ts (2 tests) 4ms
+ ✓ src/presentation3d/table/feltMainViewMapping.test.ts (3 tests) 4ms
+ ✓ src/audio/voice/fishAudioLanguages.test.ts (1 test) 4ms
+ ✓ src/components/ContinueMatchDialog.test.tsx (2 tests) 24ms
+ ✓ src/components/AnalysisTileImages.test.tsx (2 tests) 43ms
+ ✓ src/presentation3d/tile/tileSpacing.test.ts (1 test) 2ms
+ ✓ src/presentation3d/table/TableMesh.test.ts (1 test) 2ms
+ ✓ src/components/AbortiveDrawDialog.test.tsx (1 test) 30ms
+ ✓ src/game/sanma/evidence.test.ts (1 test) 2ms
+ ✓ src/audio/voice/textControlProfiles.test.ts (1 test) 3ms
+ ✓ src/presentation3d/tile/tileOrientation.test.ts (3 tests) 3ms
+ ✓ src/presentation3d/riichi/RiichiSticks3D.test.ts (2 tests) 3ms
+ ✓ src/components/SaveStatusIndicator.test.tsx (1 test) 10ms
+ ✓ src/audio/voice/fishCloneLanguages.test.ts (1 test) 2ms
+ ✓ src/components/ReplayDetail.test.tsx (1 test) 49ms
+ ✓ src/game/sanma/scenarios.test.ts (79 tests) 907ms
+ ✓ src/game/sanma/timing.test.ts (15 tests) 15879ms
+   ✓ runtime full matches with policy audit > east-only/loss/short=false/seed=308 1974ms
+   ✓ runtime full matches with policy audit > east-only/split_missing_share_ceil100/short=false/seed=308 1151ms
+   ✓ runtime full matches with policy audit > hanchan/loss/short=false/seed=308 2213ms
+   ✓ runtime full matches with policy audit > hanchan/split_missing_share_ceil100/short=false/seed=308 3287ms
+   ✓ runtime full matches with policy audit > east-only/loss/short=true/seed=308 1874ms
+   ✓ runtime full matches with policy audit > east-only/split_missing_share_ceil100/short=true/seed=308 1528ms
+   ✓ runtime full matches with policy audit > hanchan/loss/short=true/seed=308 2026ms
+   ✓ runtime full matches with policy audit > hanchan/split_missing_share_ceil100/short=true/seed=308 1739ms
+stdout | src/game/seventeenStepsAI.test.ts > 17步麻将 Default AI V2 pressure smoke test > runs a bounded batch without unbounded search
+17-step AI V2 pressure: V2 tenpai=200/200, han=171/200, no-furiten=171/200, complete17=171/200, avgWaitKinds=4.90, avgMs=276.60; Legacy tenpai=200/200, han=200/200, no-furiten=100/200
+
+ ✓ src/game/seventeenStepsAI.test.ts (12 tests) 71960ms
+   ✓ 17步麻将 Default AI V2 > maps 筑根 to Legacy and all newer shared difficulties to V2.1 2206ms
+   ✓ 17步麻将 Default AI V2 > exposes separate structural/legal waits and the V2.1 forced-discard metrics 1076ms
+   ✓ 17步麻将 Default AI V2 > uses the match han restriction and never reads legacy manganRestriction 1875ms
+   ✓ 17步麻将 Default AI V2 > prioritizes a no-furiten tenpai build and caps wait entities in the discard pool 1241ms
+   ✓ 17步麻将 Default AI V2 > is deterministic for the same state and seed 2343ms
+   ✓ 17步麻将 Default AI V2 > does not use the opponent hidden build when constructing or discarding 2204ms
+   ✓ 17步麻将 Default AI V2 > filters structural waits before choosing a discard and prefers public safe duplicates 836ms
+   ✓ 17步麻将 Default AI V2 > does not deadlock when every remaining candidate is a structural wait 1425ms
+   ✓ 17步麻将 Default AI V2 > can simulate all 17 AI discards without discarding a structural wait or entering permanent furiten 1558ms
+   ✓ 17步麻将 Default AI V2 > keeps Legacy available while the default game uses V2 construction 1872ms
+   ✓ 17步麻将 Default AI V2 pressure smoke test > runs a bounded batch without unbounded search 55322ms
+stdout | src/game/xuezhan/acceptance.test.ts > 全部暴露字段与合法配置组合 > 合法字段两两组合：逐对创建并走完一小局，记录数量
+{"matrix":"all-field-value-pairs","covered":3099,"invalidDependencyPairs":233}
+
+stdout | src/game/xuezhan/acceptance.test.ts > 固定种子完整压力批次 > 1000 小局：每预设200，另200合法随机配置；650步上限
+{"seeds":[10000,10999],"counts":{"declared":200,"declared-exchange":200,"dynamic":200,"dynamic-exchange":200,"random":200},"stats":{"rounds":1000,"maxSteps":92,"wins":851,"wall":929,"winningPlayers":855,"multiWinGroups":4,"wallByWonCount":[448,320,161,0],"threeWinners":71},"definitions":{"wins":"成功胡牌组数（多响计一组）","maxSteps":"已接受生产命令数，含准备和每位玩家响应","wall":"墙尽结束局数，不等于无人胡牌局数"}}
+
+ ✓ src/game/xuezhan/acceptance.test.ts (170 tests) 73698ms
+   ✓ 全部暴露字段与合法配置组合 > 合法字段两两组合：逐对创建并走完一小局，记录数量 55803ms
+   ✓ 固定种子完整压力批次 > 1000 小局：每预设200，另200合法随机配置；650步上限 16947ms
+ ✓ src/game/sanma/longRun.test.ts (40 tests) 60044ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=1 2204ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=2 1239ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=3 439ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=4 662ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=5 916ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=6 890ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=7 1304ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=8 501ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=9 1097ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=10 929ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=1 1185ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=2 1272ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=3 995ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=4 761ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=5 1046ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=6 1408ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=7 771ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=8 620ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=9 1045ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=10 725ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=1 2454ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=2 2993ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=3 1213ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=4 1608ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=5 1769ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=6 2243ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=7 2454ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=8 1754ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=9 3103ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=10 1589ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=1 3343ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=2 2871ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=3 1789ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=4 1005ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=5 1703ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=6 2008ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=7 865ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=8 1617ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=9 2237ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=10 1410ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/presentation/appearance/tileFaceIntegration.test.tsx > 37-slot face editor and renderer contract > keeps legacy DOM default assets and restricts the custom provider to 3D consumers
+AssertionError: expected 'import { FormalGameScreen } from \'./…' to contain 'settings={activeTableRenderer === \'3…'
+
+- Expected
++ Received
+
+- settings={activeTableRenderer === '3d' ? appearanceSettings : undefined}
++ import { FormalGameScreen } from './FormalGameScreen';
++ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
++ import { getPresentationFeatures } from '../../config/presentationFeatures';
++ import type { MatchState } from '../../game/match/types';
++ import { buildTenpaiDisplay } from '../../game/tenpaiDisplay';
++ import type { GameState, PlayerId, RiichiState, TileId } from '../../game/types';
++ import type { PlayerProfile } from '../../profile/playerProfile';
++ import {
++   DiscardSourceSnapshotStore,
++   type DiscardSourceCapture,
++   type DiscardSourceSnapshot,
++ } from '../../presentation/handAnimation/DiscardSourceSnapshot';
++ import { presentationPacingGate } from '../../presentation/pacing/PresentationPacingGate';
++ import {
++   buildTablePresentationState,
++   createTableInteractionActions,
++   type TablePresentationState,
++   withLocalHandSelection,
++ } from '../../presentation/table/TablePresentationContract';
++ import { ResultDialog } from '../ResultDialog';
++ import type { WinResultPresentationController } from '../../audio/voice/WinResultPresentationController';
++ import type { SettlementPresentationCoordinator } from '../../audio/voice/SettlementPresentationCoordinator';
++ import { TenpaiWaitPanel } from '../TenpaiWaitPanel';
++ import { AnalysisDrawer } from './AnalysisDrawer';
++ import { GameEventOverlay } from './GameEventOverlay';
++ import { GameTopBar } from './GameTopBar';
++ import { HandAnimationOverlay } from './HandAnimationOverlay';
++ import { TableRenderer } from '../../presentation3d/TableRenderer';
++ import type { TableRendererMode } from '../../presentation3d/rendererMode';
++ import type { LocalHandAnimation3DState } from '../../presentation3d/animation/tableAnimation3D';
++ import { WinPresentationOverlay } from './WinPresentationOverlay';
++ import type { WinPresentation3DState } from '../../presentation3d/win/winPresentation3D';
++ import { TABLE_PRESENTATION_TUNING } from '../../presentation3d/table/tablePresentationTuning';
++ import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../../presentation/appearance/appearanceSettings';
++ import { resolvePlayerSlotNickname, usePlayerSlotNicknames } from '../../presentation/appearance/playerSlotAvatars';
++ import { resolveHandPackForPlayer, usePlayerSlotAppearances } from '../../presentation/appearance/playerSlotAppearance';
++ 
++ const ROUND_END_PRESENTATION_FAIL_OPEN_MS = 15_000;
++ 
++ interface GameScreenProps {
++   gameState: GameState;
++   matchState?: MatchState;
++   analysisOpen: boolean;
++   actionPrompt?: ReactNode;
++   canDiscard: boolean;
++   onInputResourcesReady?: () => void;
++   authoritativeInputOpen?: boolean;
++   allowedDiscardInstanceIds?: readonly string[];
++   kuikaeForbiddenTileIds?: readonly TileId[];
++   onOpenRulesGuide?: () => void;
++   onOpenAudioSettings?: () => void;
++   onToggleAnalysis: () => void;
++   onCloseAnalysis: () => void;
++   onReturnMenu: () => void;
++   onDiscard: (playerId: PlayerId, tileInstanceId: string) => void;
++   onReset: () => void;
++   doraGlowEnabled?: boolean;
++   hoveredTileType?: TileId | null;
++   sameTileHoverEnabled?: boolean;
++   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
++   showTenpaiWaitsEnabled?: boolean;
++   tenpaiPreviewDiscardInstanceId?: string | null;
++   tenpaiPreviewRiichiKind?: RiichiState['kind'] | null;
++   tsumoGiriDisplayEnabled?: boolean;
++   handAnimationsEnabled?: boolean;
++   localPlayerId?: PlayerId;
++   tableBottomPlayerId?: PlayerId;
++   revealAllHands?: boolean;
++   playerProfile?: PlayerProfile;
++   winPresentationController?: WinResultPresentationController;
++   settlementPresentationCoordinator?: SettlementPresentationCoordinator;
++   tablePresentationState?: TablePresentationState;
++   appearanceSettings?: AppearanceSettings;
++ }
++ 
++ export function GameScreen({
++   gameState,
++   matchState,
++   analysisOpen,
++   actionPrompt,
++   canDiscard,
++   onInputResourcesReady,
++   authoritativeInputOpen = false,
++   allowedDiscardInstanceIds,
++   kuikaeForbiddenTileIds = [],
++   onOpenRulesGuide,
++   onOpenAudioSettings,
++   onToggleAnalysis,
++   onCloseAnalysis,
++   onReturnMenu,
++   onDiscard,
++   onReset,
++   doraGlowEnabled = true,
++   hoveredTileType = null,
++   sameTileHoverEnabled = true,
++   onHoveredTileTypeChange,
++   showTenpaiWaitsEnabled = true,
++   tenpaiPreviewDiscardInstanceId = null,
++   tenpaiPreviewRiichiKind = null,
++   tsumoGiriDisplayEnabled = true,
++   handAnimationsEnabled = true,
++   localPlayerId = 0,
++   tableBottomPlayerId = localPlayerId,
++   revealAllHands = false,
++   playerProfile,
++   winPresentationController,
++   settlementPresentationCoordinator,
++   tablePresentationState,
++   appearanceSettings,
++ }: GameScreenProps) {
++   const slotNicknames = usePlayerSlotNicknames();
++   const playerSlotAppearances = usePlayerSlotAppearances();
++   const [handPreviewDiscardInstanceId, setHandPreviewDiscardInstanceId] = useState<string | null>(null);
++   const [activeTableRenderer, setActiveTableRenderer] = useState<TableRendererMode>('2d');
++   const [localHandLayoutReady, setLocalHandLayoutReady] = useState(false);
++   const [localHandAssetsReady, setLocalHandAssetsReady] = useState(false);
++   const [localHandAnimation, setLocalHandAnimation] = useState<LocalHandAnimation3DState | null>(null);
++   const [localDiscardSnapshot, setLocalDiscardSnapshot] = useState<DiscardSourceSnapshot | null>(null);
++   const [winPresentation3D, setWinPresentation3D] = useState<WinPresentation3DState | null>(null);
++   const discardSourceSnapshotsRef = useRef<DiscardSourceSnapshotStore | null>(null);
++   if (!discardSourceSnapshotsRef.current) discardSourceSnapshotsRef.current = new DiscardSourceSnapshotStore();
++   const discardSourceSnapshots = discardSourceSnapshotsRef.current;
++   const localPlayer = gameState.players[localPlayerId];
++   const fixedBottomPlayer = gameState.players[tableBottomPlayerId];
++   const localHandPack = resolveHandPackForPlayer(
++     tableBottomPlayerId,
++     playerSlotAppearances,
++     appearanceSettings ?? DEFAULT_APPEARANCE_SETTINGS,
++   );
++   const baseTablePresentationState = useMemo(() => tablePresentationState
++     ?? buildTablePresentationState(gameState, {
++       localPlayerId,
++       bottomPlayerId: tableBottomPlayerId,
++       revealOpponentHands: revealAllHands,
++       canDiscardOverride: canDiscard,
++       allowedDiscardInstanceIdsOverride: allowedDiscardInstanceIds,
++       kuikaeForbiddenTileIdsOverride: kuikaeForbiddenTileIds,
++     }), [
++     allowedDiscardInstanceIds,
++     canDiscard,
++     gameState,
++     kuikaeForbiddenTileIds,
++     localPlayerId,
++     revealAllHands,
++     tableBottomPlayerId,
++     tablePresentationState,
++   ]);
++   const sharedTablePresentationState = useMemo(
++     () => withLocalHandSelection(baseTablePresentationState, handPreviewDiscardInstanceId),
++     [baseTablePresentationState, handPreviewDiscardInstanceId],
++   );
++   const tableInteractionActions = useMemo(() => createTableInteractionActions(
++     localPlayerId,
++     setHandPreviewDiscardInstanceId,
++     onDiscard,
++   ), [localPlayerId, onDiscard]);
++   const handAnimationSessionKey = `${gameState.roundWind}-${gameState.dealer}-${gameState.honba}-${matchState?.handNumber ?? 'single'}`;
++   const captureDiscardSource = useCallback((capture: DiscardSourceCapture) => {
++     const features = getPresentationFeatures();
++     if (!handAnimationsEnabled || !features.presentationEvents || !features.handAnimations) return;
++     const snapshot: DiscardSourceSnapshot = {
++       ...capture,
++       sessionKey: handAnimationSessionKey,
++       confirmedTurn: gameState.turn + 1,
++     };
++     const clearStoredSnapshot = discardSourceSnapshots.capture(snapshot);
++     if (activeTableRenderer === '3d') setLocalDiscardSnapshot(snapshot);
++     return () => {
++       clearStoredSnapshot();
++       setLocalDiscardSnapshot((current) => current?.tileInstanceId === snapshot.tileInstanceId ? null : current);
++     };
++   }, [activeTableRenderer, discardSourceSnapshots, gameState.turn, handAnimationSessionKey, handAnimationsEnabled]);
++   const handleLocalHandAnimationChange = useCallback((next: LocalHandAnimation3DState | null) => {
++     setLocalHandAnimation(next);
++     if (!next || next.handPresentation || (next.kind === 'discard' && next.phase === 'proxy-ready')) setLocalDiscardSnapshot(null);
++   }, []);
++   const handleLocalHandLayoutReady = useCallback(() => setLocalHandLayoutReady(true), []);
++   const handleLocalHandAssetsReady = useCallback(() => setLocalHandAssetsReady(true), []);
++   const localPresentationReady = localHandLayoutReady && localHandAssetsReady;
++   const handleWinPresentation3DChange = useCallback((next: WinPresentation3DState | null) => {
++     setWinPresentation3D(activeTableRenderer === '3d' ? next : null);
++   }, [activeTableRenderer]);
++   const winPresentationKey = buildWinPresentationKey(gameState, handAnimationSessionKey);
++   const roundEndPresentationKey = buildRoundEndPresentationKey(gameState, handAnimationSessionKey);
++   const presentationFeatures = getPresentationFeatures();
++   const winPresentationEnabled = handAnimationsEnabled
++     && presentationFeatures.presentationEvents
++     && presentationFeatures.handAnimations;
++   const eventOverlayEnabled = handAnimationsEnabled && presentationFeatures.presentationEvents;
++   const [completedRoundEndPresentationKey, setCompletedRoundEndPresentationKey] = useState<string | null>(null);
++   const roundEndActivityRef = useRef<{ key: string | null; version: number }>({ key: null, version: presentationPacingGate.version });
++   if (roundEndActivityRef.current.key !== roundEndPresentationKey) {
++     roundEndActivityRef.current = { key: roundEndPresentationKey, version: presentationPacingGate.version };
++   }
++   const roundEndPresentationPending = shouldBlockRoundEndResultPresentation(
++     roundEndPresentationKey,
++     eventOverlayEnabled,
++     completedRoundEndPresentationKey,
++   );
++   // The terminal commit can include the last discard. Keep its owner alive through settle.
++   const realtimeHandAnimationsEnabled = handAnimationsEnabled;
++   const tenpaiDisplay = showTenpaiWaitsEnabled
++     || tenpaiPreviewDiscardInstanceId
++     ? buildTenpaiDisplay(
++         gameState,
++         localPlayerId,
++         tenpaiPreviewDiscardInstanceId ?? handPreviewDiscardInstanceId ?? undefined,
++         tenpaiPreviewDiscardInstanceId ? tenpaiPreviewRiichiKind ?? undefined : undefined,
++       )
++     : null;
++   const settleRoundEndPresentation = useCallback(() => {
++     if (roundEndPresentationKey) setCompletedRoundEndPresentationKey(roundEndPresentationKey);
++   }, [roundEndPresentationKey]);
++ 
++   useEffect(() => {
++     if (!gameState.result) {
++       winPresentationController?.reset();
++       settlementPresentationCoordinator?.reset();
++       return;
++     }
++     if (roundEndPresentationPending) return;
++     settlementPresentationCoordinator?.begin({
++       id: `${gameState.turn}:${gameState.result.type}:${gameState.result.pointDeltas.join(',')}:${gameState.result.type === 'ron' || gameState.result.type === 'tsumo' ? gameState.result.winners.map((winner) => winner.winner).join(',') : ''}`,
++       result: gameState.result,
++       playerIds: gameState.players.map((player) => player.id),
++       scoreAfter: gameState.players.map((player) => player.score),
++     });
++   }, [gameState.result, gameState.turn, gameState.players, settlementPresentationCoordinator, winPresentationController, roundEndPresentationPending]);
++ 
++   useEffect(() => {
++     if (!roundEndPresentationPending || !roundEndPresentationKey) return;
++     let cancelled = false;
++     const winnerCount = gameState.result?.type === 'ron' || gameState.result?.type === 'tsumo'
++       ? gameState.result.winners.length
++       : 1;
++     const failOpenMs = Math.max(ROUND_END_PRESENTATION_FAIL_OPEN_MS, 2500 + winnerCount * 1600);
++     void presentationPacingGate.waitUntilActivityClearAfter(roundEndActivityRef.current.version, { timeoutMs: failOpenMs }).then((status) => {
++       if (!cancelled && status === 'timed-out') setCompletedRoundEndPresentationKey(roundEndPresentationKey);
++     });
++     return () => { cancelled = true; };
++   }, [gameState.result, roundEndPresentationKey, roundEndPresentationPending]);
++ 
++   useEffect(() => {
++     if (!roundEndPresentationKey) setCompletedRoundEndPresentationKey(null);
++   }, [roundEndPresentationKey]);
++ 
++   useEffect(() => {
++     setHandPreviewDiscardInstanceId(null);
++   }, [gameState]);
++ 
++   useEffect(() => {
++     discardSourceSnapshots.clear();
++     setLocalDiscardSnapshot(null);
++     setLocalHandAnimation(null);
++     setWinPresentation3D(null);
++   }, [discardSourceSnapshots, handAnimationSessionKey, realtimeHandAnimationsEnabled]);
++ 
++   useEffect(() => {
++     if (activeTableRenderer === '3d') return;
++     setLocalDiscardSnapshot(null);
++     setLocalHandAnimation(null);
++     setWinPresentation3D(null);
++   }, [activeTableRenderer]);
++ 
++   useEffect(() => () => discardSourceSnapshots.clear(), [discardSourceSnapshots]);
++ 
++   return <FormalGameScreen
++     data-round-end-presentation-pending={roundEndPresentationPending ? 'true' : 'false'}
++     data-local-presentation-ready={localPresentationReady ? 'true' : 'false'}
++     topBar={<GameTopBar
++         currentPlayerDisplayName={activeTableRenderer === '3d' ? resolvePlayerSlotNickname(gameState.currentPlayer, playerProfile?.nickname, slotNicknames, gameState.players[gameState.currentPlayer].name) : undefined}
++         gameState={gameState}
++         matchState={matchState}
++         analysisOpen={analysisOpen}
++         onOpenRulesGuide={onOpenRulesGuide ?? (() => undefined)}
++         onOpenAudioSettings={onOpenAudioSettings ?? (() => undefined)}
++         onToggleAnalysis={onToggleAnalysis}
++         onReturnMenu={onReturnMenu}
++       />}
++     table={<TableRenderer onInputResourcesReady={onInputResourcesReady} gameState={gameState} matchState={matchState} bottomPlayerId={tableBottomPlayerId} revealOpponentHands={revealAllHands} doraGlowEnabled={doraGlowEnabled} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} presentationState={sharedTablePresentationState} interactionActions={tableInteractionActions} animationsEnabled={realtimeHandAnimationsEnabled} animationSessionKey={handAnimationSessionKey} animationTurn={gameState.turn} localDiscardSnapshots={discardSourceSnapshots} onLocalHandAnimationChange={handleLocalHandAnimationChange} winPresentation3D={winPresentation3D} appearanceSettings={appearanceSettings} playerProfile={playerProfile} onActiveRendererChange={setActiveTableRenderer} localPresentationReady={localPresentationReady} />}
++     appearance={{ settings: activeTableRenderer === '3d' ? appearanceSettings : undefined, onReady: activeTableRenderer === '3d' ? handleLocalHandAssetsReady : undefined }}
++     localHand={{player: localPlayer,
++ identityPlayer: fixedBottomPlayer,
++ playerProfile: playerProfile,
++ meldPlayer: fixedBottomPlayer,
++ isCurrent: gameState.currentPlayer === localPlayerId,
++ canDiscard: canDiscard,
++ allowedDiscardInstanceIds: allowedDiscardInstanceIds,
++ kuikaeForbiddenTileIds: kuikaeForbiddenTileIds,
++ onDiscard: onDiscard,
++ presentation: sharedTablePresentationState.localHand,
++ interactionActions: tableInteractionActions,
++ onDiscardSourceCapture: realtimeHandAnimationsEnabled ? captureDiscardSource : undefined,
++ doraIndicators: gameState.doraIndicators,
++ doraGlowEnabled: doraGlowEnabled,
++ doraBorderEnabled: activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.borderEnabled === 1,
++ doraBreathingEnabled: activeTableRenderer !== '3d' || TABLE_PRESENTATION_TUNING.doraVisual.breathingEnabled === 1,
++ hoveredTileType: hoveredTileType,
++ sameTileHoverEnabled: sameTileHoverEnabled,
++ onHoveredTileTypeChange: onHoveredTileTypeChange,
++ tsumoGiriDisplayEnabled: tsumoGiriDisplayEnabled,
++ screenSpaceOverlay: activeTableRenderer === '3d',
++ retainDiscardSourceSnapshot: activeTableRenderer === '3d',
++ discardSnapshot: activeTableRenderer === '3d' ? localDiscardSnapshot : null,
++ localHandAnimation: activeTableRenderer === '3d' && !authoritativeInputOpen ? localHandAnimation : null,
++ onPresentationReady: activeTableRenderer === '3d' ? handleLocalHandLayoutReady : undefined,
++ handPack: localHandPack}}
++     winOverlay={<WinPresentationOverlay
++         gameState={gameState}
++         sessionKey={handAnimationSessionKey}
++         doraGlowEnabled={doraGlowEnabled}
++         appearanceSettings={appearanceSettings}
++         bottomPlayerId={tableBottomPlayerId}
++         enabled={winPresentationEnabled}
++         rendererMode={activeTableRenderer}
++         on3DPresentationChange={handleWinPresentation3DChange}
++         onRoundEndSettled={settleRoundEndPresentation}
++       />}
++     handOverlay={<HandAnimationOverlay
++         bottomPlayerId={tableBottomPlayerId}
++         discardSourceSnapshots={discardSourceSnapshots}
++         enabled={realtimeHandAnimationsEnabled && activeTableRenderer === '2d'}
++         sessionKey={handAnimationSessionKey}
++         turn={gameState.turn}
++       />}
++     eventOverlay={<GameEventOverlay bottomPlayerId={tableBottomPlayerId} enabled={eventOverlayEnabled} onRoundEndSettled={settleRoundEndPresentation} />}
++     actionPrompt={actionPrompt}
++     tenpai={tenpaiDisplay ? <TenpaiWaitPanel display={tenpaiDisplay} /> : null}
++     details={<AnalysisDrawer open={analysisOpen} gameState={gameState} onClose={onCloseAnalysis} />}
++     result={roundEndPresentationPending ? null : <ResultDialog gameState={gameState} onReset={onReset} doraGlowEnabled={doraGlowEnabled} winPresentationController={winPresentationController} settlementPresentationCoordinator={settlementPresentationCoordinator} />}
++   />;
++ 
++ }
++ 
++ export function buildWinPresentationKey(gameState: GameState, sessionKey: string): string | null {
++   const result = gameState.result;
++   if (result?.type !== 'ron' && result?.type !== 'tsumo') return null;
++   return `${sessionKey}:${gameState.turn}:${result.type}:${result.winners.map((winner) => winner.winner).join(',')}`;
++ }
++ 
++ export function buildRoundEndPresentationKey(gameState: GameState, sessionKey: string): string | null {
++   const result = gameState.result;
++   if (!result) return null;
++   if (result.type === 'abortive-draw') {
++     return `${sessionKey}:${gameState.turn}:abortive-draw:${result.reason}:${result.declaredBy ?? result.triggeringPlayer ?? 'none'}`;
++   }
++   if (result.type === 'exhaustive-draw') {
++     return `${sessionKey}:${gameState.turn}:exhaustive-draw:${result.tenpaiPlayers.join(',')}`;
++   }
++   return buildWinPresentationKey(gameState, sessionKey);
++ }
++ 
++ export function shouldBlockRoundEndResultPresentation(roundEndKey: string | null, enabled: boolean, completedKey: string | null): boolean {
++   return roundEndKey !== null && enabled && completedKey !== roundEndKey;
++ }
++ 
++ export function shouldBlockWinResultPresentation(winKey: string | null, enabled: boolean, completedKey: string | null): boolean {
++   return shouldBlockRoundEndResultPresentation(winKey, enabled, completedKey);
++ }
++
+
+ ❯ src/presentation/appearance/tileFaceIntegration.test.tsx:95:60
+     93|     expect(html).toContain('/src/assets/tiles/m1.png'); expect(html).n…
+     94|     const source = (path: string) => readFileSync(decodeURIComponent(n…
+     95|     expect(source('../../components/game/GameScreen.tsx')).toContain("…
+       |                                                            ^
+     96|     for (const consumer of ['Hand3D', 'River3D', 'Meld3D']) expect(sou…
+     97|     expect(source('../../presentation3d/animation/HandAction3D.tsx')).…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/presentation3d/table/centralConsoleLayout.test.ts > central console assembly > keeps the HUD center, ordinary river and non-riichi preview scale unchanged
+AssertionError: expected [ -0.1, 0.698, 1.9 ] to deeply equal [ -0.1, 0.698, 2.3 ]
+
+- Expected
++ Received
+
+  Array [
+    -0.1,
+    0.698,
+-   2.3,
++   1.9,
+  ]
+
+ ❯ src/presentation3d/table/centralConsoleLayout.test.ts:26:57
+     24|   });
+     25|   it('keeps the HUD center, ordinary river and non-riichi preview scal…
+     26|     expect(getCentralConsoleLayout().scoreHud.position).toEqual([-0.1,…
+       |                                                         ^
+     27|     expect(getCentralConsoleHudScale(720)).toBe(0.96);
+     28|     expect(getCentralConsoleHudScale(1080)).toBe(0.72);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  2 failed | 254 passed | 1 skipped (257)
+      Tests  2 failed | 2224 passed | 1 skipped (2227)
+   Start at  02:02:53
+   Duration  83.70s (transform 11.11s, setup 0ms, collect 97.98s, tests 253.94s, environment 48ms, prepare 29.07s)
+

@@ -1,0 +1,62 @@
+[
+  {
+    "path": "scripts/xzBuildStamp.ts",
+    "before": "7b8a6983b5f7583251197fe9090e47671e6a20bef518a30553e3370143c0525a",
+    "after": "81fb87be4492214e60620121ea4ad070d693d93eb6fa67dd9fa446ae5e3f9c6a"
+  },
+  {
+    "path": "src/components/XuezhanResults.tsx",
+    "before": null,
+    "after": "6241a7bb6bb83c2d6ca1c8370c48d25c8a1524291e2c5ccc1106929e2f112206"
+  },
+  {
+    "path": "src/components/XuezhanScreen.tsx",
+    "before": "afc0e0aed0b7062f79fd6d1bd883e030c39de1600b81a24f810cf5f88137fb97",
+    "after": "7a03be0623170f94af5b5189ab0801577edc25d868b853ac1df2ff77417f8ad7"
+  },
+  {
+    "path": "src/components/XuezhanSettings.tsx",
+    "before": "219fad7d0865a5419df3b3624ca7c8052f20ca0bc5b939f131aa7f7f1e3fe974",
+    "after": "97d33923f001626542b82dfcd7cb32f15c1a8fb7b533032e38b3c63b4acb119e"
+  },
+  {
+    "path": "src/components/XuezhanTestTab.tsx",
+    "before": "c8f51f8fda0a3e9487f6ede31f4e5a87deb7295968d198c6d0a5787ee5e46300",
+    "after": "4cff7c75eee10975109d0c2cf5918f638e0ff621514002a739c78f7dcb8a1425"
+  },
+  {
+    "path": "src/components/xuezhan.css",
+    "before": "570c6e43900fec4aad16e66c3341bf175e9113f0f4d40a9197fb87cbdc2f2512",
+    "after": "98957189f153fd40cd1d6063d5b0216057d70c483e2597a3b9c95bba775d8d34"
+  },
+  {
+    "path": "src/game/xuezhan/acceptance.test.ts",
+    "before": "2f38137f00ad76b2ceddeb2cdb67c7e81b60a62172af6eb37b5927bb4a6619b3",
+    "after": "bd5f2bf2b138696982d3e8ca6cb8511b9a689f0749b7ad6e3d7c61ab1396cf64"
+  },
+  {
+    "path": "src/game/xuezhan/boundaries.test.ts",
+    "before": "069f4a0b1a7bc9cc70f8b5bdf3983252cb986c03783eda084ebc759a349699c3",
+    "after": "6f0325a38a4c16653925191008270fcb788ecf9da778a08049c51df072fa0449"
+  },
+  {
+    "path": "src/game/xuezhan/closeout.test.ts",
+    "before": null,
+    "after": "da0fd31ff705938a59c914defe04f64cb0795564f06d60cb6a4c4644d2d62e55"
+  },
+  {
+    "path": "src/game/xuezhan/report.ts",
+    "before": null,
+    "after": "190df65d75ee9a9ca576d099ab741a33253ff3c72ae63baf95f65f9c5dd3de6c"
+  },
+  {
+    "path": "src/game/xuezhan/runtime.test.ts",
+    "before": "397dd684eb6cc83f86be246c5cc898b9a69def477bfb8ebc9ffbed0644d2e055",
+    "after": "4a667a99dd9163b0e4f3ee61b12627b5868e4409b6ec0cc702e6673d8131f647"
+  },
+  {
+    "path": "src/presentation3d/sceneState/buildTableSceneState.test.ts",
+    "before": "318fcaebd182d23ff5c72ff3eddfa0f298b8e8654f258d964f66d208bd9e0804",
+    "after": "ef7d9f7839af8f86b9d7440fda9e9bbe3348bd07021d1a37328dba66a2554612"
+  }
+]

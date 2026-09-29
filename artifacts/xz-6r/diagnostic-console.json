@@ -1,0 +1,8 @@
+[
+  {
+    "level": "warn",
+    "message": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+    "timestamp": "2026-09-23T14:46:52.601Z",
+    "url": "http://127.0.0.1:5190/assets/index-DeeUQ27K.js"
+  }
+]

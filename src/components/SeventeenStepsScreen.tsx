@@ -1,4 +1,9 @@
 import { useCandidateAnimation } from '../presentation3d/participants/useCandidateAnimation';
+import { MatchRuntime } from '../game/timeControl/matchRuntime';
+import { createSeventeenPolicy, SEVENTEEN_HUMAN } from '../game/timeControl/seventeenPolicy';
+import { unlimitedTimeControl, type TimeControlConfig } from '../game/timeControl/config';
+import { MatchClockHud } from './MatchClockHud';
+import { finishHandsForAuthoritativeInput } from '../presentation/handAnimation/HandAnimationController';
 import { traceCandidate } from '../presentation3d/participants/candidateTrace';
 import { candidateSlots, candidateRiverOwns, candidateSourceHidden, confirmedCandidateDiscard, type CandidateFrame } from '../presentation3d/participants/candidateAnimation';
 import { candidateSourceSlot } from '../presentation3d/participants/participantLayout';
@@ -47,6 +52,7 @@ import { PlayerAvatar } from './PlayerAvatar';
 import { getLocalHandScreenOffset } from '../presentation3d/table/tablePresentationTuning';
 
 interface SeventeenStepsScreenProps {
+  timeControl?: TimeControlConfig;
   onBack: () => void;
   onOpenAudioSettings?: () => void;
   ruleConfig: FullRuleConfig;
@@ -63,12 +69,17 @@ interface SeventeenStepsScreenProps {
 
 const SEVENTEEN_DISPLAY_SEATS = [{ participantId: 'seventeen:0', seat: 'bottom' }, { participantId: 'seventeen:1', seat: 'top' }] as const;
 
-export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, matchConfig = DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG, playerProfile = DEFAULT_PLAYER_PROFILE, appearanceSettings = DEFAULT_APPEARANCE_SETTINGS, initialState, previewAppearances, qaHideResult }: SeventeenStepsScreenProps) {
-  const [state, setState] = useState<SeventeenStepsState>(() => (import.meta.env.DEV && initialState) || createSeventeenStepsAIGame(createSeventeenStepsGame(matchConfig), {
+export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, matchConfig = DEFAULT_SEVENTEEN_STEPS_MATCH_CONFIG, playerProfile = DEFAULT_PLAYER_PROFILE, appearanceSettings = DEFAULT_APPEARANCE_SETTINGS, initialState, previewAppearances, qaHideResult, timeControl }: SeventeenStepsScreenProps) {
+  const [runtime] = useState(() => new MatchRuntime((import.meta.env.DEV && initialState) || createSeventeenStepsAIGame(createSeventeenStepsGame(matchConfig), {
     difficulty: matchConfig.aiDifficulty,
     personality: matchConfig.aiPersonality,
     seed: 0,
-  }));
+  }), createSeventeenPolicy(), timeControl ?? unlimitedTimeControl('seventeen'), undefined, undefined, undefined, true));
+  const [state, projectState] = useState(runtime.state);
+  const [, projectRuntime] = useState(0);
+  const localDecisionId = runtime.decision(SEVENTEEN_HUMAN)?.id;
+  const draftRevision = runtime.draftRevisions[SEVENTEEN_HUMAN] ?? 0;
+  const setState = (reduce: (current: SeventeenStepsState) => SeventeenStepsState) => runtime.command(SEVENTEEN_HUMAN, localDecisionId, reduce, undefined, draftRevision);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [hoveredTileType, setHoveredTileType] = useState<TileId | null>(null);
@@ -93,15 +104,10 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
   const savedAppearances = usePlayerSlotAppearances();
   const appearances = (import.meta.env.DEV && previewAppearances) || savedAppearances;
   const stateRef = useRef(state);
-  stateRef.current = state;
-  const submitDiscard = useCallback((playerId: 0 | 1, instanceId: string) => {
-    traceCandidate(playerId === 0 ? 'click' : 'automatic discard', { playerId });
-    if (animation.isBusy()) return;
-    const before = stateRef.current;
+  const captureDiscard = useCallback((before: SeventeenStepsState, next: SeventeenStepsState, playerId: 0 | 1, instanceId: string) => {
     const container = screenRef.current?.querySelector<HTMLElement>('.seventeen-steps-candidate-grid');
     const source = playerId === 0 && container ? candidateSourceSlot(container, instanceId) : null;
     const slot = source ? candidateSlots(before.players[0].discardCandidates)[source.index] : null;
-    const next = discardCandidate(before, playerId, instanceId);
     const tile = confirmedCandidateDiscard(before, next, playerId, instanceId);
     if (!tile) return;
     traceCandidate('confirmed discard', { playerId, riverIndex: before.players[playerId].discardedTiles.length });
@@ -114,9 +120,31 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
       source: source && slot ? { instanceId, row: slot.row, column: slot.column, rect: { left: source.rect.left, top: source.rect.top, width: source.rect.width, height: source.rect.height } } : undefined,
       pack: resolveHandPackForPlayer(playerId, appearances, appearanceSettings),
     });
-    stateRef.current = next;
-    setState(next);
-  }, [animation.capture, animation.isBusy, sceneSession, appearances, appearanceSettings]);
+  }, [animation.capture, sceneSession, appearances, appearanceSettings]);
+  const captureRef = useRef(captureDiscard); captureRef.current = captureDiscard;
+  useEffect(() => {
+    const unsubscribe = runtime.subscribe(() => {
+      const before = stateRef.current;
+      const next = runtime.state;
+      if (before !== next) for (const id of [0, 1] as const) {
+        const river = next.players[id].discardedTiles;
+        const tile = river[river.length - 1];
+        if (tile && next.players[id].discardedTiles.length === before.players[id].discardedTiles.length + 1) captureRef.current(before, next, id, tile.instanceId);
+      }
+      stateRef.current = next;
+      projectState(next);
+      projectRuntime(n => n + 1);
+    });
+    const unsubscribeOpen = runtime.onInputOpen(finishHandsForAuthoritativeInput);
+    runtime.resumeAfterRemount();
+    return () => { unsubscribe(); unsubscribeOpen(); runtime.pause(); };
+  }, [runtime]);
+  useEffect(() => { if (isBuildPhase) setAnimationReady(false); }, [isBuildPhase]);
+  useEffect(() => { if (faceReady && (isBuildPhase || (domReadySession === sceneSession && animationReady))) runtime.resourcesReady(); }, [runtime, faceReady, isBuildPhase, domReadySession, sceneSession, animationReady]);
+  const submitDiscard = useCallback((playerId: 0 | 1, instanceId: string) => {
+    if (playerId === 0) { animation.cancel(); runtime.command(SEVENTEEN_HUMAN, localDecisionId, current => discardCandidate(current, 0, instanceId)); }
+    else runtime.advance(current => discardCandidate(current, 1, instanceId));
+  }, [runtime, localDecisionId, animation.cancel]);
   const handleFacesReady = useCallback(() => setReadyFaceSignature(faceSignature), [faceSignature]);
   useEffect(() => {
     if (isBuildPhase || !faceReady) return;
@@ -154,7 +182,7 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
     const timer = window.setTimeout(() => {
       void runPacedAutomaticAction(() => {
         if (stateRef.current !== state) return;
-        if (state.phase === 'ron-window') setState(current => declareSeventeenStepsRon(current, 1));
+        if (state.phase === 'ron-window') runtime.advance(current => declareSeventeenStepsRon(current, 1));
         else {
           const candidate = createSeventeenStepsAI({ difficulty: state.matchConfig.aiDifficulty, personality: state.matchConfig.aiPersonality, seed: 0 }).discard(state, 1);
           if (candidate) submitDiscard(1, candidate.instanceId);
@@ -217,8 +245,8 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
             <DiscardPanel
               state={state}
               gameState={tableState}
-              canDiscard={isLocalTurn && !animation.frame}
-              candidateFrame={animation.frame}
+              canDiscard={isLocalTurn && runtime.budgetView(SEVENTEEN_HUMAN)?.status === 'open'}
+              candidateFrame={isLocalTurn ? null : animation.frame}
               hoveredTileType={hoveredTileType}
               onHoveredTileTypeChange={setHoveredTileType}
               onDiscard={(instanceId) => submitDiscard(0, instanceId)}
@@ -226,7 +254,7 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
           </SeventeenBattleControls>
         )}
       </section>
-      {!animation.frame && state.phase === 'ron-window' && state.pendingRon?.winnerId === 0 ? (
+      {state.phase === 'ron-window' && state.pendingRon?.winnerId === 0 ? (
         <div className="game-prompt-layer">
           <ActionPrompt title={`可以荣和 ${tileLabel(state.pendingRon.tile)}`} ariaLabel="17步麻将荣和操作">
             <OperationButton kind="win" onClick={() => setState((current) => declareSeventeenStepsRon(current, 0))}>荣和</OperationButton>
@@ -239,7 +267,7 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
       {!(import.meta.env.DEV && qaHideResult) && !resultPending && !animation.frame && state.phase === 'round-ended' && state.result ? (
         <ResultDialog
           gameState={tableState}
-          onReset={() => setState((current) => createSeventeenStepsAIGame(advanceSeventeenStepsMatch(current), {
+          onReset={() => runtime.advance((current) => createSeventeenStepsAIGame(advanceSeventeenStepsMatch(current), {
             difficulty: current.matchConfig.aiDifficulty,
             personality: current.matchConfig.aiPersonality,
             seed: 0,
@@ -256,11 +284,8 @@ export function SeventeenStepsScreen({ onBack, onOpenAudioSettings, ruleConfig, 
           scoreAfter={state.result.scoresAfter}
         />
       ) : null}
-      {state.phase === 'match-ended' ? <SeventeenStepsMatchResult state={state} playerProfile={playerProfile} onNewMatch={() => setState(createSeventeenStepsAIGame(createSeventeenStepsGame(state.matchConfig), {
-        difficulty: state.matchConfig.aiDifficulty,
-        personality: state.matchConfig.aiPersonality,
-        seed: 0,
-      }))} onBack={onBack} /> : null}
+      {state.phase === 'match-ended' ? <SeventeenStepsMatchResult state={state} playerProfile={playerProfile} onNewMatch={onBack} onBack={onBack} /> : null}
+      <MatchClockHud runtime={runtime} participantId={SEVENTEEN_HUMAN} />
       {rulesOpen ? <RulesGuideScreen embedded ruleConfig={ruleConfig} onBack={() => setRulesOpen(false)} /> : null}
       {analysisOpen ? <AnalysisDrawer open gameState={tableState} onClose={() => setAnalysisOpen(false)} /> : null}
     </main>

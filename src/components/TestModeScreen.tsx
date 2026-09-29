@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { XuezhanTestTab } from './XuezhanTestTab';
+import { SanmaTestTab } from './SanmaTestTab';
 import { Board } from './Board';
 import { TestModeDebugPanel } from './TestModeDebugPanel';
 import { createReplayRecord } from '../game/persistence/replayRecord';
@@ -15,6 +17,9 @@ interface TestModeScreenProps {
   initialScenario?: TestScenarioV1 | null;
   onExit: () => void;
   testResultStorage?: Storage;
+  onXzSessionChange?: (active: boolean) => void;
+  onSanmaVoiceStop?: () => void;
+  onSanmaSessionChange?: (active: boolean) => void;
 }
 
 interface TestSession {
@@ -40,7 +45,8 @@ const statusLabels: Record<TestCaseStatus, string> = {
   'needs-retest': '需复验',
 };
 
-export function TestModeScreen({ initialScenario = null, onExit, testResultStorage }: TestModeScreenProps) {
+export function TestModeScreen({ initialScenario = null, onExit, testResultStorage, onXzSessionChange, onSanmaSessionChange, onSanmaVoiceStop }: TestModeScreenProps) {
+  const [tab, setTab] = useState<'riichi' | 'xuezhan' | 'sanma'>('riichi');
   const presentationAnimationsEnabled = testModePresentationAnimationsEnabled(
     typeof window === 'undefined' ? '' : window.location.search,
   );
@@ -138,9 +144,13 @@ export function TestModeScreen({ initialScenario = null, onExit, testResultStora
     }
   };
 
+  const tabs = <nav className="xz-tabs" aria-label="测试模式分类"><button aria-pressed={tab === 'riichi'} onClick={() => setTab('riichi')}>立直麻将</button><button aria-pressed={tab === 'xuezhan'} onClick={() => setTab('xuezhan')}>血战到底</button><button aria-pressed={tab === 'sanma'} onClick={() => setTab('sanma')}>三人立直麻将</button></nav>;
+  if (tab === 'sanma') return <SanmaTestTab onVoiceStop={onSanmaVoiceStop} tabs={tabs} onExit={onExit} onSessionChange={onSanmaSessionChange} />;
+  if (tab === 'xuezhan') return <XuezhanTestTab tabs={tabs} onSessionChange={onXzSessionChange} />;
   if (!session) {
     return (
       <main className="test-mode-library">
+        {tabs}
         <header className="test-mode-heading">
           <span className="test-environment-badge">测试环境</span>
           <div><h1>开发者测试模式</h1><p>测试结果与普通存档、普通牌谱完全隔离；场景动作继续使用正式引擎。</p></div>

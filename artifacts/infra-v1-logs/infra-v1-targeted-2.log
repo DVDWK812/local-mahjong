@@ -1,0 +1,45 @@
+
+> local-mahjong-trainer@0.1.0 pretest
+> npm run generate:voice-packs && npm run test:voice-pack-index
+
+
+> local-mahjong-trainer@0.1.0 generate:voice-packs
+> node scripts/generateVoicePackIndex.mjs
+
+Generated Voice Pack index: 3 valid pack(s), 0 skipped.
+
+> local-mahjong-trainer@0.1.0 test:voice-pack-index
+> node scripts/verifyVoicePackIndex.mjs
+
+Voice Pack index lifecycle test passed.
+
+> local-mahjong-trainer@0.1.0 test
+> vitest run src/game/timeControl/timeControl.test.ts src/game/chankan.test.ts src/game/kuikae.test.ts src/game/seventeenSteps.test.ts src/game/persistence src/game/replay src/components/SeventeenStepsScreen.test.tsx src/components/MatchSettings.test.tsx src/presentation/handAnimation
+
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation/handAnimation/DiscardSourceSnapshot.test.ts (4 tests) 3ms
+ ✓ src/presentation/handAnimation/HandAnimationConsumer.test.ts (8 tests) 8ms
+ ✓ src/presentation/handAnimation/HandAnimationController.test.ts (14 tests) 12ms
+ ✓ src/game/seventeenSteps.test.ts (22 tests) 39ms
+ ✓ src/game/chankan.test.ts (4 tests) 23ms
+ ✓ src/game/kuikae.test.ts (8 tests) 25ms
+ ✓ src/game/replay/roundReplay.test.ts (12 tests) 22ms
+ ✓ src/game/timeControl/timeControl.test.ts (36 tests) 35ms
+ ✓ src/components/MatchSettings.test.tsx (27 tests) 277ms
+ ✓ src/game/persistence/storageValidation.test.ts (17 tests) 29ms
+ ✓ src/game/persistence/saveManager.test.ts (13 tests) 42ms
+ ✓ src/game/replay/eventRecorder.test.ts (3 tests) 19ms
+ ✓ src/game/replay/replayPlayback.test.ts (3 tests) 4ms
+ ✓ src/game/persistence/migration.test.ts (3 tests) 15ms
+ ✓ src/game/replay/eventReducer.test.ts (2 tests) 5ms
+ ✓ src/game/replay/replayIntegration.test.ts (2 tests) 5ms
+ ✓ src/game/replay/replayEngine.test.ts (2 tests) 4ms
+ ✓ src/components/SeventeenStepsScreen.test.tsx (4 tests) 268ms
+
+ Test Files  18 passed (18)
+      Tests  184 passed (184)
+   Start at  19:21:08
+   Duration  2.54s (transform 1.96s, setup 0ms, collect 5.27s, tests 836ms, environment 3ms, prepare 2.21s)
+

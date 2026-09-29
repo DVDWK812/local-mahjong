@@ -1,0 +1,50 @@
+.sanma-settings { max-width: 1000px; }
+.sanma-player-settings > div { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:10px 0; }
+.sanma-player-settings input { max-width:180px; }
+.sanma-game { height:100dvh; overflow:hidden; display:grid; grid-template-rows:auto minmax(0,1fr); background:#0b211b; color:#eaf2e9; position:relative; }
+.sanma-game button, .sanma-test button, .sanma-case-banner button { cursor:pointer; border:1px solid #769c87; border-radius:7px; padding:7px 12px; background:#183b30; color:#f1f7f0; }
+.sanma-game button:disabled { opacity:.45; cursor:default; }
+.sanma-topbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:9px 16px; background:#112e26; z-index:20; font-size:14px; }
+.sanma-topbar > strong { color:#f4dc9b; }
+.sanma-topbar > span { margin-right:auto; }
+.sanma-table-area { min-height:0; position:relative; margin-bottom:115px; }
+.sanma-table-area .participant-hud[data-display-seat=bottom] { top:86% !important; left:21% !important; }
+.sanma-table-area .participant-hud { min-width:125px; font-size:13px; }
+.sanma-table-area .participant-hud > .player-avatar { grid-area:1/1/3/2; }
+.sanma-table-area .participant-hud > strong { grid-area:1/2; }
+.sanma-table-area .participant-hud > span:not(.player-avatar) { grid-area:2/2; font-size:11px; }
+.sanma-center { position:absolute; top:25%; left:50%; transform:translateX(-50%); max-width:330px; text-align:center; display:grid; gap:5px; padding:10px 16px; background:#0b231be8; border:1px solid #75875a; border-radius:12px; pointer-events:none; font-size:14px; }
+.sanma-dora { display:flex; justify-content:center; gap:3px; }
+.sanma-actions { position:absolute; bottom:142px; left:50%; transform:translateX(-50%); z-index:25; max-width:65vw; text-align:center; background:#102d25ec; border-radius:10px; padding:7px 12px; }
+.sanma-actions p { margin:0 0 5px; font-size:14px; }
+.sanma-actions button { margin:2px; }
+.sanma-game .local-hand-area--screen-space { z-index:24; }
+.sanma-result, .sanma-details { position:fixed; top:10vh; left:50%; transform:translateX(-50%); width:min(860px,90vw); max-height:76vh; overflow:auto; background:#102e26fa; padding:22px; border:1px solid #c7b87d; border-radius:14px; z-index:70; box-shadow:0 20px 80px #000b; }
+.sanma-result h2 { margin-top:0; }
+.sanma-result-players { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.sanma-result-players article { text-align:center; padding:8px; background:#25483b; border-radius:8px; }
+.sanma-win { margin:12px 0; }
+.sanma-win > div { display:flex; flex-wrap:wrap; gap:2px; }
+.sanma-win p { margin:5px 0; }
+.sanma-result button, .sanma-details button { margin:4px; }
+.sanma-details { z-index:80; }
+.sanma-details pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:30vh; overflow:auto; }
+.sanma-details table { width:100%; border-collapse:collapse; }
+.sanma-details th, .sanma-details td { padding:6px; border-bottom:1px solid #43634f; text-align:left; }
+.sanma-test-controls { position:fixed; left:10px; bottom:190px; z-index:35; display:grid; gap:6px; max-width:230px; padding:10px; background:#102e26f5; border-radius:8px; font-size:12px; }
+.sanma-test-controls button { padding:4px 8px; }
+.sanma-replay { position:fixed; left:50%; top:65px; transform:translateX(-50%); z-index:90; display:flex; align-items:center; flex-wrap:wrap; gap:8px; background:#133e31; padding:9px; border-radius:8px; width:max-content; max-width:95vw; }
+.sanma-replay input { width:200px; }
+.sanma-test { min-height:100dvh; background:#11251f; color:#eef4e9; padding:20px; }
+.sanma-test-toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:10px 0; }
+.sanma-test-toolbar label { display:flex; gap:6px; align-items:center; }
+.sanma-test-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:14px; }
+.sanma-test-grid article { background:#1b382e; padding:18px; border:1px solid #567360; border-radius:10px; }
+.sanma-test-grid h2 { font-size:18px; margin-top:0; }
+.sanma-test-grid textarea { width:100%; margin-top:8px; min-height:60px; }
+.sanma-test-grid button { margin:3px; }
+.sanma-case-banner { position:fixed; right:12px; bottom:95px; width:280px; max-height:43vh; overflow:auto; z-index:40; background:#102e26f2; color:#eef4e9; padding:12px; border:1px solid #729a82; border-radius:8px; font-size:12px; }
+.sanma-case-banner button { padding:5px 7px; margin:2px; font-size:12px; }
+.sanma-case-banner textarea { width:100%; min-height:42px; }
+.sanma-case-banner p { margin:6px 0; }
+@media(max-height:800px) { .sanma-table-area { margin-bottom:100px; } .sanma-actions { bottom:125px; } .sanma-topbar { gap:7px; font-size:12px; padding:6px 12px; } .sanma-topbar button { padding:5px 9px; } .sanma-center { font-size:12px; top:20%; padding:7px; max-width:260px; } .sanma-case-banner { width:225px; } .sanma-test-controls { max-width:170px; font-size:11px; } }

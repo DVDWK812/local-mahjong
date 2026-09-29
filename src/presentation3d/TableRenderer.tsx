@@ -1,7 +1,4 @@
 import {
-  lazy,
-  memo,
-  Suspense,
   type ErrorInfo,
   type ReactNode,
   useCallback,
@@ -28,7 +25,6 @@ import {
   classifyTableRendererError,
   inspectStandardFourPlayerState,
   resolveTableRendererDiagnostics,
-  tagTableRendererError,
   type TableRendererFallbackReason,
 } from './rendererDiagnostics';
 import type { DiscardSourceSnapshotStore } from '../presentation/handAnimation/DiscardSourceSnapshot';
@@ -37,7 +33,6 @@ import type { TableVisualTheme } from './table/tableVisualTheme';
 import type { RiichiStick3DAppearance } from './riichi/riichiStickAppearance';
 import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
 import { resolveEffectiveHandPackIds, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
-import { TileFaceDomAppearance } from '../presentation/appearance/TileFaceDomAppearance';
 import type { PlayerProfile } from '../profile/playerProfile';
 import { buildTableSceneState } from './sceneState/buildTableSceneState';
 import type { TileVisualSemanticContext } from '../presentation/table/tileVisualSemantics';
@@ -48,14 +43,7 @@ import {
 import { isInitialPresentationReady } from './initialSceneReady';
 import { SceneErrorBoundary, SceneLoading } from './session/SceneErrorBoundary';
 
-const LazyTable3DScene = lazy(async () => {
-  try {
-    const module = await import('./Table3DScene');
-    return { default: memo(module.Table3DScene) };
-  } catch (error) {
-    throw tagTableRendererError(error, 'lazy-load-error');
-  }
-});
+import { FormalTable3D } from './FormalTable3D';
 
 type MahjongTableProps = LegacyTable2DProps;
 
@@ -75,6 +63,7 @@ type TableRendererProps = MahjongTableProps & Readonly<{
   playerProfile?: PlayerProfile;
   onActiveRendererChange?: (renderer: TableRendererMode) => void;
   localPresentationReady?: boolean;
+  onInputResourcesReady?: () => void;
 }>;
 
 /** Session changes cancel the old scene, preload callbacks and error boundary together. */
@@ -98,6 +87,7 @@ function TableRendererSession({
   playerProfile,
   onActiveRendererChange,
   localPresentationReady = true,
+  onInputResourcesReady,
   ...tableProps
 }: TableRendererProps) {
   const resolveCurrentMode = () => renderer ?? resolveTableRenderer(typeof window === 'undefined' ? '' : window.location.search);
@@ -280,22 +270,20 @@ function TableRendererSession({
   ]);
 
   const render3D = shouldRender3DTable(mode, runtimeFailure !== null) && standardFourPlayer.supported;
+  const initialPresentationReady = isInitialPresentationReady(sceneReady && criticalHandPacksReady, localPresentationReady);
+  useEffect(() => {
+    if (initialPresentationReady || !render3D) onInputResourcesReady?.();
+  }, [initialPresentationReady, render3D, onInputResourcesReady]);
   if (!render3D || !sharedPresentationState || !sceneState) {
     return <LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />;
   }
-  const initialPresentationReady = isInitialPresentationReady(
-    sceneReady && criticalHandPacksReady,
-    localPresentationReady,
-  );
 
   const content: ReactNode = (
       <SceneErrorBoundary
         fallback={<LegacyTable2D {...tableProps} doraIndicatorSlots={doraIndicatorSlots} />}
         onError={handleSceneError}
       >
-        <Suspense fallback={null}>
-          <div className="table-renderer-layer table-renderer-layer--3d" data-table-renderer="3d">
-            <LazyTable3DScene
+        <FormalTable3D
               sceneState={sceneState}
               animationsEnabled={animationsEnabled}
               animationSessionKey={animationSessionKey}
@@ -310,12 +298,8 @@ function TableRendererSession({
               centralHud={centralHud}
               onReady={handleSceneReady}
               onUnavailable={handleSceneUnavailable}
-            />
-            <TileFaceDomAppearance settings={appearanceSettings}>
-              <Table3DHud {...tableProps} doraIndicatorSlots={doraIndicatorSlots} playerProfile={playerProfile} />
-            </TileFaceDomAppearance>
-          </div>
-        </Suspense>
+          hud={<Table3DHud {...tableProps} doraIndicatorSlots={doraIndicatorSlots} playerProfile={playerProfile} />}
+        />
       </SceneErrorBoundary>
     );
 

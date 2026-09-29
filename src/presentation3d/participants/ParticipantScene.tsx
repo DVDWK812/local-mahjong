@@ -1,4 +1,7 @@
 import { CandidateDiscard3D } from './CandidateDiscard3D';
+import { SanmaPublicTiles } from './SanmaPublicTiles';
+import { SanmaMotion3D } from './SanmaMotion3D';
+import type { SanmaMotionFrame } from './useSanmaAnimation';
 import { candidateRiverOwns, candidateSourceHidden, type CandidateFrame } from './candidateAnimation';
 import { concealedRemovalIndex } from './candidateRows';
 import { Suspense, useLayoutEffect, type ReactNode } from 'react';
@@ -26,7 +29,7 @@ function ModeCamera({ preset }: { preset: ParticipantLayoutPreset }) {
   useLayoutEffect(() => { camera.lookAt(...PARTICIPANT_LAYOUTS[preset].target); camera.updateProjectionMatrix(); invalidate(); }, [camera, invalidate, preset]);
   return null;
 }
-function ParticipantRiver({ participant, seat, preset, candidateFrame }: { participant: TableParticipant; seat: Table3DSeat; preset: ParticipantLayoutPreset; candidateFrame?: CandidateFrame | null }) {
+function ParticipantRiver({ participant, seat, preset, candidateFrame, sanmaFrame }: { participant: TableParticipant; seat: Table3DSeat; preset: ParticipantLayoutPreset; candidateFrame?: CandidateFrame | null; sanmaFrame?: SanmaMotionFrame | null }) {
   const size = useThree(state => state.size);
   const viewport = { width: size.width, height: size.height };
   const enteringCompact = preset === 'duel' && candidateFrame?.snapshot.playerId === participant.appearanceSlot
@@ -43,17 +46,19 @@ function ParticipantRiver({ participant, seat, preset, candidateFrame }: { parti
         candidateFrame!.phase === 'retreat' ? candidateFrame!.progress : 0)
       : null;
     const transform = blended ? { ...settled, ...blended } : settled;
-    return <group key={tile.instanceId} visible={!(candidateFrame && !candidateRiverOwns(candidateFrame) && participant.appearanceSlot === candidateFrame.snapshot.playerId && tile.instanceId === candidateFrame.snapshot.tile.instanceId)}>
+    const sanmaHidden = sanmaFrame?.action.type === 'tile_discarded' && sanmaFrame.phase !== 'retreat' && sanmaFrame.tile?.instanceId === tile.instanceId;
+    return <group key={tile.instanceId} visible={!sanmaHidden && !(candidateFrame && !candidateRiverOwns(candidateFrame) && participant.appearanceSlot === candidateFrame.snapshot.playerId && tile.instanceId === candidateFrame.snapshot.tile.instanceId)}>
       <Tile3D tile={tile} ownerPlayerId={participant.appearanceSlot} {...transform} raycastDisabled objectName={`participant-river-${participant.id}-${index}`} />
     </group>;
   });
 }
-export function ParticipantScene({ participants, mapping, preset, settings, sessionKey, onReady, onUnavailable, appearanceSlots, centralHud, candidateFrame, onCandidatePrepared }: {
+export function ParticipantScene({ participants, mapping, preset, settings, sessionKey, onReady, onUnavailable, appearanceSlots, centralHud, candidateFrame, sanmaFrame, onCandidatePrepared }: {
   participants: readonly TableParticipant[]; mapping: readonly ParticipantSeat[]; preset: ParticipantLayoutPreset;
   settings: AppearanceSettings; sessionKey: string; onReady: () => void; onUnavailable: (error: Error) => void;
   appearanceSlots?: PlayerSlotAppearances;
   centralHud?: ReactNode;
   candidateFrame?: CandidateFrame | null;
+  sanmaFrame?: SanmaMotionFrame | null;
   onCandidatePrepared?: (eventId: string) => void;
 }) {
   const seats = resolveParticipantLayout(participants, mapping, preset);
@@ -77,13 +82,15 @@ export function ParticipantScene({ participants, mapping, preset, settings, sess
               visible={!(pending && candidateSourceHidden(pending) && index === concealedRemovalIndex(count))}>
               <Tile3D ownerPlayerId={participant.appearanceSlot} faceState="face-down" showRearFace {...target} raycastDisabled objectName="concealed-candidate-slot" />
             </group>);
-          })() : preset !== 'duel' && participant.fixedHand.visibility === 'hidden' ? Array.from({ length: participant.fixedHand.count }, (_, index) => <Tile3D
-            key={`hidden-slot-${index}`} ownerPlayerId={participant.appearanceSlot} faceState="face-down"
+          })() : preset !== 'duel' && participant.fixedHand.visibility === 'hidden' ? Array.from({ length: participant.fixedHand.count }, (_, index) => <group key={`hidden-slot-${index}`} visible={!(sanmaFrame?.action.type === 'tile_drawn' && sanmaFrame.playerId === participant.appearanceSlot && sanmaFrame.phase !== 'retreat' && index === sanmaFrame.count - 1)}><Tile3D
+            ownerPlayerId={participant.appearanceSlot} faceState="face-down"
             {...participantHandTarget(preset, seat, index, participant.fixedHand.visibility === 'hidden' ? participant.fixedHand.count : 0)} raycastDisabled
-          />) : null}
-          <ParticipantRiver participant={participant} seat={seat} preset={preset} candidateFrame={candidateFrame} />
+          /></group>) : null}
+          <ParticipantRiver participant={participant} seat={seat} preset={preset} candidateFrame={candidateFrame} sanmaFrame={sanmaFrame} />
+          {preset === 'sanma' ? <SanmaPublicTiles participant={participant} seat={seat} /> : null}
         </group>)}
         {candidateFrame ? <CandidateDiscard3D frame={candidateFrame} assetsReady={criticalAssetsReady} onPrepared={onCandidatePrepared} /> : null}
+        {sanmaFrame ? <SanmaMotion3D frame={sanmaFrame} /> : null}
         <SceneContentReady sceneReady criticalAssetsReady={criticalAssetsReady} />
       </Suspense>}
     </AppearanceResources3D>

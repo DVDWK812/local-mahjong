@@ -10,7 +10,7 @@ import { TABLE_CAMERA } from '../camera/FixedTableCamera';
 import { getHandTileTransform, getRiverTileTransforms, getRiverTileRotationY, TABLE_SCENE_LAYOUT } from '../coordinates/sceneTransforms';
 import { getHandTileScale, TABLE_PRESENTATION_TUNING } from '../table/tablePresentationTuning';
 
-export type ParticipantLayoutPreset = 'duel' | 'three-preview';
+export type ParticipantLayoutPreset = 'duel' | 'three-preview' | 'sanma';
 export type ParticipantSeat = Readonly<{ participantId: string; seat: Table3DSeat }>;
 type Point = readonly [number, number, number];
 type SeatLayout = Readonly<{ hand: Point; river: Point; rotation: number; hud: readonly [number, number] }>;
@@ -26,16 +26,18 @@ export const SEVENTEEN_COMPACT_RIVER = {
   laterRowInline: 2.7,
 } as const;
 // Independent mode values. Never mutate the standard four-player tuning.
+const THREE_SEAT_LAYOUT = { seats: ['bottom', 'right', 'left'], columns: 6, camera: [0, 43, 32], target: [0, 0.7, 1], placements: {
+  bottom: { hand: [0, 0, 14], river: [-3.3, 0, 6], rotation: 0, hud: [50, 91] },
+  right: { hand: [14, 0, -2], river: [9, 0, -4], rotation: -Math.PI / 2, hud: [89, 30] },
+  left: { hand: [-14, 0, -2], river: [-9, 0, 2.6], rotation: Math.PI / 2, hud: [11, 30] },
+} } as const;
 export const PARTICIPANT_LAYOUTS: Record<ParticipantLayoutPreset, Readonly<{
   seats: readonly Table3DSeat[]; columns: number; camera: Point; target: Point;
   placements: Partial<Record<Table3DSeat, SeatLayout>>;
 }>> = {
   duel: { seats: ['bottom', 'top'], columns: TABLE_SCENE_LAYOUT.riverColumns, camera: TABLE_CAMERA.position, target: TABLE_CAMERA.target, placements: {} },
-  'three-preview': { seats: ['bottom', 'right', 'left'], columns: 6, camera: [0, 43, 32], target: [0, 0.7, 1], placements: {
-    bottom: { hand: [0, 0, 14], river: [-3.3, 0, 6], rotation: 0, hud: [50, 91] },
-    right: { hand: [14, 0, -2], river: [9, 0, -4], rotation: -Math.PI / 2, hud: [89, 30] },
-    left: { hand: [-14, 0, -2], river: [-9, 0, 2.6], rotation: Math.PI / 2, hud: [11, 30] },
-  } },
+  'three-preview': THREE_SEAT_LAYOUT,
+  sanma: THREE_SEAT_LAYOUT,
 };
 export function resolveParticipantLayout(participants: readonly TableParticipant[], mapping: readonly ParticipantSeat[], preset: ParticipantLayoutPreset) {
   const config = PARTICIPANT_LAYOUTS[preset];

@@ -1,0 +1,44 @@
+ M src/App.tsx
+ M src/app/navigation.ts
+ M src/components/Board.tsx
+ M src/components/LocalModeMenu.tsx
+ M src/components/SeventeenStepsMatchSettings.tsx
+ M src/components/SeventeenStepsScreen.tsx
+ M src/components/TestModeScreen.tsx
+ M src/components/game/GameScreen.tsx
+ M src/game/persistence/storageTypes.ts
+ M src/game/persistence/storageValidation.ts
+ M src/game/replay/types.ts
+ M src/game/seventeenSteps.ts
+ M src/game/testMode/catalog.ts
+ M src/game/testMode/resultsStorage.ts
+ M src/presentation/handAnimation/HandAnimationController.ts
+ M src/presentation3d/TableRenderer.tsx
+ M src/presentation3d/sceneState/buildTableSceneState.ts
+ M src/presentation3d/table/tablePresentationTuning.ts
+ M vite.config.ts
+?? artifacts/hud-v2-four-1080.png
+?? artifacts/hud-v2-four-720.png
+?? artifacts/hud-v2-qa.md
+?? artifacts/hud-v2-seventeen-1080.png
+?? artifacts/hud-v2-seventeen-720.png
+?? artifacts/hud-v2-tooltip-720.png
+?? artifacts/infra-v1-audit.md
+?? artifacts/infra-v1-four-1080.png
+?? artifacts/infra-v1-four-720.png
+?? artifacts/infra-v1-logs/
+?? artifacts/infra-v1-report.md
+?? artifacts/infra-v1-seventeen-1080.png
+?? artifacts/infra-v1-seventeen-720.png
+?? artifacts/xz-v1/
+?? scripts/xzBuildStamp.ts
+?? src/components/MatchClockHud.tsx
+?? src/components/TimeControlSettings.tsx
+?? src/components/XuezhanScreen.tsx
+?? src/components/XuezhanSettings.tsx
+?? src/components/XuezhanTestTab.tsx
+?? src/components/matchClockHud.css
+?? src/components/xuezhan.css
+?? src/game/timeControl/
+?? src/game/xuezhan/
+?? src/presentation/table/xuezhanPresentation.ts

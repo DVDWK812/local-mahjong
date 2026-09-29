@@ -1,0 +1,4 @@
+src/game/sanma/longRun.test.ts(3,10): error TS2724: '"node:fs"' has no exported member named 'writeFileSync'. Did you mean 'readFileSync'?
+src/game/sanma/longRun.test.ts(3,25): error TS2305: Module '"node:fs"' has no exported member 'mkdirSync'.
+src/game/sanma/scenarios.test.ts(3,10): error TS2724: '"node:fs"' has no exported member named 'writeFileSync'. Did you mean 'readFileSync'?
+src/game/sanma/scenarios.test.ts(3,25): error TS2305: Module '"node:fs"' has no exported member 'mkdirSync'.

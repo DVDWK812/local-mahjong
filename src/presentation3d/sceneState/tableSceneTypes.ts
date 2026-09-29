@@ -37,6 +37,9 @@ export type SeatSceneState = Readonly<{
   seat: Table3DSeat;
   playerId: PlayerId;
   riichi: boolean;
+  /** Publicly exposed hand, independent of any variant's win animation. */
+  exposedHand?: boolean;
+  north?: readonly TableSceneTile[];
   hand: readonly HandSceneTile[];
   river: readonly RiverSceneTile[];
   melds: readonly MeldSceneState[];
@@ -61,3 +64,5 @@ export type TableSceneSeatMapping = Readonly<{
   topPlayerId: PlayerId;
   leftPlayerId: PlayerId;
 }>;
+
+export type OccupiedTableSceneState = Omit<TableSceneState, 'seats'> & { readonly seats: Readonly<Partial<Record<Table3DSeat, SeatSceneState>>> };

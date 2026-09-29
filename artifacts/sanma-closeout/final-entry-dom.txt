@@ -1,0 +1,59 @@
+- main:
+  - navigation "测试模式分类":
+    - button "立直麻将"
+    - button "血战到底"
+    - button "三人立直麻将" [pressed]
+  - heading "三人立直麻将" [level=1]
+  - button "返回主菜单"
+  - paragraph: 正式规则、权威计时与三席3D共同运行。自动断言和人工核查分别记录；测试使用独立存储，默认完全控制及注入测试时钟。
+  - text: 比赛长度
+  - combobox "三人测试比赛长度":
+    - option "三人东" [selected]
+    - option "三人南"
+  - text: 支付策略
+  - combobox "三人测试支付策略":
+    - option "有自摸损" [selected]
+    - option "无自摸损"
+  - text: 固定seed
+  - spinbutton "三人测试seed": "100"
+  - button "开始自由测试对局"
+  - button "运行筛选场景自动检查"
+  - button "导出诊断报告"
+  - paragraph: 带有固定支付或长度的金样场景采用卡片指定配置；其他场景采用上方选择。
+  - text: 场景分类
+  - combobox "场景分类":
+    - option "全部" [selected]
+    - option "结算"
+    - option "碰杠与牌墙"
+    - option "计时与自动操作"
+    - option "流局"
+    - option "抢北"
+    - option "自摸支付"
+    - option "宝牌"
+    - option "AI"
+    - option "立直与首巡"
+    - option "比赛结束"
+    - option "保存与回放"
+    - option "入口与骨架"
+    - option "拔北"
+    - option "视觉与生命周期"
+  - textbox "搜索三人场景":
+    - /placeholder: caseId、名称或规则
+    - text: SM-06-DOUBLE
+  - generic: 1个场景 · 规则sanma-riichi-v1 · 工作区ddd16ebf4472
+  - article:
+    - heading "抢北双响原子结算" [level=2]
+    - code: SM-06-DOUBLE · v1
+    - paragraph: 收齐才结算；本场和供托只给电脑一
+    - paragraph: 自动：需复验 · 人工：待核查（版本变化）
+    - generic "前置条件、操作步骤与观察重点" [active]
+    - button "加载 SM-06-DOUBLE"
+    - button "自动检查"
+    - text: 人工核查
+    - combobox "SM-06-DOUBLE人工核查":
+      - option "待核查" [selected]
+      - option "通过"
+      - option "不通过"
+    - textbox "SM-06-DOUBLE人工备注":
+      - /placeholder: 人工观察、复现步骤、截图位置
+  - generic "导入三人存档或失败复现（测试隔离）"

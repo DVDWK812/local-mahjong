@@ -12,7 +12,9 @@
     "prebuild": "npm run generate:voice-packs",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:xuezhan": "vitest run src/game/xuezhan",
+    "check:types": "tsc --noEmit"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",

@@ -1,0 +1,15 @@
+
+> local-mahjong-trainer@0.1.0 prebuild
+> npm run generate:voice-packs
+
+
+> local-mahjong-trainer@0.1.0 generate:voice-packs
+> node scripts/generateVoicePackIndex.mjs
+
+Generated Voice Pack index: 3 valid pack(s), 0 skipped.
+
+> local-mahjong-trainer@0.1.0 build
+> tsc && vite build
+
+src/game/sanma/longRun.test.ts(3,10): error TS2724: '"node:fs"' has no exported member named 'writeFileSync'. Did you mean 'readFileSync'?
+src/game/sanma/longRun.test.ts(3,25): error TS2305: Module '"node:fs"' has no exported member 'mkdirSync'.

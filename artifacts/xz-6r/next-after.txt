@@ -1,0 +1,62 @@
+- button "返回血战用例"
+- button "重置固定场景"
+- generic: 隔离测试 · 完整小局后进入下一局
+- main:
+  - strong: 血战到底 · 第 2/2 局
+  - generic: 轮到 电脑 1 · 活跃 4 · 余牌 55
+  - button "退出测试场景"
+  - button "继续比赛"
+  - button "规则与账本"
+  - checkbox "完全控制（冻结计时）" [checked]
+  - text: 完全控制（冻结计时）
+  - checkbox "测试全知"
+  - text: 测试全知
+  - button "逐步执行"
+  - region "3D 麻将桌技术样板"
+  - region "血战四座信息":
+    - strong: 你
+    - text: 97 分
+    - text: 自由打缺
+    - strong: Player 2
+    - text: 101 分
+    - text: 自由打缺
+    - strong: Player 3
+    - text: 101 分
+    - text: 自由打缺
+    - strong: Player 4
+    - text: 101 分
+    - text: 自由打缺
+  - region "血战操作区":
+    - status: 轮到 电脑 1
+  - region "本家手牌":
+    - button "三万" [disabled]:
+      - img "三万"
+    - button "五万" [disabled]:
+      - img "五万"
+    - button "九万" [disabled]:
+      - img "九万"
+    - button "二筒" [disabled]:
+      - img "二筒"
+    - button "三筒" [disabled]:
+      - img "三筒"
+    - button "三筒" [disabled]:
+      - img "三筒"
+    - button "七筒" [disabled]:
+      - img "七筒"
+    - button "八筒" [disabled]:
+      - img "八筒"
+    - button "九筒" [disabled]:
+      - img "九筒"
+    - button "二索" [disabled]:
+      - img "二索"
+    - button "五索" [disabled]:
+      - img "五索"
+    - button "六索" [disabled]:
+      - img "六索"
+    - button "八索" [disabled]:
+      - img "八索"
+  - complementary "比赛计时与自动操作":
+    - button "收起自动操作" [expanded]: ‹
+    - button "自动和牌": 和
+    - button "不碰杠": 鸣
+    - button "自动摸切": 切

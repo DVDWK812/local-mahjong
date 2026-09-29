@@ -44,6 +44,6 @@ export class HandAnimationConsumer {
 }
 
 function isHandAnimationAction(event: PresentationEvent | undefined): event is HandAnimationAction {
-  return event?.type === 'tile_drawn' || event?.type === 'tile_discarded'
+  return event?.type === 'north_committed' || event?.type === 'tile_drawn' || event?.type === 'tile_discarded'
     || event?.type === 'meld_declared' || event?.type === 'riichi_declared';
 }

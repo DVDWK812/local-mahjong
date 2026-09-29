@@ -64,7 +64,7 @@ describe('3D table renderer selection', () => {
   });
 
   it('retains an error fallback and unmount-safe popstate cleanup', () => {
-    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
+    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8') + readFileSync(sourcePath('./FormalTable3D.tsx'), 'utf8');
 
     expect(source).toContain('fallback={<LegacyTable2D');
     expect(source).toContain("window.removeEventListener('popstate', syncMode)");
@@ -72,11 +72,12 @@ describe('3D table renderer selection', () => {
   });
 
   it('loads the WebGL implementation only after 3D is selected', () => {
-    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
+    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8') + readFileSync(sourcePath('./FormalTable3D.tsx'), 'utf8');
 
     expect(source).toContain("await import('./Table3DScene')");
     expect(source).toContain('default: memo(module.Table3DScene)');
-    expect(source).not.toContain("from './Table3DScene'");
+    expect(source).not.toContain("import { Table3DScene }");
+    expect(source).toContain("<FormalTable3D");
   });
 
   it('keeps incomplete and 17-step-shaped tables on the legacy renderer', () => {
@@ -155,7 +156,7 @@ describe('3D table renderer selection', () => {
   });
 
   it('coexists with the DOM HUD and switches the shared local hand to a transparent screen-space overlay only after 3D is active', () => {
-    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
+    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8') + readFileSync(sourcePath('./FormalTable3D.tsx'), 'utf8');
     const gameScreenSource = readFileSync(sourcePath('../components/game/GameScreen.tsx'), 'utf8');
     const css = readFileSync(sourcePath('./table3d.css'), 'utf8')
       + readFileSync(sourcePath('./session/sceneSession.css'), 'utf8');
@@ -169,7 +170,7 @@ describe('3D table renderer selection', () => {
     expect(source).toContain('sharedPresentationState?.doraIndicatorSlots');
     expect(source).not.toContain('doraIndicatorSlots={doraIndicatorSlots}\n              localHandPresentation');
     expect(source).toContain("data-table-interaction-contract={interactionActions ? 'shared' : 'none'}");
-    expect(gameScreenSource).toContain("screenSpaceOverlay={activeTableRenderer === '3d'}");
+    expect(gameScreenSource).toContain("screenSpaceOverlay: activeTableRenderer === '3d'");
     expect(css).toContain('.local-hand-area--screen-space');
     expect(css).toContain('position: fixed');
     expect(css).toContain('background: transparent');
@@ -177,7 +178,7 @@ describe('3D table renderer selection', () => {
   });
 
   it('covers the mounted renderer until scene and local presentation are both ready', () => {
-    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8');
+    const source = readFileSync(sourcePath('./TableRenderer.tsx'), 'utf8') + readFileSync(sourcePath('./FormalTable3D.tsx'), 'utf8');
     const sceneSource = readFileSync(sourcePath('./Table3DScene.tsx'), 'utf8');
     const css = readFileSync(sourcePath('./table3d.css'), 'utf8')
       + readFileSync(sourcePath('./session/sceneSession.css'), 'utf8');

@@ -1,0 +1,210 @@
+- main:
+  - generic "对局状态栏":
+    - generic: 轮到：东家 测试玩家1
+    - generic: 打牌
+    - button "音乐设置": ♪
+    - button "规则说明"
+    - button "牌局分析"
+    - button "返回菜单"
+  - region "麻将牌桌":
+    - complementary "宝牌指示牌":
+      - generic: 宝牌指示牌
+      - button "四筒" [disabled]:
+        - img "四筒"
+      - button "一索" [disabled]:
+        - img "一索"
+      - button "牌背" [disabled]:
+        - img "牌背"
+      - button "牌背" [disabled]:
+        - img "牌背"
+      - button "牌背" [disabled]:
+        - img "牌背"
+      - generic: 东1局 0本场
+      - generic: 供托0
+    - region "测试玩家3 区域":
+      - generic "测试玩家3 手牌":
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+      - generic: 测
+      - strong: 测试玩家3
+      - generic "非摸切": 切
+    - region "测试玩家2 区域":
+      - generic "测试玩家2 手牌":
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+      - generic: 测
+      - strong: 测试玩家2
+      - generic "非摸切": 切
+    - region "测试玩家1 区域"
+    - region "测试玩家4 区域":
+      - generic "测试玩家4 手牌":
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+        - button "牌背" [disabled]:
+          - img "牌背"
+      - generic: 测
+      - strong: 测试玩家4
+      - generic "非摸切": 切
+    - generic "测试玩家3 鸣牌区"
+    - generic "测试玩家2 鸣牌区"
+    - generic "测试玩家4 鸣牌区"
+    - generic "中央牌河区":
+      - generic "测试玩家3 牌河"
+      - generic "测试玩家2 牌河"
+      - generic "测试玩家1 牌河"
+      - generic "测试玩家4 牌河"
+      - region "中央计分区":
+        - generic: 西
+        - strong: 25,000
+        - generic: 北
+        - strong: 25,000
+        - generic: 南
+        - strong: 25,000
+        - generic: 庄
+        - generic: 东
+        - strong: 25,000
+        - strong: 东1局
+        - generic: 0本场
+        - generic: 剩余68张
+  - region "本家手牌":
+    - generic: 测
+    - strong: 测试玩家1
+    - generic "非摸切": 切
+    - button "九万" [disabled]:
+      - img "九万"
+    - button "一筒" [disabled]:
+      - img "一筒"
+    - button "二筒" [disabled]:
+      - img "二筒"
+    - button "三筒" [disabled]:
+      - img "三筒"
+    - button "四筒" [disabled]:
+      - img "四筒"
+    - button "赤五筒" [disabled]:
+      - img "赤五筒"
+    - button "六筒" [disabled]:
+      - img "六筒"
+    - button "七筒" [disabled]:
+      - img "七筒"
+    - button "八筒" [disabled]:
+      - img "八筒"
+    - button "九筒" [disabled]:
+      - img "九筒"
+    - button "二万" [disabled]:
+      - img "二万"
+    - generic "测试玩家1 副露":
+      - generic "暗杠":
+        - img "牌背":
+          - img "牌背"
+        - img "一万":
+          - img "一万"
+        - img "一万":
+          - img "一万"
+        - img "牌背":
+          - img "牌背"
+  - dialog "可执行操作":
+    - strong: 可执行操作
+    - generic: 立直
+    - button "立直并打出9万":
+      - img "九万":
+        - img "九万"
+    - button "立直并打出2万":
+      - img "二万":
+        - img "二万"
+    - button "跳过"
+  - complementary:
+    - strong: 牌局分析
+    - button: 关闭
+- banner "测试模式工具栏":
+  - generic: 测试环境
+  - strong: STAB-001-ANKAN
+  - generic: 待测试
+  - button "返回用例库"
+  - button "重置场景"
+  - button "判定通过"
+  - button "判定失败"
+  - button "判定阻塞"
+  - button "导出场景"
+  - button "导出生成的牌谱"
+  - button "复制状态摘要"
+  - button "展开详细调试"
+  - button "全牌公开"
+  - button "完全控制"
+  - text: 控制玩家
+  - combobox "控制玩家":
+    - option "玩家1 · 测试玩家1" [selected]
+    - option "玩家2 · 测试玩家2"
+    - option "玩家3 · 测试玩家3"
+    - option "玩家4 · 测试玩家4"
+  - button "摸牌" [disabled]
+  - button "执行下一AI动作"

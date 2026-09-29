@@ -1,0 +1,415 @@
+
+> local-mahjong-trainer@0.1.0 pretest
+> npm run generate:voice-packs && npm run test:voice-pack-index
+
+
+> local-mahjong-trainer@0.1.0 generate:voice-packs
+> node scripts/generateVoicePackIndex.mjs
+
+Generated Voice Pack index: 3 valid pack(s), 0 skipped.
+
+> local-mahjong-trainer@0.1.0 test:voice-pack-index
+> node scripts/verifyVoicePackIndex.mjs
+
+Voice Pack index lifecycle test passed.
+
+> local-mahjong-trainer@0.1.0 test
+> vitest run
+
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation/PresentationEventBus.test.ts (21 tests) 36ms
+ ✓ src/presentation3d/coordinates/sceneTransforms.test.ts (16 tests) 12ms
+ ✓ src/game/timeControl/timeControl.test.ts (57 tests) 91ms
+ ✓ src/game/replay/roundReplay.test.ts (12 tests) 25ms
+ ✓ src/presentation3d/sceneState/buildTableSceneState.test.ts (14 tests) 34ms
+ ✓ src/game/seventeenSteps.test.ts (22 tests) 37ms
+ ✓ src/presentation3d/animation/tableAnimation3D.test.ts (35 tests) 48ms
+ ✓ src/game/testMode/testMode.test.ts (16 tests) 191ms
+ ❯ src/game/ai.test.ts (23 tests | 1 failed) 607ms
+   × AI auto play > counts all four minkan tiles without double-counting its claimed discard 5ms
+     → expected 5 to be 4 // Object.is equality
+ ✓ src/components/MatchSettings.test.tsx (27 tests) 260ms
+ ✓ src/presentation3d/participants/candidateAnimation.test.ts (32 tests) 45ms
+ ✓ src/presentation/handAnimation/HandAnimationController.test.ts (14 tests) 14ms
+ ✓ src/components/game/DiscardRiver.test.tsx (21 tests) 65ms
+ ✓ src/components/ReplayScreen.test.tsx (25 tests) 284ms
+ ✓ src/audio/musicLibrary.test.ts (26 tests) 21ms
+ ✓ src/audio/voice/VoiceDirector.test.ts (18 tests) 18ms
+ ✓ src/presentation/manualGateFixes.test.ts (19 tests) 74ms
+ ✓ src/components/voice/VoiceManagementScreen.test.tsx (18 tests) 128ms
+ ✓ src/presentation/appearance/appearanceLibrary.test.ts (14 tests) 28ms
+ ✓ src/components/AudioSettingsDialog.test.tsx (19 tests) 367ms
+ ✓ src/presentation3d/animation/handPresentation.test.tsx (18 tests) 100ms
+ ✓ src/components/game/HandAnimationOverlay.test.tsx (27 tests) 60ms
+ ✓ src/presentation3d/Table3DScene.test.ts (10 tests) 8ms
+ ✓ src/game/kanChecker.test.ts (7 tests) 21ms
+ ✓ src/components/game/LocalHandArea.test.tsx (14 tests) 84ms
+ ✓ src/game/score/yakuChecker.test.ts (23 tests) 15ms
+ ✓ src/presentation/gamePresentationEvents.test.ts (7 tests) 23ms
+ ✓ src/game/tenpaiDisplay.test.tsx (20 tests) 78ms
+ ✓ src/components/game/GameScreen.test.tsx (13 tests) 402ms
+ ✓ src/game/persistence/saveManager.test.ts (13 tests) 44ms
+stderr | scripts/localVoiceGenerationService.test.mjs > LocalVoiceGenerationService > 接受 BOM 包裹的纯 JSON，并拒绝日志污染、缺字段和异常退出的响应
+Voice generator diagnostic {
+  code: 'GENERATOR_INVALID_RESPONSE',
+  exitCode: 0,
+  stdoutBytes: 244,
+  stderrBytes: 0
+}
+
+stderr | scripts/localVoiceGenerationService.test.mjs > LocalVoiceGenerationService > 接受 BOM 包裹的纯 JSON，并拒绝日志污染、缺字段和异常退出的响应
+Voice generator diagnostic {
+  code: 'GENERATOR_INVALID_RESPONSE',
+  exitCode: 0,
+  stdoutBytes: 80,
+  stderrBytes: 0
+}
+
+stderr | scripts/localVoiceGenerationService.test.mjs > LocalVoiceGenerationService > 接受 BOM 包裹的纯 JSON，并拒绝日志污染、缺字段和异常退出的响应
+Voice generator diagnostic {
+  code: 'GENERATOR_PROCESS_FAILED',
+  exitCode: 2,
+  stdoutBytes: 0,
+  stderrBytes: 13
+}
+
+ ✓ scripts/localVoiceGenerationService.test.mjs (11 tests) 138ms
+ ✓ src/presentation3d/TableRenderer.test.ts (15 tests) 120ms
+ ✓ src/game/score/fu/fuCalculator.test.ts (31 tests) 12ms
+ ✓ src/audio/AudioManager.test.ts (61 tests) 1712ms
+ ✓ src/game/score/ancientYaku.test.ts (16 tests) 30ms
+ ✓ src/audio/voice/voiceGenerationStatus.test.ts (11 tests) 83ms
+ ✓ src/components/rulesGuide/RulesGuideScreen.test.tsx (14 tests) 828ms
+ ✓ src/game/interactionFlow.test.ts (11 tests) 113ms
+ ✓ src/presentation/animation/AnimationScheduler.test.ts (14 tests) 21ms
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 原子创建标准 Pack，复制 145 条母版且生成可发现 index
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 只生成安全 ASCII ID，重复创建使用安全后缀
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 只生成安全 ASCII ID，重复创建使用安全后缀
+Generated Voice Pack index: 2 valid pack(s), 0 skipped.
+
+ ✓ src/game/winChecker.test.ts (9 tests) 28ms
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 索引拒绝无效母版时回滚已原子移动的 Pack
+Generated Voice Pack index: 0 valid pack(s), 1 skipped.
+
+stderr | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 索引拒绝无效母版时回滚已原子移动的 Pack
+Skipped Voice Pack voice-20260822-001: CSV is missing required column(s): category, action, tts_text, locale, character, emotion
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 只解析 manifest 明确声明的 MP3，拒绝路径穿越和未声明文件
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+ ✓ src/presentation/pacing/PresentationPacingGate.test.ts (16 tests) 11ms
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 删除用户 Pack 后立即重建索引；内置校长角色始终受服务端保护
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > 删除用户 Pack 后立即重建索引；内置校长角色始终受服务端保护
+Generated Voice Pack index: 0 valid pack(s), 0 skipped.
+
+ ✓ src/presentation/PresentationAudioCue.test.ts (13 tests) 28ms
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > EPERM rename 重试后仍可完成 Pack 删除
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > EPERM rename 会 fallback 到 fs.rm；仍被占用时返回 PACK_IN_USE
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+stdout | scripts/localVoicePackService.test.mjs > LocalVoicePackService > EPERM rename 会 fallback 到 fs.rm；仍被占用时返回 PACK_IN_USE
+Generated Voice Pack index: 1 valid pack(s), 0 skipped.
+
+ ✓ scripts/localVoicePackService.test.mjs (10 tests) 316ms
+ ✓ src/presentation/winAnimation/WinPresentationController.test.ts (9 tests) 17ms
+ ✓ src/components/WinResultDialog.test.tsx (11 tests) 187ms
+ ✓ src/components/DoraGlow.test.tsx (11 tests) 30ms
+ ✓ src/hand/HandVisualController.test.ts (21 tests) 139ms
+ ✓ src/audio/voice/VoicePresentationRuntime.integration.test.tsx (3 tests) 39ms
+ ✓ src/game/scoreCalculator.test.ts (18 tests) 10ms
+ ✓ src/components/game/PlayerZone.test.tsx (7 tests) 64ms
+ ✓ src/components/WinResultPresentation.test.tsx (6 tests) 79ms
+ ✓ src/game/match/matchEngine.test.ts (12 tests) 25ms
+ ✓ src/presentation3d/appearance/AppearanceTextureCache.test.ts (7 tests) 9ms
+ ✓ src/components/TestMode.test.tsx (13 tests) 374ms
+ ✓ src/presentation/eventOverlay/EventOverlayController.test.ts (5 tests) 10ms
+ ✓ src/presentation/handAnimation/HandAnimationConsumer.test.ts (8 tests) 10ms
+ ✓ src/game/riichiClaimedDiscard.test.ts (6 tests) 24ms
+ ✓ src/presentation/appearance/tileFaceIntegration.test.tsx (8 tests) 30ms
+ ✓ src/presentation3d/dora/DoraSweep3DController.test.ts (10 tests) 12ms
+ ✓ src/presentation3d/participants/participantPresentation.test.tsx (7 tests) 46ms
+ ✓ src/game/shanten.test.ts (21 tests) 283ms
+ ✓ src/presentation/appearance/playerSlotAppearance.test.ts (5 tests) 7ms
+ ✓ src/presentation3d/tile/tileMaterials.test.ts (9 tests) 8ms
+ ✓ src/components/ResultDialog.test.tsx (5 tests) 78ms
+ ✓ src/game/riichiDiscardLegality.test.ts (5 tests) 58ms
+ ✓ src/audio/voice/winVoiceSequence.test.ts (6 tests) 6ms
+ ✓ src/components/ActionPromptCallOptions.test.tsx (7 tests) 101ms
+ ✓ src/components/SameTileHover.test.tsx (11 tests) 23ms
+ ✓ src/audio/voice/WinResultPresentationController.test.ts (6 tests) 8ms
+ ✓ src/game/persistence/storageValidation.test.ts (17 tests) 30ms
+ ✓ src/components/NavigationMenus.test.tsx (19 tests) 54ms
+ ✓ src/presentation3d/session/SceneCanvasHost.test.tsx (7 tests) 25ms
+ ✓ scripts/fishVoiceCreationService.test.mjs (7 tests) 14ms
+ ❯ src/presentation3d/participants/participantBaseline.test.tsx (4 tests | 1 failed) 116ms
+   × 17-step four-player baseline reuse > keeps all 21 initial candidates separate from the display-only fixed hand 48ms
+     → expected '<link rel="preload" as="image" href="…' to contain '17步麻将荣和操作'
+ ✓ src/components/voice/CreateVoicePackScreen.test.tsx (9 tests) 22ms
+ ✓ src/components/game/TableLayoutRegression.test.tsx (10 tests) 132ms
+ ✓ src/audio/voice/SettlementPresentationCoordinator.test.ts (5 tests) 8ms
+ ✓ src/presentation/appearance/appearanceAssetResolver.test.ts (6 tests) 6ms
+ ✓ src/audio/audioSettingsStorage.test.ts (8 tests) 6ms
+ ✓ src/presentation3d/participants/participantRiverCompact.test.ts (4 tests) 12ms
+ ✓ src/components/InteractionFlow.test.tsx (9 tests) 218ms
+ ✓ src/game/kuikae.test.ts (8 tests) 27ms
+ ✓ src/presentation3d/table/tablePresentationTuning.test.ts (5 tests) 5ms
+ ✓ src/audio/voice/effectiveGenerationConfig.test.ts (6 tests) 7ms
+ ✓ src/audio/voice/VoicePresentationConsumer.test.ts (5 tests) 9ms
+ ✓ src/presentation/result/resultViewModel.test.ts (6 tests) 19ms
+ ✓ src/audio/voice/VoicePackRepository.test.ts (8 tests) 6ms
+ ✓ src/game/furiten.test.ts (6 tests) 26ms
+ ✓ src/audio/musicRegistry.test.ts (17 tests) 8ms
+ ✓ src/game/score/scoringContextIntegration.test.ts (6 tests) 22ms
+ ✓ src/game/score/yaku/remainingModernYaku.test.ts (10 tests) 12ms
+ ✓ src/presentation3d/table/FeltDecoration3D.test.ts (7 tests) 8ms
+ ✓ src/presentation/appearance/appearanceSettings.test.ts (6 tests) 8ms
+ ↓ src/game/seventeenStepsAI.pressure.test.ts (1 test | 1 skipped)
+ ✓ src/presentation/table/TablePresentationContract.test.ts (7 tests) 73ms
+ ✓ src/game/abortiveDraw.test.ts (9 tests) 20ms
+ ✓ src/components/ActionPromptRiichiCandidates.test.tsx (3 tests) 104ms
+ ✓ src/presentation3d/dora/doraSweep3DTrigger.test.ts (5 tests) 18ms
+ ✓ src/audio/AudioPresentationConsumer.test.ts (6 tests) 6ms
+ ✓ src/game/match/matchRules.test.ts (10 tests) 6ms
+ ✓ src/components/ReplayLayout.test.tsx (8 tests) 64ms
+ ✓ src/game/callChecker.test.ts (5 tests) 22ms
+ ✓ src/components/settings/AvatarPicker.test.tsx (7 tests) 98ms
+ ✓ src/audio/voice/VoicePackEditingService.test.ts (7 tests) 22ms
+ ✓ src/game/riichiCallRestrictions.test.ts (4 tests) 18ms
+ ✓ src/presentation3d/hand/handInteraction.test.ts (7 tests) 6ms
+ ✓ src/game/riichiFlowRegression.test.tsx (5 tests) 113ms
+ ✓ scripts/fishAudioModelDiscovery.test.mjs (4 tests) 34ms
+ ✓ src/game/score/scoringIntegration.test.ts (5 tests) 19ms
+ ✓ src/components/AppearanceSettingsDialog.test.tsx (6 tests) 36ms
+ ✓ src/presentation3d/tile/doraBreathingVisual.test.ts (5 tests) 6ms
+ ✓ src/components/settings/VoicePackSettings.test.tsx (4 tests) 18ms
+ ✓ scripts/generateTransparentTileFaces.test.mjs (12 tests) 520ms
+ ✓ src/game/score/sanankouProvenance.test.ts (5 tests) 5ms
+ ✓ src/audio/musicPreferences.test.ts (5 tests) 5ms
+stderr | src/presentation3d/appearance/playerAppearanceConsumers.test.tsx > real 3D consumer owner contracts > riichi animation/release and static sticks consume the same actor texture for all four players
+React does not recognize the `userData` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `userdata` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
+Received `true` for a non-boolean attribute `visible`.
+
+If you want to write it to the DOM, pass a string instead: visible="true" or visible={value.toString()}.
+
+ ✓ src/presentation3d/appearance/playerAppearanceConsumers.test.tsx (2 tests) 66ms
+ ✓ src/game/score/pointCalculator.test.ts (20 tests) 8ms
+ ✓ src/game/match/endConditions.test.ts (6 tests) 19ms
+ ✓ src/components/game/DoraIndicatorStack.test.tsx (6 tests) 35ms
+ ✓ src/components/TileImageRendering.test.tsx (5 tests) 29ms
+ ✓ src/game/exhaustiveDraw.test.ts (6 tests) 22ms
+ ✓ src/app/automaticGameProgression.test.ts (3 tests) 20ms
+ ✓ src/game/suukanSanraSettlement.test.ts (3 tests) 23ms
+ ✓ src/presentation/appearance/playerSlotAvatars.test.ts (5 tests) 6ms
+ ✓ src/game/abortiveDrawIntegration.test.ts (5 tests) 27ms
+ ✓ src/components/PlayerProfileIntegration.test.tsx (5 tests) 483ms
+   ✓ PlayerProfile 表现层接入 > 17 步使用同一个 Profile 展示昵称和头像 356ms
+ ✓ src/game/chiChecker.test.ts (6 tests) 21ms
+ ✓ scripts/removeDeprecatedVoiceLines.test.mjs (1 test) 77ms
+ ✓ src/game/chankan.test.ts (4 tests) 26ms
+ ✓ src/presentation/eventOverlay/EventOverlayConsumer.test.ts (4 tests) 5ms
+ ✓ src/hand/handPacks.test.ts (6 tests) 14ms
+ ✓ src/presentation3d/tile/tileFaceVisibility.test.tsx (4 tests) 14ms
+ ✓ src/presentation3d/riichi/RiichiStick3D.test.ts (5 tests) 6ms
+ ✓ src/audio/voice/voicePreferences.test.ts (7 tests) 4ms
+stderr | src/presentation3d/animation/flashLifecycle.test.tsx > local discard / ron / tsumo frames keep the same scene and visible seats without loading fresh textures
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+
+ ✓ src/presentation3d/tile/tileTextures.test.ts (6 tests) 6ms
+ ✓ src/presentation3d/animation/flashLifecycle.test.tsx (1 test) 86ms
+ ✓ src/components/game/MahjongTable.test.tsx (5 tests) 108ms
+ ✓ src/game/testMode/resultsStorage.test.ts (4 tests) 24ms
+ ✓ src/presentation/handAnimation/DiscardSourceSnapshot.test.ts (4 tests) 5ms
+ ✓ src/game/exhaustiveDrawIntegration.test.ts (4 tests) 21ms
+ ✓ src/audio/musicLibraryStorage.test.ts (2 tests) 4ms
+ ✓ src/game/replay/eventRecorder.test.ts (3 tests) 18ms
+ ✓ src/components/ActionPromptClickTargets.test.tsx (3 tests) 87ms
+ ✓ src/game/northPlayerRiichi.test.ts (3 tests) 75ms
+ ✓ src/components/TileOperationStates.test.tsx (3 tests) 13ms
+ ✓ src/presentation3d/animation/animationRuntime.test.ts (3 tests) 6ms
+ ✓ src/game/riichi.test.ts (5 tests) 27ms
+ ✓ src/components/PlayerMelds.test.tsx (4 tests) 26ms
+ ✓ src/presentation3d/win/winPresentation3D.test.ts (3 tests) 16ms
+ ✓ src/presentation/table/tileVisualSemantics.test.ts (4 tests) 6ms
+ ✓ src/presentation3d/table/feltSurfaceUv.test.ts (2 tests) 7ms
+ ✓ src/audio/voice/voiceSynthesisSettings.test.ts (5 tests) 4ms
+ ✓ src/components/TestModePerspective.test.tsx (1 test) 169ms
+ ✓ src/profile/playerProfileStorage.test.ts (5 tests) 5ms
+ ✓ src/game/match/matchIntegration.test.ts (4 tests) 18ms
+ ✓ src/game/tileAssets.test.ts (4 tests) 5ms
+ ✓ src/audio/audioBackend.test.ts (4 tests) 5ms
+ ✓ src/presentation3d/tile/tileVisualAnatomy.test.ts (3 tests) 3ms
+ ✓ src/game/nextRoundReset.test.ts (1 test) 15ms
+ ✓ scripts/localGeneratedVoiceRegistry.test.mjs (2 tests) 70ms
+ ✓ scripts/reorderVoiceLineCatalog.test.mjs (2 tests) 34ms
+ ✓ src/presentation3d/table/CentralConsoleHudAnchor3D.test.ts (4 tests) 5ms
+ ✓ src/game/meldDisplayAdapter.test.ts (5 tests) 16ms
+ ✓ src/dev/finalGate/FinalGate.test.tsx (3 tests) 33ms
+ ✓ src/presentation3d/appearance/AppearanceResources3D.test.ts (5 tests) 4ms
+ ✓ src/game/match/finalRanking.test.ts (5 tests) 3ms
+ ✓ src/game/match/endChoice.test.ts (4 tests) 17ms
+ ✓ src/presentation3d/tile/tileGrounding.test.ts (3 tests) 3ms
+ ✓ src/game/riichiVisualState.test.ts (4 tests) 77ms
+ ✓ src/presentation/winAnimation/WinPresentationConsumer.test.ts (2 tests) 4ms
+ ✓ src/presentation/animation/animationFrameTask.test.ts (3 tests) 6ms
+ ✓ src/components/game/TableCenter.test.tsx (4 tests) 30ms
+ ✓ src/dev/finalGate/scenarios.test.ts (28 tests) 272ms
+ ✓ src/components/game/GameEventOverlay.test.tsx (4 tests) 10ms
+ ✓ src/audio/voice/voicePreview.test.ts (3 tests) 6ms
+ ✓ src/presentation3d/camera/FixedTableCamera.test.ts (3 tests) 6ms
+ ✓ src/game/score/yakuhaiNames.test.ts (3 tests) 7ms
+ ✓ src/presentation/matchPresentationEvents.test.ts (2 tests) 15ms
+ ✓ src/game/match/roundTransition.test.ts (5 tests) 5ms
+ ✓ src/components/game/DiscardRiverRiichiClaimed.test.tsx (2 tests) 23ms
+ ✓ src/presentation3d/dora/doraLayout.test.ts (3 tests) 4ms
+ ✓ src/presentation3d/tile/tileFootprintPacking.test.ts (3 tests) 4ms
+ ✓ src/components/game/localHandPresentationReady.test.ts (3 tests) 5ms
+ ✓ src/components/ExhaustiveDrawDialog.test.tsx (2 tests) 42ms
+ ✓ src/presentation3d/Table3DHud.test.tsx (2 tests) 45ms
+ ✓ src/styles/designTokens.test.ts (3 tests) 4ms
+ ✓ src/profile/playerProfile.test.ts (4 tests) 4ms
+ ✓ src/audio/voice/CreatedVoiceService.test.ts (3 tests) 8ms
+ ✓ src/game/score/scoringAdapter.test.ts (4 tests) 4ms
+ ✓ scripts/syncVoiceLineCatalog.test.mjs (1 test) 24ms
+ ✓ src/components/SeventeenStepsScreen.test.tsx (4 tests) 480ms
+ ✓ src/audio/voice/matchVoiceSequence.test.ts (3 tests) 5ms
+ ✓ src/components/game/RiichiStick.test.tsx (3 tests) 10ms
+ ✓ src/game/persistence/migration.test.ts (3 tests) 18ms
+ ✓ src/components/settings/AppearanceImageLibrary.test.tsx (2 tests) 11ms
+ ✓ src/components/MeldDisplay.test.tsx (3 tests) 27ms
+ ✓ src/audio/voice/drawVoiceSequence.test.ts (3 tests) 4ms
+ ✓ src/game/replay/replayPlayback.test.ts (3 tests) 6ms
+ ✓ src/components/game/GameResponsiveLayout.test.tsx (4 tests) 3ms
+ ✓ src/audio/voice/VoicePackService.test.ts (3 tests) 7ms
+ ❯ src/presentation3d/table/centralConsoleLayout.test.ts (3 tests | 1 failed) 11ms
+   × central console assembly > keeps the HUD center, ordinary river and non-riichi preview scale unchanged 7ms
+     → expected [ -0.1, 0.698, 1.9 ] to deeply equal [ -0.1, 0.698, 2.3 ]
+ ✓ src/components/game/WinPresentationOverlay.test.tsx (3 tests) 4ms
+ ✓ src/components/MatchResultDialog.test.tsx (1 test) 26ms
+ ✓ src/components/game/HandTrack.test.tsx (4 tests) 30ms
+ ✓ src/audio/voice/ttsTextSynchronization.test.ts (4 tests) 4ms
+ ✓ src/presentation3d/animation/DiscardSource3D.test.ts (2 tests) 4ms
+ ✓ scripts/tableRendererUrlBanner.test.ts (2 tests) 5ms
+ ✓ src/presentation3d/tile/tileGalleryData.test.ts (4 tests) 3ms
+ ✓ src/presentation3d/tile/tileFaceTextures3d.test.ts (2 tests) 4ms
+ ✓ src/audio/voice/voiceLineGroups.test.ts (3 tests) 4ms
+ ✓ src/presentation/appearance/appearanceAssetStorage.test.ts (2 tests) 5ms
+ ✓ src/game/replay/replayIntegration.test.ts (2 tests) 6ms
+ ✓ src/components/MatchSettingsExtraRoundDefaults.test.tsx (3 tests) 18ms
+ ✓ src/components/settings/ImagePickerCropDialog.test.ts (2 tests) 12ms
+ ✓ src/presentation3d/coordinates/seatTransforms.test.ts (3 tests) 4ms
+ ✓ src/presentation3d/lighting/TableLighting.test.tsx (2 tests) 3ms
+ ✓ src/presentation3d/Table3DHudAvatar.test.tsx (1 test) 33ms
+ ✓ src/presentation/winAnimation/tsumoSlapMotion.test.ts (2 tests) 7ms
+ ✓ src/components/SeventeenStepsMatchSettings.test.tsx (1 test) 13ms
+ ✓ src/components/ReplayControls.test.tsx (1 test) 8ms
+ ✓ src/app/navigation.test.ts (4 tests) 2ms
+ ✓ src/game/replay/eventReducer.test.ts (2 tests) 6ms
+ ✓ src/game/replay/replayEngine.test.ts (2 tests) 4ms
+ ✓ src/presentation3d/initialSceneReady.test.ts (2 tests) 2ms
+ ✓ src/game/seventeenStepsMatch.test.ts (1 test) 3ms
+ ✓ src/components/game/AnalysisDrawer.test.tsx (2 tests) 36ms
+ ✓ src/audio/voice/tileVoice.test.ts (2 tests) 3ms
+ ✓ src/audio/voice/fishAudioLanguages.test.ts (1 test) 5ms
+ ✓ src/presentation3d/tile/tileSpacing.test.ts (1 test) 3ms
+ ✓ src/components/ContinueMatchDialog.test.tsx (2 tests) 23ms
+ ✓ src/audio/voice/textControlProfiles.test.ts (1 test) 3ms
+ ✓ src/components/AnalysisTileImages.test.tsx (2 tests) 43ms
+ ✓ src/presentation3d/table/feltMainViewMapping.test.ts (3 tests) 4ms
+ ✓ src/presentation3d/tile/tileOrientation.test.ts (3 tests) 3ms
+ ✓ src/audio/voice/fishCloneLanguages.test.ts (1 test) 2ms
+ ✓ src/components/AbortiveDrawDialog.test.tsx (1 test) 28ms
+ ✓ src/presentation3d/table/TableMesh.test.ts (1 test) 2ms
+ ✓ src/components/SaveStatusIndicator.test.tsx (1 test) 7ms
+ ✓ src/presentation3d/riichi/RiichiSticks3D.test.ts (2 tests) 3ms
+ ✓ src/components/ReplayDetail.test.tsx (1 test) 27ms
+stdout | src/game/seventeenStepsAI.test.ts > 17步麻将 Default AI V2 pressure smoke test > runs a bounded batch without unbounded search
+17-step AI V2 pressure: V2 tenpai=200/200, han=171/200, no-furiten=171/200, complete17=171/200, avgWaitKinds=4.90, avgMs=197.71; Legacy tenpai=200/200, han=200/200, no-furiten=100/200
+
+ ✓ src/game/seventeenStepsAI.test.ts (12 tests) 55683ms
+   ✓ 17步麻将 Default AI V2 > maps 筑根 to Legacy and all newer shared difficulties to V2.1 2287ms
+   ✓ 17步麻将 Default AI V2 > exposes separate structural/legal waits and the V2.1 forced-discard metrics 1188ms
+   ✓ 17步麻将 Default AI V2 > uses the match han restriction and never reads legacy manganRestriction 2266ms
+   ✓ 17步麻将 Default AI V2 > prioritizes a no-furiten tenpai build and caps wait entities in the discard pool 1391ms
+   ✓ 17步麻将 Default AI V2 > is deterministic for the same state and seed 2756ms
+   ✓ 17步麻将 Default AI V2 > does not use the opponent hidden build when constructing or discarding 2454ms
+   ✓ 17步麻将 Default AI V2 > filters structural waits before choosing a discard and prefers public safe duplicates 853ms
+   ✓ 17步麻将 Default AI V2 > does not deadlock when every remaining candidate is a structural wait 1582ms
+   ✓ 17步麻将 Default AI V2 > can simulate all 17 AI discards without discarding a structural wait or entering permanent furiten 644ms
+   ✓ 17步麻将 Default AI V2 > keeps Legacy available while the default game uses V2 construction 715ms
+   ✓ 17步麻将 Default AI V2 pressure smoke test > runs a bounded batch without unbounded search 39543ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/game/ai.test.ts > AI auto play > counts all four minkan tiles without double-counting its claimed discard
+AssertionError: expected 5 to be 4 // Object.is equality
+
+- Expected
++ Received
+
+- 4
++ 5
+
+ ❯ src/game/ai.test.ts:296:24
+    294|     expect(after.players[0].river[0]).toMatchObject({ id: 31, claimed:…
+    295|     expect(after.players[1].calls[0].tiles).toHaveLength(4);
+    296|     expect(counts[31]).toBe(4);
+       |                        ^
+    297|   });
+    298| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/presentation3d/participants/participantBaseline.test.tsx > 17-step four-player baseline reuse > keeps all 21 initial candidates separate from the display-only fixed hand
+AssertionError: expected '<link rel="preload" as="image" href="…' to contain '17步麻将荣和操作'
+
+Expected: "17步麻将荣和操作"
+Received: "<link rel="preload" as="image" href="/src/assets/tiles/z6.png"/><link rel="preload" as="image" href="/src/assets/tiles/z7.png"/><link rel="preload" as="image" href="/src/assets/tiles/m5.png"/><link rel="preload" as="image" href="/src/assets/tiles/m6.png"/><link rel="preload" as="image" href="/src/assets/tiles/m7.png"/><link rel="preload" as="image" href="/src/assets/tiles/m8.png"/><link rel="preload" as="image" href="/src/assets/tiles/p2.png"/><link rel="preload" as="image" href="/src/assets/tiles/p3.png"/><link rel="preload" as="image" href="/src/assets/tiles/p4.png"/><link rel="preload" as="image" href="/src/assets/tiles/s2.png"/><link rel="preload" as="image" href="/src/assets/tiles/s3.png"/><link rel="preload" as="image" href="/src/assets/tiles/s4.png"/><link rel="preload" as="image" href="/src/assets/tiles/s5.png"/><link rel="preload" as="image" href="/src/assets/tiles/m4.png"/><link rel="preload" as="image" href="/src/assets/tiles/m9.png"/><link rel="preload" as="image" href="/src/assets/tiles/p1.png"/><main class="game-screen seventeen-steps-battle" data-testid="game-screen" data-qa-river-counts="0,1" data-qa-animation-ready="false"><header class="game-top-bar" aria-label="对局状态栏"><div class="game-top-bar-section game-top-bar-section--turn"><span>模式：17步麻将　轮到：西家 对手</span><span>响应荣和</span></div><div class="game-top-bar-actions"><button type="button" class="game-top-bar-music" aria-label="音乐设置" title="音乐设置">♪</button><button type="button">规则说明</button><button type="button" aria-pressed="false">牌局分析</button><button type="button">返回菜单</button></div></header><section class="participant-table table-renderer-layer" aria-label="东1局" data-table-renderer-requested="3d" data-table-renderer-active="loading" data-table-renderer-fallback-reason="none" data-presentation-revealed="false" data-participant-count="2"><section class="table-3d-scene"></section><section class="table-3d-hud" aria-label="17步牌桌信息层"><div class="table-3d-dora-layer"><aside class="dora-indicator-stack" aria-label="宝牌指示牌"><span class="dora-indicator-title">宝牌指示牌</span><div class="dora-indicator-slots"><span class="dora-indicator-slot" data-dora-instance="32-0-818483d4-657f-496f-9a79-944acd7df291" data-dora-open="true" data-dora-state="revealed"><button class="tile tile--compact tile--disabled tile--honor" type="button" disabled="" aria-label="发" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/z6.png" alt="发" draggable="false"/></span></button></span></div><div class="dora-round-summary"><span>东1局 · 17步麻将</span></div></aside></div><div class="table-3d-player-frame table-3d-player-frame--south" data-player-slot="bottom" data-participant-id="seventeen:0" data-player-index="0" data-hand-pack="female" style="--avatar-frame-offset-x:500px;--avatar-frame-offset-y:-100px;--avatar-frame-size:1.1"><div class="table-3d-player-card table-3d-player-card--south"><span class="player-avatar player-avatar--mahjong table-3d-player-avatar" aria-hidden="true"><img class="player-avatar__tile-image" src="/src/assets/tiles/z7.png" alt="中" draggable="false"/></span><span class="table-3d-player-copy"><strong title="玩家">玩家</strong></span></div></div><div class="table-3d-player-frame table-3d-player-frame--north" data-player-slot="top" data-participant-id="seventeen:1" data-player-index="1" data-hand-pack="female" style="--avatar-frame-offset-x:350px;--avatar-frame-offset-y:0px;--avatar-frame-size:1.1"><div class="table-3d-player-card table-3d-player-card--north"><span class="player-avatar player-avatar--mahjong table-3d-player-avatar" aria-hidden="true"><img class="player-avatar__tile-image" src="/src/assets/tiles/z7.png" alt="中" draggable="false"/></span><span class="table-3d-player-copy"><strong title="Player 2">Player 2</strong></span></div></div></section><div class="table-presentation-loading" role="status" aria-live="polite"><span>正在准备牌桌…</span></div></section><section class="seventeen-fixed-hand" aria-label="固定手牌"><header class="seventeen-fixed-heading"><h2>固定手牌</h2><span>13 张 · 仅展示</span></header><div class="seventeen-fixed-grid"><button class="tile tile--disabled tile--red tile--red-dora" type="button" disabled="" aria-label="赤五万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m5.png" alt="赤五万" draggable="false"/><span class="local-hand-dora-sweep dora-breath-visual" aria-hidden="true"></span><span class="tile-red-badge" aria-hidden="true"></span><span class="tile-dora-frame" aria-hidden="true"></span></span></button><button class="tile tile--disabled tile--man" type="button" disabled="" aria-label="五万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m5.png" alt="五万" draggable="false"/></span></button><button class="tile tile--disabled tile--man" type="button" disabled="" aria-label="六万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m6.png" alt="六万" draggable="false"/></span></button><button class="tile tile--disabled tile--man" type="button" disabled="" aria-label="七万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m7.png" alt="七万" draggable="false"/></span></button><button class="tile tile--disabled tile--man" type="button" disabled="" aria-label="八万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m8.png" alt="八万" draggable="false"/></span></button><button class="tile tile--disabled tile--pin" type="button" disabled="" aria-label="二筒" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/p2.png" alt="二筒" draggable="false"/></span></button><button class="tile tile--disabled tile--pin" type="button" disabled="" aria-label="三筒" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/p3.png" alt="三筒" draggable="false"/></span></button><button class="tile tile--disabled tile--pin" type="button" disabled="" aria-label="四筒" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/p4.png" alt="四筒" draggable="false"/></span></button><button class="tile tile--disabled tile--sou" type="button" disabled="" aria-label="二索" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/s2.png" alt="二索" draggable="false"/></span></button><button class="tile tile--disabled tile--sou" type="button" disabled="" aria-label="三索" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/s3.png" alt="三索" draggable="false"/></span></button><button class="tile tile--disabled tile--sou" type="button" disabled="" aria-label="四索" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/s4.png" alt="四索" draggable="false"/></span></button><button class="tile tile--disabled tile--red tile--red-dora" type="button" disabled="" aria-label="赤五索" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/s5.png" alt="赤五索" draggable="false"/><span class="local-hand-dora-sweep dora-breath-visual" aria-hidden="true"></span><span class="tile-red-badge" aria-hidden="true"></span><span class="tile-dora-frame" aria-hidden="true"></span></span></button><button class="tile tile--disabled tile--sou" type="button" disabled="" aria-label="五索" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/s5.png" alt="五索" draggable="false"/></span></button></div><details class="seventeen-fixed-analysis" open=""><summary>听牌分析</summary><div class="seventeen-analysis-scroll"><section class="seventeen-steps-analysis-card" aria-label="听牌分析"><div class="seventeen-steps-analysis-header"><strong>听牌分析</strong></div><div class="seventeen-steps-analysis-list"><div class="seventeen-steps-analysis-item"><div class="seventeen-steps-analysis-wait"><span class="tile tile--compact" role="img" aria-label="五万" data-tile-state="normal"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m5.png" alt="五万" draggable="false"/></span></span><span>5万 · 剩余 0</span></div><span>4番 · 番缚计入宝牌 ×2</span><span>立直、断幺九</span><strong class="seventeen-steps-analysis-pass">番缚满足</strong></div><div class="seventeen-steps-analysis-item"><div class="seventeen-steps-analysis-wait"><span class="tile tile--compact" role="img" aria-label="五索" data-tile-state="normal"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/s5.png" alt="五索" draggable="false"/></span></span><span>5索 · 剩余 2</span></div><span>4番 · 番缚计入宝牌 ×2</span><span>立直、断幺九</span><strong class="seventeen-steps-analysis-pass">番缚满足</strong></div></div></section></div></details></section><section class="seventeen-steps-action-area" aria-label="17步麻将操作区"><div class="seventeen-battle-controls" style="--local-hand-tuning-x:0px;--local-hand-tuning-y:0px"><section class="seventeen-steps-candidates" aria-label="弃牌候选池"><div class="seventeen-steps-section-title"><h2>弃牌候选</h2><strong>21 张 · 剩 17 步</strong></div><div class="seventeen-steps-tile-grid seventeen-steps-candidate-grid seventeen-steps-candidate-grid--waiting"><span data-candidate-instance="3-1-5db0fe25-ce9d-4f67-bd26-16231da88a49" data-candidate-row="1" data-candidate-column="1" style="grid-row:1;grid-column:1"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="四万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m4.png" alt="四万" draggable="false"/></span></span></span><span data-candidate-instance="3-2-f6e55685-065f-4c5a-b44d-b74a8142fe73" data-candidate-row="1" data-candidate-column="2" style="grid-row:1;grid-column:2"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="四万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m4.png" alt="四万" draggable="false"/></span></span></span><span data-candidate-instance="3-3-a51650e0-c740-4ea8-ae41-30db62b2fc4d" data-candidate-row="1" data-candidate-column="3" style="grid-row:1;grid-column:3"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="四万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m4.png" alt="四万" draggable="false"/></span></span></span><span data-candidate-instance="4-3-192d9a4e-772e-4a2a-9631-091e9f65200f" data-candidate-row="1" data-candidate-column="4" style="grid-row:1;grid-column:4"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="五万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m5.png" alt="五万" draggable="false"/></span></span></span><span data-candidate-instance="5-1-72dbe54e-074c-4c4b-bfd7-6cf56456a3aa" data-candidate-row="1" data-candidate-column="5" style="grid-row:1;grid-column:5"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="六万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m6.png" alt="六万" draggable="false"/></span></span></span><span data-candidate-instance="5-2-1688d7bb-df8e-4e3a-8633-2b2d6380f5f0" data-candidate-row="1" data-candidate-column="6" style="grid-row:1;grid-column:6"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="六万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m6.png" alt="六万" draggable="false"/></span></span></span><span data-candidate-instance="5-3-a6ed3f0c-5572-45c2-805f-984d2ea9e52d" data-candidate-row="1" data-candidate-column="7" style="grid-row:1;grid-column:7"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="六万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m6.png" alt="六万" draggable="false"/></span></span></span><span data-candidate-instance="6-1-ca71b74e-b2e8-43c1-af2b-0fc4ee67c294" data-candidate-row="1" data-candidate-column="8" style="grid-row:1;grid-column:8"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="七万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m7.png" alt="七万" draggable="false"/></span></span></span><span data-candidate-instance="6-2-d6b4245a-500e-4fca-8c0e-360e374e92db" data-candidate-row="1" data-candidate-column="9" style="grid-row:1;grid-column:9"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="七万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m7.png" alt="七万" draggable="false"/></span></span></span><span data-candidate-instance="6-3-23cd1cea-723f-40fb-99a6-64aba380fe46" data-candidate-row="1" data-candidate-column="10" style="grid-row:1;grid-column:10"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="七万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m7.png" alt="七万" draggable="false"/></span></span></span><span data-candidate-instance="7-1-9e53ad44-1116-4fae-af19-0710c38d096e" data-candidate-row="2" data-candidate-column="1" style="grid-row:2;grid-column:1"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="八万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m8.png" alt="八万" draggable="false"/></span></span></span><span data-candidate-instance="7-2-4e669c81-dea6-4573-a8a7-173e56ee9422" data-candidate-row="2" data-candidate-column="2" style="grid-row:2;grid-column:2"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="八万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m8.png" alt="八万" draggable="false"/></span></span></span><span data-candidate-instance="7-3-16fa28e4-b35a-4129-8bc2-788fde7bde49" data-candidate-row="2" data-candidate-column="3" style="grid-row:2;grid-column:3"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="八万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m8.png" alt="八万" draggable="false"/></span></span></span><span data-candidate-instance="8-0-72a3383c-4522-4947-b829-528057d08a2e" data-candidate-row="2" data-candidate-column="4" style="grid-row:2;grid-column:4"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="九万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m9.png" alt="九万" draggable="false"/></span></span></span><span data-candidate-instance="8-1-291b8339-17cc-4b27-86d6-79986dd6bc4f" data-candidate-row="2" data-candidate-column="5" style="grid-row:2;grid-column:5"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="九万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m9.png" alt="九万" draggable="false"/></span></span></span><span data-candidate-instance="8-2-6665cd84-7ae0-4d98-9a46-2efeedf0820a" data-candidate-row="2" data-candidate-column="6" style="grid-row:2;grid-column:6"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="九万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m9.png" alt="九万" draggable="false"/></span></span></span><span data-candidate-instance="8-3-27dab434-9348-48e8-9b43-f43d2dc1d105" data-candidate-row="2" data-candidate-column="7" style="grid-row:2;grid-column:7"><span class="tile tile--compact tile--disabled tile--man" role="img" aria-label="九万" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/m9.png" alt="九万" draggable="false"/></span></span></span><span data-candidate-instance="9-0-96bfb979-f321-4a84-a9b0-92be17ca37cc" data-candidate-row="2" data-candidate-column="8" style="grid-row:2;grid-column:8"><span class="tile tile--compact tile--disabled tile--pin" role="img" aria-label="一筒" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/p1.png" alt="一筒" draggable="false"/></span></span></span><span data-candidate-instance="9-1-5842bc55-0934-4c95-9808-1570e0ee51a2" data-candidate-row="2" data-candidate-column="9" style="grid-row:2;grid-column:9"><span class="tile tile--compact tile--disabled tile--pin" role="img" aria-label="一筒" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/p1.png" alt="一筒" draggable="false"/></span></span></span><span data-candidate-instance="9-2-fc4a37bb-d28d-4c91-93f4-4023d7710e12" data-candidate-row="2" data-candidate-column="10" style="grid-row:2;grid-column:10"><span class="tile tile--compact tile--disabled tile--pin" role="img" aria-label="一筒" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/p1.png" alt="一筒" draggable="false"/></span></span></span><span data-candidate-instance="9-3-0f14b485-ddb8-4433-896f-1143e1112be7" data-candidate-row="2" data-candidate-column="11" style="grid-row:2;grid-column:11"><span class="tile tile--compact tile--disabled tile--pin" role="img" aria-label="一筒" data-tile-state="disabled"><span class="tile-face"><img class="tile-image" src="/src/assets/tiles/p1.png" alt="一筒" draggable="false"/></span></span></span></div></section></div></section><div class="win-presentation-overlay" data-testid="win-presentation-overlay" aria-hidden="true"></div><div class="game-event-overlay" data-testid="game-event-overlay" data-event-overlays-enabled="true" aria-live="polite" aria-atomic="true"></div><aside class="match-clock-hud match-clock-hud--expanded" aria-label="比赛计时与自动操作"><button class="match-clock-hud__toggle" type="button" aria-label="收起自动操作" aria-expanded="true"><span aria-hidden="true">‹</span></button><div class="match-clock-hud__buttons"><button type="button" aria-label="自动和牌" aria-pressed="false" title="自动和牌">和</button><button type="button" aria-label="不吃碰杠" aria-pressed="false" disabled="" title="17步没有吃碰杠">鸣</button><button type="button" aria-label="自动摸切" aria-pressed="false" disabled="" title="17步没有摸牌，候选池不支持自动代打">切</button></div></aside></main>"
+
+ ❯ src/presentation3d/participants/participantBaseline.test.tsx:78:18
+     76|     for (const tile of state.players[0].discardCandidates) expect(cand…
+     77|     for (const tile of state.players[0].fixedHand) expect(candidates).…
+     78|     expect(html).toContain('17步麻将荣和操作');
+       |                  ^
+     79|     const css = readFileSync('src/presentation3d/participants/particip…
+     80|     expect(css).toContain('.seventeen-steps-battle > .game-prompt-laye…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/presentation3d/table/centralConsoleLayout.test.ts > central console assembly > keeps the HUD center, ordinary river and non-riichi preview scale unchanged
+AssertionError: expected [ -0.1, 0.698, 1.9 ] to deeply equal [ -0.1, 0.698, 2.3 ]
+
+- Expected
++ Received
+
+  Array [
+    -0.1,
+    0.698,
+-   2.3,
++   1.9,
+  ]
+
+ ❯ src/presentation3d/table/centralConsoleLayout.test.ts:26:57
+     24|   });
+     25|   it('keeps the HUD center, ordinary river and non-riichi preview scal…
+     26|     expect(getCentralConsoleLayout().scoreHud.position).toEqual([-0.1,…
+       |                                                         ^
+     27|     expect(getCentralConsoleHudScale(720)).toBe(0.96);
+     28|     expect(getCentralConsoleHudScale(1080)).toBe(0.72);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+ Test Files  3 failed | 237 passed | 1 skipped (241)
+      Tests  3 failed | 1829 passed | 1 skipped (1833)
+   Start at  20:40:18
+   Duration  58.36s (transform 8.20s, setup 0ms, collect 90.19s, tests 69.47s, environment 43ms, prepare 25.18s)
+

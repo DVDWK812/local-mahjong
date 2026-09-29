@@ -1,0 +1,23 @@
+[
+  {
+    "pack": "xiaozhang",
+    "key": "action.nuki",
+    "path": "src\\music\\voice_lines\\xiaozhang\\audio\\action_nuki.mp3",
+    "bytes": 15881,
+    "sha256": "8f29cfc4dc42a14779d8c360fb6d3f3ef2dfea6bf7221970198b60a00d51e0b6"
+  },
+  {
+    "pack": "voice-20260821-001",
+    "key": "action.nuki",
+    "path": "src\\music\\voice_lines\\voice-20260821-001\\audio\\action_nuki.mp3",
+    "bytes": 11283,
+    "sha256": "76beeee31315ebaffea07edb108afe4251d58b97e58883b4b468c797af5827f1"
+  },
+  {
+    "pack": "yaya-001",
+    "key": "action.nuki",
+    "path": "src\\music\\voice_lines\\yaya-001\\audio\\action_nuki.mp3",
+    "bytes": 11283,
+    "sha256": "9bcdb8deba1a7ba3eede435ecb3b1710eb950161037b2b561b67faa0946bb213"
+  }
+]

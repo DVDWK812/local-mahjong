@@ -1,0 +1,112 @@
+- main:
+  - generic "对局状态栏":
+    - generic: 模式：17步麻将 轮到：东家 玩家
+    - generic: 你的回合
+    - button "音乐设置": ♪
+    - button "规则说明"
+    - button "牌局分析"
+    - button "返回菜单"
+  - region "东1局":
+    - generic "17步中央信息区":
+      - region "中央计分区":
+        - generic: 本家 · 剩17步
+        - strong: 50,000
+        - generic: 对家 · 剩17步
+        - strong: 50,000
+        - strong: 东1局
+        - generic: 17步麻将
+    - region "17步牌桌信息层":
+      - complementary "宝牌指示牌":
+        - generic: 宝牌指示牌
+        - button "八索" [disabled]:
+          - img "八索"
+        - generic: 东1局 · 17步麻将
+      - strong: 血战复核员
+      - strong: 右席复核
+  - region "固定手牌":
+    - heading "固定手牌" [level=2]
+    - generic: 13 张 · 仅展示
+    - button "一万" [disabled]:
+      - img "一万"
+    - button "二万" [disabled]:
+      - img "二万"
+    - button "二万" [disabled]:
+      - img "二万"
+    - button "二万" [disabled]:
+      - img "二万"
+    - button "三万" [disabled]:
+      - img "三万"
+    - button "三万" [disabled]:
+      - img "三万"
+    - button "五万" [disabled]:
+      - img "五万"
+    - button "五万" [disabled]:
+      - img "五万"
+    - button "七万" [disabled]:
+      - img "七万"
+    - button "八万" [disabled]:
+      - img "八万"
+    - button "一筒" [disabled]:
+      - img "一筒"
+    - button "二筒" [disabled]:
+      - img "二筒"
+    - button "四筒" [disabled]:
+      - img "四筒"
+    - generic "听牌分析"
+    - region "听牌分析":
+      - strong: 听牌分析
+      - paragraph: 当前构筑未形成听牌。
+  - region "17步麻将操作区":
+    - region "弃牌候选池":
+      - heading "弃牌候选" [level=2]
+      - strong: 21 张 · 剩 17 步
+      - button "七筒":
+        - img "七筒"
+      - button "七筒":
+        - img "七筒"
+      - button "八筒":
+        - img "八筒"
+      - button "一索":
+        - img "一索"
+      - button "一索":
+        - img "一索"
+      - button "二索":
+        - img "二索"
+      - button "三索":
+        - img "三索"
+      - button "三索":
+        - img "三索"
+      - button "四索":
+        - img "四索"
+      - button "六索":
+        - img "六索"
+      - button "六索":
+        - img "六索"
+      - button "八索":
+        - img "八索"
+      - button "八索":
+        - img "八索"
+      - button "九索":
+        - img "九索"
+      - button "九索":
+        - img "九索"
+      - button "九索":
+        - img "九索"
+      - button "南":
+        - img "南"
+      - button "西":
+        - img "西"
+      - button "北":
+        - img "北"
+      - button "白":
+        - img "白"
+      - button "发":
+        - img "发"
+  - complementary "比赛计时与自动操作":
+    - button "收起自动操作" [expanded]: ‹
+    - button "自动和牌": 和
+    - button "不吃碰杠" [disabled]: 鸣
+    - button "自动摸切" [disabled]: 切
+    - timer "响应剩余时间":
+      - generic: ∞
+      - generic: 0s

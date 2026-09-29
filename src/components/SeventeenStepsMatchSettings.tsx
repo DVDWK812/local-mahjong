@@ -1,4 +1,6 @@
 import { AI_DIFFICULTY_OPTIONS, AI_PERSONALITY_OPTIONS } from './MatchSettings';
+import { TimeControlSettings } from './TimeControlSettings';
+import type { TimeControlConfig } from '../game/timeControl/config';
 import { RuleHelpTooltip } from './RuleHelpTooltip';
 import type { RuleDescriptionKey } from '../game/rules/ruleDescriptions';
 import {
@@ -8,13 +10,15 @@ import {
 } from '../game/seventeenSteps';
 
 interface SeventeenStepsMatchSettingsProps {
+  timeControl?: TimeControlConfig;
+  onTimeControlChange?: (value: TimeControlConfig) => void;
   config: SeventeenStepsMatchConfig;
   onBack: () => void;
   onConfigChange: (config: SeventeenStepsMatchConfig) => void;
   onStart: () => void;
 }
 
-export function SeventeenStepsMatchSettings({ config, onBack, onConfigChange, onStart }: SeventeenStepsMatchSettingsProps) {
+export function SeventeenStepsMatchSettings({ config, onBack, onConfigChange, onStart, timeControl, onTimeControlChange }: SeventeenStepsMatchSettingsProps) {
   const setConfig = (patch: Partial<SeventeenStepsMatchConfig>) => onConfigChange(normalizeSeventeenStepsMatchConfig({ ...config, ...patch }));
   const setRound = (patch: Partial<SeventeenStepsMatchConfig['roundRuleConfig']>) => setConfig({ roundRuleConfig: { ...config.roundRuleConfig, ...patch } });
   const setDisplay = (patch: Partial<SeventeenStepsMatchConfig['displayOptions']>) => setConfig({ displayOptions: { ...config.displayOptions, ...patch } });
@@ -24,6 +28,7 @@ export function SeventeenStepsMatchSettings({ config, onBack, onConfigChange, on
       <section className="menu-panel menu-panel--wide seventeen-steps-settings" aria-label="17步麻将比赛设置">
         <p className="menu-path">本地模式 ＞ 立直麻将 ＞ 娱乐模式 ＞ 17步麻将</p>
         <h1>17步麻将比赛设置</h1>
+        {timeControl && onTimeControlChange && <TimeControlSettings mode="seventeen" value={timeControl} onChange={onTimeControlChange} />}
 
         <section className="settings-block">
           <h2>AI 对手</h2>

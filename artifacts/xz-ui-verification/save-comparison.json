@@ -1,0 +1,12 @@
+{
+  "before_sha256": "a9723b892311d64051bb498d203320b0eb91c290b3ec54c080f7841d09276bc6",
+  "after_sha256": "f5a73f6bc0c256b0c968b904520fda051f9c1bf1782c08cd7f8c12e33f4409fa",
+  "equal": true,
+  "seed": 3808798149,
+  "digest": "e374b104a29de5a8",
+  "actions": 6,
+  "bytes_equal": false,
+  "difference": "JSON object key ordering only; parsed values identical",
+  "before_bytes": 6953,
+  "after_bytes": 6953
+}

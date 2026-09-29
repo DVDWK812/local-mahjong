@@ -1,0 +1,155 @@
+{
+  "mode": "xuezhan",
+  "rules": {
+    "schemaVersion": 1,
+    "ruleVersion": 1,
+    "preset": "declared-exchange",
+    "presetVersion": 1,
+    "rounds": 4,
+    "startingScore": 100,
+    "bankruptcy": false,
+    "firstDealer": -1,
+    "dealerPolicy": "rotate",
+    "drawDealer": "rotate",
+    "exchange": 3,
+    "direction": "random",
+    "missing": "declared",
+    "unclearedCalls": false,
+    "selfDrawOnly": false,
+    "multiWin": true,
+    "passWin": "until-draw",
+    "robKong": true,
+    "base": 1,
+    "cap": 3,
+    "selfDraw": "base",
+    "selfDrawExtra": 1,
+    "extraAfterCap": false,
+    "patterns": {
+      "allTriplets": {
+        "enabled": true,
+        "fan": 1
+      },
+      "pure": {
+        "enabled": true,
+        "fan": 2
+      },
+      "sevenPairs": {
+        "enabled": true,
+        "fan": 2
+      },
+      "root": {
+        "enabled": true,
+        "fan": 1
+      },
+      "kongDraw": {
+        "enabled": true,
+        "fan": 1
+      },
+      "kongDiscard": {
+        "enabled": true,
+        "fan": 1
+      },
+      "robKong": {
+        "enabled": true,
+        "fan": 1
+      },
+      "lastDraw": {
+        "enabled": false,
+        "fan": 1
+      },
+      "lastDiscard": {
+        "enabled": false,
+        "fan": 1
+      },
+      "concealed": {
+        "enabled": false,
+        "fan": 1
+      },
+      "middle": {
+        "enabled": false,
+        "fan": 1
+      },
+      "singlePair": {
+        "enabled": false,
+        "fan": 1
+      },
+      "jiang": {
+        "enabled": false,
+        "fan": 2
+      },
+      "terminals": {
+        "enabled": false,
+        "fan": 2
+      },
+      "heaven": {
+        "enabled": false,
+        "fan": 3
+      },
+      "earth": {
+        "enabled": false,
+        "fan": 3
+      }
+    },
+    "kongPay": true,
+    "directPay": "source",
+    "directRate": 2,
+    "addedRate": 1,
+    "concealedRate": 2,
+    "directResponsibility": false,
+    "transfer": false,
+    "transferSplit": "nearest",
+    "pig": true,
+    "pigPenalty": "cap",
+    "pigRate": 8,
+    "pigIncludesWon": true,
+    "readyPay": true,
+    "readyPolicy": "structural",
+    "pigAlsoReady": false,
+    "refund": "not-ready"
+  },
+  "ruleId": "xz1-1982481566c4d915",
+  "time": {
+    "schemaVersion": 1,
+    "turn": {
+      "kind": "banked",
+      "decisionBaseMs": 5000,
+      "bankPerHandMs": 20000
+    },
+    "preparation": {
+      "exchange": {
+        "kind": "fixed",
+        "durationMs": 30000
+      },
+      "missing": {
+        "kind": "fixed",
+        "durationMs": 10000
+      }
+    }
+  },
+  "ai": [
+    {
+      "playerId": 1,
+      "difficulty": "shintentai",
+      "personality": "balanced"
+    },
+    {
+      "playerId": 2,
+      "difficulty": "shintentai",
+      "personality": "balanced"
+    },
+    {
+      "playerId": 3,
+      "difficulty": "shintentai",
+      "personality": "balanced"
+    }
+  ],
+  "preferences": {
+    "autoWin": false,
+    "suppressCalls": false,
+    "autoTsumogiri": false,
+    "legalHelp": true,
+    "waitsHelp": true,
+    "fanHelp": true,
+    "spectator": true
+  }
+}

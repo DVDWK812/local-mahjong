@@ -41,7 +41,7 @@ interface ResultShellProps {
   continueLabel: string;
 }
 
-function ResultShell({ title, subtitle, children, onReset, continueLabel }: ResultShellProps) {
+export function ResultShell({ title, subtitle, children, onReset, continueLabel }: ResultShellProps) {
   return (
     <div className="result-backdrop" role="presentation">
       <section className="result-dialog" role="dialog" aria-modal="true" aria-labelledby="result-title">
@@ -60,7 +60,7 @@ function ResultShell({ title, subtitle, children, onReset, continueLabel }: Resu
   );
 }
 
-function HandPreview({ title, tiles, doraIndicators = [], doraGlowEnabled = true }: { title: string; tiles: TileModel[]; doraIndicators?: TileModel[]; doraGlowEnabled?: boolean }) {
+export function HandPreview({ title, tiles, doraIndicators = [], doraGlowEnabled = true }: { title: string; tiles: TileModel[]; doraIndicators?: TileModel[]; doraGlowEnabled?: boolean }) {
   return (
     <div className="result-hand">
       <span>{title}</span>
@@ -101,7 +101,7 @@ function SeventeenStepsDrawAnalysis({ waits, kazoeYakumanMode }: { waits: Sevent
   );
 }
 
-function WinHandPreview({ gameState, winner, doraGlowEnabled = true, showDoraIndicators = true }: { gameState: GameState; winner: WinnerResultViewModel; doraGlowEnabled?: boolean; showDoraIndicators?: boolean }) {
+function WinHandPreview({ gameState, winner, doraGlowEnabled = true, showDoraIndicators = true }: { gameState: Pick<GameState, 'doraIndicators'>; winner: WinnerResultViewModel; doraGlowEnabled?: boolean; showDoraIndicators?: boolean }) {
   return (
     <div className="result-tile-sections" aria-label="和牌牌组">
       {showDoraIndicators ? (
@@ -127,7 +127,7 @@ function WinHandPreview({ gameState, winner, doraGlowEnabled = true, showDoraInd
       {winner.player.calls.length > 0 ? (
         <section className="result-tile-section result-melds" aria-label="副露">
           <span>副露</span>
-          <PlayerMelds player={winner.player} seatClass="result-melds-seat" doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />
+          <PlayerMelds player={winner.player} displayMelds={winner.displayMelds} seatClass="result-melds-seat" doraIndicators={gameState.doraIndicators} doraGlowEnabled={doraGlowEnabled} />
         </section>
       ) : null}
       {winner.uraDoraIndicators.length > 0 ? (
@@ -152,9 +152,9 @@ function formatDelta(points: number): string {
   return '±0';
 }
 
-function ResultDeltas({ rows }: { rows: readonly PlayerScoreChangeViewModel[] }) {
+export function ResultDeltas({ rows }: { rows: readonly PlayerScoreChangeViewModel[] }) {
   return (
-    <section className="result-deltas" aria-label="四家点数变化">
+    <section className="result-deltas" aria-label={rows.length === 4 ? '四家点数变化' : '玩家点数变化'}>
       <h3>点数变化</h3>
       <div className="result-delta-grid">
       {rows.map((row) => {
@@ -330,8 +330,21 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
       onReset={continueStage}
       continueLabel={continueLabel}
     >
-      <div className="result-winners">
-        {viewModel.winners.map((winner) => {
+      <WinnerResultCards winners={viewModel.winners} gameState={gameState} resultRiichiSticks={resultRiichiSticks} winPresentation={winPresentation} winPresentationController={winPresentationController} doraGlowEnabled={doraGlowEnabled} showDoraIndicators={showDoraIndicators} />
+      {!settlementPresentationCoordinator && (!winPresentationController || viewModel.winners.every((winner) => winPresentation.sequences.find((sequence) => sequence.winnerId === winner.source.winner)?.sequenceCompleted === true))
+        ? <ResultDeltas rows={viewModel.scoreChanges} />
+        : null}
+    </ResultShell>
+  );
+}
+
+/** Scored, read-only rows: this component never invokes a scoring engine. */
+export function WinnerResultCards({ winners, gameState, resultRiichiSticks, winPresentation = EMPTY_WIN_PRESENTATION, winPresentationController, doraGlowEnabled = true, showDoraIndicators = true, northBonus }: {
+  winners: readonly WinnerResultViewModel[]; gameState: Pick<GameState, 'dealer' | 'honba' | 'doraIndicators'>; resultRiichiSticks: number;
+  winPresentation?: WinResultPresentationState; winPresentationController?: WinResultPresentationController; doraGlowEnabled?: boolean; showDoraIndicators?: boolean; northBonus?: Partial<Record<PlayerId, number>>;
+}) {
+  return (      <div className="result-winners">
+        {winners.map((winner) => {
           const win = winner.source;
           const sequence = winPresentation.sequences.find((candidate) => candidate.winnerId === win.winner);
           const hasYakuman = win.yaku.some((yaku) => yaku.yakuman) || (win.yakumanMultiplier ?? 0) > 0;
@@ -384,6 +397,7 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
                       <span>宝牌 <strong>{winner.dora.available ? winner.dora.dora ?? 0 : '—'}</strong></span>
                       <span>里宝牌 <strong>{winner.dora.available ? winner.dora.uraDora ?? 0 : '—'}</strong></span>
                       <span>赤宝牌 <strong>{winner.dora.available ? winner.dora.redDora ?? 0 : '—'}</strong></span>
+                      {northBonus?.[winner.player.id] !== undefined ? <span>拔北 <strong>{northBonus[winner.player.id]}</strong></span> : null}
                       <span>合计 <strong>{winner.dora.available ? winner.dora.totalDora ?? '—' : '未提供'}</strong></span>
                     </div>
                     <div className="result-authoritative-total">
@@ -398,9 +412,5 @@ export function ResultDialog({ gameState, onReset, doraGlowEnabled = true, showD
           );
         })}
       </div>
-      {!settlementPresentationCoordinator && (!winPresentationController || viewModel.winners.every((winner) => winPresentation.sequences.find((sequence) => sequence.winnerId === winner.source.winner)?.sequenceCompleted === true))
-        ? <ResultDeltas rows={viewModel.scoreChanges} />
-        : null}
-    </ResultShell>
-  );
+);
 }

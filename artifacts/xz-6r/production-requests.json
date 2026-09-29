@@ -1,0 +1,387 @@
+{
+  "cursor": 179,
+  "events": [
+    {
+      "sequence": 25,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5189/?mute=1",
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasUserGesture": false,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Upgrade-Insecure-Requests": "1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "VeryHigh",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5189/?mute=1"
+        },
+        "requestId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "timestamp": 13559.311661,
+        "type": "Document",
+        "wallTime": 1790174707.653971
+      }
+    },
+    {
+      "sequence": 40,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5189/?mute=1",
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasUserGesture": false,
+        "initiator": {
+          "columnNumber": 70,
+          "lineNumber": 6,
+          "type": "parser",
+          "url": "http://127.0.0.1:5189/?mute=1"
+        },
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "redirectHasExtraInfo": false,
+        "renderBlockingBehavior": "NonBlocking",
+        "request": {
+          "headers": {
+            "Origin": "http://127.0.0.1:5189",
+            "Referer": "http://127.0.0.1:5189/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "High",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5189/assets/index-Bsh7BwVy.js"
+        },
+        "requestId": "22024.13",
+        "timestamp": 13559.320165,
+        "type": "Script",
+        "wallTime": 1790174707.662485
+      }
+    },
+    {
+      "sequence": 41,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5189/?mute=1",
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasUserGesture": false,
+        "initiator": {
+          "columnNumber": 73,
+          "lineNumber": 7,
+          "type": "parser",
+          "url": "http://127.0.0.1:5189/?mute=1"
+        },
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "redirectHasExtraInfo": false,
+        "renderBlockingBehavior": "Blocking",
+        "request": {
+          "headers": {
+            "Origin": "http://127.0.0.1:5189",
+            "Referer": "http://127.0.0.1:5189/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "VeryHigh",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5189/assets/index-CxpmsJ3d.css"
+        },
+        "requestId": "22024.14",
+        "timestamp": 13559.32026,
+        "type": "Stylesheet",
+        "wallTime": 1790174707.662568
+      }
+    },
+    {
+      "sequence": 59,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5189/?mute=1",
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasUserGesture": false,
+        "initiator": {
+          "stack": {
+            "callFrames": [
+              {
+                "columnNumber": 672,
+                "functionName": "Ai",
+                "lineNumber": 49,
+                "scriptId": "16",
+                "url": "http://127.0.0.1:5189/assets/index-Bsh7BwVy.js"
+              },
+              {
+                "columnNumber": 5878,
+                "functionName": "ps",
+                "lineNumber": 49,
+                "scriptId": "16",
+                "url": "http://127.0.0.1:5189/assets/index-Bsh7BwVy.js"
+              },
+              {
+                "columnNumber": 88593,
+                "functionName": "Xf",
+                "lineNumber": 48,
+                "scriptId": "16",
+                "url": "http://127.0.0.1:5189/assets/index-Bsh7BwVy.js"
+              },
+              {
+                "columnNumber": 118845,
+                "functionName": "ec",
+                "lineNumber": 48,
+                "scriptId": "16",
+                "url": "http://127.0.0.1:5189/assets/index-Bsh7BwVy.js"
+              },
+              {
+                "columnNumber": 118093,
+                "functionName": "pm",
+                "lineNumber": 48,
+                "scriptId": "16",
+                "url": "http://127.0.0.1:5189/assets/index-Bsh7BwVy.js"
+              },
+              {
+                "columnNumber": 117069,
+                "functionName": "yd",
+                "lineNumber": 48,
+                "scriptId": "16",
+                "url": "http://127.0.0.1:5189/assets/index-Bsh7BwVy.js"
+              },
+              {
+                "columnNumber": 116899,
+                "functionName": "hs",
+                "lineNumber": 48,
+                "scriptId": "16",
+                "url": "http://127.0.0.1:5189/assets/index-Bsh7BwVy.js"
+              },
+              {
+                "columnNumber": 113315,
+                "functionName": "Mn",
+                "lineNumber": 48,
+                "scriptId": "16",
+                "url": "http://127.0.0.1:5189/assets/index-Bsh7BwVy.js"
+              },
+              {
+                "columnNumber": 125553,
+                "functionName": "tc",
+                "lineNumber": 48,
+                "scriptId": "16",
+                "url": "http://127.0.0.1:5189/assets/index-Bsh7BwVy.js"
+              },
+              {
+                "columnNumber": 1597,
+                "functionName": "V",
+                "lineNumber": 25,
+                "scriptId": "16",
+                "url": "http://127.0.0.1:5189/assets/index-Bsh7BwVy.js"
+              }
+            ]
+          },
+          "type": "script"
+        },
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5189/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5189/assets/z7-CNesh7eW.png"
+        },
+        "requestId": "22024.17",
+        "timestamp": 13559.425496,
+        "type": "Image",
+        "wallTime": 1790174707.769498
+      }
+    },
+    {
+      "sequence": 74,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5189/?mute=1",
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasUserGesture": false,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5189/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5189/assets/Double%20Down-Bn4HrJ3r.wav"
+        },
+        "requestId": "22024.19",
+        "timestamp": 13559.457396,
+        "type": "Media",
+        "wallTime": 1790174707.799719
+      }
+    },
+    {
+      "sequence": 77,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5189/?mute=1",
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasUserGesture": false,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5189/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5189/assets/Double%20Down-Bn4HrJ3r.wav"
+        },
+        "requestId": "22024.20",
+        "timestamp": 13559.459041,
+        "type": "Media",
+        "wallTime": 1790174707.801364
+      }
+    },
+    {
+      "sequence": 85,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5189/?mute=1",
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=33456128-",
+            "Referer": "http://127.0.0.1:5189/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5189/assets/Double%20Down-Bn4HrJ3r.wav"
+        },
+        "requestId": "22024.21",
+        "timestamp": 13559.4718,
+        "type": "Media",
+        "wallTime": 1790174707.814125
+      }
+    },
+    {
+      "sequence": 98,
+      "source": {
+        "tabId": 1
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5189/?mute=1",
+        "frameId": "1ACB90CDCE9EF03DD02EFAC4E14262AE",
+        "hasUserGesture": false,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "3BF5FBD4D60C09FBFE0A482C7853694B",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=2228224-",
+            "Referer": "http://127.0.0.1:5189/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5189/assets/Double%20Down-Bn4HrJ3r.wav"
+        },
+        "requestId": "22024.22",
+        "timestamp": 13568.50498,
+        "type": "Media",
+        "wallTime": 1790174716.847323
+      }
+    }
+  ],
+  "hasMore": false,
+  "truncated": false
+}

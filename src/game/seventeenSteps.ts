@@ -282,10 +282,17 @@ export function moveFixedTile(state: SeventeenStepsState, playerId: SeventeenSte
   return selectFixedTile(state, playerId, instanceId);
 }
 
+export function validateSeventeenSelection(state: SeventeenStepsState, playerId: SeventeenStepsPlayerId): boolean {
+  const player = state.players[playerId];
+  return player.fixedHand.length === 13
+    && new Set(player.fixedHand.map(tile => tile.instanceId)).size === 13
+    && player.fixedHand.every(tile => player.sourceTiles.some(source => source.instanceId === tile.instanceId && source.id === tile.id && source.red === tile.red));
+}
+
 export function confirmBuild(state: SeventeenStepsState, playerId: SeventeenStepsPlayerId): SeventeenStepsState {
   if (state.phase !== 'build') return state;
   const player = state.players[playerId];
-  if (player.buildConfirmed || player.fixedHand.length !== 13) return state;
+  if (player.buildConfirmed || !validateSeventeenSelection(state, playerId)) return state;
 
   const players = state.players.map((item, index) => {
     if (index !== playerId) return clonePlayer(item);

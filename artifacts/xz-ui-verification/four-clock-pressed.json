@@ -1,0 +1,29 @@
+[
+  {
+    "bg": "rgb(76, 105, 88)",
+    "border": "1.66667px outset rgb(0, 0, 0)",
+    "color": "rgb(0, 0, 0)",
+    "font": "14px Inter, \"Segoe UI\", \"Microsoft YaHei\", Arial, sans-serif",
+    "outline": "rgb(218, 206, 140) solid 1.66667px",
+    "pressed": "true",
+    "text": "和✓"
+  },
+  {
+    "bg": "rgb(76, 105, 88)",
+    "border": "1.66667px outset rgb(0, 0, 0)",
+    "color": "rgb(0, 0, 0)",
+    "font": "14px Inter, \"Segoe UI\", \"Microsoft YaHei\", Arial, sans-serif",
+    "outline": "rgb(218, 206, 140) solid 1.66667px",
+    "pressed": "true",
+    "text": "鸣⊘"
+  },
+  {
+    "bg": "rgb(76, 105, 88)",
+    "border": "1.66667px outset rgb(0, 0, 0)",
+    "color": "rgb(0, 0, 0)",
+    "font": "14px Inter, \"Segoe UI\", \"Microsoft YaHei\", Arial, sans-serif",
+    "outline": "rgb(218, 206, 140) solid 1.66667px",
+    "pressed": "true",
+    "text": "切✓"
+  }
+]

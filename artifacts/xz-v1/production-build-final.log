@@ -1,0 +1,16 @@
+
+> local-mahjong-trainer@0.1.0 prebuild
+> npm run generate:voice-packs
+
+
+> local-mahjong-trainer@0.1.0 generate:voice-packs
+> node scripts/generateVoicePackIndex.mjs
+
+Generated Voice Pack index: 3 valid pack(s), 0 skipped.
+
+> local-mahjong-trainer@0.1.0 build
+> tsc && vite build
+
+src/presentation3d/participants/SanmaMotion3D.tsx(21,162): error TS2339: Property 'instanceId' does not exist on type 'PresentationTile'.
+src/presentation3d/participants/SanmaMotion3D.tsx(25,95): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.

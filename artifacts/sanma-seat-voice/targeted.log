@@ -1,0 +1,96 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/audio/voice/winVoiceSequence.test.ts (6 tests) 5ms
+ ✓ src/audio/voice/WinResultPresentationController.test.ts (6 tests) 6ms
+ ✓ src/audio/voice/SettlementPresentationCoordinator.test.ts (5 tests) 8ms
+ ✓ src/game/sanma/rules.test.ts (7 tests) 67ms
+ ✓ src/audio/voice/effectiveGenerationConfig.test.ts (6 tests) 7ms
+ ✓ src/audio/voice/VoicePresentationConsumer.test.ts (5 tests) 8ms
+ ✓ src/presentation3d/participants/participantPresentation.test.tsx (7 tests) 46ms
+ ✓ src/audio/voice/voicePreferences.test.ts (7 tests) 4ms
+ ✓ src/audio/voice/VoicePackRepository.test.ts (8 tests) 9ms
+ ✓ src/audio/voice/VoicePackEditingService.test.ts (7 tests) 19ms
+ ✓ src/presentation/table/sanmaFormalScene.test.tsx (13 tests) 324ms
+ ✓ src/audio/voice/VoicePresentationRuntime.integration.test.tsx (3 tests) 34ms
+ ✓ src/audio/voice/voiceGenerationStatus.test.ts (11 tests) 64ms
+ ✓ src/audio/voice/VoiceDirector.test.ts (18 tests) 18ms
+ ✓ src/audio/voice/voiceSynthesisSettings.test.ts (5 tests) 5ms
+ ✓ src/audio/audioBackend.test.ts (4 tests) 5ms
+ ✓ src/audio/voice/voicePreview.test.ts (3 tests) 6ms
+ ✓ src/audio/voice/sanmaNorthVoice.test.ts (13 tests) 231ms
+ ✓ src/audio/voice/CreatedVoiceService.test.ts (3 tests) 10ms
+ ✓ src/audio/voice/matchVoiceSequence.test.ts (3 tests) 4ms
+ ✓ src/game/sanma/wall.test.ts (4 tests) 130ms
+ ✓ src/audio/voice/drawVoiceSequence.test.ts (3 tests) 4ms
+ ✓ src/audio/voice/VoicePackService.test.ts (3 tests) 7ms
+ ✓ src/audio/voice/ttsTextSynchronization.test.ts (4 tests) 5ms
+ ✓ src/audio/voice/tileVoice.test.ts (2 tests) 3ms
+ ✓ src/audio/voice/fishAudioLanguages.test.ts (1 test) 4ms
+ ✓ src/audio/voice/textControlProfiles.test.ts (1 test) 3ms
+ ✓ src/game/sanma/evidence.test.ts (1 test) 2ms
+ ✓ src/audio/voice/fishCloneLanguages.test.ts (1 test) 2ms
+ ✓ src/audio/voice/voiceLineGroups.test.ts (3 tests) 4ms
+ ✓ src/audio/AudioManager.test.ts (61 tests) 1767ms
+ ✓ src/game/sanma/scenarios.test.ts (82 tests) 771ms
+ ✓ src/game/sanma/integration.test.ts (9 tests) 5394ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > east-only/loss的每个可视化场景执行断言并经JSON序列化重建 1732ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > east-only/split_missing_share_ceil100的每个可视化场景执行断言并经JSON序列化重建 1589ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > hanchan/loss的每个可视化场景执行断言并经JSON序列化重建 1007ms
+   ✓ SANMA-5 跨配置、保存与共享展示边界 > hanchan/split_missing_share_ceil100的每个可视化场景执行断言并经JSON序列化重建 1032ms
+ ✓ src/game/sanma/timing.test.ts (15 tests) 8800ms
+   ✓ runtime full matches with policy audit > east-only/loss/short=false/seed=308 1562ms
+   ✓ runtime full matches with policy audit > east-only/split_missing_share_ceil100/short=false/seed=308 790ms
+   ✓ runtime full matches with policy audit > hanchan/loss/short=false/seed=308 1094ms
+   ✓ runtime full matches with policy audit > hanchan/split_missing_share_ceil100/short=false/seed=308 1474ms
+   ✓ runtime full matches with policy audit > east-only/loss/short=true/seed=308 869ms
+   ✓ runtime full matches with policy audit > east-only/split_missing_share_ceil100/short=true/seed=308 719ms
+   ✓ runtime full matches with policy audit > hanchan/loss/short=true/seed=308 929ms
+   ✓ runtime full matches with policy audit > hanchan/split_missing_share_ceil100/short=true/seed=308 1294ms
+ ✓ src/game/sanma/longRun.test.ts (40 tests) 54618ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=1 1380ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=2 1212ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=3 523ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=4 620ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=5 962ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=6 918ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=7 1302ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=8 498ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=9 979ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/loss/seed=10 668ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=1 969ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=2 1108ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=3 880ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=4 622ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=5 965ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=6 1079ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=7 772ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=8 513ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=9 948ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > east-only/split_missing_share_ceil100/seed=10 697ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=1 2211ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=2 2469ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=3 1021ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=4 1431ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=5 1654ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=6 2007ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=7 2746ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=8 1677ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=9 2288ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/loss/seed=10 1822ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=1 2999ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=2 2598ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=3 1548ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=4 882ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=5 1642ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=6 1913ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=7 793ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=8 1492ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=9 2320ms
+   ✓ SANMA-5 固定seed整场（同一合法命令接口） > hanchan/split_missing_share_ceil100/seed=10 1487ms
+
+ Test Files  35 passed (35)
+      Tests  370 passed (370)
+   Start at  22:12:30
+   Duration  58.15s (transform 3.76s, setup 0ms, collect 21.08s, tests 72.40s, environment 6ms, prepare 3.80s)
+

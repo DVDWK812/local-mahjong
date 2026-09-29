@@ -15,6 +15,9 @@ import type { SettlementPresentationCoordinator } from '../audio/voice/Settlemen
 import type { AppearanceSettings } from '../presentation/appearance/appearanceSettings';
 
 interface BoardProps {
+  suppressCalls?: boolean;
+  onInputResourcesReady?: () => void;
+  authoritativeInputOpen?: boolean;
   gameState: GameState;
   matchState?: MatchState;
   onDiscard: (playerId: PlayerId, tileInstanceId: string) => void;
@@ -49,6 +52,9 @@ interface BoardProps {
 }
 
 export function Board({
+  suppressCalls = false,
+  onInputResourcesReady,
+  authoritativeInputOpen,
   gameState,
   matchState,
   onDiscard,
@@ -178,7 +184,7 @@ export function Board({
             </div>
           ) : null}
           {drawActions.canKyuushuKyuuhai ? <OperationButton kind="abortive" onClick={() => onDeclareKyuushuKyuuhai(controlledPlayerId)}>九种九牌</OperationButton> : null}
-          {drawActions.ankanCandidates.map((candidate) => (
+          {!suppressCalls && drawActions.ankanCandidates.map((candidate) => (
             <CallOptionButton
               key={`ankan-${candidate.tileId}`}
               operation="kan"
@@ -192,7 +198,7 @@ export function Board({
               onClick={() => onKan(controlledPlayerId, 'ankan', candidate.tileId)}
             />
           ))}
-          {drawActions.kakanCandidates.map((candidate) => (
+          {!suppressCalls && drawActions.kakanCandidates.map((candidate) => (
             <CallOptionButton
               key={`kakan-${candidate.tileId}`}
               operation="kan"
@@ -220,7 +226,7 @@ export function Board({
         </ActionPrompt>
       ) : null}
 
-      {prompt.call ? (
+      {prompt.call && !suppressCalls ? (
         <ActionPrompt
           title={gameState.pendingCall ? (
             <span className="action-prompt-title-with-tile">
@@ -291,6 +297,8 @@ export function Board({
 
   return (
     <GameScreen
+      onInputResourcesReady={onInputResourcesReady}
+      authoritativeInputOpen={authoritativeInputOpen}
       gameState={gameState}
       matchState={matchState}
       analysisOpen={analysisOpen}
@@ -340,9 +348,10 @@ export function TileActionButton({
   sameTileHoverEnabled,
   onHoveredTileTypeChange,
   onPreviewChange,
+  disabled,
   onClick,
 }: {
-  operation?: Extract<OperationKind, 'win' | 'riichi'>;
+  operation?: Extract<OperationKind, 'win' | 'riichi' | 'north'>;
   label: string;
   ariaLabel?: string;
   showLabel?: boolean;
@@ -353,6 +362,7 @@ export function TileActionButton({
   sameTileHoverEnabled?: boolean;
   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
   onPreviewChange?: (active: boolean) => void;
+  disabled?: boolean;
   onClick: () => void;
 }) {
   const handleActivate = () => {
@@ -365,6 +375,7 @@ export function TileActionButton({
   return (
     <button
       type="button"
+      disabled={disabled}
       className={operation ? operationButtonClassName(operation, 'prompt-tile-action') : 'prompt-tile-action'}
       data-operation={operation}
       onPointerEnter={() => onPreviewChange?.(true)}
@@ -386,7 +397,7 @@ export function TileActionButton({
   );
 }
 
-function CallOptionButton({
+export function CallOptionButton({
   operation,
   label,
   tiles,
@@ -396,6 +407,7 @@ function CallOptionButton({
   hoveredTileType,
   sameTileHoverEnabled,
   onHoveredTileTypeChange,
+  disabled,
   onClick,
 }: {
   operation: Extract<OperationKind, 'kan' | 'pon' | 'chi'>;
@@ -407,6 +419,7 @@ function CallOptionButton({
   hoveredTileType?: TileId | null;
   sameTileHoverEnabled?: boolean;
   onHoveredTileTypeChange?: (tileType: TileId | null) => void;
+  disabled?: boolean;
   onClick: () => void;
 }) {
   const ariaLabel = `${label} ${tiles.map((tile) => tileLabel(tile.id)).join('')}`;
@@ -419,6 +432,7 @@ function CallOptionButton({
   return (
     <button
       type="button"
+      disabled={disabled}
       className={operationButtonClassName(operation, 'call-option-button')}
       data-operation={operation}
       aria-label={ariaLabel}

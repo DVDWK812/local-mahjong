@@ -1,0 +1,242 @@
+--- baseline/scripts/xzBuildStamp.ts
++++ scripts/xzBuildStamp.ts
+@@ -7,24 +7,45 @@
+   const virtual = '\0virtual:xz-build';
+   let serving = false;
+   async function stamp() {
+-    const hash = createHash('sha256');
+-    async function walk(dir: string) {
+-      for (const entry of (await fs.readdir(dir, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
+-        const full = path.join(dir, entry.name);
+-        if (entry.isDirectory()) { if (entry.name !== 'music') await walk(full); }
+-        else if (/\.(ts|tsx|css|json)$/.test(entry.name)) { hash.update(path.relative(root, full)); hash.update(await fs.readFile(full)); }
+-      }
+-    }
+-    await walk(path.join(root, 'src'));
+-    hash.update(await fs.readFile(path.join(root, 'package-lock.json')));
++    const fingerprint = await workspaceFingerprint(root);
+     let commit = '非 Git 工作区', snapshotId: string | undefined;
+     try { const snapshot = JSON.parse(await fs.readFile(path.join(root, '.xz-snapshot.json'), 'utf8')); commit = snapshot.commit; snapshotId = snapshot.snapshotId; }
+     catch { try { commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(); } catch { /* content fingerprint remains authoritative */ } }
+-    return { commit, fingerprint: hash.digest('hex'), ...(snapshotId ? { snapshotId } : {}), buildMode: serving ? 'development' : process.env.VITE_ENABLE_TEST_MODE === 'true' ? 'diagnostic' : 'production' };
++    return { commit, fingerprint, ...(snapshotId ? { snapshotId } : {}), buildMode: serving ? 'development' : process.env.VITE_ENABLE_TEST_MODE === 'true' ? 'diagnostic' : 'production' };
+   }
+   return { name: 'xuezhan-build-stamp', resolveId: id => id === 'virtual:xz-build' ? virtual : undefined,
+     configResolved(config) { serving = config.command === 'serve'; },
+     async load(id) { return id === virtual ? `export default ${JSON.stringify(await stamp())}` : undefined; },
+-    handleHotUpdate(ctx) { const file = ctx.file.replaceAll('\\', '/'); if (!file.includes('/src/') || file.includes('/music/')) return; const module = ctx.server.moduleGraph.getModuleById(virtual); if (module) { ctx.server.moduleGraph.invalidateModule(module); return [...ctx.modules, module]; } },
++    handleHotUpdate(ctx) { if (!isFingerprintInput(path.relative(root, ctx.file))) return; const module = ctx.server.moduleGraph.getModuleById(virtual); if (module) { ctx.server.moduleGraph.invalidateModule(module); return [...ctx.modules, module]; } },
+   };
+ }
++
++export const normalizeFingerprintPath = (value: string) => value.replaceAll('\\', '/').replace(/^\.\//, '');
++/** Shared behavior inputs, including fixtures. Artifacts and manual records are outputs. */
++export function isFingerprintInput(value: string): boolean {
++  const file = normalizeFingerprintPath(value);
++  return /^(src|scripts)\//.test(file) && !file.startsWith('src/music/') && /\.(ts|tsx|js|mjs|css|json|glsl|vert|frag)$/.test(file)
++    || /^(package(-lock)?\.json|vite\.config\.ts|tsconfig[^/]*\.json|index\.html)$/.test(file);
++}
++export function fingerprintEntries(entries: Array<{ path: string; bytes: Uint8Array | string }>): string {
++  const hash = createHash('sha256').update('workspace-inputs-v2\0');
++  const normalized = entries.map(e => ({ ...e, path: normalizeFingerprintPath(e.path) })).filter(e => isFingerprintInput(e.path));
++  normalized.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
++  for (const entry of normalized) {
++    const bytes = typeof entry.bytes === 'string' ? Buffer.from(entry.bytes) : Buffer.from(entry.bytes);
++    hash.update(JSON.stringify([entry.path, bytes.length])).update('\0').update(bytes);
++  }
++  return hash.digest('hex');
++}
++export async function workspaceFingerprint(root: string): Promise<string> {
++  const entries: Array<{ path: string; bytes: Uint8Array }> = [];
++  async function walk(dir: string) {
++    for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
++      const full = path.join(dir, entry.name), relative = normalizeFingerprintPath(path.relative(root, full));
++      if (entry.isDirectory()) {
++        if ((dir === root && ['src', 'scripts'].includes(entry.name)) || (dir !== root && relative !== 'src/music')) await walk(full);
++      } else if (isFingerprintInput(relative)) entries.push({ path: relative, bytes: await fs.readFile(full) });
++    }
++  }
++  await walk(root); return fingerprintEntries(entries);
++}
+--- baseline/src/components/SanmaScreen.tsx
++++ src/components/SanmaScreen.tsx
+@@ -102,13 +102,18 @@
+   }, [runtime, replay]);
+   useEffect(() => {
+     if (!ready || !domReady || fullControl || replay || runtime.paused || state.phase === 'ended') return;
+-    const seat = SANMA_SEATS.find(id => id !== 0 && legalSanmaActions(state, id).length); if (seat === undefined) return;
++    const prepared = SANMA_SEATS.filter(id => id !== 0 && legalSanmaActions(state, id).length).flatMap(seat => {
++      const action = chooseSanmaAction(observeSanma(state, seat), state.config.ai[seat - 1]);
++      const choice = action && runtime.preparePolicyCommand(participantId(seat), current => applySanma(current, seat, action));
++      return choice ? [choice] : [];
++    });
++    if (!prepared.length) return;
+     let cancelled = false;
+     void runPacedAutomaticAction(() => {
+       if (runtime.state !== state || runtime.paused) return;
+-      const action = chooseSanmaAction(observeSanma(state, seat), state.config.ai[seat - 1]); if (action) command(seat, action);
++      finishHandsForAuthoritativeInput(); prepared.forEach(choice => choice.commit());
+     }, { isCancelled: () => cancelled });
+-    return () => { cancelled = true; };
++    return () => { cancelled = true; prepared.forEach(choice => choice.cancel()); };
+   }, [runtime, state, fullControl, replay, ready, domReady, runtime.paused, command]);
+   const step = () => {
+     const wasPaused = runtime.paused; if (wasPaused) runtime.activate();
+--- baseline/src/components/SanmaTestTab.tsx
++++ src/components/SanmaTestTab.tsx
+@@ -1,3 +1,4 @@
++import { sanmaEvidenceStale } from '../game/sanma/evidence';
+ import { useEffect, useMemo, useState, type ReactNode } from 'react';
+ import buildStamp from 'virtual:xz-build';
+ import { ModeResultsStorage } from '../game/testMode/resultsStorage';
+@@ -18,7 +19,7 @@
+   const config = useMemo(() => createSanmaConfig(length, policy), [length, policy]);
+   useEffect(() => { onSessionChange?.(!!session); return () => onSessionChange?.(false); }, [!!session, onSessionChange]);
+   const fingerprint = (t: SanmaCase) => sanmaFingerprint({ ...t, run: undefined, seed, config: { ...config, ...t.config } });
+-  const stale = (t: SanmaCase, r?: Result) => !!r && (r.code.fingerprint !== buildStamp.fingerprint || r.ruleVersion !== SANMA_RULE_VERSION || r.fingerprint !== fingerprint(t));
++  const stale = (t: SanmaCase, r?: Result) => sanmaEvidenceStale(r, { code: buildStamp.fingerprint, ruleVersion: SANMA_RULE_VERSION, fingerprint: fingerprint(t) });
+   const blank = (t: SanmaCase): Result => ({ caseId: t.caseId, caseVersion: t.version, ruleVersion: SANMA_RULE_VERSION, fingerprint: fingerprint(t), code: buildStamp, seed,
+     length: t.config?.length ?? length, policy: t.config?.tsumoPolicy ?? policy, automatic: '未运行', manual: '待核查', notes: '', at: new Date().toISOString() });
+   const persist = (next: Record<string, Result>) => { setResults(next); try { store.save(next); } catch (e) { setMessage(`核查记录保存失败：${e}`); } };
+@@ -44,7 +45,7 @@
+     const t = session.case, result = t ? results[t.caseId] : undefined;
+     return <><SanmaScreen key={session.key} config={session.state.config} initialState={session.state} saved={session.saved} isolated onExit={() => setSession(null)} />
+       <aside className="sanma-case-banner"><strong>{t?.caseId ?? '自由测试'} · {t?.name ?? '真实三人自由对局'}</strong><p>种子{session.state.seed} · {session.state.config.length === 'east-only' ? '三人东' : '三人南'} · {session.state.config.tsumoPolicy === 'loss' ? '有损' : '无损'}</p>
+-        <details open><summary>操作与预期</summary>{t?.steps.map(step => <p key={step}>{step}</p>)}{t?.expected.map(expected => <p key={expected}>预期：{expected}</p>)}</details>
++        <details open><summary>操作与预期</summary>{t?.steps.map(step => <p key={step}>{step}</p>)}{t?.expected.map(expected => <p key={expected}>预期：{expected}</p>)}{t?.manualFocus.map(focus => <p key={focus}>人工重点：{focus}</p>)}<p>先暂停；勾选完全控制关闭 AI；关闭自动操作清除当前观察席的自动设置（换席后分别关闭）。暂停时单步推进一次后仍暂停。测试时钟＋5秒会主动触发权威超时。听感核查请在本人浏览器移除 mute=1 后重新加载，并在声音设置取消静音；自动验证始终静音。</p></details>
+         <button onClick={() => load(t)}>同seed重置场景</button><button onClick={() => setSession(null)}>返回三人测试Tab</button>{t && <><button disabled={busy} onClick={() => void run([t])}>运行当前场景自动检查</button><p>自动：{stale(t, result) ? '需复验' : result?.automatic ?? '未运行'}</p><p>{result?.error}</p>
+           <label>人工核查<select aria-label={`${t.caseId}人工核查`} value={stale(t, result) ? '待核查' : result?.manual ?? '待核查'} onChange={e => editManual(t, { manual: e.target.value as Result['manual'] })}>{['待核查', '通过', '不通过'].map(v => <option key={v}>{v}</option>)}</select></label><textarea aria-label={`${t.caseId}人工备注`} value={result?.notes ?? ''} onChange={e => editManual(t, { notes: e.target.value })} /></>}
+         <button onClick={exportReport}>导出诊断报告</button>
+--- baseline/src/game/ai.test.ts
++++ src/game/ai.test.ts
+@@ -1,4 +1,4 @@
+-import { describe, expect, it } from 'vitest';
++import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
+ import { advanceAIAction, getVisibleCountsForPlayer, isAIPlayer, selectAIDiscardTile } from './ai';
+ import { createInitialGameState, declareRiichi, discardTile, getRiichiDiscardCandidates } from './engine';
+ import { createTile } from './tileUtils';
+@@ -48,6 +48,15 @@
+ }
+ 
+ describe('AI auto play', () => {
++  // Seed 308 fixes wall, dora and replacement draws for legality fixtures.
++  beforeEach(() => {
++    let seed = 308;
++    vi.spyOn(Math, 'random').mockImplementation(() => {
++      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
++      return seed / 4294967296;
++    });
++  });
++  afterEach(() => vi.restoreAllMocks());
+   it('identifies Player 2-4 as AI and Player 1 as human', () => {
+     expect(isAIPlayer(0)).toBe(false);
+     expect(isAIPlayer(1)).toBe(true);
+@@ -296,11 +305,28 @@
+     expect(counts[31]).toBe(4);
+   });
+ 
++  it('an unrelated non-lower pon option adds a pass step before the next draw', () => {
++    let state = createInitialGameState();
++    state = setHand(state, 0, [1, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22, 27, 31, 33]);
++    state = setHand(state, 1, [4, 6, 8, 10, 12, 14, 18, 20, 22, 24, 27, 31, 33]);
++    state = setHand(state, 2, [0, 2, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]);
++    state = setHand(state, 3, [1, 1, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]);
++    const window = discardTile({ ...state, currentPlayer: 0, phase: 'discard' }, 0, state.players[0].hand[0].instanceId);
++    expect(window.phase).toBe('call-window');
++    const after = advanceAIAction(window, () => 0);
++    expect(after.players[2].calls).toHaveLength(0);
++    expect(after.players[3].calls).toHaveLength(0);
++    expect(after.phase).toBe('draw');
++    expect(after.currentPlayer).toBe(1);
++  });
++
+   it('AI does not perform illegal chi from a non-lower seat and passes normally', () => {
+     let state = createInitialGameState();
+     state = setHand(state, 0, [1, 3, 5, 7, 9, 11, 13, 15, 18, 20, 22, 27, 31, 33]);
+     state = setHand(state, 1, [4, 6, 8, 10, 12, 14, 18, 20, 22, 24, 27, 31, 33]);
+     state = setHand(state, 2, [0, 2, 4, 6, 8, 10, 12, 14, 18, 20, 22, 27, 31]);
++    // Seat 3 previously retained a random hand and could legally pon/ron.
++    state = setHand(state, 3, [0, 4, 8, 9, 13, 17, 18, 22, 26, 28, 30, 31, 33]);
+     state = { ...state, currentPlayer: 0, phase: 'discard' };
+     const afterDiscard = discardTile(state, 0, state.players[0].hand[0].instanceId);
+     const after = advanceAIAction(afterDiscard, () => 0);
+--- baseline/src/game/timeControl/matchRuntime.ts
++++ src/game/timeControl/matchRuntime.ts
+@@ -3,7 +3,7 @@
+ 
+ export interface AutoPreferences { autoWin: boolean; suppressCalls: boolean; autoTsumogiri: boolean }
+ export const emptyPreferences = (): AutoPreferences => ({ autoWin: false, suppressCalls: false, autoTsumogiri: false });
+-export type ActionSource = 'manual' | 'timeout' | 'auto-win' | 'suppress-calls' | 'auto-tsumogiri' | 'selection-timeout';
++export type ActionSource = 'manual' | 'ai-policy' | 'timeout' | 'auto-win' | 'suppress-calls' | 'auto-tsumogiri' | 'selection-timeout';
+ export interface ActionAudit {
+   schemaVersion: 1; sequence: number; decisionId: string; participantId: string; source: ActionSource;
+   policyVersion: 'infra-v1'; baseUsedMs: number; bankUsedMs: number; lagMs: number; terminal: boolean;
+@@ -48,6 +48,22 @@
+   private commandSequence = 0;
+   private auditUsage = new Map<string, { base: number; bank: number }>();
+   private readyResources = new Set<string>();
++  private prepared = new Map<string, { receivedAt: number; reduce: (state: S) => S }>();
++  /** Accept a computed policy choice before presentation waits. The Match deadline
++   * commits it if pacing is still blocked; it must never substitute timeout play. */
++  preparePolicyCommand(participantId: string, reduce: (state: S) => S): { commit: () => void; cancel: () => void } | null {
++    const d = this.decision(participantId);
++    if (!this.active || this.disposed || this.error || !d || this.time.clock.now() < d.opensAt || this.time.expired(d)) { this.evaluate(); return null; }
++    const entry = { receivedAt: this.time.clock.now(), reduce };
++    this.prepared.set(d.id, entry);
++    return {
++      commit: () => {
++        if (this.prepared.get(d.id) !== entry || !this.time.isCurrent(d)) return;
++        this.command(participantId, d.id, reduce, undefined, undefined, 'ai-policy');
++      },
++      cancel: () => { if (this.prepared.get(d.id) === entry) this.prepared.delete(d.id); },
++    };
++  }
+   constructor(state: S, readonly policy: ModePolicy<S>, config = unlimitedTimeControl(policy.mode), clock: Clock = monotonicClock,
+     readonly transitionMs = INPUT_TRANSITION_MS, save?: RuntimeSave, private readonly requireResources = false) {
+     this.state = state;
+@@ -101,7 +117,7 @@
+   }
+   /** Receipt and reduction are synchronous: no React queue can move a pre-deadline command past its deadline. */
+   command(participantId: string, decisionId: string | undefined, reduce: (state: S) => S,
+-    commandId = `manual-${++this.commandSequence}`, expectedDraftRevision?: number): boolean {
++    commandId = `manual-${++this.commandSequence}`, expectedDraftRevision?: number, source: 'manual' | 'ai-policy' = 'manual'): boolean {
+     if (!this.active || this.disposed || this.error || this.commands.has(commandId)) return false;
+     const receivedAt = this.time.clock.now();
+     const d = this.decision(participantId);
+@@ -115,7 +131,7 @@
+     if (next === before) return false;
+     if (this.preference(participantId).suppressCalls && this.policy.isSuppressedCall?.(before, next, participantId)) return false;
+     if (this.policy.editable?.(before, d)) this.draftRevisions[participantId] = (this.draftRevisions[participantId] ?? 0) + 1;
+-    this.apply(next, d, 'manual', receivedAt);
++    this.apply(next, d, source, source === 'ai-policy' ? this.prepared.get(d.id)?.receivedAt ?? receivedAt : receivedAt);
+     this.evaluate(); return true;
+   }
+   /** Existing AI/draw/round-transition producers enter the same synchronous owner. */
+@@ -138,8 +154,10 @@
+     const specs = this.requireResources && !this.readyResources.has(resourceKey) ? [] : this.policy.decisions(this.state);
+     for (const d of [...this.time.decisions.values()]) if (!specs.some(s => s.participantId === d.participantId && s.key === d.key)) this.time.close(d);
+     for (const spec of specs) this.time.open(spec, this.transitionMs);
++    for (const id of this.prepared.keys()) if (![...this.time.decisions.values()].some(d => d.id === id)) this.prepared.delete(id);
+   }
+   private apply(next: S, d: Decision, source: ActionSource, at: number): void {
++    this.prepared.delete(d.id); // Other responders retain their own decision-bound choices.
+     const before = this.state;
+     const nextSpec = this.policy.decisions(next).find(s => s.participantId === d.participantId);
+     const suspend = this.policy.suspend?.(before, next, d) ?? false;
+@@ -170,11 +188,14 @@
+           if (!this.time.isCurrent(d) || this.time.clock.now() < d.opensAt) continue;
+           const at = this.time.clock.now();
+           const expired = this.time.expired(d, at);
+-          const result = expired ? { state: this.policy.timeout(this.state, d), source: d.kind === 'selection' ? 'selection-timeout' as const : 'timeout' as const }
++          const prepared = this.prepared.get(d.id);
++          const chosen = expired && prepared ? prepared.reduce(this.state) : this.state;
++          const allowed = chosen !== this.state && !(this.preference(d.participantId).suppressCalls && this.policy.isSuppressedCall?.(this.state, chosen, d.participantId));
++          const result = expired && allowed ? { state: chosen, source: 'ai-policy' as const } : expired ? { state: this.policy.timeout(this.state, d), source: d.kind === 'selection' ? 'selection-timeout' as const : 'timeout' as const }
+             : this.policy.automatic(this.state, d, this.preference(d.participantId));
+           if (!result) continue;
+           if (result.state === this.state) { if (expired) throw new Error('到期决策没有合法终结动作'); continue; }
+-          this.apply(result.state, d, result.source, at); changed = true;
++          this.apply(result.state, d, result.source, result.source === 'ai-policy' ? prepared!.receivedAt : at); changed = true;
+         }
+         if (!changed) break;
+         if (step === 15) throw new Error('自动策略超过单次推进上限');

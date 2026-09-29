@@ -1,0 +1,14 @@
+.match-clock-hud { position: fixed; left: 12px; bottom: 12px; z-index: 45; color: #f5f3de; background: rgba(9, 28, 25, .94); border: 1px solid #859e82; border-radius: 9px; box-shadow: 0 4px 14px #0003; pointer-events: auto; }
+.match-clock-hud--expanded { width: 82px; padding: 7px 24px 7px 7px; box-sizing: border-box; }
+.match-clock-hud--collapsed { width: 24px; height: 40px; }
+.match-clock-hud__buttons { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.match-clock-hud button { min-height: 30px; padding: 3px; font-size: 14px; }
+.match-clock-hud__buttons button { position: relative; width: 34px; }
+.match-clock-hud button[aria-pressed="true"] { outline: 2px solid #dace8c; background: #4c6958; }
+.match-clock-hud .match-clock-hud__toggle { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 22px; height: 36px; padding: 0; border: 0; background: transparent; color: inherit; font-size: 24px; }
+.match-clock-hud__time { display: flex; justify-content: center; gap: 5px; margin-top: 7px; margin-right: -17px; font-size: 11px; line-height: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.match-clock-hud__mark { position: absolute; right: -2px; top: -3px; font-size: 10px; }
+.time-control-heading { display: flex; align-items: center; gap: 6px; }
+.time-control-heading .rule-help-tooltip { left: 0; transform: translateY(4px); white-space: pre-line; font-weight: normal; }
+.time-control-heading .rule-help-tooltip[data-open="true"] { transform: translateY(0); }
+@media (max-height: 800px) { .match-clock-hud { bottom: 8px; left: 8px; } }

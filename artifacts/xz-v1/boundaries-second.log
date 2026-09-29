@@ -1,0 +1,14 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+stdout | src/game/xuezhan/boundaries.test.ts > 独立边界金样（生产初始牌与动作） > 难度与个性在相同合法局面产生可测分歧，不是换标签
+{ difficultyDisagreements: 43, personalityDisagreements: 33 }
+
+ ✓ src/game/xuezhan/boundaries.test.ts (9 tests) 844ms
+   ✓ 独立边界金样（生产初始牌与动作） > 难度与个性在相同合法局面产生可测分歧，不是换标签 568ms
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  21:37:57
+   Duration  1.27s (transform 98ms, setup 0ms, collect 128ms, tests 844ms, environment 0ms, prepare 97ms)
+

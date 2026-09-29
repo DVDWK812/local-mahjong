@@ -1,0 +1,1703 @@
+{
+  "cursor": 568,
+  "events": [
+    {
+      "sequence": 25,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/assets/tiles/p6.png"
+        },
+        "requestId": "27696.1115",
+        "timestamp": 13998.343525,
+        "type": "Image",
+        "wallTime": 1790175146.685876
+      }
+    },
+    {
+      "sequence": 26,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/assets/tiles/p8.png"
+        },
+        "requestId": "27696.1117",
+        "timestamp": 13998.343648,
+        "type": "Image",
+        "wallTime": 1790175146.685962
+      }
+    },
+    {
+      "sequence": 27,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/assets/tiles/s3.png"
+        },
+        "requestId": "27696.1118",
+        "timestamp": 13998.343686,
+        "type": "Image",
+        "wallTime": 1790175146.685996
+      }
+    },
+    {
+      "sequence": 28,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/assets/tiles/s6.png"
+        },
+        "requestId": "27696.1119",
+        "timestamp": 13998.343719,
+        "type": "Image",
+        "wallTime": 1790175146.686031
+      }
+    },
+    {
+      "sequence": 29,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/assets/tiles/s9.png"
+        },
+        "requestId": "27696.1120",
+        "timestamp": 13998.343745,
+        "type": "Image",
+        "wallTime": 1790175146.686054
+      }
+    },
+    {
+      "sequence": 30,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/assets/tiles/z1.png"
+        },
+        "requestId": "27696.1121",
+        "timestamp": 13998.343768,
+        "type": "Image",
+        "wallTime": 1790175146.686079
+      }
+    },
+    {
+      "sequence": 31,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/assets/tiles/z2.png"
+        },
+        "requestId": "27696.1122",
+        "timestamp": 13998.343792,
+        "type": "Image",
+        "wallTime": 1790175146.686101
+      }
+    },
+    {
+      "sequence": 32,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/assets/tiles/z5.png"
+        },
+        "requestId": "27696.1123",
+        "timestamp": 13998.343814,
+        "type": "Image",
+        "wallTime": 1790175146.686124
+      }
+    },
+    {
+      "sequence": 41,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/bgm_game/Shanghai%20Gambit.wav"
+        },
+        "requestId": "27696.1124",
+        "timestamp": 13998.357529,
+        "type": "Media",
+        "wallTime": 1790175146.699857
+      }
+    },
+    {
+      "sequence": 95,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=34045952-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/bgm_game/Shanghai%20Gambit.wav"
+        },
+        "requestId": "27696.1125",
+        "timestamp": 13998.585088,
+        "type": "Media",
+        "wallTime": 1790175146.927422
+      }
+    },
+    {
+      "sequence": 97,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/api/voice-packs/xiaozhang/audio/game_start.mp3"
+        },
+        "requestId": "27696.1126",
+        "timestamp": 13998.612474,
+        "type": "Media",
+        "wallTime": 1790175146.954809
+      }
+    },
+    {
+      "sequence": 119,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/assets/tiles/p3.png"
+        },
+        "requestId": "27696.1129",
+        "timestamp": 14005.359952,
+        "type": "Image",
+        "wallTime": 1790175153.702286
+      }
+    },
+    {
+      "sequence": 120,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/reach-open.png"
+        },
+        "requestId": "27696.1130",
+        "timestamp": 14005.360108,
+        "type": "Image",
+        "wallTime": 1790175153.702428
+      }
+    },
+    {
+      "sequence": 121,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/touch-contact.png"
+        },
+        "requestId": "27696.1131",
+        "timestamp": 14005.360163,
+        "type": "Image",
+        "wallTime": 1790175153.702474
+      }
+    },
+    {
+      "sequence": 131,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/pinch-grab.png"
+        },
+        "requestId": "27696.1135",
+        "timestamp": 14005.531726,
+        "type": "Image",
+        "wallTime": 1790175153.874067
+      }
+    },
+    {
+      "sequence": 132,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/effects/draw/draw1.wav"
+        },
+        "requestId": "27696.1136",
+        "timestamp": 14005.532246,
+        "type": "Media",
+        "wallTime": 1790175153.87458
+      }
+    },
+    {
+      "sequence": 145,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/carry-forward.png"
+        },
+        "requestId": "27696.1138",
+        "timestamp": 14005.635972,
+        "type": "Image",
+        "wallTime": 1790175153.978305
+      }
+    },
+    {
+      "sequence": 153,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/release-open.png"
+        },
+        "requestId": "27696.1140",
+        "timestamp": 14005.876892,
+        "type": "Image",
+        "wallTime": 1790175154.219224
+      }
+    },
+    {
+      "sequence": 166,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/retract-relaxed.png"
+        },
+        "requestId": "27696.1142",
+        "timestamp": 14005.969755,
+        "type": "Image",
+        "wallTime": 1790175154.312087
+      }
+    },
+    {
+      "sequence": 175,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=2359296-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/bgm_game/Shanghai%20Gambit.wav"
+        },
+        "requestId": "27696.1143",
+        "timestamp": 14008.473315,
+        "type": "Media",
+        "wallTime": 1790175156.81565
+      }
+    },
+    {
+      "sequence": 234,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/reach-open.png"
+        },
+        "requestId": "27696.1174",
+        "timestamp": 14011.247871,
+        "type": "Image",
+        "wallTime": 1790175159.590201
+      }
+    },
+    {
+      "sequence": 235,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/touch-contact.png"
+        },
+        "requestId": "27696.1175",
+        "timestamp": 14011.247955,
+        "type": "Image",
+        "wallTime": 1790175159.590264
+      }
+    },
+    {
+      "sequence": 243,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/api/voice-packs/xiaozhang/audio/tile_z7.mp3"
+        },
+        "requestId": "27696.1178",
+        "timestamp": 14011.279596,
+        "type": "Media",
+        "wallTime": 1790175159.621935
+      }
+    },
+    {
+      "sequence": 250,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/effects/discard/discard1.wav"
+        },
+        "requestId": "27696.1185",
+        "timestamp": 14011.847371,
+        "type": "Media",
+        "wallTime": 1790175160.189698
+      }
+    },
+    {
+      "sequence": 253,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/retract-relaxed.png"
+        },
+        "requestId": "27696.1187",
+        "timestamp": 14011.850713,
+        "type": "Image",
+        "wallTime": 1790175160.193042
+      }
+    },
+    {
+      "sequence": 263,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/reach-open.png"
+        },
+        "requestId": "27696.1214",
+        "timestamp": 14012.025939,
+        "type": "Image",
+        "wallTime": 1790175160.368271
+      }
+    },
+    {
+      "sequence": 264,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/touch-contact.png"
+        },
+        "requestId": "27696.1215",
+        "timestamp": 14012.026036,
+        "type": "Image",
+        "wallTime": 1790175160.368345
+      }
+    },
+    {
+      "sequence": 278,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/effects/draw/draw2.wav"
+        },
+        "requestId": "27696.1216",
+        "timestamp": 14012.180251,
+        "type": "Media",
+        "wallTime": 1790175160.522581
+      }
+    },
+    {
+      "sequence": 281,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/pinch-grab.png"
+        },
+        "requestId": "27696.1218",
+        "timestamp": 14012.18353,
+        "type": "Image",
+        "wallTime": 1790175160.525856
+      }
+    },
+    {
+      "sequence": 298,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/api/voice-packs/xiaozhang/audio/tile_p2.mp3"
+        },
+        "requestId": "27696.1225",
+        "timestamp": 14012.810855,
+        "type": "Media",
+        "wallTime": 1790175161.15321
+      }
+    },
+    {
+      "sequence": 305,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/effects/discard/discard2.wav"
+        },
+        "requestId": "27696.1234",
+        "timestamp": 14013.404813,
+        "type": "Media",
+        "wallTime": 1790175161.747155
+      }
+    },
+    {
+      "sequence": 313,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/effects/draw/draw1.wav"
+        },
+        "requestId": "27696.1239",
+        "timestamp": 14013.73705,
+        "type": "Media",
+        "wallTime": 1790175162.079383
+      }
+    },
+    {
+      "sequence": 314,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/pinch-grab.png"
+        },
+        "requestId": "27696.1241",
+        "timestamp": 14013.740566,
+        "type": "Image",
+        "wallTime": 1790175162.082896
+      }
+    },
+    {
+      "sequence": 332,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/carry-forward.png"
+        },
+        "requestId": "27696.1243",
+        "timestamp": 14013.834694,
+        "type": "Image",
+        "wallTime": 1790175162.177027
+      }
+    },
+    {
+      "sequence": 347,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/release-open.png"
+        },
+        "requestId": "27696.1245",
+        "timestamp": 14014.076262,
+        "type": "Image",
+        "wallTime": 1790175162.418596
+      }
+    },
+    {
+      "sequence": 356,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/retract-relaxed.png"
+        },
+        "requestId": "27696.1247",
+        "timestamp": 14014.170758,
+        "type": "Image",
+        "wallTime": 1790175162.513091
+      }
+    },
+    {
+      "sequence": 373,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/api/voice-packs/xiaozhang/audio/tile_m1.mp3"
+        },
+        "requestId": "27696.1250",
+        "timestamp": 14014.360936,
+        "type": "Media",
+        "wallTime": 1790175162.703266
+      }
+    },
+    {
+      "sequence": 380,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/effects/discard/discard1.wav"
+        },
+        "requestId": "27696.1259",
+        "timestamp": 14014.941435,
+        "type": "Media",
+        "wallTime": 1790175163.283763
+      }
+    },
+    {
+      "sequence": 387,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/effects/draw/draw2.wav"
+        },
+        "requestId": "27696.1268",
+        "timestamp": 14015.278638,
+        "type": "Media",
+        "wallTime": 1790175163.620966
+      }
+    },
+    {
+      "sequence": 393,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/hand/packs/female/retract-relaxed.png"
+        },
+        "requestId": "27696.1274",
+        "timestamp": 14015.737175,
+        "type": "Image",
+        "wallTime": 1790175164.079512
+      }
+    },
+    {
+      "sequence": 413,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/bgm_main/%E9%99%8B%E5%AE%A4%E9%93%AD.wav"
+        },
+        "requestId": "27696.1275",
+        "timestamp": 14044.787691,
+        "type": "Media",
+        "wallTime": 1790175193.130019
+      }
+    },
+    {
+      "sequence": 421,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=33816576-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/bgm_main/%E9%99%8B%E5%AE%A4%E9%93%AD.wav"
+        },
+        "requestId": "27696.1276",
+        "timestamp": 14044.799933,
+        "type": "Media",
+        "wallTime": 1790175193.142261
+      }
+    },
+    {
+      "sequence": 428,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=262144-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/bgm_main/%E9%99%8B%E5%AE%A4%E9%93%AD.wav"
+        },
+        "requestId": "27696.1277",
+        "timestamp": 14044.814162,
+        "type": "Media",
+        "wallTime": 1790175193.156493
+      }
+    },
+    {
+      "sequence": 489,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=0-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/bgm_game/Shanghai%20Gambit.wav"
+        },
+        "requestId": "27696.1314",
+        "timestamp": 14056.649802,
+        "type": "Media",
+        "wallTime": 1790175204.99213
+      }
+    },
+    {
+      "sequence": 497,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=34045952-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/bgm_game/Shanghai%20Gambit.wav"
+        },
+        "requestId": "27696.1315",
+        "timestamp": 14056.66062,
+        "type": "Media",
+        "wallTime": 1790175205.002946
+      }
+    },
+    {
+      "sequence": 505,
+      "source": {
+        "tabId": 3
+      },
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "documentURL": "http://127.0.0.1:5173/?mute=1",
+        "frameId": "A7E8A00D40E5151E2B07D5CCF7BD427C",
+        "hasUserGesture": true,
+        "initiator": {
+          "type": "other"
+        },
+        "loaderId": "C4915FD7E071FDDF666B5BF449EFB014",
+        "redirectHasExtraInfo": false,
+        "request": {
+          "headers": {
+            "Accept-Encoding": "identity;q=1, *;q=0",
+            "Range": "bytes=983040-",
+            "Referer": "http://127.0.0.1:5173/?mute=1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\""
+          },
+          "initialPriority": "Low",
+          "isSameSite": true,
+          "method": "GET",
+          "mixedContentType": "none",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "url": "http://127.0.0.1:5173/src/music/bgm_game/Shanghai%20Gambit.wav"
+        },
+        "requestId": "27696.1316",
+        "timestamp": 14059.230605,
+        "type": "Media",
+        "wallTime": 1790175207.572935
+      }
+    }
+  ],
+  "hasMore": false,
+  "truncated": false
+}

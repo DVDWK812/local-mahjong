@@ -3,11 +3,11 @@ import {
   waitForAnimationTime,
   type AnimationTask,
 } from '../animation/AnimationScheduler';
-import type { MeldDeclaredPresentationEvent, RiichiDeclaredPresentationEvent, TileDiscardedPresentationEvent, TileDrawnPresentationEvent } from '../PresentationEventBus';
+import type { NorthCommittedPresentationEvent, MeldDeclaredPresentationEvent, RiichiDeclaredPresentationEvent, TileDiscardedPresentationEvent, TileDrawnPresentationEvent } from '../PresentationEventBus';
 import type { PresentationRect } from './DiscardSourceSnapshot';
 import { handAudioCue, presentationAudioCues, type AnimationCueFrame } from '../PresentationAudioCue';
 
-export type HandAnimationAction = TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | (TileDiscardedPresentationEvent & {
+export type HandAnimationAction = NorthCommittedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | (TileDiscardedPresentationEvent & {
   readonly discardSourceRect?: PresentationRect;
 });
 export type HandAnimationPhase = 'approach' | 'grasp' | 'travel' | 'release' | 'retreat';
@@ -38,6 +38,12 @@ export const HAND_ANIMATION_PHASES: ReadonlyArray<{ phase: HandAnimationPhase; d
   { phase: 'retreat', durationMs: 170 },
 ];
 
+const liveHandControllers = new Set<HandAnimationController>();
+/** Match announces input opening independently of animation completion. Stalled visuals yield now. */
+export function finishHandsForAuthoritativeInput(): void {
+  liveHandControllers.forEach(controller => controller.cancelAll());
+}
+
 export class HandAnimationController {
   private readonly queue: HandAnimationAction[] = [];
   private readonly idleResolvers = new Set<() => void>();
@@ -58,6 +64,7 @@ export class HandAnimationController {
     private readonly scheduler: AnimationScheduler = new AnimationScheduler(),
     private readonly options: HandAnimationControllerOptions = {},
   ) {
+    liveHandControllers.add(this);
     this.maxQueuedActions = Math.max(1, options.maxQueuedActions ?? 6);
     this.onError = options.onError ?? (() => undefined);
     this.onSettled = options.onSettled ?? (() => undefined);
@@ -126,6 +133,7 @@ export class HandAnimationController {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    liveHandControllers.delete(this);
     this.cancelAll();
   }
 
@@ -170,8 +178,8 @@ export class HandAnimationController {
             && generation === this.generation && !this.disposed) {
             const kind = action.type === 'tile_drawn' ? 'draw-contact'
               : action.type === 'tile_discarded' ? 'discard-impact'
-              : action.type === 'meld_declared' ? 'meld-impact' : 'riichi-stick-impact';
-            audioRun.emit(kind, 'reduced-motion-settled', 1);
+              : action.type === 'meld_declared' ? 'meld-impact' : action.type === 'riichi_declared' ? 'riichi-stick-impact' : undefined;
+            if (kind) audioRun.emit(kind, 'reduced-motion-settled', 1);
           }
         }
       } catch (error) {

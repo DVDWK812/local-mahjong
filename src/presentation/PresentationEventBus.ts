@@ -149,7 +149,19 @@ export interface MatchResultPresentationEvent {
   readonly activePlayerIds: readonly PlayerId[];
 }
 
-export type PresentationEvent = DoraRevealedPresentationEvent | TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | WinDeclaredPresentationEvent | WinScoredPresentationEvent | RoundSettledPresentationEvent | RoundEndAnnouncedPresentationEvent | MatchStartedPresentationEvent | MatchResultPresentationEvent;
+export interface NorthDeclaredPresentationEvent {
+  readonly type: 'north_declared'; readonly eventId: string; readonly sequence: number;
+  readonly playerId: PlayerId; readonly declarationId: string;
+}
+
+export interface NorthCommittedPresentationEvent {
+  readonly type: 'north_committed'; readonly eventId: string; readonly sequence: number;
+  readonly playerId: PlayerId; readonly tile: import('../game/types').Tile;
+  readonly sourceIndex: number; readonly sourceCount: number;
+  readonly sourceRect?: import('./handAnimation/DiscardSourceSnapshot').PresentationRect;
+}
+
+export type PresentationEvent = NorthDeclaredPresentationEvent | NorthCommittedPresentationEvent | DoraRevealedPresentationEvent | TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | WinDeclaredPresentationEvent | WinScoredPresentationEvent | RoundSettledPresentationEvent | RoundEndAnnouncedPresentationEvent | MatchStartedPresentationEvent | MatchResultPresentationEvent;
 type WithoutPresentationMetadata<T> = T extends PresentationEvent ? Omit<T, 'eventId' | 'sequence'> : never;
 export type PresentationEventInput = WithoutPresentationMetadata<PresentationEvent>;
 export type PresentationEventListener = (event: PresentationEvent) => void;

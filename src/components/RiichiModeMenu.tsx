@@ -22,7 +22,7 @@ export function RiichiModeMenu({ notice, onBack, onFourPlayer, onThreePlayer, on
         {notice ? <p className="menu-notice">{notice}</p> : null}
         <div className="menu-actions">
           <button type="button" onClick={onFourPlayer}>四人间</button>
-          <button type="button" onClick={onThreePlayer}>三人间<span>敬请期待</span></button>
+          <button type="button" onClick={onThreePlayer}>三人间</button>
           <h1>娱乐模式</h1>
           <button type="button" onClick={on17Steps ?? (() => undefined)}>17步麻将</button>
           <button type="button" onClick={onWashizu ?? (() => undefined)}>鹫巢麻将</button>

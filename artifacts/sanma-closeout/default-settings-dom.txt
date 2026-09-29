@@ -1,0 +1,65 @@
+- main:
+  - button "返回"
+  - paragraph: 本地模式 ＞ 立直麻将 ＞ 三人间 ＞ 三人东
+  - heading "三人东 · 赛前配置" [level=1]
+  - paragraph: 一名真人与两名 AI，从东一开始。常规最终局为东三，含连庄及南入。
+  - text: 自摸损
+  - combobox "自摸损":
+    - option "有（默认）" [selected]
+    - option "无（均摊缺席份额，向上取百点）"
+  - text: 起始点数
+  - spinbutton "起始点数": "35000"
+  - text: 终局目标
+  - spinbutton "终局目标": "40000"
+  - text: 成绩返还点
+  - spinbutton "成绩返还点": "40000"
+  - heading "三名玩家" [level=2]
+  - strong: 真人
+  - textbox "玩家1昵称": 玩家
+  - strong: AI 1
+  - textbox "玩家2昵称": 电脑一
+  - text: 难度
+  - combobox "AI 1难度":
+    - option "筑魂"
+    - option "心天体" [selected]
+    - option "上级"
+    - option "鬼神"
+  - text: 风格
+  - combobox "AI 1风格":
+    - option "均衡" [selected]
+    - option "防守"
+    - option "进攻"
+  - strong: AI 2
+  - textbox "玩家3昵称": 电脑二
+  - text: 难度
+  - combobox "AI 2难度":
+    - option "筑魂"
+    - option "心天体" [selected]
+    - option "上级"
+    - option "鬼神"
+  - text: 风格
+  - combobox "AI 2风格":
+    - option "均衡" [selected]
+    - option "防守"
+    - option "进攻"
+  - region "时间控制":
+    - heading "时间控制 查看规则说明 基础时间用完后才消耗本小局 Bank；未用完的基础时间不累存。比赛开始后配置只读。 摸牌超时弃真实摸入牌；响应超时跳过；吃碰后按固定牌序选择合法弃牌。" [level=2]:
+      - text: 时间控制
+      - button "查看规则说明": "?"
+      - tooltip "基础时间用完后才消耗本小局 Bank；未用完的基础时间不累存。比赛开始后配置只读。 摸牌超时弃真实摸入牌；响应超时跳过；吃碰后按固定牌序选择合法弃牌。"
+    - text: 出牌计时
+    - combobox "出牌计时":
+      - option "限时" [selected]
+      - option "不限时"
+    - text: 响应基础时间（秒）
+    - spinbutton "响应基础时间（秒）": "5"
+    - text: 小局累计额外响应时间（秒）
+    - spinbutton "小局累计额外响应时间（秒）": "20"
+  - generic "三人规则摘要"
+  - paragraph: 108张，移除二至八万；红五筒、红五索各一张。禁止吃，可碰杠。北为客风，可以保留、弃出或拔北；拔北不破门清。允许有役抢北及双响；拔北补牌计岭上。
+  - paragraph: 一番起和，宝牌不能单独构成役。本场荣和200／自摸每家100；不听罚符总额2000。顺位分＋20／0／−20，默认头名奖励15点。到达终局目标后仍按末局规则判断。
+  - paragraph: 自动摸切会弃出真实摸入的北，不会自动拔北。比赛开始后，时间及支付规则以本场快照为准。
+  - button "返回"
+  - button "恢复三人存档"
+  - button "三人牌谱"
+  - button "开始三人东"

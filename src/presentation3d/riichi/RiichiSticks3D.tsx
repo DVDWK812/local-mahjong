@@ -1,5 +1,5 @@
 import type { Table3DSeat } from '../coordinates/seatTransforms';
-import type { TableSceneState } from '../sceneState/tableSceneTypes';
+import type { OccupiedTableSceneState } from '../sceneState/tableSceneTypes';
 import { RiichiStick3D } from './RiichiStick3D';
 import type { RiichiStick3DAppearance } from './riichiStickAppearance';
 import { useContext } from 'react';
@@ -8,7 +8,7 @@ import { TileAppearance3DContext, resolveOwnedAppearance3D } from '../appearance
 const SEATS: readonly Table3DSeat[] = ['bottom', 'right', 'top', 'left'];
 
 export function RiichiSticks3D({ sceneState, hiddenSeats, appearance }: Readonly<{
-  sceneState: TableSceneState;
+  sceneState: OccupiedTableSceneState;
   hiddenSeats?: ReadonlySet<Table3DSeat>;
   appearance?: RiichiStick3DAppearance;
 }>) {
@@ -20,7 +20,7 @@ export function RiichiSticks3D({ sceneState, hiddenSeats, appearance }: Readonly
           <RiichiStick3D
             key={seat}
             seat={seat}
-            appearance={resolveOwnedAppearance3D(resources, sceneState.seats[seat].playerId).riichiStickAppearance ?? appearance}
+            appearance={resolveOwnedAppearance3D(resources, sceneState.seats[seat]?.playerId).riichiStickAppearance ?? appearance}
             raycastDisabled
           />
         ))}
@@ -29,8 +29,8 @@ export function RiichiSticks3D({ sceneState, hiddenSeats, appearance }: Readonly
 }
 
 export function resolveVisibleRiichiSeats(
-  seats: Readonly<Record<Table3DSeat, Readonly<{ riichi: boolean }>>>,
+  seats: Readonly<Partial<Record<Table3DSeat, Readonly<{ riichi: boolean }>>>>,
   hiddenSeats?: ReadonlySet<Table3DSeat>,
 ): readonly Table3DSeat[] {
-  return SEATS.filter((seat) => seats[seat].riichi && !hiddenSeats?.has(seat));
+  return SEATS.filter((seat) => seats[seat]?.riichi && !hiddenSeats?.has(seat));
 }

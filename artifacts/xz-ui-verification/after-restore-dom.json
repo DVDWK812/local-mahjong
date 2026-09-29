@@ -1,0 +1,72 @@
+{
+  "center": "你100庄右家100对家100左家100血战到底第1/4局余55 · 活跃4换3张 3/4 · 待定缺",
+  "hand": [
+    {
+      "id": "xz:1:13",
+      "label": "四万",
+      "selected": "true"
+    },
+    {
+      "id": "xz:1:15",
+      "label": "四万",
+      "selected": "true"
+    },
+    {
+      "id": "xz:1:22",
+      "label": "六万",
+      "selected": "true"
+    },
+    {
+      "id": "xz:1:30",
+      "label": "八万",
+      "selected": null
+    },
+    {
+      "id": "xz:1:49",
+      "label": "四筒",
+      "selected": null
+    },
+    {
+      "id": "xz:1:50",
+      "label": "四筒",
+      "selected": null
+    },
+    {
+      "id": "xz:1:54",
+      "label": "五筒",
+      "selected": null
+    },
+    {
+      "id": "xz:1:56",
+      "label": "六筒",
+      "selected": null
+    },
+    {
+      "id": "xz:1:71",
+      "label": "九筒",
+      "selected": null
+    },
+    {
+      "id": "xz:1:81",
+      "label": "三索",
+      "selected": null
+    },
+    {
+      "id": "xz:1:88",
+      "label": "五索",
+      "selected": null
+    },
+    {
+      "id": "xz:1:92",
+      "label": "六索",
+      "selected": null
+    },
+    {
+      "id": "xz:1:94",
+      "label": "六索",
+      "selected": null
+    }
+  ],
+  "phase": "exchange",
+  "sequence": "6"
+}

@@ -1,0 +1,10 @@
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/presentation/table/sanmaFormalScene.test.tsx (10 tests) 175ms
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  02:16:23
+   Duration  1.98s (transform 587ms, setup 0ms, collect 1.49s, tests 175ms, environment 0ms, prepare 92ms)
+

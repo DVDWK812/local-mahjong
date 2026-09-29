@@ -1,0 +1,170 @@
+[
+  {
+    "caseId": "SM-09-EIGHT",
+    "canvas": 1,
+    "frames": [
+      {
+        "id": "0",
+        "slot": "bottom"
+      },
+      {
+        "id": "1",
+        "slot": "right"
+      },
+      {
+        "id": "2",
+        "slot": "left"
+      }
+    ],
+    "hand": 1,
+    "phase": "turn",
+    "sharedMain": 1
+  },
+  {
+    "caseId": "SM-10-LOW-FULL",
+    "canvas": 1,
+    "frames": [
+      {
+        "id": "0",
+        "slot": "bottom"
+      },
+      {
+        "id": "1",
+        "slot": "right"
+      },
+      {
+        "id": "2",
+        "slot": "left"
+      }
+    ],
+    "hand": 1,
+    "phase": "turn",
+    "sharedMain": 1
+  },
+  {
+    "caseId": "SM-14-TIME",
+    "canvas": 1,
+    "frames": [
+      {
+        "id": "0",
+        "slot": "bottom"
+      },
+      {
+        "id": "1",
+        "slot": "right"
+      },
+      {
+        "id": "2",
+        "slot": "left"
+      }
+    ],
+    "hand": 1,
+    "phase": "turn",
+    "sharedMain": 1
+  },
+  {
+    "caseId": "SM-18-LONG-RIVER",
+    "canvas": 1,
+    "frames": [
+      {
+        "id": "0",
+        "slot": "bottom"
+      },
+      {
+        "id": "1",
+        "slot": "right"
+      },
+      {
+        "id": "2",
+        "slot": "left"
+      }
+    ],
+    "hand": 1,
+    "phase": "turn",
+    "sharedMain": 1
+  },
+  {
+    "caseId": "SM-13-EAST-END",
+    "canvas": 1,
+    "frames": [
+      {
+        "id": "0",
+        "slot": "bottom"
+      },
+      {
+        "id": "1",
+        "slot": "right"
+      },
+      {
+        "id": "2",
+        "slot": "left"
+      }
+    ],
+    "hand": 1,
+    "phase": "turn",
+    "sharedMain": 1
+  },
+  {
+    "caseId": "SM-13-SOUTH-END",
+    "canvas": 1,
+    "frames": [
+      {
+        "id": "0",
+        "slot": "bottom"
+      },
+      {
+        "id": "1",
+        "slot": "right"
+      },
+      {
+        "id": "2",
+        "slot": "left"
+      }
+    ],
+    "hand": 1,
+    "phase": "turn",
+    "sharedMain": 1
+  },
+  {
+    "caseId": "SM-15-RESTORE",
+    "canvas": 1,
+    "frames": [
+      {
+        "id": "0",
+        "slot": "bottom"
+      },
+      {
+        "id": "1",
+        "slot": "right"
+      },
+      {
+        "id": "2",
+        "slot": "left"
+      }
+    ],
+    "hand": 1,
+    "phase": "turn",
+    "sharedMain": 1
+  },
+  {
+    "caseId": "SM-16-REPLAY",
+    "canvas": 1,
+    "frames": [
+      {
+        "id": "0",
+        "slot": "bottom"
+      },
+      {
+        "id": "1",
+        "slot": "right"
+      },
+      {
+        "id": "2",
+        "slot": "left"
+      }
+    ],
+    "hand": 1,
+    "phase": "turn",
+    "sharedMain": 1
+  }
+]

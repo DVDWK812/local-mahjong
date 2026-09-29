@@ -1,5 +1,6 @@
+import { resolveNorthDomSource } from './northDomSource';
 import { useThree } from '@react-three/fiber';
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import type { Group } from 'three';
 import {
   type HandAnimationPhase,
@@ -93,6 +94,9 @@ function LegacyHandAction3D({ active, riichiStickAppearance, handPack }: Readonl
   const ownerAppearance = useTileAppearance3D(active.plan.action.playerId);
   const hand = useVisualHand(active, handPack);
   const { camera, gl } = useThree((state) => state);
+  const sourcePlan = useMemo(() => active.plan.action.type === 'north_committed' && active.plan.action.sourceRect
+    ? resolveNorthDomSource(active.plan, camera, gl.domElement.getBoundingClientRect())
+    : active.plan, [active.plan, camera, gl]);
   const tileRef = useRef<Group>(null);
   const tilePitchRef = useRef<Group>(null);
   const transientRefs = useRef(new Map<string, Group>());
@@ -102,7 +106,7 @@ function LegacyHandAction3D({ active, riichiStickAppearance, handPack }: Readonl
 
   useLayoutEffect(() => {
     const progress = active.progress ?? 0;
-    const motion = resolveTableAnimation3DMotion(active.plan, active.phase, progress);
+    const motion = resolveTableAnimation3DMotion(sourcePlan, active.phase, progress);
     hand.current?.update(projectHandContact(motion.tilePosition, camera, gl.domElement.getBoundingClientRect()),
       active.phase, progress);
     if (tileRef.current) {
@@ -130,9 +134,9 @@ function LegacyHandAction3D({ active, riichiStickAppearance, handPack }: Readonl
       stickRef.current.visible = active.phase !== 'approach' && active.phase !== 'retreat';
     }
     invalidate();
-  }, [active, camera, gl, hand, invalidate]);
+  }, [active, sourcePlan, camera, gl, hand, invalidate]);
 
-  const initial = resolveTableAnimation3DMotion(active.plan, active.phase, active.progress ?? 0);
+  const initial = resolveTableAnimation3DMotion(sourcePlan, active.phase, active.progress ?? 0);
   return (
     <group
       name="table-animation-3d"

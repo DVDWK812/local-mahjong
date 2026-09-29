@@ -1,0 +1,5 @@
+{"start":"2026-09-22T17:01:35.2117272Z","command":"npm run test:xuezhan","exit":0,"end":"2026-09-22T17:02:26.3645995Z"}
+{"start":"2026-09-22T17:02:26.3781765Z","command":"npm run check:types","exit":0,"end":"2026-09-22T17:02:32.3331621Z"}
+{"start":"2026-09-22T17:02:32.3393081Z","command":"npm test","exit":1,"end":"2026-09-22T17:03:51.8476930Z"}
+{"start":"2026-09-22T17:03:51.8494533Z","command":"npm run build","exit":0,"end":"2026-09-22T17:04:04.0861013Z"}
+{"command":"VITE_ENABLE_TEST_MODE=true npm run build -- --outDir dist-diagnostic","exit":0,"end":"2026-09-22T17:04:15.9559342Z"}

@@ -115,6 +115,8 @@ export interface RoundLog {
 }
 
 export interface MatchLog {
+  timeControl?: import('../timeControl/config').TimeControlConfig;
+  actionAudit?: import('../timeControl/matchRuntime').ActionAudit[];
   version: number;
   matchId: string;
   createdAt: string;

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { MatchState } from '../../game/match/types';
 import type { GameState, Wind } from '../../game/types';
 
@@ -36,18 +37,28 @@ const windNames: Record<Wind, string> = {
 export function GameTopBar({ gameState, analysisOpen, onOpenRulesGuide, onOpenAudioSettings, onToggleAnalysis, onReturnMenu, modeLabel, phaseLabelOverride, currentPlayerDisplayName }: GameTopBarProps) {
   const current = gameState.players[gameState.currentPlayer];
 
+  return <GameTopBarView analysisOpen={analysisOpen} onOpenRulesGuide={onOpenRulesGuide} onOpenAudioSettings={onOpenAudioSettings} onToggleAnalysis={onToggleAnalysis} onReturnMenu={onReturnMenu} modeLabel={modeLabel} currentName={currentPlayerDisplayName ?? current.name} currentWind={current.seatWind} phaseLabel={phaseLabelOverride ?? phaseLabels[gameState.phase]} />;
+}
+
+export function GameTopBarView({ analysisOpen, onOpenRulesGuide, onOpenAudioSettings, onToggleAnalysis, onReturnMenu, modeLabel, currentName, currentWind, phaseLabel, controls }: Omit<GameTopBarProps, 'gameState' | 'matchState' | 'phaseLabelOverride' | 'currentPlayerDisplayName'> & { currentName: string; currentWind: Wind; phaseLabel: string; controls?: ReactNode }) {
   return (
-    <header className="game-top-bar" aria-label="对局状态栏">
-      <div className="game-top-bar-section game-top-bar-section--turn">
-        <span>{modeLabel ? `模式：${modeLabel}　` : ''}轮到：{windNames[current.seatWind]}家 {currentPlayerDisplayName ?? current.name}</span>
-        <span>{phaseLabelOverride ?? phaseLabels[gameState.phase]}</span>
-      </div>
-      <div className="game-top-bar-actions">
+    <GameTopBarFrame actions={<>
+        {controls}
         <button type="button" className="game-top-bar-music" aria-label="音乐设置" title="音乐设置" onClick={onOpenAudioSettings}>♪</button>
         <button type="button" onClick={onOpenRulesGuide}>规则说明</button>
         <button type="button" aria-pressed={analysisOpen} onClick={onToggleAnalysis}>牌局分析</button>
         <button type="button" onClick={onReturnMenu}>返回菜单</button>
-      </div>
-    </header>
+      </>}>
+        <span>{modeLabel ? `模式：${modeLabel}　` : ''}轮到：{windNames[currentWind]}家 {currentName}</span>
+        <span>{phaseLabel}</span>
+    </GameTopBarFrame>
   );
+}
+
+/** Shared visual shell; each mode supplies its own authoritative actions. */
+export function GameTopBarFrame({ children, actions }: { children: ReactNode; actions: ReactNode }) {
+  return <header className="game-top-bar" aria-label="对局状态栏">
+    <div className="game-top-bar-section game-top-bar-section--turn">{children}</div>
+    <div className="game-top-bar-actions">{actions}</div>
+  </header>;
 }

@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-export type OperationKind = 'win' | 'riichi' | 'kan' | 'pon' | 'chi' | 'abortive' | 'pass';
+export type OperationKind = 'north' | 'win' | 'riichi' | 'kan' | 'pon' | 'chi' | 'abortive' | 'pass';
 
 interface ActionPromptProps {
   title: ReactNode;

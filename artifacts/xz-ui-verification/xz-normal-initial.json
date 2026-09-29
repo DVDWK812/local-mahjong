@@ -1,0 +1,90 @@
+{
+  "canvas": 1,
+  "cards": [
+    {
+      "images": [
+        {
+          "complete": true,
+          "naturalWidth": 1254,
+          "src": "/assets/shiba-RSc7_z2e.png"
+        }
+      ],
+      "text": "血战复核员待定缺 · 100分"
+    },
+    {
+      "images": [
+        {
+          "complete": true,
+          "naturalWidth": 1254,
+          "src": "/assets/border-collie-DzRz4keR.png"
+        }
+      ],
+      "text": "右席复核待定缺 · 100分"
+    },
+    {
+      "images": [
+        {
+          "complete": true,
+          "naturalWidth": 1254,
+          "src": "/assets/black-cat-CSQ1tSnx.png"
+        }
+      ],
+      "text": "上席复核待定缺 · 100分"
+    },
+    {
+      "images": [
+        {
+          "complete": true,
+          "naturalWidth": 1254,
+          "src": "/assets/corgi-BLKmri9h.png"
+        }
+      ],
+      "text": "左席复核待定缺 · 100分"
+    }
+  ],
+  "clock": [
+    {
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px none rgb(245, 243, 222)",
+      "color": "rgb(245, 243, 222)",
+      "font": "24px Inter, \"Segoe UI\", \"Microsoft YaHei\", Arial, sans-serif",
+      "fontSize": "24px",
+      "padding": "0px",
+      "pressed": null,
+      "text": "‹"
+    },
+    {
+      "bg": "rgb(240, 240, 240)",
+      "border": "1.66667px outset rgb(0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "font": "14px Inter, \"Segoe UI\", \"Microsoft YaHei\", Arial, sans-serif",
+      "fontSize": "14px",
+      "padding": "3px",
+      "pressed": "false",
+      "text": "和"
+    },
+    {
+      "bg": "rgb(240, 240, 240)",
+      "border": "1.66667px outset rgb(0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "font": "14px Inter, \"Segoe UI\", \"Microsoft YaHei\", Arial, sans-serif",
+      "fontSize": "14px",
+      "padding": "3px",
+      "pressed": "false",
+      "text": "鸣"
+    },
+    {
+      "bg": "rgb(240, 240, 240)",
+      "border": "1.66667px outset rgb(0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "font": "14px Inter, \"Segoe UI\", \"Microsoft YaHei\", Arial, sans-serif",
+      "fontSize": "14px",
+      "padding": "3px",
+      "pressed": "false",
+      "text": "切"
+    }
+  ],
+  "phase": "exchange",
+  "sequence": "3",
+  "url": "http://127.0.0.1:53027/?mute=1"
+}

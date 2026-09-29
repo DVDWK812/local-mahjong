@@ -1,0 +1,5 @@
+
+> local-mahjong-trainer@0.1.0 check:types
+> tsc --noEmit
+
+src/game/sanma/wall.test.ts(18,28): error TS2550: Property 'replaceAll' does not exist on type 'string'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2021' or later.

@@ -1,0 +1,25 @@
+{
+  "gap": "2px",
+  "renderer": {
+    "tableRendererActive": "3d",
+    "tableRendererFallbackReason": "none",
+    "tableRendererRequested": "3d"
+  },
+  "tile": [
+    {
+      "border": "0px none rgb(0, 0, 0)",
+      "padding": "0px",
+      "rect": {
+        "bottom": 711.3672103881836,
+        "height": 61.18489837646485,
+        "left": 390.9830932617187,
+        "right": 434.5247611999512,
+        "top": 650.1823120117188,
+        "width": 43.54166793823242,
+        "x": 390.9830932617187,
+        "y": 650.1823120117188
+      },
+      "src": "/src/assets/tiles/m9.png"
+    }
+  ]
+}

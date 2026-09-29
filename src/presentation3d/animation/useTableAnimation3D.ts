@@ -15,7 +15,7 @@ import { presentationPacingGate } from '../../presentation/pacing/PresentationPa
 import type { DiscardSourceSnapshotStore } from '../../presentation/handAnimation/DiscardSourceSnapshot';
 import type { PresentationEvent } from '../../presentation/PresentationEventBus';
 import type { AnimationCueFrame } from '../../presentation/PresentationAudioCue';
-import type { TableSceneState } from '../sceneState/tableSceneTypes';
+import type { OccupiedTableSceneState } from '../sceneState/tableSceneTypes';
 import type { Table3DSeat } from '../coordinates/seatTransforms';
 import type { ActiveTableAnimation3D } from './HandAction3D';
 import type { DiscardSource3DStore } from './DiscardSource3D';
@@ -34,6 +34,7 @@ export type TableAnimation3DRenderState = Readonly<{
   hiddenHandKeys: ReadonlySet<string>;
   hiddenRiverKeys: ReadonlySet<string>;
   hiddenMeldTileKeys: ReadonlySet<string>;
+  hiddenNorthKeys?: ReadonlySet<string>;
   hiddenRiichiSeats: ReadonlySet<Table3DSeat>;
 }>;
 
@@ -54,7 +55,7 @@ export function useTableAnimation3D({
   localDiscardSnapshots,
   onLocalHandAnimationChange,
 }: Readonly<{
-  sceneState: TableSceneState;
+  sceneState: OccupiedTableSceneState;
   sourceStore: DiscardSource3DStore;
   enabled: boolean;
   sessionKey: string;
@@ -141,7 +142,7 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
   private readonly suppressedFinishes = new Map<string, number>();
 
   constructor(
-    private readonly getSceneState: () => TableSceneState,
+    private readonly getSceneState: () => OccupiedTableSceneState,
     private readonly sourceStore: DiscardSource3DStore,
     private readonly getSessionKey: () => string,
     private readonly setRenderState: Dispatch<SetStateAction<TableAnimation3DRenderState>>,
@@ -183,6 +184,7 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
       plan = { ...plan, localDiscardMotion: localDiscardMotion ? { ...localDiscardMotion, drawnSource: localDiscardSnapshot?.drawnTileRect } : undefined, showPrimaryTile: !localDiscardMotion };
     }
     this.plans.set(action.eventId, plan);
+    if (plan.hiddenNorthKey) this.setRenderState(current => ({ ...current, hiddenNorthKeys: addKey(current.hiddenNorthKeys ?? new Set(), plan.hiddenNorthKey) }));
     // Ownership starts on confirmation, including while a Kan is ahead in the queue.
     if (action.type === 'tile_drawn') {
       this.setRenderState(current => ({ ...current, hiddenHandKeys: addKey(current.hiddenHandKeys, plan.hiddenHandKey) }));
@@ -276,6 +278,7 @@ export class TableAnimation3DTarget implements HandAnimationTarget {
       active: current.active?.plan.action.eventId === action.eventId ? null : current.active,
       hiddenHandKeys: removeKey(current.hiddenHandKeys, plan.hiddenHandKey),
       hiddenRiverKeys: removeKey(current.hiddenRiverKeys, plan.hiddenRiverKey),
+      hiddenNorthKeys: removeKey(current.hiddenNorthKeys ?? new Set(), plan.hiddenNorthKey),
       hiddenMeldTileKeys: removeKeys(current.hiddenMeldTileKeys, plan.hiddenMeldTileKeys),
       hiddenRiichiSeats: removeKey(current.hiddenRiichiSeats, plan.hiddenRiichiSeat),
     }));
@@ -303,6 +306,7 @@ export function prepareTableAnimation3DRenderState(
     active: { plan, phase: 'approach' },
     hiddenHandKeys: addKey(current.hiddenHandKeys, plan.hiddenHandKey),
     hiddenRiverKeys: addKey(current.hiddenRiverKeys, plan.hiddenRiverKey),
+    hiddenNorthKeys: addKey(current.hiddenNorthKeys ?? new Set(), plan.hiddenNorthKey),
     hiddenMeldTileKeys: addKeys(current.hiddenMeldTileKeys, plan.hiddenMeldTileKeys),
     hiddenRiichiSeats: addKey(current.hiddenRiichiSeats, plan.hiddenRiichiSeat),
   };
@@ -316,6 +320,7 @@ export function transitionTableAnimation3DRenderState(
   const authoritativeVisible = phase === 'retreat';
   return {
     active: { plan, phase },
+    hiddenNorthKeys: authoritativeVisible ? removeKey(current.hiddenNorthKeys ?? new Set(), plan.hiddenNorthKey) : current.hiddenNorthKeys,
     hiddenHandKeys: authoritativeVisible
       ? removeKey(current.hiddenHandKeys, plan.hiddenHandKey)
       : current.hiddenHandKeys,
@@ -332,7 +337,7 @@ export function transitionTableAnimation3DRenderState(
 }
 
 function map3DAnimationEvent(event: PresentationEvent): PresentationEvent | undefined {
-  return event.type === 'tile_drawn'
+  return event.type === 'north_committed' || event.type === 'tile_drawn'
     || event.type === 'tile_discarded'
     || event.type === 'riichi_declared'
     || event.type === 'meld_declared'
@@ -341,7 +346,7 @@ function map3DAnimationEvent(event: PresentationEvent): PresentationEvent | unde
 }
 
 function isTableAnimation3DAction(action: HandAnimationAction): action is TableAnimation3DAction {
-  return action.type === 'tile_drawn'
+  return action.type === 'north_committed' || action.type === 'tile_drawn'
     || action.type === 'tile_discarded'
     || action.type === 'riichi_declared'
     || action.type === 'meld_declared';

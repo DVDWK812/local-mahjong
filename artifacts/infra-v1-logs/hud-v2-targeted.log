@@ -1,0 +1,47 @@
+
+> local-mahjong-trainer@0.1.0 pretest
+> npm run generate:voice-packs && npm run test:voice-pack-index
+
+
+> local-mahjong-trainer@0.1.0 generate:voice-packs
+> node scripts/generateVoicePackIndex.mjs
+
+Generated Voice Pack index: 3 valid pack(s), 0 skipped.
+
+> local-mahjong-trainer@0.1.0 test:voice-pack-index
+> node scripts/verifyVoicePackIndex.mjs
+
+Voice Pack index lifecycle test passed.
+
+> local-mahjong-trainer@0.1.0 test
+> vitest run src/game/timeControl/timeControl.test.ts src/components/SeventeenStepsScreen.test.tsx src/components/game src/components/ActionPromptRiichiCandidates.test.tsx
+
+
+ RUN  v2.1.9 C:/Users/Wenkai/Desktop/UNSW/local-mahjong-voice-phase1
+
+ ✓ src/game/timeControl/timeControl.test.ts (57 tests) 71ms
+ ✓ src/components/game/DoraIndicatorStack.test.tsx (6 tests) 31ms
+ ✓ src/components/game/DiscardRiver.test.tsx (21 tests) 56ms
+ ✓ src/components/game/PlayerZone.test.tsx (7 tests) 54ms
+ ✓ src/components/game/MahjongTable.test.tsx (5 tests) 104ms
+ ✓ src/components/game/TableCenter.test.tsx (4 tests) 31ms
+ ✓ src/components/game/localHandPresentationReady.test.ts (3 tests) 5ms
+ ✓ src/components/game/GameEventOverlay.test.tsx (4 tests) 11ms
+ ✓ src/components/game/RiichiStick.test.tsx (3 tests) 9ms
+ ✓ src/components/game/DiscardRiverRiichiClaimed.test.tsx (2 tests) 23ms
+ ✓ src/components/game/GameResponsiveLayout.test.tsx (4 tests) 3ms
+ ✓ src/components/game/LocalHandArea.test.tsx (14 tests) 71ms
+ ✓ src/components/game/HandAnimationOverlay.test.tsx (27 tests) 57ms
+ ✓ src/components/ActionPromptRiichiCandidates.test.tsx (3 tests) 83ms
+ ✓ src/components/game/TableLayoutRegression.test.tsx (10 tests) 91ms
+ ✓ src/components/game/HandTrack.test.tsx (4 tests) 26ms
+ ✓ src/components/game/WinPresentationOverlay.test.tsx (3 tests) 4ms
+ ✓ src/components/game/AnalysisDrawer.test.tsx (2 tests) 38ms
+ ✓ src/components/game/GameScreen.test.tsx (13 tests) 312ms
+ ✓ src/components/SeventeenStepsScreen.test.tsx (4 tests) 273ms
+
+ Test Files  20 passed (20)
+      Tests  196 passed (196)
+   Start at  20:39:38
+   Duration  2.80s (transform 2.71s, setup 0ms, collect 17.77s, tests 1.35s, environment 3ms, prepare 2.60s)
+
