@@ -17,11 +17,13 @@ import { Tile } from './Tile';
 import { XuezhanCenter, XuezhanHud } from './XuezhanHud';
 import { XuezhanResults } from './XuezhanResults';
 import { MatchClockHud } from './MatchClockHud';
-import { GameTopBarFrame } from './game/GameTopBar';
+import { GameTopBarView } from './game/GameTopBar';
 import { LocalHandArea } from './game/LocalHandArea';
 import { DiscardSourceSnapshotStore } from '../presentation/handAnimation/DiscardSourceSnapshot';
 import type { LocalHandAnimation3DState } from '../presentation3d/animation/tableAnimation3D';
 import { resolveHandPackForPlayer, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
+import { XuezhanRulesGuide } from './rulesGuide/XuezhanRulesGuide';
+import { beginRulesReading } from './rulesGuide/readingSession';
 import './xuezhan.css';
 const Scene = lazy(() => import('../presentation3d/Table3DScene').then(m => ({ default: m.Table3DScene })));
 const suitLabels = ['万', '筒', '条'];
@@ -32,6 +34,10 @@ export function XuezhanScreen(props: Props) {
   const [runtime] = useState(() => new MatchRuntime(props.initialState ?? (props.saved ? replayXz(props.saved) : createXzMatch(props.config, props.seed ?? (Date.now() >>> 0))), xzPolicy, props.config.time, undefined, 0, props.saved?.runtime));
   const [, redraw] = useReducer(n => n + 1, 0);
   const [message, setMessage] = useState(''), [fullControl, setFullControl] = useState(!!props.isolated), [omniscient, setOmniscient] = useState(false), [details, setDetails] = useState(false), [replayStep, setReplayStep] = useState<number | null>(null);
+  const [guide, setGuide] = useState(false);
+  const closeReading = useRef<(() => void) | null>(null);
+  const openGuide = () => { closeReading.current = beginRulesReading(runtime); setGuide(true); };
+  const closeGuide = () => { setGuide(false); closeReading.current?.(); closeReading.current = null; };
   const [ready, setReady] = useState(false), [fallback, setFallback] = useState(false);
   const [domReady, setDomReady] = useState(false), [localAnimation, setLocalAnimation] = useState<LocalHandAnimation3DState | null>(null);
   const [discardSources] = useState(() => new DiscardSourceSnapshotStore());
@@ -62,7 +68,7 @@ export function XuezhanScreen(props: Props) {
       initialized.current = true;
       if (!props.saved && !props.isolated) for (const key of ['autoWin', 'suppressCalls', 'autoTsumogiri'] as const) runtime.setPreference(participantId(0), key, s.config.preferences[key]);
     }
-    if (props.isolated && fullControl) runtime.pause();
+    if (props.isolated && fullControl || closeReading.current) runtime.pause();
   }, [ready, fallback, domReady, runtime]);
   useEffect(() => {
     if (!ready && !fallback || runtime.paused || fullControl || isReplay || s.phase === 'ended') return;
@@ -76,7 +82,7 @@ export function XuezhanScreen(props: Props) {
     return () => { cancelled = true; };
   }, [s, ready, fallback, fullControl, isReplay, runtime, runtime.paused]);
   const command = (seat: Seat, action: XzAction) => {
-    if (isReplay) return;
+    if (isReplay || guide) return;
     const controlled = !!props.isolated && fullControl;
     if (controlled) runtime.activate();
     finishHandsForAuthoritativeInput();
@@ -98,12 +104,13 @@ export function XuezhanScreen(props: Props) {
   const waitInfo = s.config.preferences.waitsHelp && s.players[0].hand.length % 3 === 1 ? readyScores(s, 0) : [];
   const status = s.phase === 'exchange' ? `同色换${s.config.rules.exchange}张 · 已提交 ${Object.keys(s.exchanges).length}/4` : s.phase === 'missing' ? `选择定缺 · 已提交 ${Object.keys(s.declarations).length}/4` : s.phase === 'response' ? '等待全部响应裁定' : s.phase === 'ended' ? s.completed ? '整场结束' : '小局结束' : `轮到 ${s.players[s.current].name}`;
   const allLedger = [...s.results.filter(r => r.hand !== s.handNumber).flatMap(r => r.ledger), ...s.ledger];
-  return <TileFaceDomAppearance settings={settings}><main className="xz-game game-screen" data-xz-legal-help={s.config.preferences.legalHelp} data-xz-phase={s.phase} data-xz-hand={s.handNumber} data-xz-sequence={s.sequence}>
-    <GameTopBarFrame actions={<>
-      <button onClick={() => { if (!props.isolated) save(); props.onExit(); }}>{props.isolated ? '退出测试场景' : '保存并退出'}</button><button disabled={isReplay} onClick={() => runtime.paused ? runtime.activate() : runtime.pause()}>{runtime.paused ? '继续比赛' : '暂停'}</button>
-      {!props.isolated && <button onClick={save}>保存</button>}<button onClick={() => setDetails(v => !v)}>规则与账本</button>{props.onAudio && <button onClick={props.onAudio}>声音</button>}
-      {props.isolated && <><label><input type="checkbox" checked={fullControl} onChange={e => { setFullControl(e.target.checked); if (e.target.checked) runtime.pause(); else runtime.activate(); }} />完全控制（冻结计时）</label><label><input type="checkbox" checked={omniscient} onChange={e => setOmniscient(e.target.checked)} />测试全知</label><button onClick={step}>逐步执行</button></>}
-    </>}><strong>血战到底 · 第 {s.handNumber}/{s.config.rules.rounds} 局</strong><span>{status}</span></GameTopBarFrame>
+  return <TileFaceDomAppearance settings={settings}><main inert={guide} className="xz-game game-screen" data-xz-legal-help={s.config.preferences.legalHelp} data-xz-phase={s.phase} data-xz-hand={s.handNumber} data-xz-sequence={s.sequence}>
+    <GameTopBarView audioAvailable={!!props.onAudio} analysisOpen={details} onOpenRulesGuide={openGuide} onOpenAudioSettings={props.onAudio ?? (() => {})}
+      onToggleAnalysis={()=>setDetails(v=>!v)} onReturnMenu={()=>{if (!props.isolated) save();props.onExit();}}
+      analysisLabel="账本" exitLabel={props.isolated?'退出测试场景':'保存并退出'} currentName={s.players[s.current].name} currentWind="east"
+      information={`血战到底 · 第${s.handNumber}/${s.config.rules.rounds}局`} phaseLabel={s.phase==='exchange'?'换牌':s.phase==='missing'?'定缺':s.phase==='response'?'等待响应':s.phase==='ended'?'本局结束':`轮到${s.players[s.current].name}`}
+      controls={<><button disabled={isReplay} onClick={()=>runtime.paused?runtime.activate():runtime.pause()}>{runtime.paused?'继续比赛':'暂停'}</button>{!props.isolated&&<button onClick={save}>保存</button>}</>} />
+    {props.isolated&&<div className="xz-isolated-actions"><label><input type="checkbox" checked={fullControl} onChange={e=>{setFullControl(e.target.checked);if(e.target.checked)runtime.pause();else runtime.activate();}}/>完全控制（冻结计时）</label><label><input type="checkbox" checked={omniscient} onChange={e=>setOmniscient(e.target.checked)}/>测试全知</label><button onClick={step}>逐步执行</button></div>}
     <section className="xz-scene table-3d-scene" data-table-renderer-requested="3d" data-table-renderer-fallback-reason={fallback ? 'unavailable' : 'none'} data-table-renderer-active={fallback ? '2d' : ready ? '3d' : 'loading'}>
       {fallback ? <p>3D 暂不可用，已切换安全牌桌；规则正常运行。</p> : <SceneErrorBoundary fallback={<p>3D 暂不可用</p>} onError={sceneUnavailable}><Suspense fallback={<p>加载公共牌桌素材…</p>}><Scene centralHud={<XuezhanCenter state={s} />} sceneState={view.scene} appearanceSettings={settings} animationsEnabled animationSessionKey={`xz:${s.seed}:${s.handNumber}`} animationTurn={s.sequence} localDiscardSnapshots={discardSources} onLocalHandAnimationChange={setLocalAnimation} onReady={sceneReady} onUnavailable={sceneUnavailable} /></Suspense></SceneErrorBoundary>}
       <XuezhanHud players={view.players} state={s} profile={props.profile} />
@@ -125,10 +132,10 @@ export function XuezhanScreen(props: Props) {
       onDiscardSourceCapture={capture => discardSources.capture({ ...capture, sessionKey: `xz:${s.seed}:${s.handNumber}`, confirmedTurn: s.sequence + 1 })} />
     {!isReplay && <MatchClockHud runtime={runtime} participantId={participantId(0)} />}
     <XuezhanResults key={s.handNumber} state={s} onNext={() => command(0, { type: 'next' })} onLedger={() => setDetails(true)} onExit={props.onExit} />
-    {details && <aside className="xz-details"><button onClick={() => setDetails(false)}>关闭明细</button><h2>规则、日志与账本</h2><p>{s.config.ruleId} · 种子 {s.seed} · 动作 {s.sequence}</p><details><summary>比赛开始后规则只读</summary><pre>{JSON.stringify(s.config, null, 2)}</pre></details>
+    {details && <aside className="xz-details"><button onClick={() => setDetails(false)}>关闭明细</button><h2>逐笔账本与回放</h2><p>{s.config.ruleId} · 种子 {s.seed} · 动作 {s.sequence}</p>
       <table><thead><tr><th>账目／事务</th><th>原因</th><th>付款→收款</th><th>金额</th><th>源动作／源杠</th></tr></thead><tbody>{allLedger.map(e => <tr key={e.id}><td>{e.id}<br />{e.transactionId}</td><td>{reasons[e.reason]}</td><td>{s.players[e.from].name}→{s.players[e.to].name}</td><td>{e.amount}</td><td>{e.sourceAction}／{e.sourceKong ?? '—'}</td></tr>)}</tbody></table>
-      <button onClick={() => downloadXz('血战回放.json', saveXz(state, initialized.current ? runtime.snapshot() : undefined))}>导出回放与账本</button>{!props.initialState && <><button onClick={() => { runtime.pause(); setReplayStep(0); }}>进入确定性回放</button>{isReplay && <><input aria-label="回放步数" type="range" min="0" max={state.actions.length} value={replayStep!} onChange={e => setReplayStep(Number(e.target.value))} /><span>第 {replayStep} 步</span><button onClick={() => { setReplayStep(null); runtime.activate(); }}>退出回放</button></>}</>}
+      <button onClick={() => downloadXz('血战配置.json', state.config)}>导出配置</button><button onClick={() => downloadXz('血战回放.json', saveXz(state, initialized.current ? runtime.snapshot() : undefined))}>导出回放与账本</button>{!props.initialState && <><button onClick={() => { runtime.pause(); setReplayStep(0); }}>进入确定性回放</button>{isReplay && <><input aria-label="回放步数" type="range" min="0" max={state.actions.length} value={replayStep!} onChange={e => setReplayStep(Number(e.target.value))} /><span>第 {replayStep} 步</span><button onClick={() => { setReplayStep(null); runtime.activate(); }}>退出回放</button></>}</>}
       {props.isolated && <><button onClick={() => { try { assertXzInvariants(s); setMessage('实体牌、账本与身份不变量通过'); } catch (e) { setMessage(String(e)); } }}>检查不变量</button><pre>{JSON.stringify(s.actions, null, 2)}</pre><p>当前合法动作</p>{SEATS.map(seat => <div key={seat}>{s.players[seat].name}{legalActions(s, seat).map((a, i) => <button key={i} onClick={() => command(seat, a)}>{JSON.stringify(a)}</button>)}</div>)}</>}
     </aside>}
-  </main></TileFaceDomAppearance>;
+  </main>{guide&&<XuezhanRulesGuide config={runtime.state.config} context="match" onBack={closeGuide}/>}</TileFaceDomAppearance>;
 }

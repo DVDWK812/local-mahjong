@@ -1,3 +1,4 @@
+import { tunePoint } from '../coordinates/regionTuning';
 import { PerspectiveCamera, Vector3 } from 'three';
 import type { PresentationRect } from '../../presentation/handAnimation/DiscardSourceSnapshot';
 import type { TableAnimation3DPlan } from './tableAnimation3D';
@@ -26,11 +27,11 @@ export function captureLocalDiscardMotion(plan: TableAnimation3DPlan, source?: P
   const halfWidth = MAHJONG_TILE_DIMENSIONS.width * plan.destinationScale / 2;
   const halfDepth = MAHJONG_TILE_DIMENSIONS.depth * plan.destinationScale / 2;
   const topY = plan.destination[1] + MAHJONG_TILE_DIMENSIONS.height * plan.destinationScale / 2;
-  const corners = [-1, 1].flatMap((x) => [-1, 1].map((z) => project([
+  const corners = [-1, 1].flatMap((x) => [-1, 1].map((z) => project(tunePoint([
     plan.destination[0] + x * halfWidth * Math.cos(plan.destinationRotationY) + z * halfDepth * Math.sin(plan.destinationRotationY),
     topY,
     plan.destination[2] - x * halfWidth * Math.sin(plan.destinationRotationY) + z * halfDepth * Math.cos(plan.destinationRotationY),
-  ])));
+  ], plan.tuning?.destination))));
   const rect = tile.getBoundingClientRect();
   const rowRect = row.getBoundingClientRect();
   const left = Math.min(...corners.map((point) => point.x));

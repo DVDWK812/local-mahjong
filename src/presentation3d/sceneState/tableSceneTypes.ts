@@ -34,12 +34,15 @@ export type MeldSceneState = Readonly<{
 }>;
 
 export type SeatSceneState = Readonly<{
+  regionTuning?: import('../coordinates/regionTuning').SeatRegionTuning;
+  northLane?: Readonly<{ radialOffset: number; gap: number }>;
   seat: Table3DSeat;
   playerId: PlayerId;
   riichi: boolean;
   /** Publicly exposed hand, independent of any variant's win animation. */
   exposedHand?: boolean;
   north?: readonly TableSceneTile[];
+  flowers?: readonly Readonly<{ key: string; flower: import('../../game/guobiao/types').FlowerId }>[];
   hand: readonly HandSceneTile[];
   river: readonly RiverSceneTile[];
   melds: readonly MeldSceneState[];
@@ -65,4 +68,7 @@ export type TableSceneSeatMapping = Readonly<{
   leftPlayerId: PlayerId;
 }>;
 
-export type OccupiedTableSceneState = Omit<TableSceneState, 'seats'> & { readonly seats: Readonly<Partial<Record<Table3DSeat, SeatSceneState>>> };
+export type OccupiedTableSceneState = Omit<TableSceneState, 'seats'> & {
+  readonly seats: Readonly<Partial<Record<Table3DSeat, SeatSceneState>>>;
+  readonly scoreHudTuning?: Readonly<{ x: number; y: number; z: number; scale: number }>;
+};

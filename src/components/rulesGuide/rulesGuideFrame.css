@@ -1,0 +1,2 @@
+.rules-guide-search { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; }
+.rules-guide-search input { min-width: 0; flex: 1; max-width: 560px; padding: 8px 12px; border-radius: 6px; border: 1px solid #b5b8a7; background: #fffdf5; color: #17251f; }

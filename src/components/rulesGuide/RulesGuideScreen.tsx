@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { FullRuleConfig } from '../../game/match/types';
 import { buildFuExamples, buildPointTable } from '../../game/rulesGuide/fuPointsGuide';
 import { GUIDE_YAKU, type GuideYaku, type GuideYakuGroup } from '../../game/rulesGuide/yakuCatalog';
+import { RulesGuideFrame, RulesGuideSearch } from './RulesGuideFrame';
 import { YakuExample } from './YakuExample';
 
 export type RulesTab =
@@ -45,33 +46,14 @@ const groupByTab: Partial<Record<RulesTab, GuideYakuGroup>> = {
 export function RulesGuideScreen({ ruleConfig, onBack, embedded = false, initialTab = 'home' }: RulesGuideScreenProps) {
   const [tab, setTab] = useState<RulesTab>(initialTab);
 
-  return (
-    <main className={embedded ? 'rules-guide rules-guide--overlay' : 'rules-guide'}>
-      <section className="rules-guide-panel" aria-label="立直麻将规则说明">
-        <header className="rules-guide-header">
-          <button type="button" onClick={onBack}>返回</button>
-          <h1>立直麻将规则说明</h1>
-          <nav className="rules-tabs" aria-label="规则说明选项卡">
-            {(Object.keys(tabLabels) as RulesTab[]).map((key) => (
-              <button
-                key={key}
-                type="button"
-                aria-pressed={tab === key}
-                onClick={() => setTab(key)}
-              >
-                {tabLabels[key]}
-              </button>
-            ))}
-          </nav>
-        </header>
-        <div className="rules-guide-content">
-          {tab === 'home' ? <RulesHomeTab /> : null}
-          {tab !== 'home' && tab !== 'points' ? <YakuGuideTab tab={tab} ruleConfig={ruleConfig} /> : null}
-          {tab === 'points' ? <FuPointsGuideTab ruleConfig={ruleConfig} /> : null}
-        </div>
-      </section>
-    </main>
-  );
+  const [query, setQuery] = useState('');
+  return <RulesGuideFrame title="立直麻将规则说明" embedded={embedded} onBack={onBack} tabs={tabLabels} active={tab} onTab={id => { setTab(id as RulesTab); setQuery(''); }} search={<RulesGuideSearch value={query} onChange={setQuery} />}>
+    {query ? <div className="yaku-card-grid">{GUIDE_YAKU.filter(y => `${y.closedResult.name}${y.condition}${y.example.note ?? ''}`.includes(query)).map(y => <YakuCard key={y.id} yaku={y} />)}</div> : <>
+      {tab === 'home' ? <RulesHomeTab /> : null}
+      {tab !== 'home' && tab !== 'points' ? <YakuGuideTab tab={tab} ruleConfig={ruleConfig} /> : null}
+      {tab === 'points' ? <FuPointsGuideTab ruleConfig={ruleConfig} /> : null}
+    </>}
+  </RulesGuideFrame>;
 }
 
 function RulesHomeTab() {

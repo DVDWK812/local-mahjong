@@ -67,7 +67,7 @@ export class VoiceDirector {
   private skippedWinSequenceId: string | null = null;
 
   constructor(
-    private readonly repository: Pick<VoicePackRepository, 'getAudioForKey' | 'listPacks'> = VOICE_PACK_REPOSITORY,
+    private readonly repository: Pick<VoicePackRepository, 'getAudioForKey' | 'listPacks'> & Partial<Pick<VoicePackRepository, 'getVoiceLine'>> = VOICE_PACK_REPOSITORY,
     private readonly channel: VoicePlaybackChannel,
     settings: VoiceDirectorSettings,
   ) {
@@ -79,6 +79,7 @@ export class VoiceDirector {
   }
 
   play(event: VoiceEvent): VoicePlayResult {
+    traceGbVoice(event, 'received', { enabled: this.enabled, discardEnabled: this.discardVoiceEnabled, scope: this.discardVoiceScope });
     if (this.consumedEventIds.has(event.eventId)) return 'ignored';
     this.remember(event.eventId);
     if (this.narrationSequenceRun || this.narrationQueue.length > 0) return 'ignored';
@@ -92,6 +93,14 @@ export class VoiceDirector {
       this.repository.listPacks(),
     );
     const url = packId ? this.repository.getAudioForKey(packId, event.key) : undefined;
+    traceGbVoice(event, 'resolved', { packId, url });
+    // Actual bundled yaya ron says 荣和. Preserve it for riichi, but never silently
+    // translate an incompatible recording into a GB declaration.
+    const line = packId ? this.repository.getVoiceLine?.(packId, event.key) : undefined;
+    if (event.mode === 'guobiao' && event.key === 'action.ron' && line && /荣和/.test(line.line + line.tts_text)) {
+      this.lastMissingVoice = { eventId: event.eventId, key: event.key, actorId: event.actorId, packId, reason: '国标台词不匹配：此文件为荣和，等待本包和牌语音；安全跳过' };
+      return 'missing';
+    }
     if (!url) { this.lastMissingVoice = { eventId: event.eventId, key: event.key, actorId: event.actorId, packId, reason: packId ? '音频条目不可用，请查看 Voice Pack 资源诊断' : '没有可用的玩家语音包或该玩家已关闭语音' }; return 'missing'; }
     this.stop();
     const playback = this.channel.createVoicePlayback(`voice:${event.key}:${event.eventId}`, url, this.volume);
@@ -100,7 +109,8 @@ export class VoiceDirector {
     playback.handle.onEnded(() => {
       if (this.active?.playback === playback) this.active = null;
     });
-    void playback.handle.play().catch(() => {
+    void playback.handle.play().then(() => traceGbVoice(event, 'play-resolved', { packId, url }), error => {
+      traceGbVoice(event, 'play-rejected', { packId, url, reason: error instanceof Error ? `${error.name}: ${error.message}` : String(error) });
       if (this.active?.playback === playback) this.stop();
     });
     return 'played';
@@ -277,3 +287,10 @@ export class VoiceDirector {
 
 function clampVolume(value: number): number { return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0.8; }
 function isTileVoiceKey(key: string): boolean { return (TILE_VOICE_KEYS as readonly string[]).includes(key); }
+
+/** Opt-in local audit of public GB cues only; no hidden tiles or audio/settings mutation. */
+function traceGbVoice(event: VoiceEvent, stage: string, detail: Record<string, unknown>): void {
+  if (event.mode === 'guobiao' && import.meta.env.DEV && typeof location !== 'undefined' && new URLSearchParams(location.search).get('voiceDebug') === '1') {
+    console.info('[GB voice]', JSON.stringify({ eventId: event.eventId, key: event.key, actorId: event.actorId, stage, ...detail }));
+  }
+}

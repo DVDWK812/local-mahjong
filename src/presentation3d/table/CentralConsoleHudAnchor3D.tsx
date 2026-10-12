@@ -24,15 +24,15 @@ export function getCentralConsoleHudScale(viewportHeight: number): number {
     : CENTRAL_CONSOLE_HUD_ANCHOR.regularScale;
 }
 
-export function CentralConsoleHudAnchor3D({ children, riichiLanes = false }: Readonly<{ children: ReactNode; riichiLanes?: boolean }>) {
+export function CentralConsoleHudAnchor3D({ children, riichiLanes = false, tuning }: Readonly<{ children: ReactNode; riichiLanes?: boolean; tuning?: Readonly<{ x: number; y: number; z: number; scale: number }> }>) {
   const viewportHeight = useThree((state) => state.size.height);
   const assembly = getCentralConsoleLayout(viewportHeight);
   return (
     <Html
       transform
-      position={assembly.scoreHud.position}
+      position={tuning ? [assembly.scoreHud.position[0] + tuning.x, assembly.scoreHud.position[1] + tuning.y, assembly.scoreHud.position[2] + tuning.z] : assembly.scoreHud.position}
       rotation={CENTRAL_CONSOLE_HUD_ANCHOR.rotation}
-      scale={riichiLanes ? assembly.scoreHud.scale : getCentralConsoleHudScale(viewportHeight)}
+      scale={(riichiLanes ? assembly.scoreHud.scale : getCentralConsoleHudScale(viewportHeight)) * (tuning?.scale ?? 1)}
       wrapperClass="table-3d-console-hud-anchor"
       style={{ pointerEvents: 'none' }}
       zIndexRange={[4, 1]}

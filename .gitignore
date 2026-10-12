@@ -6,3 +6,8 @@ coverage/
 **/fish_audio_api_keys.txt
 src/music/voice_lines/voice_packs.json
 src/music/voice_lines/*/voice_lines.json
+
+# Local generated builds, diagnostic evidence and source snapshots.
+# Existing tracked evidence remains tracked; approved baselines stay on disk.
+/artifacts/
+/.git-upload-audit-local/

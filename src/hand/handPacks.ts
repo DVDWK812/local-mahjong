@@ -61,6 +61,27 @@ import cyberpunkCarry from './packs/cyberpunk/carry-forward.png';
 import cyberpunkRelease from './packs/cyberpunk/release-open.png';
 import cyberpunkArrange from './packs/cyberpunk/arrange-push.png';
 import cyberpunkRetract from './packs/cyberpunk/retract-relaxed.png';
+import crimsonGoldDragonReach from './packs/crimson_gold_dragon/reach-open.png';
+import crimsonGoldDragonTouch from './packs/crimson_gold_dragon/touch-contact.png';
+import crimsonGoldDragonPinch from './packs/crimson_gold_dragon/pinch-grab.png';
+import crimsonGoldDragonCarry from './packs/crimson_gold_dragon/carry-forward.png';
+import crimsonGoldDragonRelease from './packs/crimson_gold_dragon/release-open.png';
+import crimsonGoldDragonArrange from './packs/crimson_gold_dragon/arrange-push.png';
+import crimsonGoldDragonRetract from './packs/crimson_gold_dragon/retract-relaxed.png';
+import jadeMechanismReach from './packs/jade_mechanism/reach-open.png';
+import jadeMechanismTouch from './packs/jade_mechanism/touch-contact.png';
+import jadeMechanismPinch from './packs/jade_mechanism/pinch-grab.png';
+import jadeMechanismCarry from './packs/jade_mechanism/carry-forward.png';
+import jadeMechanismRelease from './packs/jade_mechanism/release-open.png';
+import jadeMechanismArrange from './packs/jade_mechanism/arrange-push.png';
+import jadeMechanismRetract from './packs/jade_mechanism/retract-relaxed.png';
+import plushHandReach from './packs/plush_hand/reach-open.png';
+import plushHandTouch from './packs/plush_hand/touch-contact.png';
+import plushHandPinch from './packs/plush_hand/pinch-grab.png';
+import plushHandCarry from './packs/plush_hand/carry-forward.png';
+import plushHandRelease from './packs/plush_hand/release-open.png';
+import plushHandArrange from './packs/plush_hand/arrange-push.png';
+import plushHandRetract from './packs/plush_hand/retract-relaxed.png';
 
 export const HAND_POSE_KEYS = [
   'reach-open',
@@ -73,7 +94,7 @@ export const HAND_POSE_KEYS = [
 ] as const;
 export type HandPoseKey = typeof HAND_POSE_KEYS[number];
 
-export const HAND_PACK_IDS = ['female', 'female_2', 'male', 'cat_orange', 'cat_grey', 'dog', 'gloved', 'robot', 'cyberpunk'] as const;
+export const HAND_PACK_IDS = ['female', 'female_2', 'male', 'cat_orange', 'cat_grey', 'dog', 'gloved', 'robot', 'cyberpunk', 'crimson_gold_dragon', 'jade_mechanism', 'plush_hand'] as const;
 export type HandPackId = typeof HAND_PACK_IDS[number];
 
 export type HandPoseAsset = Readonly<{
@@ -239,6 +260,51 @@ const cyberpunk: HandPack = {
   },
 };
 
+const crimsonGoldDragon: HandPack = {
+  id: 'crimson_gold_dragon',
+  name: '赤金龙爪',
+  previewPose: 'touch-contact',
+  poses: {
+    'reach-open': pose(crimsonGoldDragonReach, [0.24, 0.33], 0, 1.04),
+    'touch-contact': pose(crimsonGoldDragonTouch, [0.28, 0.37], 0, 1.04),
+    'pinch-grab': pose(crimsonGoldDragonPinch, [0.29, 0.38], 0, 1.04),
+    'carry-forward': pose(crimsonGoldDragonCarry, [0.28, 0.37], 0, 1.04),
+    'release-open': pose(crimsonGoldDragonRelease, [0.25, 0.34], 0, 1.04),
+    'arrange-push': pose(crimsonGoldDragonArrange, [0.29, 0.38], 0, 1.04),
+    'retract-relaxed': pose(crimsonGoldDragonRetract, [0.27, 0.37], 0, 1.04),
+  },
+};
+
+const jadeMechanism: HandPack = {
+  id: 'jade_mechanism',
+  name: '青白玉机关',
+  previewPose: 'touch-contact',
+  poses: {
+    'reach-open': pose(jadeMechanismReach, [0.25, 0.34], 0, 1.05),
+    'touch-contact': pose(jadeMechanismTouch, [0.27, 0.36], 0, 1.05),
+    'pinch-grab': pose(jadeMechanismPinch, [0.28, 0.37], 0, 1.05),
+    'carry-forward': pose(jadeMechanismCarry, [0.27, 0.36], 0, 1.05),
+    'release-open': pose(jadeMechanismRelease, [0.24, 0.34], 0, 1.05),
+    'arrange-push': pose(jadeMechanismArrange, [0.26, 0.34], 0, 1.05),
+    'retract-relaxed': pose(jadeMechanismRetract, [0.27, 0.36], 0, 1.05),
+  },
+};
+
+const plushHand: HandPack = {
+  id: 'plush_hand',
+  name: '玩偶手',
+  previewPose: 'touch-contact',
+  poses: {
+    'reach-open': pose(plushHandReach, [0.24, 0.34], 0, 1.03),
+    'touch-contact': pose(plushHandTouch, [0.27, 0.36], 0, 1.03),
+    'pinch-grab': pose(plushHandPinch, [0.28, 0.37], 0, 1.03),
+    'carry-forward': pose(plushHandCarry, [0.27, 0.36], 0, 1.03),
+    'release-open': pose(plushHandRelease, [0.25, 0.34], 0, 1.03),
+    'arrange-push': pose(plushHandArrange, [0.26, 0.34], 0, 1.03),
+    'retract-relaxed': pose(plushHandRetract, [0.27, 0.36], 0, 1.03),
+  },
+};
+
 export const HAND_PACKS: Readonly<Record<HandPackId, HandPack>> = Object.freeze({
   female: Object.freeze(female),
   female_2: Object.freeze(female2),
@@ -249,6 +315,9 @@ export const HAND_PACKS: Readonly<Record<HandPackId, HandPack>> = Object.freeze(
   gloved: Object.freeze(gloved),
   robot: Object.freeze(robot),
   cyberpunk: Object.freeze(cyberpunk),
+  crimson_gold_dragon: Object.freeze(crimsonGoldDragon),
+  jade_mechanism: Object.freeze(jadeMechanism),
+  plush_hand: Object.freeze(plushHand),
 });
 
 export const DEFAULT_HAND_PACK = HAND_PACKS.female;

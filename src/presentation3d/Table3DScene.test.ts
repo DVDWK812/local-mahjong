@@ -84,7 +84,7 @@ describe('UI-5A scene boundaries', () => {
     expect(source).toContain('<SceneLayerReady onReady={handleRiichiLayerReady} />');
     expect(source).toContain('riichiStickAppearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }}');
     expect(source).toContain('const StableTableScene = memo(function StableTableScene(');
-    expect(source).toContain('<CentralConsoleHudAnchor3D riichiLanes>{centralHud}</CentralConsoleHudAnchor3D>');
+    expect(source).toContain('<CentralConsoleHudAnchor3D riichiLanes tuning={sceneState.scoreHudTuning}>{centralHud}</CentralConsoleHudAnchor3D>');
     expect(source).toContain('hiddenTileKeys={hiddenMeldTileKeys}');
     expect(source).toContain('appearance={{ ...riichiStickAppearance, ...resolvedRiichiStickAppearance }}');
     expect(source).toContain('<TileTextureWarmup />');

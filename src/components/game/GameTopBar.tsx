@@ -40,16 +40,16 @@ export function GameTopBar({ gameState, analysisOpen, onOpenRulesGuide, onOpenAu
   return <GameTopBarView analysisOpen={analysisOpen} onOpenRulesGuide={onOpenRulesGuide} onOpenAudioSettings={onOpenAudioSettings} onToggleAnalysis={onToggleAnalysis} onReturnMenu={onReturnMenu} modeLabel={modeLabel} currentName={currentPlayerDisplayName ?? current.name} currentWind={current.seatWind} phaseLabel={phaseLabelOverride ?? phaseLabels[gameState.phase]} />;
 }
 
-export function GameTopBarView({ analysisOpen, onOpenRulesGuide, onOpenAudioSettings, onToggleAnalysis, onReturnMenu, modeLabel, currentName, currentWind, phaseLabel, controls }: Omit<GameTopBarProps, 'gameState' | 'matchState' | 'phaseLabelOverride' | 'currentPlayerDisplayName'> & { currentName: string; currentWind: Wind; phaseLabel: string; controls?: ReactNode }) {
+export function GameTopBarView({ analysisOpen, onOpenRulesGuide, onOpenAudioSettings, onToggleAnalysis, onReturnMenu, modeLabel, currentName, currentWind, phaseLabel, controls, information, analysisLabel = '牌局分析', exitLabel = '返回菜单', audioAvailable = true }: Omit<GameTopBarProps, 'gameState' | 'matchState' | 'phaseLabelOverride' | 'currentPlayerDisplayName'> & { currentName: string; currentWind: Wind; phaseLabel: string; controls?: ReactNode; information?: ReactNode; analysisLabel?: string; exitLabel?: string; audioAvailable?: boolean }) {
   return (
     <GameTopBarFrame actions={<>
         {controls}
-        <button type="button" className="game-top-bar-music" aria-label="音乐设置" title="音乐设置" onClick={onOpenAudioSettings}>♪</button>
+        {audioAvailable && <button type="button" className="game-top-bar-music" aria-label="音乐设置" title="音乐设置" onClick={onOpenAudioSettings}>♪</button>}
         <button type="button" onClick={onOpenRulesGuide}>规则说明</button>
-        <button type="button" aria-pressed={analysisOpen} onClick={onToggleAnalysis}>牌局分析</button>
-        <button type="button" onClick={onReturnMenu}>返回菜单</button>
+        <button type="button" aria-pressed={analysisOpen} onClick={onToggleAnalysis}>{analysisLabel}</button>
+        <button type="button" onClick={onReturnMenu}>{exitLabel}</button>
       </>}>
-        <span>{modeLabel ? `模式：${modeLabel}　` : ''}轮到：{windNames[currentWind]}家 {currentName}</span>
+        <span>{information ?? <>{modeLabel ? `模式：${modeLabel}　` : ''}轮到：{windNames[currentWind]}家 {currentName}</>}</span>
         <span>{phaseLabel}</span>
     </GameTopBarFrame>
   );

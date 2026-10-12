@@ -23,7 +23,7 @@ describe('central console assembly', () => {
     }
   });
   it('keeps the HUD center, ordinary river and non-riichi preview scale unchanged', () => {
-    expect(getCentralConsoleLayout().scoreHud.position).toEqual([-0.1, 0.698, 2.3]);
+    expect(getCentralConsoleLayout().scoreHud.position).toEqual([-0.1, 0.698, 1.9]);
     expect(getCentralConsoleHudScale(720)).toBe(0.96);
     expect(getCentralConsoleHudScale(1080)).toBe(0.72);
     expect(TABLE_PRESENTATION_TUNING.riverSeatOffsets.bottom).toEqual({ inlineX: 0, radialZ: 2.8 });

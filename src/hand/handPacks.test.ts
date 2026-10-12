@@ -11,8 +11,8 @@ import {
 } from './handPacks';
 
 describe('builtin hand Pack registry', () => {
-  it('registers exactly nine static-url Packs with all seven poses and pose-local metadata', () => {
-    expect(HAND_PACK_IDS).toEqual(['female', 'female_2', 'male', 'cat_orange', 'cat_grey', 'dog', 'gloved', 'robot', 'cyberpunk']);
+  it('registers exactly twelve static-url Packs with all seven poses and pose-local metadata', () => {
+    expect(HAND_PACK_IDS).toEqual(['female', 'female_2', 'male', 'cat_orange', 'cat_grey', 'dog', 'gloved', 'robot', 'cyberpunk', 'crimson_gold_dragon', 'jade_mechanism', 'plush_hand']);
     expect(Object.keys(HAND_PACKS)).toEqual(HAND_PACK_IDS);
     for (const pack of Object.values(HAND_PACKS)) {
       expect(Object.keys(pack.poses)).toEqual(HAND_POSE_KEYS);
@@ -56,6 +56,24 @@ describe('builtin hand Pack registry', () => {
       expect(pack.id).toBe(id);
       for (const pose of Object.values(pack.poses)) expect(pose.url).toContain(`/packs/${id}/`);
     }
+  });
+
+  it('registers the crimson-gold dragon Pack from the normalized source directory', () => {
+    const pack = HAND_PACKS.crimson_gold_dragon;
+    expect(pack.name).toBe('赤金龙爪');
+    for (const pose of Object.values(pack.poses)) expect(pose.url).toContain('/packs/crimson_gold_dragon/');
+  });
+
+  it('registers the jade-mechanism Pack from the normalized source directory', () => {
+    const pack = HAND_PACKS.jade_mechanism;
+    expect(pack.name).toBe('青白玉机关');
+    for (const pose of Object.values(pack.poses)) expect(pose.url).toContain('/packs/jade_mechanism/');
+  });
+
+  it('registers the plush-hand Pack from the normalized source directory', () => {
+    const pack = HAND_PACKS.plush_hand;
+    expect(pack.name).toBe('玩偶手');
+    for (const pose of Object.values(pack.poses)) expect(pose.url).toContain('/packs/plush_hand/');
   });
 
   it('uses female for unknown Packs and for a missing pose in a malformed builtin', () => {

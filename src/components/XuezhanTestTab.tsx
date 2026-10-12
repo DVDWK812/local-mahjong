@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { inspectXzReport } from '../game/xuezhan/report';
+import { XuezhanConfigTools } from './XuezhanConfigTools';
 import buildStamp from 'virtual:xz-build';
 import { ModeResultsStorage } from '../game/testMode/resultsStorage';
 import { loadXzScenario, runXzCase, xzCases, type XzTestCase } from '../game/xuezhan/scenarios';
@@ -45,6 +46,6 @@ export function XuezhanTestTab({ tabs, onSessionChange }: { tabs?: ReactNode; on
       <label>人工复核（仅测试者填写）<select aria-label={`${t.id}人工复核`} value={invalid ? '待复核' : r?.manual ?? '待复核'} onChange={e => persist({ ...results, [t.id]: { ...(invalid ? blank(t) : r ?? blank(t)), manual: e.target.value as Result['manual'], at: new Date().toISOString() } })}>{['待复核', '通过', '失败', '阻塞', '不适用'].map(v => <option key={v}>{v}</option>)}</select></label>
       <textarea aria-label={`${t.id}复核备注`} placeholder="实际步骤、期望/实际、截图路径或备注" value={r?.notes ?? ''} onChange={e => persist({ ...results, [t.id]: { ...(r ?? blank(t)), notes: e.target.value } })} />
       {r?.evidence && <><button disabled={invalid} onClick={() => { try { setSession({ test: t, state: replayXz(r.evidence!), key: Date.now() }); } catch (e) { setError(String(e)); } }}>加载自动结果</button><button onClick={() => downloadXz(`${t.id}-复现.json`, r.evidence)}>导出动作、规则与账本复现</button></>}</article>; })}</div>
-    <details><summary>回读测试报告（只读，不覆盖验收记录）</summary><textarea aria-label="血战报告JSON" onChange={e => setImportText(e.target.value)} /><button onClick={() => { try { const report = inspectXzReport(importText); setError(`报告校验通过：${report.cases} 个用例，代码 ${report.fingerprint}，快照 ${report.snapshotId ?? '未记录'}；人工记录未写入。`); } catch (e) { setError(String(e)); } }}>校验报告</button></details><details><summary>导入失败复现（隔离验证）</summary><textarea aria-label="血战失败复现JSON" value={importText} onChange={e => setImportText(e.target.value)} /><button onClick={() => { try { const saved = parseXzSave(importText); setSession({ state: replayXz(saved), key: Date.now() }); } catch (e) { setError(String(e)); } }}>验证并加载复现</button></details>
+    <XuezhanConfigTools/><details><summary>回读测试报告（只读，不覆盖验收记录）</summary><textarea aria-label="血战报告JSON" onChange={e => setImportText(e.target.value)} /><button onClick={() => { try { const report = inspectXzReport(importText); setError(`报告校验通过：${report.cases} 个用例，代码 ${report.fingerprint}，快照 ${report.snapshotId ?? '未记录'}；人工记录未写入。`); } catch (e) { setError(String(e)); } }}>校验报告</button></details><details><summary>导入失败复现（隔离验证）</summary><textarea aria-label="血战失败复现JSON" value={importText} onChange={e => setImportText(e.target.value)} /><button onClick={() => { try { const saved = parseXzSave(importText); setSession({ state: replayXz(saved), key: Date.now() }); } catch (e) { setError(String(e)); } }}>验证并加载复现</button></details>
   </main></>;
 }

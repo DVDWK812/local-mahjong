@@ -1,0 +1,38 @@
+export declare const JANPAI_ID: {
+    readonly MAN_01: "1m";
+    readonly MAN_02: "2m";
+    readonly MAN_03: "3m";
+    readonly MAN_04: "4m";
+    readonly MAN_05: "5m";
+    readonly MAN_06: "6m";
+    readonly MAN_07: "7m";
+    readonly MAN_08: "8m";
+    readonly MAN_09: "9m";
+    readonly PIN_01: "1p";
+    readonly PIN_02: "2p";
+    readonly PIN_03: "3p";
+    readonly PIN_04: "4p";
+    readonly PIN_05: "5p";
+    readonly PIN_06: "6p";
+    readonly PIN_07: "7p";
+    readonly PIN_08: "8p";
+    readonly PIN_09: "9p";
+    readonly SOU_01: "1s";
+    readonly SOU_02: "2s";
+    readonly SOU_03: "3s";
+    readonly SOU_04: "4s";
+    readonly SOU_05: "5s";
+    readonly SOU_06: "6s";
+    readonly SOU_07: "7s";
+    readonly SOU_08: "8s";
+    readonly SOU_09: "9s";
+    readonly TON: "東";
+    readonly NAN: "南";
+    readonly SHA: "西";
+    readonly PEI: "北";
+    readonly BAI: "白";
+    readonly FA: "發";
+    readonly CHUN: "中";
+};
+export type JanpaiID = typeof JANPAI_ID[keyof typeof JANPAI_ID];
+//# sourceMappingURL=janpai-id.d.ts.map

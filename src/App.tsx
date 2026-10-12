@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MatchRuntime } from './game/timeControl/matchRuntime';
 import { fourPlayerPolicy, FOUR_HUMAN } from './game/timeControl/fourPlayerPolicy';
 import { loadTimeDraft, saveTimeDraft, snapshotTimeControl, newMatchTimeControl, unlimitedTimeControl, type TimeControlConfig } from './game/timeControl/config';
@@ -36,6 +36,10 @@ import { SanmaLengthMenu, SanmaSettings } from './components/SanmaSettings';
 import { SanmaScreen } from './components/SanmaScreen';
 import { createSanmaConfig, type SanmaConfig, type SanmaLength } from './game/sanma/config';
 import type { SanmaSave } from './game/sanma/persistence';
+import { GuobiaoSettings } from './components/GuobiaoSettings';
+import { GuobiaoScreen } from './components/GuobiaoScreen';
+import { createGbConfig, type GbConfig } from './game/guobiao/config';
+import type { GbSave } from './game/guobiao/persistence';
 import { createConfig as createXzConfig, type XzConfig } from './game/xuezhan/config';
 import { parseXzSave, XZ_SAVE_KEY, type XzSave } from './game/xuezhan/persistence';
 import { MainMenu } from './components/MainMenu';
@@ -116,7 +120,7 @@ const EXIT_SAVE_TIMEOUT_MS = 3000;
 const EXIT_SAVE_TIMEOUT_MESSAGE = '牌谱保存超时，可直接退出或重试保存。';
 const EXIT_SAVE_ERROR_MESSAGE = '牌谱保存失败，可直接退出或重试保存。';
 function isRealtimeAudioScreen(screen: AppScreen): boolean {
-  return screen === 'game' || screen === 'riichi-17-steps' || screen === 'xuezhan' || screen === 'sanma';
+  return screen === 'game' || screen === 'riichi-17-steps' || screen === 'xuezhan' || screen === 'sanma' || screen === 'guobiao';
 }
 
 function bgmForScreen(screen: AppScreen): 'home' | 'game' | null {
@@ -131,6 +135,7 @@ export function resolveBgmScene(
   riichiEnabled: boolean,
 ): 'home' | 'game' | 'riichi' | null {
   if (screen === 'xuezhan') return 'game';
+  if (screen === 'guobiao') return 'game';
   if (isRealtimeAudioScreen(screen)) {
     return hasRiichi && riichiEnabled ? 'riichi' : 'game';
   }
@@ -214,6 +219,10 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
   const [sanmaConfig, setSanmaConfig] = useState<SanmaConfig>(createSanmaConfig);
   const [sanmaSaved, setSanmaSaved] = useState<SanmaSave | undefined>();
   const [sanmaSession, setSanmaSession] = useState(0);
+  const [gbConfig, setGbConfig] = useState<GbConfig>(createGbConfig);
+  const [gbSaved, setGbSaved] = useState<GbSave | undefined>();
+  const [gbSession, setGbSession] = useState(0);
+  const [gbReplay, setGbReplay] = useState(false);
   const [sanmaReplay, setSanmaReplay] = useState(false);
   const [sanmaRiichi, setSanmaRiichi] = useState(false);
   const [xzSaved, setXzSaved] = useState<XzSave | undefined>();
@@ -314,7 +323,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
   const activeGame = state.activeGame;
   const gameState = activeGame?.gameState;
   const matchState = activeGame?.matchState;
-  const voicePlayerCount: 2 | 3 | 4 = gameState?.players.length === 2 ? 2
+  const voicePlayerCount: 2 | 3 | 4 = state.screen === 'guobiao' || state.screen === 'guobiao-settings' ? 4 : gameState?.players.length === 2 ? 2
     : gameState?.players.length === 3 ? 3
       : state.screen === 'riichi-17-steps' || state.screen === 'riichi-17-steps-settings' ? 2
         : state.selection.playerCount === 3 ? 3 : 4;
@@ -325,10 +334,13 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
   const voiceDirectorRef = useRef<VoiceDirector | null>(null);
   if (!voiceDirectorRef.current) voiceDirectorRef.current = new VoiceDirector(VOICE_PACK_REPOSITORY, audioManager, audioSettings);
   const voiceDirector = voiceDirectorRef.current;
+  const stopGbVoice = useCallback(() => voiceDirector.stop(), [voiceDirector]);
   const audioScreenRef = useRef(state.screen);
   audioScreenRef.current = state.screen;
   const [xzTesting, setXzTesting] = useState(false);
   const [sanmaTesting, setSanmaTesting] = useState(false);
+  const [gbTesting,setGbTesting]=useState(false);
+  const gbTestingRef=useRef(gbTesting);gbTestingRef.current=gbTesting;
   const sanmaTestingRef = useRef(sanmaTesting); sanmaTestingRef.current = sanmaTesting;
   const xzTestingRef = useRef(xzTesting);
   xzTestingRef.current = xzTesting;
@@ -337,7 +349,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
     voicePresentationRuntimeRef.current = new VoicePresentationRuntime(
       voiceDirector,
       undefined,
-      () => isRealtimeAudioScreen(audioScreenRef.current) || audioScreenRef.current === 'test-mode' && (xzTestingRef.current || sanmaTestingRef.current),
+      () => isRealtimeAudioScreen(audioScreenRef.current) || audioScreenRef.current === 'test-mode' && (xzTestingRef.current || sanmaTestingRef.current || gbTestingRef.current),
     );
   }
   const voicePresentationRuntime = voicePresentationRuntimeRef.current;
@@ -381,8 +393,8 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
 
   useEffect(() => {
     const players = gameState?.players ?? [];
-    voiceDirector.setActorSeatContext(state.screen === 'sanma' || sanmaTesting ? { playerIds: [0, 1, 2], playerCount: 3 } : { playerIds: players.map((player) => player.id), playerCount: players.length });
-  }, [voiceDirector, gameState?.players, state.screen, sanmaTesting]);
+    voiceDirector.setActorSeatContext(state.screen === 'guobiao' || gbTesting ? { playerIds: [0, 1, 2, 3], playerCount: 4 } : state.screen === 'sanma' || sanmaTesting ? { playerIds: [0, 1, 2], playerCount: 3 } : { playerIds: players.map((player) => player.id), playerCount: players.length });
+  }, [voiceDirector, gameState?.players, state.screen, sanmaTesting, gbTesting]);
 
   // This observes committed MatchState only. Voice playback stays behind the runtime EventBus consumer.
   useMatchPresentationEvents(activeGame && matchState && gameState ? {
@@ -407,7 +419,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
     const consumer = new AudioPresentationConsumer(
       audioManager,
       undefined,
-      () => isRealtimeAudioScreen(audioScreenRef.current) || audioScreenRef.current === 'test-mode' && (xzTestingRef.current || sanmaTestingRef.current),
+      () => isRealtimeAudioScreen(audioScreenRef.current) || audioScreenRef.current === 'test-mode' && (xzTestingRef.current || sanmaTestingRef.current || gbTestingRef.current),
     );
     return () => { consumer.dispose(); audioManager.stopSfx(); };
   }, [audioManager, state.screen]);
@@ -420,13 +432,13 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
 
   useEffect(() => {
     const hasRiichi = state.screen === 'sanma' ? sanmaRiichi : state.activeGame?.gameState.players.some((player) => player.riichi) ?? false;
-    const track = state.screen === 'test-mode' && (xzTesting || sanmaTesting) ? 'game' : resolveBgmScene(state.screen, hasRiichi, audioSettings.riichiMusicEnabled);
+    const track = state.screen === 'test-mode' && (xzTesting || sanmaTesting || gbTesting) ? 'game' : resolveBgmScene(state.screen, hasRiichi, audioSettings.riichiMusicEnabled);
     if (track) {
       audioManager.playBgm(track);
     } else {
       audioManager.stopBgm();
     }
-  }, [audioManager, state.screen, xzTesting, sanmaTesting, musicRevision, audioSettings.riichiMusicEnabled, state.activeGame?.gameState.players, sanmaRiichi]);
+  }, [audioManager, state.screen, xzTesting, sanmaTesting,gbTesting, musicRevision, audioSettings.riichiMusicEnabled, state.activeGame?.gameState.players, sanmaRiichi]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -763,7 +775,7 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
         onNextTrack={handleNextTrack}
         onManageVoicePack={openVoiceManagement}
         onCreateVoicePack={() => { audioManager.stopSfxPreview(); setVoicePackCreationOpen(true); }}
-        voicePlayerCount={voicePlayerCount}
+        voicePlayerCount={gbTesting ? 4 : voicePlayerCount}
         onVoicePackDeleted={handleVoicePackDeleted}
       />
     );
@@ -1018,10 +1030,17 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
         onBack={() => setScreen('main-menu')}
         onRiichi={() => setScreen('riichi-player-count')}
         onXuezhan={() => setScreen('xuezhan-settings')}
+        onResumeXuezhan={() => { try { const raw=window.localStorage.getItem(XZ_SAVE_KEY); if (!raw) throw new Error('没有血战存档'); const saved=parseXzSave(raw); setXzConfig(saved.config); setXzSaved(saved); setXzSession(n=>n+1); setScreen('xuezhan'); } catch (e) { setState(current=>({...current,menuNotice:`无法恢复血战存档：${e}`})); } }}
+        onGuobiao={() => setScreen('guobiao-settings')}
         onComingSoon={(label) => setState((current) => ({ ...current, menuNotice: `${label}敬请期待。` }))}
       />
     );
   }
+
+  if (state.screen === 'guobiao-settings') return <GuobiaoSettings onBack={() => setScreen('local-mode-menu')}
+    onStart={config => { setGbConfig(config); setGbSaved(undefined); setGbReplay(false); setGbSession(n => n + 1); setScreen('guobiao'); }}
+    onResume={(save, replay) => { setGbConfig(save.state.config); setGbSaved(save); setGbReplay(!!replay); setGbSession(n => n + 1); setScreen('guobiao'); }} />;
+  if (state.screen === 'guobiao') return <><GuobiaoScreen onVoiceStop={stopGbVoice} key={gbSession} config={gbConfig} saved={gbSaved} replayOnly={gbReplay} appearance={appearanceSettings} profile={state.playerProfile} onAudio={openAudioSettings} onExit={() => setScreen('guobiao-settings')} />{renderAudioSettingsDialog()}</>;
 
   if (state.screen === 'xuezhan-settings') {
     return <><XuezhanSettings onBack={() => setScreen('local-mode-menu')} onAudio={openAudioSettings} onAppearance={() => setAppearanceDialogOpen(true)}
@@ -1159,14 +1178,17 @@ export default function App({ initialSeventeenGate }: { initialSeventeenGate?: i
 
   if (state.screen === 'test-mode' && testModeAvailability.enabled) {
     return (
-      <TestModeScreen
+      <><TestModeScreen
         key={state.testScenario?.id ?? 'test-mode-library'}
         initialScenario={state.testScenario}
         onXzSessionChange={setXzTesting}
         onSanmaSessionChange={setSanmaTesting}
+        onGbSessionChange={setGbTesting}
         onSanmaVoiceStop={() => voiceDirector.stop()}
+        onGbVoiceStop={stopGbVoice}
+        onGbAudioSettings={openAudioSettings}
         onExit={() => setScreen('main-menu', { testScenario: null })}
-      />
+      />{renderAudioSettingsDialog()}</>
     );
   }
 

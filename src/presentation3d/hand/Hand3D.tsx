@@ -1,3 +1,4 @@
+import { tunePoint } from '../coordinates/regionTuning';
 import type { SeatSceneState } from '../sceneState/tableSceneTypes';
 import { getHandTileTransform } from '../coordinates/sceneTransforms';
 import { Tile3D } from '../tile/Tile3D';
@@ -81,7 +82,7 @@ export function Hand3D({
     if (!tsumo || !slap) return;
     if (tsumo.phase === 'hold' || tsumo.phase === 'cleanup') { slapHand.current?.hide(); return; }
     const motion = resolveTsumoSlapMotion(tsumo.progress ?? 0);
-    slapHand.current?.update(projectHandContact(slap.position, camera, canvas.getBoundingClientRect()),
+    slapHand.current?.update(projectHandContact(tunePoint(slap.position, seatState.regionTuning?.hand), camera, canvas.getBoundingClientRect()),
       tsumo.phase === 'approach' ? 'approach' : tsumo.phase === 'slam' ? motion.handPhase : tsumo.phase === 'announce' ? 'retreat' : 'release',
       tsumo.phase === 'slam' ? motion.handProgress : tsumo.progress ?? 1);
   }, [tsumo, slap, camera, canvas]);

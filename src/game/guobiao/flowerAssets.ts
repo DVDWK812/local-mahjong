@@ -1,0 +1,11 @@
+import spring from '../../assets/tiles/flowers/spring.png';
+import summer from '../../assets/tiles/flowers/summer.png';
+import autumn from '../../assets/tiles/flowers/autumn.png';
+import winter from '../../assets/tiles/flowers/winter.png';
+import plum from '../../assets/tiles/flowers/plum.png';
+import orchid from '../../assets/tiles/flowers/orchid.png';
+import bamboo from '../../assets/tiles/flowers/bamboo.png';
+import chrysanthemum from '../../assets/tiles/flowers/chrysanthemum.png';
+import type { FlowerId } from './types';
+export const GB_FLOWER_IMAGES:Record<FlowerId,string>={spring,summer,autumn,winter,plum,orchid,bamboo,chrysanthemum};
+export const GB_FLOWER_NAMES:Record<FlowerId,string>={spring:'春',summer:'夏',autumn:'秋',winter:'冬',plum:'梅',orchid:'兰',bamboo:'竹',chrysanthemum:'菊'};

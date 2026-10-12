@@ -50,7 +50,7 @@ export function Table3DHud({
   return <Table3DHudView players={POSITIONS.filter(position => !activeSeats || activeSeats.includes(position)).map(position => ({ position, player: gameState.players[seats[position]] }))} playerProfile={playerProfile} tsumoGiriDisplayEnabled={tsumoGiriDisplayEnabled} dora={<DoraIndicatorStack gameState={gameState} matchState={matchState} slots={doraIndicatorSlots} hoveredTileType={hoveredTileType} sameTileHoverEnabled={sameTileHoverEnabled} onHoveredTileTypeChange={onHoveredTileTypeChange} />} />;
 }
 
-export function Table3DHudView({ players, playerProfile, tsumoGiriDisplayEnabled = true, dora }: { players: readonly { position: PlayerPosition; player: PlayerState; nickname?: string; status?: ReactNode; anchorCentered?: boolean }[]; playerProfile?: PlayerProfile; tsumoGiriDisplayEnabled?: boolean; dora?: ReactNode }) {
+export function Table3DHudView({ players, playerProfile, tsumoGiriDisplayEnabled = true, dora }: { players: readonly { position: PlayerPosition; player: PlayerState; nickname?: string; status?: ReactNode; anchorCentered?: boolean; tuning?: import('./coordinates/regionTuning').DomTuning }[]; playerProfile?: PlayerProfile; tsumoGiriDisplayEnabled?: boolean; dora?: ReactNode }) {
   const slotAvatars = usePlayerSlotAvatars();
   const slotNicknames = usePlayerSlotNicknames();
   useSyncExternalStore(
@@ -85,7 +85,7 @@ export function Table3DHudView({ players, playerProfile, tsumoGiriDisplayEnabled
       <div className="table-3d-dora-layer" aria-label="3D 宝牌信息层">
         {dora}
       </div>
-      {players.map(({ position, player, nickname, status, anchorCentered }) => {
+      {players.map(({ position, player, nickname, status, anchorCentered, tuning }) => {
         const playerId = player.id;
         const frameTuning = getAvatarFrameTuning(
           PLAYER_SLOTS[position],
@@ -100,9 +100,9 @@ export function Table3DHudView({ players, playerProfile, tsumoGiriDisplayEnabled
             data-player-zone={position}
             data-player-index={playerId}
             style={{
-              '--avatar-frame-offset-x': `${anchorCentered ? 0 : frameTuning.x}px`,
-              '--avatar-frame-offset-y': `${frameTuning.y}px`,
-              '--avatar-frame-size': frameTuning.size,
+              '--avatar-frame-offset-x': `${(anchorCentered ? 0 : frameTuning.x) + (tuning?.x ?? 0)}px`,
+              '--avatar-frame-offset-y': `${frameTuning.y + (tuning?.y ?? 0)}px`,
+              '--avatar-frame-size': frameTuning.size * (tuning?.scale ?? 1),
             } as CSSProperties}
           >
             <Table3DPlayerFrame

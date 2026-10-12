@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { SANMA_UI_TUNING } from '../presentation3d/table/sanmaUiTuning';
+import { applySanmaUiTuning } from '../presentation3d/table/sanmaUiLayout';
 import { MatchRuntime } from '../game/timeControl/matchRuntime';
 import { sanmaPolicy, SanmaTestClock } from '../game/sanma/runtime';
 import { applySanma, createSanma, legalSanmaActions, participantId } from '../game/sanma/engine';
@@ -73,7 +75,7 @@ export function SanmaScreen(props: Props) {
   const [winAnimation, setWinAnimation] = useState<WinPresentation3DState | null>(null);
   const [hovered, setHovered] = useState<TileId | null>(null);
   const [replayPlaying, setReplayPlaying] = useState(false), [replaySpeed, setReplaySpeed] = useState<ReplayController['speed']>(1);
-  const scene = useMemo(() => buildSanmaFormalScene(s, viewer, winAnimation?.revealedPlayerIds ?? (winAnimation ? [winAnimation.action.playerId] : [])), [s, viewer, winAnimation]);
+  const scene = useMemo(() => applySanmaUiTuning(buildSanmaFormalScene(s, viewer, winAnimation?.revealedPlayerIds ?? (winAnimation ? [winAnimation.action.playerId] : [])), SANMA_UI_TUNING), [s, viewer, winAnimation, SANMA_UI_TUNING]);
   useEffect(() => { northSources.current.clear(); snapshots.clear(); setDiscardSnapshot(null); setLocalAnimation(null); setWinAnimation(null); return () => snapshots.clear(); }, [sessionKey, snapshots]);
   const captureSource = useCallback((capture: DiscardSourceCapture) => {
     const snapshot = { ...capture, sessionKey, confirmedTurn: s.sequence + 1 };
@@ -168,7 +170,7 @@ export function SanmaScreen(props: Props) {
   const available = view.legal.filter(a => a.type !== 'discard' && a.type !== 'riichi' && a.type !== 'next');
   const title = s.config.length === 'east-only' ? '三人东' : '三人南';
   const status = s.phase === 'response' ? `${s.players[s.response!.actor].name}${s.response!.kind === 'north' ? '宣言拔北' : s.response!.kind === 'discard' ? '弃牌' : '宣言杠'}，等待响应` : s.phase === 'ended' ? s.result!.reason : `${s.players[s.current].name}行动`;
-  const hudPlayers = view.mapping.map(m => ({ position: sanmaHudPosition(m.seat), player: view.players[view.participants.find(p => p.id === m.participantId)!.appearanceSlot!], nickname: view.participants.find(p => p.id === m.participantId)!.appearanceSlot === 0 ? props.profile?.nickname : view.participants.find(p => p.id === m.participantId)!.name }));
+  const hudPlayers = view.mapping.map(m => ({ tuning: m.seat === 'left' ? undefined : SANMA_UI_TUNING.seats[m.seat].avatar, position: sanmaHudPosition(m.seat), player: view.players[view.participants.find(p => p.id === m.participantId)!.appearanceSlot!], nickname: view.participants.find(p => p.id === m.participantId)!.appearanceSlot === 0 ? props.profile?.nickname : view.participants.find(p => p.id === m.participantId)!.name }));
   const winnerHands = s.result?.winners.map(w => ({ playerId: w.winner, tiles: [...s.players[w.winner].hand.map(i => s.wall.tiles[i]), ...(w.from !== null ? [s.wall.tiles[w.tile]] : [])], winningTile: s.wall.tiles[w.tile], drawnTileInstanceId: w.from === null ? s.wall.tiles[w.tile].instanceId : null, seat: view.mapping.find(m => m.participantId === participantId(w.winner))!.seat }));
   return <TileDoraContext.Provider value={view.dora.map(t => sanmaDora(t.id))}>
         {props.isolated && !replay && <details className="sanma-test-controls"><summary>展开／收起测试控制区</summary><label><input type="checkbox" checked={fullControl} onChange={e => setFullControl(e.target.checked)} />完全控制（关闭 AI）</label><label>观察与操作席<select aria-label="三人观察席" value={viewer} onChange={e => setViewer(Number(e.target.value) as SanmaSeat)}>{s.players.map(p => <option value={p.id} key={p.id}>{p.name}</option>)}</select></label><button onClick={step}>单步推进</button><button onClick={() => clock?.advance(5000)}>测试时钟＋5秒</button><button onClick={() => { for (const key of ['autoWin', 'suppressCalls', 'autoTsumogiri'] as const) runtime.setPreference(participantId(viewer), key, false); }}>关闭自动操作</button></details>}
@@ -181,7 +183,7 @@ export function SanmaScreen(props: Props) {
           hud={<Table3DHudView players={hudPlayers} playerProfile={props.profile} dora={<DoraIndicatorStack gameState={{ doraIndicators: view.dora, honba: s.honba, riichiSticks: s.pot / 1000, roundWind: s.roundWind }} hoveredTileType={hovered} onHoveredTileTypeChange={setHovered} />} />} />
       </SceneErrorBoundary>}
       appearance={{ settings: appearance }}
-      localHand={{ player: view.player, meldPlayer: { ...view.player, calls: [] }, isCurrent: s.current === viewer, canDiscard: view.hand.canDiscard && !runtime.paused && !replay,
+      localHand={{ screenTuning: SANMA_UI_TUNING.seats.bottom.hand, player: view.player, meldPlayer: { ...view.player, calls: [] }, isCurrent: s.current === viewer, canDiscard: view.hand.canDiscard && !runtime.paused && !replay,
         presentation: { ...view.hand, tiles: view.hand.tiles.map(t => ({ ...t, playable: t.playable && initialized.current && !runtime.paused && !replay })) }, interactionActions: interaction,
         onDiscardSourceCapture: captureSource, retainDiscardSourceSnapshot: true, discardSnapshot, localHandAnimation: localAnimation,
         onDiscard: (_, id) => interaction.discard(id), screenSpaceOverlay: true, playerProfile: viewer === 0 ? props.profile : undefined, onPresentationReady: handReady, handPack: resolveHandPackForPlayer(viewer, appearances, appearance),

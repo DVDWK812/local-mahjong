@@ -38,6 +38,7 @@ export class MatchRuntime<S> {
   error: string | null = null;
   private active = false;
   private pausedAt: number | null = null;
+  private readingPauseRetainsDecisions = false;
   private started = false;
   private disposed = false;
   private running = false;
@@ -81,6 +82,15 @@ export class MatchRuntime<S> {
     const newlyReady = !this.readyResources.has(key);
     this.readyResources.add(key);
     if (this.active) { if (newlyReady) { this.sync(); this.evaluate(); } return; }
+    // GB local reading resumes in memory: keep receipt identities and prepared AI
+    // choices, shift only authority timestamps. Other modes and real save restores
+    // retain the existing snapshot restoration path.
+    if (this.readingPauseRetainsDecisions && this.pausedAt !== null) {
+      const offset = this.time.clock.now() - this.pausedAt;
+      for (const d of this.time.decisions.values()) { d.startedAt += offset; d.opensAt += offset; }
+      for (const entry of this.prepared.values()) entry.receivedAt += offset;
+      this.restoreData = undefined; this.readingPauseRetainsDecisions = false;
+    }
     this.active = true;
     this.pausedAt = null;
     this.started = true;
@@ -205,6 +215,12 @@ export class MatchRuntime<S> {
   }
   snapshot(): RuntimeSave { if (!this.active && this.restoreData) return this.restoreData; return { schemaVersion: 1, config: this.config, clock: this.time.snapshot(),
     preferences: structuredClone(this.preferences), audit: [...this.audit], draftRevisions: { ...this.draftRevisions } }; }
+  /** Narrow GB reading compatibility, never changes persistence schema or other modes. */
+  pauseForReading(): RuntimeSave {
+    if (this.policy.mode !== 'guobiao') throw new Error('阅读保护仅适用于本地国标');
+    if (!this.active && this.restoreData) return this.restoreData;
+    const save = this.pause(); this.readingPauseRetainsDecisions = true; return save;
+  }
   pause(): RuntimeSave { if (!this.active && this.restoreData) return this.restoreData; this.evaluate(); const save = this.snapshot(); this.pausedAt = this.time.clock.now(); this.active = false; this.time.stop(); this.restoreData = save; this.emit(); return save; }
   dispose(): void { this.disposed = true; this.active = false; this.time.stop(); this.listeners.clear(); this.openListeners.clear(); }
   private fail(message: string): void { this.error = message; this.time.stop(); this.emit(); }

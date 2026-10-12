@@ -52,13 +52,13 @@ describe('AppearanceSettingsDialog', () => {
   it('renders one global Pack picker and stable Player 1–4 selectors with previews', () => {
     const html = renderToStaticMarkup(<HandAppearanceSettings settings={createDefaultAppearanceSettings()}
       onChange={() => undefined} onBack={() => undefined} />);
-    for (const label of ['全局默认手部', 'Female', 'Female 2', 'Male', 'Orange Cat Paw', 'Grey Cat Paw', 'Dog Paw', 'Gloved', 'Robot', 'Cyberpunk']) {
+    for (const label of ['全局默认手部', 'Female', 'Female 2', 'Male', 'Orange Cat Paw', 'Grey Cat Paw', 'Dog Paw', 'Gloved', 'Robot', 'Cyberpunk', '赤金龙爪', '青白玉机关', '玩偶手']) {
       expect(html).toContain(label);
     }
     expect(html).not.toContain('Follow Global');
     expect(html).not.toContain('value="inherit"');
     for (const player of [1, 2, 3, 4]) expect(html).toContain(`Player ${player}`);
-    expect((html.match(/<img/g) ?? [])).toHaveLength(13);
+    expect((html.match(/<img/g) ?? [])).toHaveLength(16);
     expect((html.match(/<select/g) ?? [])).toHaveLength(4);
   });
 

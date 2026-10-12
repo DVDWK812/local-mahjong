@@ -1,3 +1,4 @@
+import { tunePoint } from '../coordinates/regionTuning';
 import { resolveNorthDomSource } from './northDomSource';
 import { useThree } from '@react-three/fiber';
 import { useLayoutEffect, useMemo, useRef } from 'react';
@@ -53,7 +54,7 @@ function SnapshotDiscardProxy3D({ active, handPack }: { active: ActiveTableAnima
           hand: [], river: [], melds: [], riichi: false }, frame);
         const entry = slots.find(slot => !slot.hidden && slot.tile.instanceId === frame.snapshot.drawnTile?.instanceId)
           ?? slots.find(slot => !slot.hidden);
-        if (entry) position = entry.transform.position;
+        if (entry) position = tunePoint(entry.transform.position, active.plan.tuning?.source);
       }
       hand.current?.update(projectHandContact(position, camera, gl.domElement.getBoundingClientRect()),
         frame.phase, frame.progress, frame.snapshot.isTsumogiri);
@@ -64,7 +65,7 @@ function SnapshotDiscardProxy3D({ active, handPack }: { active: ActiveTableAnima
   }, [active.plan.seat, frame, camera, gl, hand, motion.tilePosition]);
   useLayoutEffect(() => { invalidate(); }, [frame, invalidate]);
   return <group name="table-animation-3d" userData={{ eventId: frame.snapshot.eventId, phase: frame.phase }}>
-    {motion.tileVisible && active.plan.showPrimaryTile ? <group position={motion.tilePosition} rotation={[0, motion.tileRotationY, 0]} scale={motion.tileScale}>
+    {motion.tileVisible && active.plan.showPrimaryTile ? <group position={motion.tilePosition} rotation={[0, motion.tileRotationY, 0]} quaternion={motion.tileQuaternion ? [...motion.tileQuaternion] : undefined} scale={motion.tileScale}>
       <group rotation={[motion.tileRotationX, 0, 0]}>
         <Tile3D ownerPlayerId={active.plan.action.playerId} tile={active.plan.tile}
           faceState={active.plan.faceState} orientation="upright" showRearFace
@@ -112,6 +113,7 @@ function LegacyHandAction3D({ active, riichiStickAppearance, handPack }: Readonl
     if (tileRef.current) {
       tileRef.current.position.set(...motion.tilePosition);
       tileRef.current.rotation.set(0, motion.tileRotationY, 0);
+      if (motion.tileQuaternion) tileRef.current.quaternion.set(...motion.tileQuaternion);
       tileRef.current.scale.setScalar(motion.tileScale);
       tileRef.current.visible = motion.tileVisible;
     }
@@ -121,8 +123,9 @@ function LegacyHandAction3D({ active, riichiStickAppearance, handPack }: Readonl
       const group = transientRefs.current.get(tile.key);
       const pitch = transientPitchRefs.current.get(tile.key);
       if (group) {
-        group.position.set(...tileMotion.position);
+        group.position.set(tileMotion.position[0], tileMotion.position[1], tileMotion.position[2]);
         group.rotation.set(0, tileMotion.rotationY, 0);
+        if (tileMotion.quaternion) group.quaternion.set(...tileMotion.quaternion);
         group.scale.setScalar(tileMotion.tileScale);
         group.visible = tileMotion.visible;
       }
@@ -147,6 +150,7 @@ function LegacyHandAction3D({ active, riichiStickAppearance, handPack }: Readonl
           ref={tileRef}
           position={initial.tilePosition as [number, number, number]}
           rotation={[0, initial.tileRotationY, 0]}
+          quaternion={initial.tileQuaternion ? [...initial.tileQuaternion] : undefined}
           scale={initial.tileScale}
           visible={initial.tileVisible}
         >
@@ -175,6 +179,7 @@ function LegacyHandAction3D({ active, riichiStickAppearance, handPack }: Readonl
             }}
             position={motion.position as [number, number, number]}
             rotation={[0, motion.rotationY, 0]}
+            quaternion={motion.quaternion ? [...motion.quaternion] : undefined}
             scale={motion.tileScale}
             visible={motion.visible}
           >

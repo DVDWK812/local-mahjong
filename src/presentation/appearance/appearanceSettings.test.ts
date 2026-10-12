@@ -54,7 +54,7 @@ describe('AppearanceSettings v3', () => {
       .toEqual({ packId: 'female' });
     expect(migrateAppearanceSettings({ ...createDefaultAppearanceSettings(), handAppearance: { packId: 'cat' } })?.handAppearance)
       .toEqual({ packId: 'female' });
-    for (const packId of ['female', 'female_2', 'male', 'cat_orange', 'cat_grey', 'dog', 'gloved', 'robot', 'cyberpunk'] as const) {
+    for (const packId of ['female', 'female_2', 'male', 'cat_orange', 'cat_grey', 'dog', 'gloved', 'robot', 'cyberpunk', 'crimson_gold_dragon', 'jade_mechanism', 'plush_hand'] as const) {
       expect(migrateAppearanceSettings({ ...createDefaultAppearanceSettings(), handAppearance: { packId } })?.handAppearance)
         .toEqual({ packId });
     }

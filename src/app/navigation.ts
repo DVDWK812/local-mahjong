@@ -12,6 +12,8 @@ export type AppScreen =
   | 'riichi-three-player-length'
   | 'sanma-settings'
   | 'sanma'
+  | 'guobiao-settings'
+  | 'guobiao'
   | 'match-settings'
   | 'xuezhan-settings'
   | 'xuezhan'

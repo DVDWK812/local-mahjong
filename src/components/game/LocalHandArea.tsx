@@ -18,6 +18,7 @@ import { waitForLocalHandPresentation } from './localHandPresentationReady';
 import type { HandPack } from '../../hand/handPacks';
 
 interface LocalHandAreaProps {
+  screenTuning?: Readonly<{ x: number; y: number; rotation: number; scale: number }>;
   player: PlayerState;
   identityPlayer?: PlayerState;
   meldPlayer?: PlayerState;
@@ -55,7 +56,7 @@ const windNames: Record<Wind, string> = {
   north: '北',
 };
 
-export function LocalHandArea({ player, identityPlayer = player, meldPlayer = player, isCurrent, canDiscard, allowedDiscardInstanceIds, kuikaeForbiddenTileIds = [], doraIndicators = [], doraGlowEnabled = true, doraBorderEnabled = true, doraBreathingEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, concealHand = false, onDiscardPreviewChange, onDiscardSourceCapture, onDiscard, playerProfile, presentation, interactionActions, screenSpaceOverlay = false, retainDiscardSourceSnapshot = false, discardSnapshot = null, localHandAnimation = null, onPresentationReady, handPack }: LocalHandAreaProps) {
+export function LocalHandArea({ screenTuning, player, identityPlayer = player, meldPlayer = player, isCurrent, canDiscard, allowedDiscardInstanceIds, kuikaeForbiddenTileIds = [], doraIndicators = [], doraGlowEnabled = true, doraBorderEnabled = true, doraBreathingEnabled = true, hoveredTileType = null, sameTileHoverEnabled = true, onHoveredTileTypeChange, tsumoGiriDisplayEnabled = true, concealHand = false, onDiscardPreviewChange, onDiscardSourceCapture, onDiscard, playerProfile, presentation, interactionActions, screenSpaceOverlay = false, retainDiscardSourceSnapshot = false, discardSnapshot = null, localHandAnimation = null, onPresentationReady, handPack }: LocalHandAreaProps) {
   const rootRef = useRef<HTMLElement>(null);
   const drawnTileId = player.drawnTile?.instanceId;
   const presentationTiles = presentation?.tiles.map((entry) => entry.tile) ?? player.hand;
@@ -123,8 +124,10 @@ export function LocalHandArea({ player, identityPlayer = player, meldPlayer = pl
   return (
     <>
     <section ref={rootRef} className={`local-hand-area ${isCurrent ? 'local-hand-area--active' : ''} ${isCurrent && (presentation?.canDiscard ?? canDiscard) ? 'local-hand-area--interactive' : ''} ${screenSpaceOverlay ? 'local-hand-area--screen-space' : ''} ${screenSpaceOverlay && !doraBorderEnabled ? 'local-hand-area--dora-border-disabled' : ''} ${screenSpaceOverlay && !doraBreathingEnabled ? 'local-hand-area--dora-breathing-disabled' : ''}`} aria-label="本家手牌" data-local-player={player.id} data-table-presentation={presentation ? 'shared' : 'legacy'} data-local-hand-space={screenSpaceOverlay ? 'screen' : 'table'} data-local-hand-animation-event={localHandAnimation?.eventId} data-local-hand-animation-kind={localHandAnimation?.kind} data-local-hand-animation-phase={localHandAnimation?.phase} style={screenSpaceOverlay ? {
-      '--local-hand-tuning-x': `${localHandScreenOffset.x}px`,
-      '--local-hand-tuning-y': `${localHandScreenOffset.y}px`,
+      '--local-hand-tuning-x': `${localHandScreenOffset.x + (screenTuning?.x ?? 0)}px`,
+      rotate: screenTuning ? `${screenTuning.rotation}rad` : undefined,
+      scale: screenTuning?.scale,
+      '--local-hand-tuning-y': `${localHandScreenOffset.y + (screenTuning?.y ?? 0)}px`,
     } as CSSProperties : undefined}>
       {screenSpaceOverlay ? null : <div className="local-hand-info local-hand-info--vertical" data-player-frame-layout="vertical">
         {playerProfile

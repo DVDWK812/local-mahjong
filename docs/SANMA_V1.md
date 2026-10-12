@@ -142,3 +142,7 @@
 新增直接复现场景 `SM-04-VOICE-0`、`SM-04-VOICE-1`、`SM-04-VOICE-2`，分别对应真人、右侧电脑一、对面电脑二。人工听感须自行移除 URL 的 mute=1，并开启总声音与 Voice；建议为三位稳定玩家分别配置校长、曼波、yaya。测试面板可暂停、单步及保持完全控制来关闭 AI 自动行动；切观察席不会更换该玩家音色。高优先级和牌可以打断拔北，不能据此推断宣言漏发。
 
 现行证据及完整本机步骤见 [座席与语音验收](../artifacts/sanma-seat-voice/ACCEPTANCE.md)。定向 370 项通过；最终全仓 2245 通过、1 个既有 HUD 基线失败、1 个原有跳过，类型与 build 通过。旧视觉和听感结论不继承；状态仍为 IMPLEMENTED_WITH_VALIDATION_BLOCKERS，SANMA-6 待用户批准。
+
+## 2026-10-03 三麻 UI 集中微调
+
+位置、旋转、缩放的三麻增量统一放在 src/presentation3d/table/sanmaUiTuning.ts。本家手牌使用实际 DOM 单位；对手手牌、牌河、鸣牌和拔北使用世界增量，头像保留响应式基线，中央 HUD 单独叠加三麻偏移。默认画面保持不变。字段、消费者、坐标及场景说明见 [微调指南](SANMA_UI_TUNING.md)，执行证据见 [本轮验收](../artifacts/sanma-ui-tuning/ACCEPTANCE.md)。此前视觉/人工记录不自动升级为当前版本通过，SANMA-6 状态不变。

@@ -25,6 +25,9 @@ const PACK_LABELS: Readonly<Record<HandPackId, string>> = {
   gloved: 'Gloved',
   robot: 'Robot',
   cyberpunk: 'Cyberpunk',
+  crimson_gold_dragon: '赤金龙爪',
+  jade_mechanism: '青白玉机关',
+  plush_hand: '玩偶手',
 };
 
 export function HandAppearanceSettings({ settings, onChange, onBack }: Readonly<{

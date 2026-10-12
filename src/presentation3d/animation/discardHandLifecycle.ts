@@ -1,3 +1,4 @@
+import { tunePoint } from '../coordinates/regionTuning';
 import type { HandPresentationFrame } from '../../presentation/handAnimation/HandPresentationSnapshot';
 import type { TableAnimation3DPlan } from './tableAnimation3D';
 import { resolveTableAnimation3DMotion } from './tableAnimation3D';
@@ -22,8 +23,8 @@ export function resolveSnapshotDiscardMotion(plan: TableAnimation3DPlan, frame: 
     : frame.phase === 'river-settle' ? 'release' : 'retreat';
   const tile = resolveTableAnimation3DMotion(plan, phase, discardLiftProgress(frame));
   const hand = discardHandLifecycle(frame);
-  const contact = phase === 'retreat' ? plan.destination : tile.tilePosition;
+  const contact = phase === 'retreat' ? tunePoint(plan.destination, plan.tuning?.destination) : tile.tilePosition;
   const blend = 1 - hand.reach + hand.retract;
-  const handPosition = contact.map((value, axis) => value + (plan.entry[axis] - value) * blend) as [number, number, number];
+  const handPosition = contact.map((value, axis) => value + (tunePoint(plan.entry, plan.tuning?.source)[axis] - value) * blend) as [number, number, number];
   return { ...tile, handPosition, handVisible: hand.visible };
 }

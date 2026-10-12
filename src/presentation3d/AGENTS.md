@@ -48,7 +48,7 @@ UI-5F.4 已将以下源码 authority 与精确值冻结。后续任务必须修�
 
 ### HUD、Decoration、Riichi 与 Avatar
 
-- `centralHud.position=[0,0.698,0]`，shared effective center 为 `[0,0.698,2]`；`hudOnlyOffsetX=0.2`、`hudOnlyOffsetZ=-0.3`，最终 HUD anchor 为 `[0.2,0.698,1.7]`。
+- `centralHud.position=[0,0.698,0]`，shared effective center 为 `[0,0.698,2]`；`hudOnlyOffsetX=-0.1`、`hudOnlyOffsetZ=-0.1`，最终 HUD-only anchor 为 `[-0.1,0.698,1.9]`。2026-10-03 用户明确批准保留当前生产布局并将此值作为对应 centralConsoleLayout 精确测试的新基线（用户说明已记录于 Notion 第27节）；不改其他坐标或断言。
 - HUD rotation 为 `[-PI/2,0,0]`；`compactViewportMaxHeight=800`、`compactScale=0.96`、`regularScale=0.72`、font-size authority 为 `clamp(23px, 0.8vw, 14px)`。
 - Decoration center 跟随 shared effective HUD center；`offsetX=0`、`offsetZ=0`、`innerSquareSize=8.2`、`riichiGap=9.45`、`outerSquareSize=27.1`、`lineWidth=0.06`、`segmentHeight=0.04`、`surfaceClearance=0.004`。
 - Riichi stick layout：`laneOffset=3.35`，四席 seat offsets 均为 `(inline=0, radial=0)`；asset geometry 为 `length=3.16`（UI-5G.2B Final Sizing）、`width=0.24`、`height=0.065`、`epsilon=0.006`，座位变换统一由 `riichiStickLayout` resolver 提供。

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { XuezhanTestTab } from './XuezhanTestTab';
 import { SanmaTestTab } from './SanmaTestTab';
+import { GuobiaoTestTab } from './GuobiaoTestTab';
 import { Board } from './Board';
 import { TestModeDebugPanel } from './TestModeDebugPanel';
 import { createReplayRecord } from '../game/persistence/replayRecord';
@@ -19,7 +20,10 @@ interface TestModeScreenProps {
   testResultStorage?: Storage;
   onXzSessionChange?: (active: boolean) => void;
   onSanmaVoiceStop?: () => void;
+  onGbVoiceStop?: () => void;
+  onGbAudioSettings?: () => void;
   onSanmaSessionChange?: (active: boolean) => void;
+  onGbSessionChange?: (active: boolean) => void;
 }
 
 interface TestSession {
@@ -45,8 +49,8 @@ const statusLabels: Record<TestCaseStatus, string> = {
   'needs-retest': '需复验',
 };
 
-export function TestModeScreen({ initialScenario = null, onExit, testResultStorage, onXzSessionChange, onSanmaSessionChange, onSanmaVoiceStop }: TestModeScreenProps) {
-  const [tab, setTab] = useState<'riichi' | 'xuezhan' | 'sanma'>('riichi');
+export function TestModeScreen({ initialScenario = null, onExit, testResultStorage, onXzSessionChange, onSanmaSessionChange, onSanmaVoiceStop,onGbVoiceStop,onGbAudioSettings,onGbSessionChange }: TestModeScreenProps) {
+  const [tab, setTab] = useState<'riichi' | 'xuezhan' | 'sanma' | 'guobiao'>('riichi');
   const presentationAnimationsEnabled = testModePresentationAnimationsEnabled(
     typeof window === 'undefined' ? '' : window.location.search,
   );
@@ -144,7 +148,8 @@ export function TestModeScreen({ initialScenario = null, onExit, testResultStora
     }
   };
 
-  const tabs = <nav className="xz-tabs" aria-label="测试模式分类"><button aria-pressed={tab === 'riichi'} onClick={() => setTab('riichi')}>立直麻将</button><button aria-pressed={tab === 'xuezhan'} onClick={() => setTab('xuezhan')}>血战到底</button><button aria-pressed={tab === 'sanma'} onClick={() => setTab('sanma')}>三人立直麻将</button></nav>;
+  const tabs = <nav className="xz-tabs" aria-label="测试模式分类"><button aria-pressed={tab === 'riichi'} onClick={() => setTab('riichi')}>立直麻将</button><button aria-pressed={tab === 'xuezhan'} onClick={() => setTab('xuezhan')}>血战到底</button><button aria-pressed={tab === 'sanma'} onClick={() => setTab('sanma')}>三人立直麻将</button><button aria-pressed={tab === 'guobiao'} onClick={() => setTab('guobiao')}>国标麻将</button></nav>;
+  if (tab === 'guobiao') return <GuobiaoTestTab onVoiceStop={onGbVoiceStop} onAudio={onGbAudioSettings} tabs={tabs} onExit={onExit} onSessionChange={onGbSessionChange} />;
   if (tab === 'sanma') return <SanmaTestTab onVoiceStop={onSanmaVoiceStop} tabs={tabs} onExit={onExit} onSessionChange={onSanmaSessionChange} />;
   if (tab === 'xuezhan') return <XuezhanTestTab tabs={tabs} onSessionChange={onXzSessionChange} />;
   if (!session) {

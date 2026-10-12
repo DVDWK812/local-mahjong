@@ -10,6 +10,7 @@ export interface PresentationTile {
 }
 
 export interface TileDiscardedPresentationEvent {
+  readonly mode?: 'guobiao';
   readonly handHistory?: HandDiscardHistory;
   readonly eventId: string;
   readonly sequence: number;
@@ -38,6 +39,7 @@ export interface RiichiDeclaredPresentationEvent {
 }
 
 export interface MeldDeclaredPresentationEvent {
+  readonly mode?: 'guobiao';
   readonly eventId: string;
   readonly sequence: number;
   readonly type: 'meld_declared';
@@ -161,7 +163,13 @@ export interface NorthCommittedPresentationEvent {
   readonly sourceRect?: import('./handAnimation/DiscardSourceSnapshot').PresentationRect;
 }
 
-export type PresentationEvent = NorthDeclaredPresentationEvent | NorthCommittedPresentationEvent | DoraRevealedPresentationEvent | TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | WinDeclaredPresentationEvent | WinScoredPresentationEvent | RoundSettledPresentationEvent | RoundEndAnnouncedPresentationEvent | MatchStartedPresentationEvent | MatchResultPresentationEvent;
+/** Only final, publicly committed GB outcomes; no Japanese yaku/limit payload. */
+export interface GuobiaoSettledPresentationEvent {
+  readonly type: 'guobiao_settled'; readonly eventId: string; readonly sequence: number;
+  readonly outcome: 'ron' | 'tsumo' | 'draw'; readonly playerId?: PlayerId;
+}
+
+export type PresentationEvent = GuobiaoSettledPresentationEvent | NorthDeclaredPresentationEvent | NorthCommittedPresentationEvent | DoraRevealedPresentationEvent | TileDiscardedPresentationEvent | TileDrawnPresentationEvent | RiichiDeclaredPresentationEvent | MeldDeclaredPresentationEvent | WinDeclaredPresentationEvent | WinScoredPresentationEvent | RoundSettledPresentationEvent | RoundEndAnnouncedPresentationEvent | MatchStartedPresentationEvent | MatchResultPresentationEvent;
 type WithoutPresentationMetadata<T> = T extends PresentationEvent ? Omit<T, 'eventId' | 'sequence'> : never;
 export type PresentationEventInput = WithoutPresentationMetadata<PresentationEvent>;
 export type PresentationEventListener = (event: PresentationEvent) => void;
@@ -196,13 +204,13 @@ export class PresentationEventBus {
     this.listeners.delete(listener);
   }
 
-  publish(input: PresentationEventInput): PresentationEvent {
+  publish(input: PresentationEventInput, committedEventId?: string): PresentationEvent {
     this.sequence += 1;
     const event = Object.freeze(input.type === 'tile_discarded'
       ? {
           ...input,
           tile: Object.freeze({ ...input.tile }),
-          eventId: createEventId(),
+          eventId: committedEventId ?? createEventId(),
           sequence: this.sequence,
         }
       : input.type === 'round_settled' && input.settlementType === 'exhaustive-draw'
@@ -211,7 +219,7 @@ export class PresentationEventBus {
           activePlayerIds: Object.freeze([...input.activePlayerIds]),
           tenpaiPlayers: Object.freeze([...input.tenpaiPlayers]),
           notenPlayers: Object.freeze([...input.notenPlayers]),
-          eventId: createEventId(),
+          eventId: committedEventId ?? createEventId(),
           sequence: this.sequence,
         }
         : input.type === 'match_started'
@@ -235,7 +243,7 @@ export class PresentationEventBus {
             }
       : {
           ...input,
-          eventId: createEventId(),
+          eventId: committedEventId ?? createEventId(),
           sequence: this.sequence,
         }) as PresentationEvent;
 

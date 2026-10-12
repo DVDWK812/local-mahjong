@@ -7,6 +7,7 @@ import type { Table3DSeat } from './coordinates/seatTransforms';
 import { Hand3D } from './hand/Hand3D';
 import { TableLighting } from './lighting/TableLighting';
 import { NorthTiles3D } from './meld/NorthTiles3D';
+import { FlowerTiles3D } from './meld/FlowerTiles3D';
 import { Meld3D } from './meld/Meld3D';
 import { River3D } from './river/River3D';
 import type { OccupiedTableSceneState } from './sceneState/tableSceneTypes';
@@ -36,6 +37,7 @@ import { AppearanceResources3D } from './appearance/AppearanceResources3D';
 import { DEFAULT_APPEARANCE_SETTINGS, type AppearanceSettings } from '../presentation/appearance/appearanceSettings';
 import { AvatarFrameTuningPanel } from './table/AvatarFrameTuningPanel';
 import { resolveHandPackForPlayer, usePlayerSlotAppearances } from '../presentation/appearance/playerSlotAppearance';
+import { RegionGroup } from './coordinates/RegionGroup';
 
 type Table3DSceneProps = Readonly<{
   sceneState: OccupiedTableSceneState;
@@ -98,13 +100,13 @@ const StableTableScene = memo(function StableTableScene({
       <FixedTableCamera />
       <TableLighting />
       <TableMesh theme={tableVisualTheme} feltTexture={feltTexture} />
-      {centralHud ? <CentralConsoleHudAnchor3D riichiLanes>{centralHud}</CentralConsoleHudAnchor3D> : null}
+      {centralHud ? <CentralConsoleHudAnchor3D riichiLanes tuning={sceneState.scoreHudTuning}>{centralHud}</CentralConsoleHudAnchor3D> : null}
       <Suspense fallback={null}>
         <TileTextureWarmup />
         {SEAT_ORDER.flatMap((seat) => { const seatState = sceneState.seats[seat]; return seatState ? [ (
           <group key={seat}>
             {seat === 'bottom' ? null : (
-              <Hand3D
+              <RegionGroup tuning={seatState.regionTuning?.hand}><Hand3D
                 seatState={seatState}
                 winHandPack={winHandPack}
                 handPresentation={handPresentation?.snapshot.playerId === seatState.playerId ? handPresentation : undefined}
@@ -113,22 +115,23 @@ const StableTableScene = memo(function StableTableScene({
                   ? winPresentation3D
                   : null}
                 visualContext={tileVisualContext}
-              />
+              /></RegionGroup>
             )}
-            <River3D
+            <RegionGroup tuning={seatState.regionTuning?.river}><River3D
               seatState={seatState}
               hiddenTileKeys={hiddenRiverKeys}
               winningRiverIndex={winningRiverTarget?.playerId === seatState.playerId
                 ? winningRiverTarget.riverIndex
                 : undefined}
               visualContext={tileVisualContext}
-            />
-            <Meld3D
+            /></RegionGroup>
+            <RegionGroup tuning={seatState.regionTuning?.melds}><Meld3D
               seatState={seatState}
               hiddenTileKeys={hiddenMeldTileKeys}
               visualContext={tileVisualContext}
-            />
-            <NorthTiles3D seatState={seatState} hiddenKeys={hiddenNorthKeys} />
+            /></RegionGroup>
+            <RegionGroup tuning={seatState.regionTuning?.nuki}><NorthTiles3D seatState={seatState} hiddenKeys={hiddenNorthKeys} /></RegionGroup>
+            {seatState.flowers && <FlowerTiles3D seatState={seatState} />}
           </group>
         ) ] : []; })}
         <SceneLayerReady onReady={onTileLayerReady} />

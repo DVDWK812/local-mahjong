@@ -1,4 +1,4 @@
-export type MatchMode = 'four' | 'seventeen' | 'xuezhan' | 'sanma';
+export type MatchMode = 'four' | 'seventeen' | 'xuezhan' | 'sanma' | 'guobiao';
 export type TurnClockConfig = { readonly kind: 'unlimited' } | { readonly kind: 'banked'; readonly decisionBaseMs: number; readonly bankPerHandMs: number };
 export type SelectionClockConfig = { readonly kind: 'unlimited' } | { readonly kind: 'fixed'; readonly durationMs: number };
 export interface TimeControlConfig {
@@ -8,7 +8,7 @@ export interface TimeControlConfig {
   readonly preparation?: Readonly<Record<'exchange' | 'missing', SelectionClockConfig>>;
 }
 export const TIME_LIMITS = { baseMaxMs: 300_000, bankMaxMs: 3_600_000, selectionMaxMs: 3_600_000 } as const;
-export const INFRA_V1_ENABLED = { four: true, seventeen: true, xuezhan: true, sanma: true } as const;
+export const INFRA_V1_ENABLED = { four: true, seventeen: true, xuezhan: true, sanma: true, guobiao: true } as const;
 export const SELECTION_MINUTES = [1, 2, 3, 5] as const;
 /** Rollout applies to new matches only; restoring an existing snapshot bypasses this switch. */
 export function newMatchTimeControl(input: TimeControlConfig, mode: MatchMode): TimeControlConfig {

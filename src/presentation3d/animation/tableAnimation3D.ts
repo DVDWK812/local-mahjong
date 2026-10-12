@@ -1,3 +1,5 @@
+import { Vector3 } from 'three';
+import { tuneAnimationMotion, type MotionTuning, type RotationQuaternion } from './regionAnimationTuning';
 import type {
   NorthCommittedPresentationEvent,
   MeldDeclaredPresentationEvent,
@@ -34,6 +36,7 @@ export type TableAnimation3DAction =
   | MeldDeclaredPresentationEvent;
 
 export type TransientTile3DPlan = Readonly<{
+  tuning?: MotionTuning;
   key: string;
   tile?: TileDefinition;
   faceState: TileFaceState;
@@ -49,6 +52,7 @@ export type TransientTile3DPlan = Readonly<{
 }>; 
 
 export type TableAnimation3DPlan = Readonly<{
+  tuning?: MotionTuning;
   localDiscardMotion?: import('./localDiscardMotion').LocalDiscardMotion;
   handSnapshot?: HandPresentationSnapshot;
   action: TableAnimation3DAction;
@@ -91,6 +95,7 @@ export type LocalHandAnimation3DState = Readonly<{
 }>;
 
 export type TableAnimation3DMotion = Readonly<{
+  tileQuaternion?: RotationQuaternion;
   handPosition: WorldPoint3D;
   tilePosition: WorldPoint3D;
   tileRotationX: number;
@@ -120,7 +125,17 @@ export function getTableAnimation3DHoldMs(action: TableAnimation3DAction): numbe
     : TABLE_ANIMATION_3D_CADENCE.meldHoldMs;
 }
 
-export function resolveTableAnimation3DPlan(
+export function resolveTableAnimation3DPlan(action: TableAnimation3DAction, sceneState: OccupiedTableSceneState, sourceStore: DiscardSource3DStore, sessionKey: string): TableAnimation3DPlan | null {
+  const plan = resolveBaselinePlan(action, sceneState, sourceStore, sessionKey);
+  if (!plan) return null;
+  const regions = sceneState.seats[plan.seat]?.regionTuning;
+  if (!regions) return plan;
+  const destination = action.type === 'north_committed' ? regions.nuki : action.type === 'meld_declared' ? regions.melds : action.type === 'tile_discarded' ? regions.river : action.type === 'tile_drawn' ? regions.hand : undefined;
+  const tuning = { source: regions.hand, destination };
+  return { ...plan, tuning, transientTiles: plan.transientTiles?.map(tile => ({ ...tile, tuning })) };
+}
+
+function resolveBaselinePlan(
   action: TableAnimation3DAction,
   sceneState: OccupiedTableSceneState,
   sourceStore: DiscardSource3DStore,
@@ -135,7 +150,7 @@ export function resolveTableAnimation3DPlan(
     const index = seatState.north?.findIndex(t => t.tile?.id === action.tile.id && t.key.endsWith(action.tile.instanceId)) ?? -1;
     if (index < 0) return null;
     const source = getHandTileTransform(seat, Math.max(0, action.sourceIndex), action.sourceCount, false);
-    const destination = northTileTransform(seat, index);
+    const destination = northTileTransform(seat, index, seatState.northLane);
     return { action, seat, entry: outwardPoint(seat, source.position, ENTRY_DISTANCE), source: source.position, destination: destination.position,
       sourceRotationX: source.rotationX, sourceRotationY: source.rotationY, destinationRotationX: 0, destinationRotationY: destination.rotationY,
       sourceScale: getHandTileScale(seat), destinationScale: TABLE_PRESENTATION_TUNING.tileScale.meld, tile: action.tile, faceState: 'face-up',
@@ -287,7 +302,14 @@ export function resolveTableAnimation3DPlan(
   };
 }
 
-export function resolveTransientTile3DMotion(
+export function resolveTransientTile3DMotion(tile: TransientTile3DPlan, phase: HandAnimationPhase, progress: number): ReturnType<typeof resolveBaselineTransientMotion> & { quaternion?: RotationQuaternion } {
+  const motion = resolveBaselineTransientMotion(tile, phase, progress);
+  if (!tile.tuning) return motion;
+  const tuned = tuneAnimationMotion(motion.position, motion.rotationY, motion.tileScale, tile.tuning, phase, progress);
+  return { ...motion, position: tuned.position, quaternion: tuned.quaternion, tileScale: tuned.scale };
+}
+
+function resolveBaselineTransientMotion(
   tile: TransientTile3DPlan,
   phase: HandAnimationPhase,
   progress: number,
@@ -322,7 +344,15 @@ export function resolveTransientTile3DMotion(
   return { position: tile.destination, rotationX: tile.destinationRotationX, rotationY: tile.destinationRotationY, tileScale: tile.destinationScale, visible: false };
 }
 
-export function resolveTableAnimation3DMotion(
+export function resolveTableAnimation3DMotion(plan: TableAnimation3DPlan, phase: HandAnimationPhase, progress: number): TableAnimation3DMotion {
+  const motion = resolveBaselineMotion(plan, phase, progress);
+  if (!plan.tuning) return motion;
+  const tuned = tuneAnimationMotion(motion.tilePosition, motion.tileRotationY, motion.tileScale, plan.tuning, phase, progress);
+  return { ...motion, tilePosition: tuned.position, tileQuaternion: tuned.quaternion, tileScale: tuned.scale,
+    handPosition: new Vector3(...motion.handPosition).applyMatrix4(tuned.matrix).toArray() };
+}
+
+function resolveBaselineMotion(
   plan: TableAnimation3DPlan,
   phase: HandAnimationPhase,
   progress: number,

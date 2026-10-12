@@ -23,6 +23,7 @@ export const VOICE_EVENT_PRIORITIES = {
 export type VoiceEventKey = keyof typeof VOICE_EVENT_PRIORITIES;
 
 export interface VoiceEvent {
+  readonly mode?: 'guobiao';
   readonly eventId: string;
   readonly key: VoiceEventKey;
   readonly actorId?: string;
@@ -31,8 +32,9 @@ export interface VoiceEvent {
 
 /** Converts confirmed presentation events to one mutually exclusive semantic VoiceEvent. */
 export function voiceEventFromPresentation(event: PresentationEvent): VoiceEvent | undefined {
+  if (event.type === 'guobiao_settled') return { ...createVoiceEvent(event.eventId, event.outcome === 'draw' ? 'game.draw' : `action.${event.outcome}`, event.playerId), mode: 'guobiao' };
   if (event.type === 'north_declared') return createVoiceEvent(event.declarationId, 'action.nuki', event.playerId);
-  if (event.type === 'tile_discarded') return createVoiceEvent(event.eventId, voiceKeyForTile(event.tile), event.playerId);
+  if (event.type === 'tile_discarded') return { ...createVoiceEvent(event.eventId, voiceKeyForTile(event.tile), event.playerId), ...(event.mode ? { mode: event.mode } : {}) };
   if (event.type === 'riichi_declared') return createVoiceEvent(event.eventId, event.kind === 'double-riichi' ? 'action.double_riichi' : 'action.riichi', event.playerId);
   if (event.type === 'meld_declared') {
     const key: VoiceEventKey = event.meldType !== 'kan'
@@ -40,7 +42,7 @@ export function voiceEventFromPresentation(event: PresentationEvent): VoiceEvent
       : event.kanType === 'ankan' ? 'action.ankan'
         : event.kanType === 'kakan' ? 'action.kakan'
           : 'action.kan';
-    return createVoiceEvent(event.eventId, key, event.playerId);
+    return { ...createVoiceEvent(event.eventId, key, event.playerId), ...(event.mode ? { mode: event.mode } : {}) };
   }
   // A winning hand is narrated only by its subsequent win_scored sequence. Keeping
   // win_declared out of the realtime channel prevents a duplicate action call.

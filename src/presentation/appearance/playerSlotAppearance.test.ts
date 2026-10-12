@@ -14,7 +14,7 @@ describe('player-owned appearance selection', () => {
     for (const slot of PLAYER_APPEARANCE_SLOTS) store.select(slot, {
       tileBack: { texture: { kind: 'local', assetId: `back-${slot}` }, sideColor: ['#ff0000', '#0000ff', '#008000', '#800080'][slot] },
       riichiStick: { kind: 'local', assetId: `stick-${slot}` },
-      handAppearance: ['female_2', 'robot', 'cyberpunk', 'gloved'][slot] as 'female_2' | 'robot' | 'cyberpunk' | 'gloved',
+      handAppearance: ['female_2', 'robot', 'cyberpunk', 'plush_hand'][slot] as 'female_2' | 'robot' | 'cyberpunk' | 'plush_hand',
     });
     const players = loadPlayerSlotAppearances(storage);
     expect(players).toEqual(store.getSnapshot());
@@ -61,15 +61,15 @@ describe('player-owned appearance selection', () => {
     store.select(0, { ...store.getSnapshot()[0], handAppearance: 'female_2' });
     store.select(1, { ...store.getSnapshot()[1], handAppearance: 'robot' });
     store.select(2, { ...store.getSnapshot()[2], handAppearance: 'cyberpunk' });
-    store.select(3, { ...store.getSnapshot()[3], handAppearance: 'gloved' });
+    store.select(3, { ...store.getSnapshot()[3], handAppearance: 'plush_hand' });
     const players = store.getSnapshot();
     expect([0, 1, 2, 3].map(id => resolveHandPackForPlayer(id, players, global).id))
-      .toEqual(['female_2', 'robot', 'cyberpunk', 'gloved']);
+      .toEqual(['female_2', 'robot', 'cyberpunk', 'plush_hand']);
     for (const rotatedSeatOwners of [[0, 1, 2, 3], [1, 2, 3, 0], [3, 0, 1, 2]]) {
       expect(rotatedSeatOwners.map(id => resolveHandPackForPlayer(id, players, global).id))
-        .toEqual(rotatedSeatOwners.map(id => ['female_2', 'robot', 'cyberpunk', 'gloved'][id]));
+        .toEqual(rotatedSeatOwners.map(id => ['female_2', 'robot', 'cyberpunk', 'plush_hand'][id]));
     }
-    expect(resolveEffectiveHandPackIds([0, 1, 2, 3], players, global)).toEqual(['female_2', 'robot', 'cyberpunk', 'gloved']);
+    expect(resolveEffectiveHandPackIds([0, 1, 2, 3], players, global)).toEqual(['female_2', 'robot', 'cyberpunk', 'plush_hand']);
     expect(resolveEffectiveHandPackIds([1, 1, 1, 1], players, global)).toEqual(['robot']);
   });
 });

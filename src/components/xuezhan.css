@@ -15,7 +15,7 @@
 .xz-result table{width:100%;text-align:left;border-collapse:collapse}.xz-result td,.xz-result th{padding:6px;border-bottom:1px solid #ffffff30}.xz-result h3{font-size:14px;margin:12px 0 6px}.xz-winner{padding:8px 0;border-bottom:1px solid #ffffff30}.xz-winner summary{cursor:pointer;line-height:1.6}.xz-game .xz-result-collapsed{width:auto;right:16px;transform:none}.xz-win-summary{max-height:48px;overflow:auto;pointer-events:auto}
 
 /* Shared toolbar and tile appearance remain authoritative. Only XZ composition lives here. */
-.xz-game > .game-top-bar{position:relative;grid-template-columns:minmax(0,1fr) auto;align-self:start}
+.xz-game > .game-top-bar{position:relative;align-self:start}
 .xz-game .xz-scene{top:58px;height:calc(100% - 58px)}
 .xz-center{grid-area:center;position:relative;width:100%;height:100%}
 .xz-center .table-center{width:100%;height:100%}
@@ -29,3 +29,5 @@
 .xz-game .xz-controls>p{position:absolute;bottom:142px;left:50%;width:max-content;max-width:45vw;text-align:left}
 
 .xz-center-rank{display:block;font-size:20px}
+
+.xz-isolated-actions{position:absolute;z-index:31;right:8px;top:62px;display:flex;gap:8px;align-items:center;background:#12362eed;padding:5px;border-radius:5px}
