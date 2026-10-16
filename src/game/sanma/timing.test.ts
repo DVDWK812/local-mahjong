@@ -69,7 +69,7 @@ describe('runtime full matches with policy audit', () => {
       const sources = r.audit.reduce<Record<string, number>>((a, row) => { a[row.source] = (a[row.source] ?? 0) + 1; return a; }, {});
       expect(sources['ai-policy']).toBeGreaterThan(0); expect(sources.timeout ?? 0).toBe(0);
       runs.push({ length, payment, short, seed: 308, points: [config.startingPoints, config.targetPoints, config.returnPoints], sources, steps: r.state.sequence });
-      mkdirSync('artifacts/sanma-closeout', { recursive: true }); writeFileSync('artifacts/sanma-closeout/runtime-runs.json', JSON.stringify(runs, null, 2)); r.dispose();
+      mkdirSync('test-results/sanma-closeout', { recursive: true }); writeFileSync('test-results/sanma-closeout/runtime-runs.json', JSON.stringify(runs, null, 2)); r.dispose();
     }, 120000);
   }
 });

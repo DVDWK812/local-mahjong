@@ -10,7 +10,7 @@ describe('SANMA-5 固定seed整场（同一合法命令接口）', () => {
       expect(result.actionSources.policy).toBeGreaterThan(0); expect(result.actionSources.timeout).toBe(0);
       expect(result.state.completed).toBe(true); expect(result.scores.reduce((a, b) => a + b)).toBe(105000);
       const { state: _, ...record } = result; rows.push(record);
-      mkdirSync('artifacts/sanma-closeout', { recursive: true }); writeFileSync('artifacts/sanma-closeout/long-run-results.json', JSON.stringify(rows, null, 2));
+      mkdirSync('test-results/sanma-closeout', { recursive: true }); writeFileSync('test-results/sanma-closeout/long-run-results.json', JSON.stringify(rows, null, 2));
     }, 120000);
   }
 });

@@ -11,3 +11,7 @@ src/music/voice_lines/*/voice_lines.json
 # Existing tracked evidence remains tracked; approved baselines stay on disk.
 /artifacts/
 /.git-upload-audit-local/
+/test-results/
+
+# 本机历史清理记录；保留在本地，不纳入版本库。
+/docs/project-capacity-cleanup-report.md
